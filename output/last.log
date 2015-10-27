@@ -1,28 +1,29 @@
-[        15][                                        main.cpp:                 WinMain@  68]	~ Application start
-[        15][                                        main.cpp:                 WinMain@ 101]	Command line: " "
-[        15][                               asyncluastate.cpp:              threadfunc@  25]	~ Lua thread started
-[        93][                                      window.cpp:              initlstate@ 611]	~ Boot script location: .\scripts\system\boot.lua
-[       109][                      .\scripts\system\input.lua:                        @  53]	point input enabled
-[       109][                      .\scripts\system\input.lua:                        @  80]	keyboard input enabled
-[       703][                                      shader.cpp:        setshadersources@ 233]	0 tex -> 0
-[       718][                                      shader.cpp:        setshadersources@ 248]	1 -> -1
-[       718][                                      shader.cpp:        setshadersources@ 248]	2 -> -1
-[       718][                                      shader.cpp:        setshadersources@ 248]	3 -> -1
-[       718][                                      shader.cpp:        setshadersources@ 248]	4 -> -1
-[       718][                                      shader.cpp:        setshadersources@ 248]	5 -> -1
-[       718][                                      shader.cpp:        setshadersources@ 248]	6 -> -1
-[       718][                                      shader.cpp:        setshadersources@ 248]	7 -> -1
-[      9448][                               asyncluastate.cpp:                    join@  64]	~ Waiting for the Lua thread...
-[      9448][                      .\scripts\system\input.lua:                      hf@  35]	-> destroy
-[      9495][                               asyncluastate.cpp:              threadfunc@  44]	~ Lua thread finished
-[      9495][                               asyncluastate.cpp:                    join@  66]	~ Lua thread joined
-[      9495][                                        main.cpp:                 WinMain@ 107]	~ Application end
-[      9495][                           display.cpp:94( paint graphics::Resource::cleanup )]	avg:    0.000491ms, min:    0.000170ms, max:    0.000170ms (932 samples)
-[      9495][                                     display.cpp:94( paint m_device->Present )]	avg:    8.211770ms, min:    0.470612ms, max:   23.470612ms (932 samples)
-[      9495][                                    display.cpp:94( paint m_device->EndScene )]	avg:    0.000666ms, min:    0.000302ms, max:    0.000302ms (932 samples)
-[      9495][                                          display.cpp:94( paint shape->paint )]	avg:    0.137174ms, min:    0.068784ms, max:    6.068784ms (932 samples)
-[      9495][                                        display.cpp:94( paint shape->advance )]	avg:    0.015559ms, min:    0.001926ms, max:    5.001926ms (932 samples)
-[      9495][                                  display.cpp:94( paint m_device->BeginScene )]	avg:    0.005376ms, min:    0.001416ms, max:    0.001416ms (932 samples)
-[      9495][                                                       display.cpp:94( paint )]	avg:    8.373552ms, min:    0.581842ms, max:   23.581842ms (932 samples)
-[      9511]
-[      9511]Log finished
+[        63][                                        main.cpp:                 WinMain@  68]	~ Application start
+[        64][                                        main.cpp:                 WinMain@ 101]	Command line: " "
+[        66][                               asyncluastate.cpp:              threadfunc@  25]	~ Lua thread started
+[       184][                                      window.cpp:              initlstate@ 611]	~ Boot script location: .\scripts\system\boot.lua
+[       355][                      .\scripts\system\input.lua:                        @  53]	point input enabled
+[       356][                      .\scripts\system\input.lua:                        @  80]	keyboard input enabled
+[      1611][                                      shader.cpp:        setshadersources@ 233]	0 tex -> 0
+[      1612][                                      shader.cpp:        setshadersources@ 248]	1 -> -1
+[      1613][                                      shader.cpp:        setshadersources@ 248]	2 -> -1
+[      1613][                                      shader.cpp:        setshadersources@ 248]	3 -> -1
+[      1617][                                      shader.cpp:        setshadersources@ 248]	4 -> -1
+[      1622][                                      shader.cpp:        setshadersources@ 248]	5 -> -1
+[      1629][                                      shader.cpp:        setshadersources@ 248]	6 -> -1
+[      1634][                                      shader.cpp:        setshadersources@ 248]	7 -> -1
+[      7550][                               asyncluastate.cpp:                    join@  64]	~ Waiting for the Lua thread...
+[      7551][                      .\scripts\system\input.lua:                      hf@  35]	-> destroy
+[      7604][                               asyncluastate.cpp:              threadfunc@  44]	~ Lua thread finished
+[      7606][                               asyncluastate.cpp:                    join@  66]	~ Lua thread joined
+[      7618][                                        main.cpp:                 WinMain@ 107]	~ Application end
+[      7621][                                    display.cpp:94( paint m_device->EndScene )]	avg:    0.000599ms, min:    0.000288ms, max:    0.000288ms (631 samples)
+[      7631][                                          display.cpp:94( paint shape->paint )]	avg:    0.234095ms, min:    0.074707ms, max:   65.074707ms (631 samples)
+[      7635][                                        display.cpp:94( paint shape->advance )]	avg:    0.302813ms, min:    0.003169ms, max:  184.003169ms (631 samples)
+[      7645][                                  display.cpp:94( paint m_device->BeginScene )]	avg:    0.005697ms, min:    0.001657ms, max:    0.001657ms (631 samples)
+[      7649][                           display.cpp:94( paint graphics::Resource::cleanup )]	avg:    0.000489ms, min:    0.000168ms, max:    0.000168ms (686 samples)
+[      7653][                                     display.cpp:94( paint m_device->Present )]	avg:    8.151933ms, min:    0.491553ms, max:   16.491553ms (686 samples)
+[      7663][                                       display.cpp:94( paint m_device->Clear )]	avg:    0.016498ms, min:    0.004153ms, max:    0.004153ms (55 samples)
+[      7667][                                                       display.cpp:94( paint )]	avg:    8.655910ms, min:    0.517883ms, max:  251.517883ms (686 samples)
+[      7677]
+[      7679]Log finished
