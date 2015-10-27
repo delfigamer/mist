@@ -35,3 +35,6 @@
 *.bash
 *.bat
 *.sh
+
+# Log files
+*.log
