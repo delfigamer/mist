@@ -1,0 +1,12 @@
+local ds = (_PLATFORM == 'win') and '\\' or '/'
+
+bootscript = _PATH .. 'scripts' .. ds .. 'system' .. ds .. 'boot.lua'
+if _CONSOLE then
+	indexmodule = 'index-cmd'
+else
+	indexmodule = 'index-test'
+	silent = false
+	if _PLATFORM == 'win' then
+		windowsize={1280, 720}
+	end
+end

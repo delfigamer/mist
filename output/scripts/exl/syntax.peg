@@ -1,0 +1,134 @@
+cc.anychar := $any;
+cc.letter := [A-Za-z_];
+cc.decdigit := [0-9];
+cc.hexdigit := [0-9A-Fa-f];
+cc.letterordigit := [0-9A-Za-z_];
+cc.whitespace := [\00-\20];
+cc.whitespace_line := [\00-\09\0b\0c\0e-\20];
+cc.newline := [\0a\0d];
+
+blank := ~[] > *cc.whitespace;
+identifier := ~keyword < $concat cc.letter : *cc.letterordigit;
+
+$pr keyword;
+
+$function kw;
+	rule := $arg 1 > ~cc.letterordigit;
+	keyword <= rule;
+	$return rule;
+$end;
+
+kw.const := $call kw { 'const' };
+kw.end := $call kw { 'end' };
+kw.function := $call kw { 'function' };
+kw.unit := $call kw { 'unit' };
+kw.local := $call kw { 'local' };
+
+$pr expression;
+$pr expr.simple;
+expr.identref {
+	target = identifier,
+};
+expr.simple <= expr.identref;
+expr.int.dec {
+	sign = ?('-' / '+'),
+	whole = $concat %cc.decdigit,
+};
+expr.int.hex {
+	sign = ?('-' / '+'),
+	'0x' / '0X',
+	whole = $concat %cc.hexdigit,
+};
+expr.int := expr.int.hex / expr.int.dec;
+expr.simple <= expr.int;
+$pr expr.string.element;
+expr.string.element <= expr.string.element.char {
+	char = [~\\\0a],
+};
+expr.string.element <= expr.string.element.special {
+	'\',
+	value = [nrt'"\\\0a],
+};
+expr.string.element <= expr.string.element.hex {
+	'\x',
+	value = $concat $assert cc.hexdigit $assert cc.hexdigit,
+};
+expr.string.element <= expr.string.element.dec {
+	'\',
+	value = $concat cc.decdigit : ?cc.decdigit : ?cc.decdigit,
+};
+expr.string.element <= expr.string.element.u16 {
+	'\u',
+	value = $concat
+		$assert cc.hexdigit $assert cc.hexdigit
+		$assert cc.hexdigit $assert cc.hexdigit,
+};
+expr.string.element <= expr.string.element.u32 {
+	'\U',
+	value = $concat
+		$assert cc.hexdigit $assert cc.hexdigit
+		$assert cc.hexdigit $assert cc.hexdigit
+		$assert cc.hexdigit $assert cc.hexdigit
+		$assert cc.hexdigit $assert cc.hexdigit,
+};
+expr.string.element < 10 = '\' $error 'invalid escape sequence';
+$pr expr.string;
+expr.string <= expr.string.dquote {
+	'"',
+	content = *(~'"' < $assert expr.string.element),
+	$assert '"',
+};
+expr.string <= expr.string.squote {
+	'''',
+	content = *(~'''' < $assert expr.string.element),
+	$assert '''',
+};
+expr.simple <= expr.string;
+expr.simple <= '(' blank < expression > blank ')';
+expression <= $binary expr.sum {
+	expr.simple,
+	blank < ('+' / '-') > blank,
+	expr.simple,
+};
+
+statement_error := $error 'statement expected';
+
+ssep := blank ?(';' blank);
+
+$pr definition;
+definition <= def.const {
+	kw.const blank,
+	name = $assert identifier,
+	blank $assert '=' blank,
+	value = $assert expression,
+};
+definition <= def.function {
+	kw.function blank,
+	name = $assert identifier,
+	ssep,
+	body = body,
+	kw.end,
+};
+definition <= def.local {
+	kw.local blank,
+	type = $assert expression,
+	blank,
+	name = $assert identifier,
+};
+
+$pr statement;
+statement <= stat.assignment {
+	target = expression,
+	blank '=' blank,
+	source = expression,
+};
+statement < 10 = stat.i {
+	i = identifier,
+};
+
+body {
+	definitions = *(definition > ssep),
+	statements = *(statement > ssep),
+	&kw.end / statement_error };
+
+$return blank < body > blank;

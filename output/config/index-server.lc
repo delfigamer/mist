@@ -1,0 +1,36 @@
+local dimscheme = {
+	con_lineheight = 14,
+	con_linecount = 40,
+	margin_bottom = 10,
+	margin_left = 6,
+	margin_right = 6,
+}
+local colorscheme = {
+	text = {1, 1, 1, 1},
+}
+local default_font = 'font.verdana14'
+
+gilayout = {
+	{
+		class = 'linearray',
+		name = 'con',
+		position = {
+			left = dimscheme.margin_left,
+			bottom = dimscheme.margin_bottom + dimscheme.con_lineheight,
+			right = dimscheme.margin_right,
+			height = dimscheme.con_lineheight * dimscheme.con_linecount,
+		},
+		lineheight = dimscheme.con_lineheight,
+		color = colorscheme.text,
+		fontname = default_font,
+	},
+	{
+		class = 'label',
+		name = 'input',
+		basex = dimscheme.margin_left,
+		basey = dimscheme.margin_bottom,
+		color = colorscheme.text,
+		fontname = default_font,
+		text = '',
+	},
+}

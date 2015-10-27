@@ -1,0 +1,178 @@
+cc.any := [\00-\ff];
+cc.letter := [A-Za-z_];
+cc.decdigit := [0-9];
+cc.hexdigit := [0-9a-fA-F];
+cc.letterordigit := [0-9A-Za-z_];
+cc.blank := [\00-\20];
+cc.slblank := [\00-\09\0b\0c\0e-\20];
+
+comment.sl := '--' *(~[\0a\0d] < cc.any) < ~[];
+comment := comment.sl;
+
+blank := *(comment / cc.blank) < ~[];
+blank.sl := *(comment.sl / cc.slblank) < ~[];
+blank.o := %(comment / cc.blank) < ~[];
+blank.osl := %(comment.sl / cc.slblank) < ~[];
+
+$pr sd;
+sd < 10 = blank;
+sd <= blank ';' blank;
+
+$pr kw;
+
+$function kw_new;
+	rule := $arg 1 > ~cc.letterordigit;
+	kw <= rule;
+	$return rule;
+$end;
+
+kw.end := $call kw_new {'end'};
+kw.const := $call kw_new {'const'};
+kw.function := $call kw_new {'function'};
+kw.nil := $call kw_new {'nil'};
+kw.private := $call kw_new {'private'};
+kw.public := $call kw_new {'public'};
+kw.type := $call kw_new {'type'};
+kw.unit := $call kw_new {'unit'};
+kw.var := $call kw_new {'var'};
+kw.void := $call kw_new {'void'};
+kw.__debug_typeof := $call kw_new {'__debug_typeof'};
+
+identifier := ~kw < $solid (cc.letter : *cc.letterordigit);
+
+function.farg {
+	type = type,
+	name = ?(blank < identifier)};
+function.aarg {
+	expr = expression};
+
+$function arglist;
+	empty := $arg 3 blank $arg 4 < ~[] : ~[];
+	full := $arg 3 blank <
+		$assert $arg 1 :
+		*(blank $arg 2 blank < $assert $arg 1) >
+		blank $assert $arg 4;
+	$return empty / full;
+$end;
+
+function.farglist {
+	args = $call arglist {function.farg, ',', '(', ')'}};
+
+function.aarglist {
+	args = $call arglist {function.aarg, ',', '(', ')'}};
+
+$function body.content;
+	$return *(~($arg 2) < $assert $arg 1 > $assert sd);
+$end;
+
+function.body := block {
+	body = $call body.content {definition, statement / kw.end} :
+		$call body.content {statement, kw.end}};
+
+$pr def;
+definition := def;
+
+def <= def.const {
+	kw.const blank,
+	name = $assert identifier,
+	blank $assert '=' blank,
+	value = $assert expression};
+def <= def.var {
+	kw.var blank,
+	type = $assert type,
+	blank,
+	name = $assert identifier};
+def < -10 = def.var {
+	kw.var blank,
+	type = $assert type,
+	blank,
+	name = $assert identifier,
+	blank '=' blank,
+	value = $assert expression};
+
+$pr stat;
+statement := stat;
+
+stat <= stat.assignment {
+	lvalue = expression,
+	blank '=' blank,
+	rvalue = $assert expression};
+
+$pr expr;
+expression := expr;
+
+expr.decint {
+	sign = $solid ?('-' / '+'),
+	digits = $solid %cc.decdigit,
+	~[eE]};
+expr.int := expr.decint;
+expr <= expr.int;
+expr.nil {
+	kw.nil};
+expr <= expr.nil;
+$pr expr.indexable;
+expr.identifier {
+	name = identifier};
+expr.indexable <= expr.identifier;
+expr.index.ident {
+	name = identifier};
+expr.index.index := expr.index.ident;
+expr.index {
+	base = expr.indexable,
+	indices = %(blank '.' blank < expr.index.index)};
+expr <= expr.index;
+expr.function {
+	kw.function blank,
+	rettype = $assert type,
+	blank,
+	arglist = $assert function.farglist,
+	blank,
+	body = function.body,
+	kw.end};
+expr <= expr.function;
+$pr expr.callable;
+expr.callable <= expr.indexable;
+expr.callable < -10 = expr.index;
+expr <= expr.callable;
+expr.call {
+	target = expr.callable,
+	blank,
+	arglist = function.aarglist};
+expr < -10 = expr.call;
+expr.type {
+	kw.type blank,
+	target = $assert type};
+expr <= expr.type;
+expr.debug_typeof {
+	kw.__debug_typeof blank,
+	target = $assert expression};
+expr <= expr.debug_typeof;
+
+$pr type;
+type <= expr.nil;
+type <= expr.identifier;
+type < -10 = expr.index;
+type.function {
+	kw.function blank,
+	rettype = $assert type,
+	blank,
+	arglist = $assert function.farglist};
+type <= type.function;
+type.void := kw.void < ~[];
+
+unit.public := block {
+	kw.public $assert sd,
+	body = $call body.content {definition, kw.end / kw.private}};
+unit.private := block {
+	kw.private $assert sd,
+	body = $call body.content {definition, statement / kw.end} :
+		$call body.content {statement, kw.end}};
+unit {
+	kw.unit blank,
+	name = $assert identifier,
+	$assert sd,
+	public = $assert unit.public,
+	private = $assert unit.private,
+	$assert kw.end ?sd};
+
+$return unit;

@@ -1,0 +1,3 @@
+local modname = ...
+local window = require('host.window')
+package.modtable(modname, window:getinfo())

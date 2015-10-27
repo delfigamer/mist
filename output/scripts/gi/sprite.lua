@@ -1,0 +1,3 @@
+local modname = ...
+local object = require('base.object')
+

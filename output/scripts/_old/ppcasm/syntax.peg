@@ -1,0 +1,320 @@
+cc.letter := [A-Za-z_];
+cc.decdigit := [0-9];
+cc.hexdigit := [0-9A-Fa-f];
+cc.bindigit := [01];
+cc.letterordigit := [0-9A-Za-z_];
+cc.any := [\00-\ff];
+cc.whitespace := [\00-\09\0b\0c\0e-\20];
+cc.newline := [\0a\0d];
+
+blank := *cc.whitespace < ~[];
+oblank := %cc.whitespace < ~[];
+
+comment := '#' *( ~cc.newline < cc.any ) < ~[];
+
+identifier := $solid ( cc.letter *cc.letterordigit );
+
+decint {
+	sign = ?( '+' / '-' ),
+	digits = $solid %cc.decdigit
+};
+hexint {
+	sign = ?( '+' / '-' ),
+	'0X' / '0x',
+	digits = $solid %cc.hexdigit
+};
+binint {
+	sign = ?( '+' / '-' ),
+	'0B' / '0b',
+	digits = $solid %cc.bindigit
+};
+labelref {
+	target = identifier
+};
+int := hexint / binint / decint / labelref;
+
+label := identifier > blank ':';
+
+rindex {
+	index =
+		'10' / '11' / '12' / '13' / '14' / '15' / '16' / '17' / '18' / '19' /
+		'20' / '21' / '22' / '23' / '24' / '25' / '26' / '27' / '28' / '29' /
+		'30' / '31' /
+		 '0' /  '1' /  '2' /  '3' /  '4' /  '5' /  '6' /  '7' /  '8' /  '9'
+};
+crindex { '0' / '1' / '2' / '3' / '4' / '5' / '6' / '7' };
+
+gpr := ?'r' < rindex;
+fpr := ?'f' < rindex;
+cr := ?'cr' < crindex;
+
+aa { ?'a' };
+lk { ?'l' };
+oe { ?'o' };
+rc { ?'.' };
+
+base := '(' blank < gpr > blank ')';
+
+condition { 'lt' / 'le' / 'eq' / 'ge' / 'gt' / 'nl' / 'ne' / 'ng' / 'so' / 'ns' };
+decrement { 'dnz' / 'dz' };
+spr { 'xer' / 'lr' / 'ctr' };
+l { 'w' / 'd' };
+cond_only := dec_cond {
+	decrement = ~[],
+	condition = condition
+};
+dec_only := dec_cond {
+	decrement = decrement,
+	condition = ~[]
+};
+dec_cond := dec_cond {
+	decrement = decrement,
+	condition = condition
+};
+
+$function oe_rc_r_r_r;
+	$return $narg 1 {
+		$arg 2,
+		oe = oe,
+		rc = rc,
+		oblank,
+		rt = $assert gpr,
+		blank $assert ',' blank,
+		ra = $assert gpr,
+		blank $assert ',' blank,
+		rb = $assert gpr
+	};
+$end;
+
+$function rc_r_r_r;
+	$return $narg 1 {
+		$arg 2,
+		rc = rc,
+		oblank,
+		rt = $assert gpr,
+		blank $assert ',' blank,
+		ra = $assert gpr,
+		blank $assert ',' blank,
+		rb = $assert gpr
+	};
+$end;
+
+$function l_cr_r_r;
+	$return $narg 1 {
+		$arg 2,
+		l = l,
+		oblank,
+		cr = cr,
+		blank $assert ',' blank,
+		ra = $assert gpr,
+		blank ',' blank,
+		rb = $assert gpr
+	} / $narg 1 {
+		$arg 2,
+		l = l,
+		oblank,
+		ra = $assert gpr,
+		blank $assert ',' blank,
+		rb = $assert gpr
+	};
+$end;
+
+$function r_r_i;
+	$return $narg 1 {
+		$arg 2 oblank,
+		rt = $assert gpr,
+		blank $assert ',' blank,
+		ra = $assert gpr,
+		blank $assert ',' blank,
+		i = $assert int
+	};
+$end;
+
+$function l_cr_r_i;
+	$return $narg 1 {
+		$arg 2,
+		l = l,
+		$arg 3 oblank,
+		cr = cr,
+		blank $assert ',' blank,
+		ra = $assert gpr,
+		blank ',' blank,
+		i = $assert int
+	} / $narg 1 {
+		$arg 2,
+		l = l,
+		$arg 3 oblank,
+		ra = $assert gpr,
+		blank $assert ',' blank,
+		i = $assert int
+	};
+$end;
+
+$function r_i_base;
+	$return $narg 1 {
+		$arg 2 oblank,
+		rt = $assert gpr,
+		blank $assert ',' blank,
+		i = $assert int,
+		blank,
+		base = $assert base
+	};
+$end;
+
+$function rc_r_r;
+	$return $narg 1 {
+		$arg 2,
+		rc = rc,
+		oblank,
+		rt = $assert gpr,
+		blank $assert ',' blank,
+		ra = $assert gpr
+	};
+$end;
+
+$function r_i;
+	$return $narg 1 {
+		$arg 2 oblank,
+		rt = $assert gpr,
+		blank $assert ',' blank,
+		i = $assert int
+	};
+$end;
+
+$function spr_r;
+	$return $narg 1 {
+		$arg 2,
+		spr = spr,
+		oblank,
+		rt = $assert gpr
+	};
+$end;
+
+$function b_lk_aa_addr;
+	$return $narg 1 {
+		$arg 2,
+		lk = lk,
+		aa = aa,
+		oblank,
+		address = $assert int
+	};
+$end;
+
+$function b_dec_cond_lk_aa_addr;
+	$return $narg 1 {
+		$arg 2,
+		dec_cond = dec_only,
+		lk = lk,
+		aa = aa,
+		oblank,
+		address = $assert int
+	} /  $narg 1 {
+		$arg 2,
+		dec_cond = dec_cond / cond_only,
+		lk = lk,
+		aa = aa,
+		oblank,
+		address = $assert int,
+		cr = ?( blank ',' blank < $assert cr )
+	};
+$end;
+
+$function b_dec_cond_lk;
+	$return $narg 1 {
+		$arg 2,
+		dec_cond = dec_only,
+		$arg 3,
+		lk = lk
+	} / $narg 1 {
+		$arg 2,
+		dec_cond = dec_cond / cond_only,
+		$arg 3,
+		lk = lk,
+		cr = ?( oblank < $assert cr )
+	};
+$end;
+
+$function b_cond_lk;
+	$return $narg 1 {
+		$arg 2,
+		bo = cond_only,
+		$arg 3,
+		lk = lk,
+		cr = ?( oblank < $assert cr )
+	};
+$end;
+
+$function b_lk;
+	$return $narg 1 {
+		$arg 2,
+		lk = lk
+	};
+$end;
+
+$function sc;
+	$return $narg 1 {
+		$arg 2 oblank,
+		lev = ?int
+	};
+$end;
+
+$pr instruction;
+instruction <= blank &( cc.newline / '#' ) < ~[];
+instruction <= $call r_r_i { $name addis, 'addis' };
+instruction <= $call r_r_i { $name addi, 'addi' };
+instruction <= $call oe_rc_r_r_r { $name add, 'add' };
+instruction <= $call b_cond_lk { $name bcctr_cond, 'b', 'ctr' };
+instruction <= $call b_lk { $name bctr, 'bctr' };
+instruction <= $call b_dec_cond_lk_aa_addr { $name bc_cond, 'b' };
+instruction <= $call b_dec_cond_lk { $name blr_cond, 'b', 'lr' };
+instruction <= $call b_lk { $name blr, 'blr' };
+instruction <= $call b_lk_aa_addr { $name b, 'b' };
+instruction <= $call l_cr_r_i { $name cmpi, 'cmp', 'i' };
+instruction <= $call l_cr_r_i { $name cmpli, 'cmpl', 'i' };
+instruction <= $call l_cr_r_r { $name cmp, 'cmp' };
+instruction <= $call l_cr_r_r { $name cmpl, 'cmpl' };
+instruction <= $call r_i_base { $name lbzu, 'lbzu' };
+instruction <= $call r_i_base { $name lbz, 'lbz' };
+instruction <= $call r_i_base { $name ld, 'ld' };
+instruction <= $call r_i_base { $name ldu, 'ldu' };
+instruction <= $call r_i_base { $name lha, 'lhau' };
+instruction <= $call r_i_base { $name lha, 'lha' };
+instruction <= $call r_i_base { $name lhz, 'lhzu' };
+instruction <= $call r_i_base { $name lhz, 'lhz' };
+instruction <= $call r_i { $name lis, 'lis' };
+instruction <= $call r_i { $name li, 'li' };
+instruction <= $call r_i_base { $name lwa, 'lwa' };
+instruction <= $call r_i_base { $name lwz, 'lwzu' };
+instruction <= $call r_i_base { $name lwz, 'lwz' };
+instruction <= $call spr_r { $name mfspr_ex, 'mf' };
+instruction <= $call rc_r_r { $name mr, 'mr' };
+instruction <= $call spr_r { $name mtspr_ex, 'mt' };
+instruction <= $call r_r_i { $name oris, 'oris' };
+instruction <= $call r_r_i { $name ori, 'ori' };
+instruction <= $call rc_r_r_r { $name or, 'or' };
+instruction <= $call sc { $name sc, 'sc' };
+instruction <= $call r_i_base { $name stdu, 'stdu' };
+instruction <= $call r_i_base { $name std, 'std' };
+instruction <= $call r_i_base { $name stwu, 'stwu' };
+instruction <= $call r_i_base { $name stw, 'stw' };
+instruction <= $call r_r_i { $name subis, 'subis' };
+instruction <= $call r_r_i { $name subi, 'subi' };
+
+instruction <= .long {
+	'.long' oblank,
+	value = $assert int
+};
+
+line {
+	blank,
+	label = ?label,
+	blank,
+	instruction = $assert instruction,
+	blank ?comment
+};
+
+file {
+	lines = *( &cc.any < line > ?cc.newline )
+};
+
+$return file;

@@ -1,0 +1,39 @@
+             0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+         0: ef bf bd ef bf bd ef bf bd ef bf bd ef bf bd ef :                 
+        10: bf bd ef bf bd ef bf bd ef bf bd ef bf bd ef bf :                 
+        20: bd ef bf bd ef bf bd ef bf bd ef bf bd ef bf bd :                 
+        30: ef bf bd ef bf bd ef bf bd ef bf bd ef bf bd ef :                 
+        40: bf bd ef bf bd ef bf bd ef bf bd ef bf bd ef bf :                 
+        50: bd ef bf bd ef bf bd ef bf bd ef bf bd ef bf bd :                 
+        60: ef bf bd ef bf bd ef bf bd ef bf bd ef bf bd ef :                 
+        70: bf bd ef bf bd ef bf bd ef bf bd ef bf bd ef bf :                 
+        80: bd ef bf bd ef bf bd ef bf bd ef bf bd ef bf bd :                 
+        90: ef bf bd ef bf bd ef bf bd ef bf bd ef bf bd ef :                 
+        a0: bf bd ef bf bd ef bf bd ef bf bd ef bf bd ef bf :                 
+        b0: bd ef bf bd ef bf bd ef bf bd ef bf bd ef bf bd :                 
+        c0: ef bf bd ef bf bd ef bf bd ef bf bd ef bf bd ef :                 
+        d0: bf bd ef bf bd ef bf bd ef bf bd ef bf bd ef bf :                 
+        e0: bd ef bf bd ef bf bd ef bf bd ef bf bd ef bf bd :                 
+        f0: ef bf bd ef bf bd ef bf bd ef bf bd ef bf bd ef :                 
+             0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+       100: bf bd ef bf bd ef bf bd ef bf bd ef bf bd ef bf :                 
+       110: bd ef bf bd ef bf bd ef bf bd ef bf bd ef bf bd :                 
+       120: ef bf bd ef bf bd ef bf bd ef bf bd ef bf bd ef :                 
+       130: bf bd ef bf bd ef bf bd ef bf bd ef bf bd ef bf :                 
+       140: bd ef bf bd ef bf bd ef bf bd ef bf bd ef bf bd :                 
+       150: ef bf bd ef bf bd ef bf bd ef bf bd ef bf bd ef :                 
+       160: bf bd ef bf bd ef bf bd ef bf bd ef bf bd ef bf :                 
+       170: bd ef bf bd ef bf bd ef bf bd ef bf bd ef bf bd :                 
+       180: ef bf bd ef bf bd ef bf bd ef bf bd ef bf bd ef :                 
+       190: bf bd ef bf bd ef bf bd ef bf bd ef bf bd ef bf :                 
+       1a0: bd ef bf bd ef bf bd ef bf bd ef bf bd ef bf bd :                 
+       1b0: ef bf bd ef bf bd ef bf bd ef bf bd ef bf bd ef :                 
+       1c0: bf bd ef bf bd ef bf bd ef bf bd ef bf bd ef bf :                 
+       1d0: bd ef bf bd ef bf bd ef bf bd ef bf bd ef bf bd :                 
+       1e0: ef bf bd ef bf bd ef bf bd ef bf bd ef bf bd ef :                 
+       1f0: bf bd ef bf bd ef bf bd ef bf bd ef bf bd ef bf :                 
+             0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+       200: bd ef bf bd ef bf bd ef bf bd ef bf bd ef bf bd :                 
+       210: ef bf bd ef bf bd ef bf bd ef bf bd e7 a7 81 e3 :                 
+       220: 81 af e5 8f af e6 84 9b e3 81 84 e7 8c ab e3 81 :                 
+       230: a7 e3 81 99 7e e3 80 82 00                      :     ~           

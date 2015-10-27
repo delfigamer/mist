@@ -1,0 +1,122 @@
+local dimscheme = {
+	mainmenu_btnwidth = 80,
+	mainmenu_btnheight = 16,
+	mainmenu_btnborder = 1,
+}
+local colorscheme = {
+	face_idle = {0.8, 0.8, 1, 1},
+	face_hover = {0.9, 0.9, 1, 1},
+	face_down = {0.8, 0.8, 0.8, 1},
+	border_idle = {0.8, 0.8, 1, 1},
+	border_hover = {1, 1, 1, 1},
+	border_down = {1, 1, 1, 1},
+	label = {0, 0, 0, 1},
+	text = {1, 1, 1, 1},
+}
+local font_default = 'font.verdana14'
+
+local function option(table, index, value)
+	if table[index] == nil then
+		table[index] = value
+	end
+end
+
+local function rectangle(it)
+	option(it, 'class', 'rectangle')
+	option(it, 'color_face', colorscheme.face_idle)
+	option(it, 'borderwidth', 0)
+	return it
+end
+
+local function buttonbase(it)
+	option(it, 'color_face_idle', colorscheme.face_idle)
+	option(it, 'color_face_hover', colorscheme.face_hover)
+	option(it, 'color_face_down', colorscheme.face_down)
+	option(it, 'color_border_idle', colorscheme.border_idle)
+	option(it, 'color_border_hover', colorscheme.border_hover)
+	option(it, 'color_border_down', colorscheme.border_down)
+	option(it, 'borderwidth', dimscheme.mainmenu_btnborder)
+	option(it, 'label_fontname', font_default)
+	option(it, 'label_color', colorscheme.label)
+	return it
+end
+
+local function button(it)
+	it = buttonbase(it)
+	option(it, 'class', 'button')
+	option(it, 'label_clip', true)
+	option(it, 'label_align', 0.5)
+	option(it, 'label_valign', 0)
+	return it
+end
+
+local function rowbutton(it)
+	it = buttonbase(it)
+	option(it, 'class', 'button_instant')
+	option(it, 'name', it[1])
+	option(it, 'label_text', it[2])
+	option(it, 'label_position_left', 4)
+	option(it, 'label_position_bottom', 1)
+	option(it, 'label_position_right', -10)
+	option(it, 'label_position_top', -1)
+	option(it, 'label_clip', false)
+	option(it, 'label_align', 0)
+	option(it, 'label_valign', 0)
+	return it
+end
+
+local function menubutton(it)
+	it = rowbutton(it)
+	option(it, 'position_height', dimscheme.mainmenu_btnheight)
+	return it
+end
+
+local function menusep(it)
+	it = rectangle(it)
+	option(it, 'position_height', 8)
+	return it
+end
+
+gilayout = {
+	rectangle{
+		borderwidth = 2,
+		position_left = 10,
+		position_bottom = 10,
+		position_width = 20,
+		position_height = 20,
+	},
+	{
+		class = 'buttonrow',
+		name = 'mainmenu.row',
+		position_left = 0,
+		position_top = 0,
+		position_height = dimscheme.mainmenu_btnheight,
+		direction = 'right',
+		buttons = {
+			rowbutton{'file', 'File'},
+			rowbutton{'edit', 'Edit'},
+			rowbutton{'properties', 'Properties'},
+			rectangle{},
+		},
+	},
+	{
+		class = 'buttonrow',
+		name = 'mainmenu.file.row',
+		position_left = 0,
+		position_top = -dimscheme.mainmenu_btnheight,
+		position_width = 120,
+		direction = 'down',
+		adjust = false,
+		buttons = {
+			menubutton{'new', 'New'},
+			menubutton{'open', 'Open...'},
+			menubutton{'save', 'Save'},
+			menubutton{'saveas', 'Save as...'},
+			menusep{},
+			menubutton{'preview', 'Preview...'},
+			menubutton{'print', 'Print...'},
+			menusep{},
+			menubutton{'exit', 'Exit'},
+		},
+	},
+}

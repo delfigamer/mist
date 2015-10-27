@@ -1,0 +1,8 @@
+	const foo = 123 + 0x123
+	const bar = '1' + '2'
+	function func
+		const a = foo
+		b = foo + 1
+	end
+	((((cat)))) = eww + fur - bar
+end
