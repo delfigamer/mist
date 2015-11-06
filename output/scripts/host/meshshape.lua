@@ -49,9 +49,3 @@ function meshshape:setmatrix(matrix)
 		host.checkerror()
 	end
 end
-
-meshshape.Method_Replace = 0
-meshshape.Method_AlphaBlend = 1
-meshshape.Method_Add = 2
-meshshape.Method_AddSaturated = 3
-meshshape.Method_Invalid = 4
