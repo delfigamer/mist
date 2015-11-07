@@ -12,7 +12,6 @@
 #define PROFILE( name, op ) { op }
 
 namespace window {
-
 #define marker() /* LOG( "-" ) */ ( void )( 0 )
 
 #if defined( _WIN32 ) || defined( _WIN64 )
@@ -429,9 +428,9 @@ namespace window {
 		marker();
 		if( !m_silent ) {
 #if defined( _WIN32 ) || defined( _WIN64 )
-			m_display.initialize( m_hwnd );
+			m_display.initialize( m_mainconfig, m_hwnd );
 #elif defined( __ANDROID__ )
-//			m_display.initialize( m_app );
+//			m_display.initialize( m_mainconfig, m_app );
 #endif
 			auto dinfo = m_display.displayinfo();
 			m_info.width = dinfo->width;
@@ -610,6 +609,7 @@ namespace window {
 			"bootscript" );
 		LOG( "~ Boot script location: %s", bootscript.getchars() );
 		if( bootscript ) {
+			m_lstate.applyconfig( m_mainconfig );
 			struct Msg {
 				Window* window;
 				utils::String bootscript;

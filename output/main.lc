@@ -10,3 +10,5 @@ else
 		windowsize={1280, 720}
 	end
 end
+vsync = false
+tpslimit = 0

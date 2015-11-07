@@ -6,6 +6,7 @@
 #endif
 
 #include "shape.hpp"
+#include <utils/configset.hpp>
 #include <utils/ref.hpp>
 #include <d3d9.h>
 #include <windows.h>
@@ -18,7 +19,7 @@ namespace graphics {
 		float texelsoffset;
 		float texeltoffset;
 	};
-	
+
 	class Display {
 	private:
 		HWND m_hwnd;
@@ -28,7 +29,7 @@ namespace graphics {
 		utils::Ref< graphics::Shape > m_shape;
 		DisplayInfo m_info;
 		int m_framecounter;
-		
+
 	public:
 		Display();
 		~Display();
@@ -36,8 +37,8 @@ namespace graphics {
 		Display( Display&& ) = delete;
 		Display& operator=( Display const& ) = delete;
 		Display& operator=( Display&& ) = delete;
-		
-		void initialize( HWND hwnd );
+
+		void initialize( utils::ConfigSet const& config, HWND hwnd );
 		void finalize();
 		void paint();
 		Shape* getshape();

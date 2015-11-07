@@ -31,9 +31,13 @@ namespace graphics {
 	Display::~Display() {
 	}
 
-	void Display::initialize( HWND hwnd ) {
+	void Display::initialize( utils::ConfigSet const& config, HWND hwnd ) {
 		if( m_hwnd ) {
 			return;
+		}
+		if( config.boolean( "vsync" ) )
+		{
+			m_presentparameters.PresentationInterval = D3DPRESENT_INTERVAL_ONE;
 		}
 		m_hwnd = hwnd;
 		m_direct3d = Direct3DCreate9( D3D_SDK_VERSION );
