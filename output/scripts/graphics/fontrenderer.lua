@@ -65,7 +65,7 @@ function fontrenderer.getlinedims(font, line, extraadvance, shearperiod)
 	for p, charcode in utf8.codes(line) do
 		local cr = font:getchar(charcode)
 		if cr then
-			local charascent = cr.height - cr.yoffset
+			local charascent = cr.height + cr.yoffset
 			if charascent > lineascent then
 				lineascent = charascent
 			end
