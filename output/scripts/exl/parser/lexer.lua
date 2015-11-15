@@ -8,7 +8,7 @@ local utf8 = require('utf8')
 -- function getc() - returns nil/false on eof
 -- function ungetc()
 -- function getpos() - returns the current position
--- context interface:
+-- env interface:
 -- function log(level, msg, pos) - prints a message with a reference to the specified position
 -- possible level values are 'error' and 'warning'
 
@@ -75,18 +75,18 @@ for i = 0, 32 do
 	whitespace[string.char(i)] = true
 end
 
-local function obtaincharacter(stream, context, char)
+local function obtaincharacter(stream, env, char)
 	local c = stream:getc()
 	if c == char then
 		return true
 	else
 		stream:ungetc(c)
-		context:log('error', char..' expected', stream:getpos())
+		env:log('error', char..' expected', stream:getpos())
 		return false
 	end
 end
 
-local function obtaindec(stream, context, length)
+local function obtaindec(stream, env, length)
 	local ret = 0
 	for i = 1, length do
 		local ch = stream:getc()
@@ -100,7 +100,7 @@ local function obtaindec(stream, context, length)
 	return ret
 end
 
-local function obtainhexfixed(stream, context, length)
+local function obtainhexfixed(stream, env, length)
 	local ret = 0
 	for i = 1, length do
 		local ch = stream:getc()
@@ -108,14 +108,14 @@ local function obtainhexfixed(stream, context, length)
 			ret = ret * 16 + hexdigit[ch]
 		else
 			stream:ungetc(ch)
-			context:log('error', 'invalid hex digit', stream:getpos())
+			env:log('error', 'invalid hex digit', stream:getpos())
 			return nil
 		end
 	end
 	return ret
 end
 
-local function obtainhex(stream, context, length)
+local function obtainhex(stream, env, length)
 	local ret = 0
 	for i = 1, length do
 		local ch = stream:getc()
@@ -124,7 +124,7 @@ local function obtainhex(stream, context, length)
 		else
 			stream:ungetc(ch)
 			if i == 1 then
-				context:log('error', 'invalid hex digit', stream:getpos())
+				env:log('error', 'invalid hex digit', stream:getpos())
 				return nil
 			else
 				break
@@ -150,37 +150,37 @@ local stringelement_escape = {
 
 -- returns a converted value
 -- first character is given in an argument
-local function obtainstringelement(stream, context, first)
+local function obtainstringelement(stream, env, first)
 	if first == '\\' then
 		local ch = stream:getc()
 		local value = stringelement_escape[ch]
 		if value then
 			return value
 		elseif ch == 'x' then
-			local val = obtainhexfixed(stream, context, 2)
+			local val = obtainhexfixed(stream, env, 2)
 			return val and string.char(val) or ''
 		elseif decdigit[ch] then
 			stream:ungetc(ch)
-			local val = obtaindec(stream, context, 1, 3)
+			local val = obtaindec(stream, env, 1, 3)
 			if val > 255 then
-				context:log('error', 'invalid byte value', stream:getpos())
+				env:log('error', 'invalid byte value', stream:getpos())
 				return ''
 			else
 				return string.char(val)
 			end
 		elseif ch == 'u' then
-			if not obtaincharacter(stream, context, '{') then
+			if not obtaincharacter(stream, env, '{') then
 				return ''
 			end
-			local val = obtainhex(stream, context, 8)
-			if not obtaincharacter(stream, context, '}') then
+			local val = obtainhex(stream, env, 8)
+			if not obtaincharacter(stream, env, '}') then
 				return ''
 			end
 			local r = utf8.encodechar(val)
 			if r then
 				return r
 			else
-				context:log('error', 'invalid code point', stream:getpos())
+				env:log('error', 'invalid code point', stream:getpos())
 				return ''
 			end
 		elseif ch == 'z' then
@@ -190,7 +190,7 @@ local function obtainstringelement(stream, context, first)
 			stream:ungetc(ch)
 			return ''
 		else
-			context:log('error', 'unknown escape character', stream:getpos())
+			env:log('error', 'unknown escape character', stream:getpos())
 			return ''
 		end
 	else
@@ -198,7 +198,7 @@ local function obtainstringelement(stream, context, first)
 	end
 end
 
-local function obtainstring(stream, context)
+local function obtainstring(stream, env)
 	local spos = stream:getpos()
 	local open = stream:getc()
 	local content = {}
@@ -207,16 +207,16 @@ local function obtainstring(stream, context)
 		if ch == open then
 			break
 		elseif ch == '\n' or ch == '' then
-			context:log('error', 'unterminated string', stream:getpos())
+			env:log('error', 'unterminated string', stream:getpos())
 			stream:ungetc(ch)
 			break
 		end
-		table.append(content, obtainstringelement(stream, context, ch))
+		table.append(content, obtainstringelement(stream, env, ch))
 	end
 	return token:create('string', table.concat(content), spos, stream:getpos())
 end
 
-local function obtainlongstring(stream, context, level, spos)
+local function obtainlongstring(stream, env, level, spos)
 	local content = {}
 	while true do
 		local ch = stream:getc()
@@ -242,7 +242,7 @@ local function obtainlongstring(stream, context, level, spos)
 				end
 			end
 		elseif ch == '' then
-			context:log('error', 'unterminated long string', stream:getpos())
+			env:log('error', 'unterminated long string', stream:getpos())
 			break
 		else
 			table.append(content, ch)
@@ -251,7 +251,7 @@ local function obtainlongstring(stream, context, level, spos)
 	return token:create('string', table.concat(content), spos, stream:getpos())
 end
 
-local function obtainword(stream, context)
+local function obtainword(stream, env)
 	local spos = stream:getpos()
 	local word = {}
 	while true do
@@ -271,7 +271,7 @@ local function obtainword(stream, context)
 	end
 end
 
-local function skipinvalidnumber(stream, context)
+local function skipinvalidnumber(stream, env)
 	local ch
 	repeat
 		ch = stream:getc()
@@ -280,7 +280,7 @@ local function skipinvalidnumber(stream, context)
 end
 
 local function obtainnumber_base(
-		stream, context, base, digitmap, explower, expupper, expbase, spos)
+		stream, env, base, digitmap, explower, expupper, expbase, spos)
 	local val = 0
 	local ch = stream:getc()
 	local intpart
@@ -357,23 +357,23 @@ local function obtainnumber_base(
 	end
 ::fail::
 	do
-		context:log('error', 'invalid hex number', stream:getpos())
-		skipinvalidnumber(stream, context)
+		env:log('error', 'invalid hex number', stream:getpos())
+		skipinvalidnumber(stream, env)
 		return token:create('number', 0, spos, stream:getpos())
 	end
 ::success::
 	return token:create('number', val, spos, stream:getpos())
 end
 
-local function obtaindecnumber(stream, context, spos)
+local function obtaindecnumber(stream, env, spos)
 	if not spos then
 		spos = stream:getpos()
 	end
-	return obtainnumber_base(stream, context, 10, decdigit, 'e', 'E', 10, spos)
+	return obtainnumber_base(stream, env, 10, decdigit, 'e', 'E', 10, spos)
 end
 
-local function obtainhexnumber(stream, context, spos)
-	return obtainnumber_base(stream, context, 16, hexdigit, 'p', 'P', 2, spos)
+local function obtainhexnumber(stream, env, spos)
+	return obtainnumber_base(stream, env, 16, hexdigit, 'p', 'P', 2, spos)
 end
 
 local tokentable = {
@@ -387,14 +387,14 @@ for ch in pairs(decdigit) do
 	tokentable[ch] = obtaindecnumber
 end
 
-tokentable['['] = function(stream, context)
+tokentable['['] = function(stream, env)
 	local spos = stream:getpos()
 	local open = stream:getc()
 	local level = 0
 	while true do
 		local ch = stream:getc()
 		if ch == '[' then
-			return obtainlongstring(stream, context, level, spos)
+			return obtainlongstring(stream, env, level, spos)
 		end
 		if ch == '=' then
 			level = level + 1
@@ -409,39 +409,39 @@ tokentable['['] = function(stream, context)
 	return token:create('[', nil, spos, stream:getpos())
 end
 
-tokentable['0'] = function(stream, context)
+tokentable['0'] = function(stream, env)
 	local spos = stream:getpos()
 	local open = stream:getc()
 	local ch = stream:getc()
 	if ch == 'x' or ch == 'X' then
-		return obtainhexnumber(stream, context, spos)
+		return obtainhexnumber(stream, env, spos)
 	else
 		stream:ungetc(ch)
 		stream:ungetc('0')
-		return obtainnumber(stream, context, spos)
+		return obtainnumber(stream, env, spos)
 	end
 end
 
-tokentable['.'] = function(stream, context)
+tokentable['.'] = function(stream, env)
 	local spos = stream:getpos()
 	local open = stream:getc()
 	local ch = stream:getc()
 	stream:ungetc(ch)
 	if decdigit[ch] then
 		stream:ungetc(open)
-		return obtaindecnumber(stream, context, spos)
+		return obtaindecnumber(stream, env, spos)
 	else
 		return token:create(open, nil, spos, stream:getpos())
 	end
 end
 
-tokentable['\n'] = function(stream, context)
+tokentable['\n'] = function(stream, env)
 	local spos = stream:getpos()
 	stream:getc()
 	return token:create('newline', nil, spos, stream:getpos())
 end
 
-tokentable['.'] = function(stream, context)
+tokentable['.'] = function(stream, env)
 	local spos = stream:getpos()
 	local open = stream:getc()
 	local ch = stream:getc()
@@ -458,7 +458,7 @@ tokentable['.'] = function(stream, context)
 	end
 end
 
-local function obtainsymbol(stream, context)
+local function obtainsymbol(stream, env)
 	local spos = stream:getpos()
 	local ch = stream:getc()
 	return token:create(ch, nil, spos, stream:getpos())
@@ -466,7 +466,7 @@ end
 
 local function obtaindigraph_gen(...)
 	local set = table.makeset{...}
-	return function(stream, context)
+	return function(stream, env)
 		local spos = stream:getpos()
 		local open = stream:getc()
 		local ch = stream:getc()
@@ -492,19 +492,19 @@ tokentable['+'] = obtaindigraph_gen('+=')
 tokentable['-'] = obtaindigraph_gen('-=')
 tokentable['~'] = obtaindigraph_gen('~=')
 tokentable['#'] = obtainsymbol
-tokentable[''] = function(stream, context)
+tokentable[''] = function(stream, env)
 	local pos = stream:getpos()
 	return token:create('eof', nil, pos, pos)
 end
 
-function lexer.obtaintoken(stream, context)
+function lexer.obtaintoken(stream, env)
 	local bislinestart = false
 	while true do
 		local ch = stream:getc()
 		local tfunc = tokentable[ch]
 		if tfunc then
 			stream:ungetc(ch)
-			local token = tfunc(stream, context)
+			local token = tfunc(stream, env)
 			if token:gettype() == 'newline' then
 				bislinestart = true
 			elseif token then
@@ -512,7 +512,7 @@ function lexer.obtaintoken(stream, context)
 				return token
 			end
 		elseif not whitespace[ch] then
-			context:log('error', 'invalid symbol', stream:getpos())
+			env:log('error', 'invalid symbol', stream:getpos())
 		end
 	end
 end

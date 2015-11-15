@@ -16,7 +16,7 @@ function ebinary:init(pr)
 end
 
 function ebinary:defstring(lp)
-	return string.format('%s %s %s',
+	return string.format('(%s %s %s)',
 		self.left:defstring(lp .. self.lpindent),
 		symbols[self.operator],
 		self.right:defstring(lp .. self.lpindent))

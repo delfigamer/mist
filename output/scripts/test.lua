@@ -6,21 +6,17 @@ local function main()
 	local object = require('base.object')
 	local tokenstream = require('exl.parser.tokenstream')
 	local syntax = require('exl.parser.syntax')
-	local context = {}
-	function context:log(...)
+	local env = {}
+	function env:log(...)
 		print('=', ...)
 	end
 	local io = fileio:create('scripts/test.exl', 'r')
 	local stream = iostream:create(io)
-	local ts = tokenstream:create(stream)
-	local node
-	-- repeat
-		-- local token = ts:gett(context)
-		node = syntax.body(ts, context, {['end']=true})
-		-- print(token)
-	-- until token:gettype() == 'eof'
-	-- print(object.defstring(tokens))
-	print(node)
+	local ts = tokenstream:create(stream, env)
+	local body = syntax.block(ts, table.makeset{'end'})
+	body:build(env)
+	print(body)
+	print(body.namespace)
 end
 
 invoke(function() assert(pcall(main)) end)

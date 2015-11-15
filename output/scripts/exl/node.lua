@@ -9,6 +9,9 @@ function node:init(pr)
 	self.epos = pr.epos
 end
 
+function node:build(env, ...)
+end
+
 function node:defstring(lp)
 	return '< ' .. self._NAME .. ' >'
 end

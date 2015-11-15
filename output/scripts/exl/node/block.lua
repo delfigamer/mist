@@ -1,14 +1,22 @@
 local modname = ...
 local node = require('exl.node')
-local body = node:module(modname)
+local block = node:module(modname)
 local common
+local namespace
 
-function body:init(pr)
+function block:init(pr)
 	node.init(self, pr)
 	self.statements = pr.statements
 end
 
-function body:defstring(lp)
+function block:build(env)
+	self.namespace = namespace:create()
+	for i, stat in ipairs(self.statements) do
+		stat:build(env, self.namespace)
+	end
+end
+
+function block:defstring(lp)
 	local statlines = {}
 	for i, stat in ipairs(self.statements) do
 		statlines[i] = ('\n' .. lp) .. stat:defstring(lp)
@@ -17,3 +25,4 @@ function body:defstring(lp)
 end
 
 common = require('exl.common')
+namespace = require('exl.namespace')
