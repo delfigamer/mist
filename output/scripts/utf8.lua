@@ -33,6 +33,7 @@ function utf8.char(...)
 	for i, cc in ipairs(chars) do
 		local suc, len = utf8.encode(nil, cc, 0)
 		if not suc then
+			chars[i] = defaultchar
 			suc, len = utf8.encode(nil, defaultchar, 0)
 		end
 		length = length + len
@@ -46,6 +47,16 @@ function utf8.char(...)
 		buflen = buflen - len
 	end
 	return ffi.string(buffer, length)
+end
+
+function utf8.encodechar(cc)
+	local suc, len = utf8.encode(nil, cc, 0)
+	if not suc then
+		return nil
+	end
+	local buffer = chars_t(len)
+	utf8.encode(buffer, cc, len)
+	return ffi.string(buffer, len)
 end
 
 utf8.charpattern = '[%z\x01-\x7f\xc0-\xff][\x80-\xbf]*'

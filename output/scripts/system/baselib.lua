@@ -297,6 +297,14 @@ function table.pop(t)
 	return v
 end
 
+function table.makeset(list)
+	local r = {}
+	for i, v in ipairs(list) do
+		r[v] = true
+	end
+	return r
+end
+
 -- local native_coroutine = coroutine
 -- coroutine = {}
 

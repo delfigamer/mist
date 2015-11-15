@@ -1,7 +1,6 @@
 local modname = ...
 local convolute = require('img.convolute')
 local divide = require('img.divide')
--- local export = require('img.export')
 local frame = require('img.frame')
 local generate = require('img.generate')
 local import = require('img.import')

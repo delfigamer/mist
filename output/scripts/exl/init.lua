@@ -1,1 +1,2 @@
-
+local modname = ...
+local exl = package.modtable(modname)

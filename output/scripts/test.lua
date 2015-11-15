@@ -1,27 +1,26 @@
-if not _PATH then
-	local path = '../'
-	local baselibfunc, err =
-		loadfile(path .. 'scripts/system/baselib.lua')
-	if baselibfunc then
-		baselibfunc(path)
-	else
-		error(err)
-	end
-end
+local invoke = require('base.invoke')
 
 local function main()
-	local peg = require('peg')
-	local rule = peg.loadfile(_PATH .. 'scripts/exl/syntax.peg')
-	local source =
-		assert(io.open(_PATH .. 'scripts/test.exl', 'r'))
-		:read('*a')
-		:gsub('\t', '   ')
-	local stream = peg.stream:create(source)
-	local row, col, tree = rule:invoke(stream)
-	-- print(tree)
-	local exlcommon = require('exl.common')
-	local body = exlcommon.createpoint(tree)
-	print(body)
+	local fileio = require('rs.fileio')
+	local iostream = require('rs.iostream')
+	local object = require('base.object')
+	local tokenstream = require('exl.parser.tokenstream')
+	local syntax = require('exl.parser.syntax')
+	local context = {}
+	function context:log(...)
+		print('=', ...)
+	end
+	local io = fileio:create('scripts/test.exl', 'r')
+	local stream = iostream:create(io)
+	local ts = tokenstream:create(stream)
+	local node
+	-- repeat
+		-- local token = ts:gett(context)
+		node = syntax.body(ts, context, {['end']=true})
+		-- print(token)
+	-- until token:gettype() == 'eof'
+	-- print(object.defstring(tokens))
+	print(node)
 end
 
-assert(pcall(main))
+invoke(function() assert(pcall(main)) end)
