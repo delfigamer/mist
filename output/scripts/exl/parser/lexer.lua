@@ -9,7 +9,7 @@ local utf8 = require('utf8')
 -- function ungetc()
 -- function getpos() - returns the current position
 -- env interface:
--- function log(level, msg, pos) - prints a message with a reference to the specified position
+-- function log(level, msg, spos, epos) - prints a message with a reference to the specified position
 -- possible level values are 'error' and 'warning'
 
 --[[
@@ -31,10 +31,12 @@ local keyword = {
 	['const'] = true,
 	['end'] = true,
 	['function'] = true,
+	['in'] = true,
+	['inout'] = true,
 	['local'] = true,
 	['nil'] = true,
+	['out'] = true,
 	['unit'] = true,
-	['void'] = true,
 }
 local decdigit = {
 	['0'] = 0, ['5'] = 5,
@@ -376,6 +378,29 @@ local function obtainhexnumber(stream, env, spos)
 	return obtainnumber_base(stream, env, 16, hexdigit, 'p', 'P', 2, spos)
 end
 
+local function obtaincomment(stream, env, spos)
+	local ch = stream:getc()
+	if ch == '[' then
+		local level = 0
+		while true do
+			ch = stream:getc()
+			if ch == '[' then
+				obtainlongstring(stream, env, level, spos)
+				return
+			end
+			if ch == '=' then
+				level = level + 1
+			else
+				stream:ungetc(ch)
+				break
+			end
+		end
+	end
+	repeat
+		ch = stream:getc()
+	until ch == '\n' or ch == ''
+end
+
 local tokentable = {
 	['\''] = obtainstring,
 	['"'] = obtainstring,
@@ -385,6 +410,23 @@ for ch in pairs(letter) do
 end
 for ch in pairs(decdigit) do
 	tokentable[ch] = obtaindecnumber
+end
+
+tokentable['@'] = function(stream, env)
+	local spos = stream:getpos()
+	local ch = stream:getc()
+	local word = {}
+	while true do
+		local ch = stream:getc()
+		if letterordigit[ch] then
+			table.append(word, ch)
+		else
+			stream:ungetc(ch)
+			break
+		end
+	end
+	word = table.concat(word)
+	return token:create('identifier', word, spos, stream:getpos())
 end
 
 tokentable['['] = function(stream, env)
@@ -422,19 +464,6 @@ tokentable['0'] = function(stream, env)
 	end
 end
 
-tokentable['.'] = function(stream, env)
-	local spos = stream:getpos()
-	local open = stream:getc()
-	local ch = stream:getc()
-	stream:ungetc(ch)
-	if decdigit[ch] then
-		stream:ungetc(open)
-		return obtaindecnumber(stream, env, spos)
-	else
-		return token:create(open, nil, spos, stream:getpos())
-	end
-end
-
 tokentable['\n'] = function(stream, env)
 	local spos = stream:getpos()
 	stream:getc()
@@ -445,7 +474,11 @@ tokentable['.'] = function(stream, env)
 	local spos = stream:getpos()
 	local open = stream:getc()
 	local ch = stream:getc()
-	if ch ~= '.' then
+	if decdigit[ch] then
+		stream:ungetc(ch)
+		stream:ungetc(open)
+		return obtaindecnumber(stream, env, spos)
+	elseif ch ~= '.' then
 		stream:ungetc(ch)
 		return token:create('.', nil, spos, stream:getpos())
 	end
@@ -455,6 +488,20 @@ tokentable['.'] = function(stream, env)
 		return token:create('..', nil, spos, stream:getpos())
 	else
 		return token:create('...', nil, spos, stream:getpos())
+	end
+end
+
+tokentable['-'] = function(stream, env)
+	local spos = stream:getpos()
+	local open = stream:getc()
+	local ch = stream:getc()
+	if ch == '=' then
+		return token:create('-=', nil, spos, stream:getpos())
+	elseif ch == '-' then
+		obtaincomment(stream, env, spos)
+	else
+		stream:ungetc(ch)
+		return token:create('-', nil, spos, stream:getpos())
 	end
 end
 
@@ -480,18 +527,20 @@ local function obtaindigraph_gen(...)
 	end
 end
 
-
 tokentable['('] = obtainsymbol
 tokentable[')'] = obtainsymbol
 tokentable[']'] = obtainsymbol
 tokentable['{'] = obtainsymbol
 tokentable['}'] = obtainsymbol
 tokentable[';'] = obtainsymbol
+tokentable[':'] = obtainsymbol
 tokentable['='] = obtaindigraph_gen('==')
 tokentable['+'] = obtaindigraph_gen('+=')
-tokentable['-'] = obtaindigraph_gen('-=')
+tokentable['*'] = obtaindigraph_gen('*=')
+tokentable['/'] = obtaindigraph_gen('/=')
 tokentable['~'] = obtaindigraph_gen('~=')
 tokentable['#'] = obtainsymbol
+tokentable[','] = obtainsymbol
 tokentable[''] = function(stream, env)
 	local pos = stream:getpos()
 	return token:create('eof', nil, pos, pos)
@@ -505,7 +554,7 @@ function lexer.obtaintoken(stream, env)
 		if tfunc then
 			stream:ungetc(ch)
 			local token = tfunc(stream, env)
-			if token:gettype() == 'newline' then
+			if token and token:gettype() == 'newline' then
 				bislinestart = true
 			elseif token then
 				token.bislinestart = bislinestart

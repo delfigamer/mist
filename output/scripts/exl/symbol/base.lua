@@ -1,32 +1,22 @@
 local modname = ...
-local object = require('base.object')
+local object = require('exl.object')
 local symbase = object:module(modname)
-local genid
-
-symbase.lpindent = '\t'
+local fulltype
 
 function symbase:init(it)
+	self.context = it.context
 	self.defpos = it.defpos
 	-- self.name = it.name
-	self.id = genid()
-	self.type = it.type
-	self.constvalue = it.constvalue
+	self.fulltype = it.fulltype
 end
 
-function symbase:gettype()
-	return self.type
+function symbase:getfulltype()
+	return self.fulltype
 end
 
 function symbase:getconstvalue()
-	return self.constvalue
 end
 
-function symbase:defstring(lp)
-	return '<symbol>'
-end
+fulltype = require('exl.fulltype')
 
-function symbase.instmeta:__tostring()
-	return self:defstring('')
-end
-
-genid = require('exl.genid')
+symbase.fulltype = fulltype:create(nil, false, true)

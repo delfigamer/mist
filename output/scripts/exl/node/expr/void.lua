@@ -1,10 +1,10 @@
 local modname = ...
-local node = require('exl.node')
-local evoid = node:module(modname)
+local ebase = require('exl.node.expr.base')
+local evoid = ebase:module(modname)
 local common
 
 function evoid:init(pr)
-	node.init(self, pr)
+	ebase.init(self, pr)
 end
 
 function evoid:defstring(lp)

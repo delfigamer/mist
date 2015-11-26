@@ -1,8 +1,8 @@
-	const foo = 123 + 0x123 - 20
-	const bar = '1' + '2'
-	const func = function void
+	const foo = (123 + 0x123 - 20)
+	const func = function(): number
 		const a = foo
+		local number b
 		b = foo + 1
+		result = b + 10
 	end
-	((((cat)))) = eww + fur - bar
 end

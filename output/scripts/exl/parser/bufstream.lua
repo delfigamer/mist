@@ -1,18 +1,8 @@
 local modname = ...
 local object = require('base.object')
-local ffipure = require('base.ffipure')
+local cpos = require('exl.parser.cpos')
 local bufstream = object:module(modname)
 local ffi = require('ffi')
-
-local cpos = ffipure:derive(nil, modname .. ':cpos')
-cpos.fields = [[
-	int row;
-	int col;
-]]
-
-function cpos.instmeta:__tostring()
-	return string.format('[%i:%i]', self.row, self.col)
-end
 
 bufstream.tabsize = 3
 
@@ -75,5 +65,5 @@ function bufstream:ungetc(ch, noconvert)
 end
 
 function bufstream:getpos()
-	return cpos:new(self.row, self.col)
+	return cpos:create(self.row, self.col)
 end

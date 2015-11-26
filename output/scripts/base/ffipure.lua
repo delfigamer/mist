@@ -8,6 +8,7 @@ ffipure.fields = ''
 function ffipure:derive(...)
 	local child = object.derive(self, ...)
 	child.metatype = nil
+	child.new = ffipure.new
 	return child
 end
 

@@ -1,24 +1,28 @@
 local modname = ...
-local symbase = require('exl.symbol.base')
-local symconst = symbase:module(modname)
+local symlocal = require('exl.symbol.local')
+local symconst = symlocal:module(modname)
 local common
 
 function symconst:init(it)
-	symbase.init(self, it)
+	symlocal.init(self, it)
+	self.constvalue = it.constvalue
+end
+
+function symconst:getconstvalue()
+	return self.constvalue
 end
 
 function symconst:defstring(lp)
 	if self.constvalue then
 		return string.format('%s const %s',
 			self.id, common.defstring(self.constvalue, lp))
-	else
+	elseif self.type then
 		return string.format('%s const forward %s',
-			self.id, common.defstring(self.type, lp))
+			self.id, common.defstring(self.fulltype, lp))
+	else
+		return string.format('%s const <error>',
+			self.id)
 	end
-end
-
-function symconst.instmeta:__tostring()
-	return self:defstring('')
 end
 
 common = require('exl.common')

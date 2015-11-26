@@ -8,7 +8,7 @@ local function acquiretoken(ts, type)
 	local token = ts:gett()
 	if token:gettype() ~= type then
 		ts:ungett(token)
-		ts:getenv():log('error', type..' expected', token:getspos())
+		ts.env:log('error', type..' expected', token:getspos())
 	else
 		return token
 	end
@@ -17,7 +17,7 @@ end
 local function acquirenode(ts, func, name)
 	local node = func(ts)
 	if not node then
-		ts:getenv():log('error', name..' expected', ts:getpos())
+		ts.env:log('error', name..' expected', ts:getpos())
 	else
 		return node
 	end
@@ -55,14 +55,6 @@ syntax.expr.element['string'] = function(ts, lead)
 	}
 end
 
-syntax.expr.element['void'] = function(ts, lead)
-	return createnode{
-		name = 'expr.void',
-		spos = lead:getspos(),
-		epos = lead:getepos(),
-	}
-end
-
 syntax.expr.element['nil'] = function(ts, lead)
 	return createnode{
 		name = 'expr.nil',
@@ -91,16 +83,136 @@ syntax.expr.element['('] = function(ts, lead)
 	}
 end
 
--- function syntax.arglist
+function syntax.farg(ts)
+	local node, target, lvalue, rvalue
+	local token = ts:gett()
+	if token:gettype() == 'in' then
+		lvalue, rvalue = false, true
+	elseif token:gettype() == 'out' then
+		lvalue, rvalue = true, false
+	elseif token:gettype() == 'inout' then
+		lvalue, rvalue = true, true
+	else
+		ts:ungett(token)
+		lvalue, rvalue = false, true
+	end
+	local typev = acquirenode(ts, syntax.expr.main, 'type')
+	if not typev then
+		node = createnode{
+			name = 'expr.function.arg',
+			spos = typev.spos,
+			epos = typev.epos,
+			lvalue = lvalue,
+			rvalue = rvalue,
+		}
+		goto fail
+	end
+	target = ts:gett()
+	if target:gettype() == ',' or target:gettype() == ')' then
+		ts:ungett(target)
+		return createnode{
+			name = 'expr.function.arg',
+			spos = typev.spos,
+			epos = typev.epos,
+			lvalue = lvalue,
+			rvalue = rvalue,
+			typev = typev,
+		}
+	elseif target:gettype() == 'identifier' then
+		node = createnode{
+			name = 'expr.function.arg',
+			spos = typev.spos,
+			epos = target:getepos(),
+			lvalue = lvalue,
+			rvalue = rvalue,
+			typev = typev,
+			target = target:getcontent(),
+		}
+		local nt = ts:gett()
+		if nt:gettype() == ',' or nt:gettype() == ')' then
+			ts:ungett(nt)
+			return node
+		else
+			ts.env:log('error', ') expected', nt:getspos())
+			goto fail
+		end
+	else
+		ts.env:log('error', 'identifier expected', target:getspos())
+		node = createnode{
+			name = 'expr.function.arg',
+			spos = typev.spos,
+			epos = target:getepos(),
+			lvalue = lvalue,
+			rvalue = rvalue,
+			typev = typev,
+		}
+		goto fail
+	end
+::fail::
+	local token
+	repeat
+		token = ts:gett()
+		local tt = token:gettype()
+	until tt == ',' or tt == ')' or tt == 'eof'
+	ts:ungett(token)
+	return node
+end
+
+function syntax.farglist(ts)
+	local lead = acquiretoken(ts, '(')
+	if not lead then
+		return createnode{
+			name = 'expr.function.arglist',
+			spos = ts:getpos(),
+			epos = ts:getpos(),
+			args = {},
+		}
+	end
+	local nt = ts:peekt()
+	if nt:gettype() == ')' then
+		ts:gett()
+		return createnode{
+			name = 'expr.function.arglist',
+			spos = lead:getspos(),
+			epos = nt:getepos(),
+			args = {},
+		}
+	end
+	local args = {}
+	while true do
+		local arg = syntax.farg(ts)
+		table.append(args, arg)
+		nt = ts:gett()
+		if nt:gettype() == ')' then
+			break
+		elseif nt:gettype() ~= ',' then
+			ts.env:log('error', ') expected', nt:getspos())
+		end
+	end
+	return createnode{
+		name = 'expr.function.arglist',
+		spos = lead:getspos(),
+		epos = nt:getepos(),
+		args = args,
+	}
+end
 
 syntax.expr.element['function'] = function(ts, lead)
-	local rettype = acquirenode(ts, syntax.expr.main, 'type')
+	local arglist = acquirenode(ts, syntax.farglist, 'arglist')
+	local rettype
+	local token = ts:gett()
+	if token:gettype() == ':' then
+		rettype = acquirenode(ts, syntax.expr.main, 'return type')
+	else
+		ts:ungett(token)
+	end
 	local body = syntax.block(ts, kwset_end)
 	return createnode{
 		name = 'expr.function',
 		spos = lead:getspos(),
 		epos = body.epos,
 		rettype = rettype,
+		arglist = arglist,
 		body = body,
 	}
 end
@@ -117,11 +229,19 @@ function syntax.expr.element.main(ts)
 end
 
 local binaryname = {
+	['..'] = 'concat',
+
+	['*'] = 'mul',
+	['/'] = 'div',
+
 	['+'] = 'add',
 	['-'] = 'sub',
+
 	['~'] = 'bxor',
 	['=='] = 'eq',
 	['~='] = 'neq',
+
+	['='] = 'assign',
 	['+='] = 'adda',
 	['-='] = 'suba',
 }
@@ -157,11 +277,55 @@ local function binary_gen(first, next, ...)
 	end
 end
 
+local function rbinary_gen(first, next, ...)
+	local set = table.makeset{...}
+	return function(ts)
+		local elist = {first(ts)}
+		if not elist[1] then
+			return
+		end
+		local slist = {}
+		while true do
+			local sign = ts:gett()
+			if not set[sign:gettype()] then
+				ts:ungett(sign)
+				break
+			end
+			local rs = acquirenode(
+				ts, next, 'element')
+			if not rs then
+				break
+			end
+			local i = table.append(elist, rs)
+			slist[i-1] = sign:gettype()
+		end
+		local result = elist[#elist]
+		for i = #elist-1, 1, -1 do
+			local ls = elist[i]
+			result = createnode{
+				name = 'expr.binary',
+				operator = binaryname[slist[i]],
+				spos = ls.spos,
+				epos = result.epos,
+				left = ls,
+				right = result,
+			}
+		end
+		return result
+	end
+end
+
+syntax.expr.concat = binary_gen(
+	syntax.expr.element.main, syntax.expr.element.main, '..')
+syntax.expr.prod = binary_gen(
+	syntax.expr.concat, syntax.expr.concat, '*', '/')
 syntax.expr.sum = binary_gen(
-	syntax.expr.element.main, syntax.expr.element.main, '+', '-')
+	syntax.expr.prod, syntax.expr.prod, '+', '-')
+syntax.expr.assign = rbinary_gen(
+	syntax.expr.sum, syntax.expr.sum, '=', '+=', '-=')
 
 function syntax.expr.main(ts)
-	return syntax.expr.sum(ts)
+	return syntax.expr.assign(ts)
 end
 
 -- statement parsers
@@ -208,34 +372,66 @@ function syntax.stat.const(ts, lead)
 	}
 end
 
-do
-	local set = table.makeset{'=', '+=', '-='}
-	function syntax.stat.expr(ts)
-		local ls = syntax.expr.main(ts)
-		if not ls then
-			return
-		end
-		local sign = ts:gett()
-		if not set[sign:gettype()] then
-			ts:ungett(sign)
-			return createnode{
-				name = 'stat.expression',
-				spos = ls.spos,
-				epos = ls.epos,
-				value = ls,
-			}
-		end
-		local rs = acquirenode(
-			ts, syntax.expr.sum, 'expression')
+syntax.stat['local'] = function(ts, lead)
+	local typev = acquirenode(ts, syntax.expr.main, 'type')
+	if not typev then
 		return createnode{
-			name = 'stat.assign',
-			operator = binaryname[sign:gettype()],
-			spos = ls.spos,
-			epos = rs.epos,
-			left = ls,
-			right = rs,
+			name = 'stat.local',
+			spos = lead:getspos(),
+			epos = lead:getepos(),
 		}
 	end
+	local targetname = acquiretoken(ts, 'identifier')
+	if not targetname then
+		return createnode{
+			name = 'stat.local',
+			spos = lead:getspos(),
+			epos = typev.epos,
+			typev = typev,
+		}
+	end
+	local sign = ts:gett()
+	if sign:gettype() ~= '=' then
+		ts:ungett(sign)
+		return createnode{
+			name = 'stat.local',
+			spos = lead:getspos(),
+			epos = targetname:getepos(),
+			typev = typev,
+			targetname = targetname:getcontent(),
+		}
+	end
+	local value = acquirenode(ts, syntax.expr.main, 'expression')
+	if not value then
+		return createnode{
+			name = 'stat.local',
+			spos = lead:getspos(),
+			epos = sign:getepos(),
+			typev = typev,
+			targetname = targetname:getcontent(),
+		}
+	end
+	return createnode{
+		name = 'stat.local',
+		spos = lead:getspos(),
+		epos = value.epos,
+		typev = typev,
+		targetname = targetname:getcontent(),
+		value = value,
+	}
+end
+
+function syntax.stat.expr(ts)
+	local value = syntax.expr.main(ts)
+	if not value then
+		return
+	end
+	return createnode{
+		name = 'stat.expression',
+		spos = value.spos,
+		epos = value.epos,
+		value = value,
+	}
 end
 
 function syntax.stat.main(ts)
@@ -263,7 +459,7 @@ function syntax.block(ts, termtypes)
 		token = ts:peekt()
 		local ttype = token:gettype()
 		if ttype == 'eof' then
-			ts:getenv():log('error', 'block end expected', token:getspos())
+			ts.env:log('error', 'block end expected', token:getspos())
 			break
 		elseif termtypes[ttype] then
 			ts:gett()
@@ -276,7 +472,7 @@ function syntax.block(ts, termtypes)
 			else
 				local token = ts:gett()
 				if not errorwritten then
-					ts:getenv():log('error', 'statement expected', token:getspos())
+					ts.env:log('error', 'statement expected', token:getspos())
 					errorwritten = true
 				end
 			end

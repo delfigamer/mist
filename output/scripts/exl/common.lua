@@ -16,7 +16,7 @@ function defstring(node, lp)
 	if not node then
 		return '<error>'
 	elseif type(node) == 'table' and node.defstring then
-		return node:defstring(lp)
+		return node:defstring(lp or '')
 	else
 		return tostring(node)
 	end
