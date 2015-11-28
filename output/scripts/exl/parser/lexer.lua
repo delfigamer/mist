@@ -5,7 +5,7 @@ local token = require('exl.parser.token')
 local utf8 = require('utf8')
 
 -- input stream interface:
--- function getc() - returns nil/false on eof
+-- function getc() - returns '' on eof
 -- function ungetc()
 -- function getpos() - returns the current position
 -- env interface:
@@ -36,6 +36,7 @@ local keyword = {
 	['local'] = true,
 	['nil'] = true,
 	['out'] = true,
+	['type'] = true,
 	['unit'] = true,
 }
 local decdigit = {

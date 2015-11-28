@@ -5,19 +5,10 @@ local common
 local fulltype
 local stringti
 
-local estringfulltype
-
 function estring:init(pr)
 	ebase.init(self, pr)
 	self.value = pr.value
-end
-
-function estring:getfulltype()
-	return estringfulltype
-end
-
-function estring:getconstvalue()
-	return self
+	self.constvalue = self
 end
 
 function estring:rcompile(stream)
@@ -34,4 +25,5 @@ common = require('exl.common')
 fulltype = require('exl.fulltype')
 stringti = require('exl.system.ti.string')
 
-estringfulltype = fulltype:create(stringti, false, true)
+estring.bsimplevalue = true
+estring.fulltype = fulltype:create(stringti, false, true)

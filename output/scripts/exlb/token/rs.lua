@@ -20,9 +20,9 @@ function ts.instmeta:__tostring()
 	local str = ffi.string(self.data, self.length)
 	if name == 'v_string' then
 		return string.format('\tlocal r%i = %q',
-			ra, str)
+			self.ra, str)
 	else
 		return string.format('%16s r%i, %q',
-			name, ra, str)
+			name, self.ra, str)
 	end
 end

@@ -1,8 +1,10 @@
-	const foo = (123 + 0x123 - 20)
-	const func = function(): number
-		const a = foo
-		local number b
-		b = foo + 1
-		result = b + 10
+	const foo = 123 + 0x123 - 20
+	const sum = function(number a, number b): number
+		result = a + b
 	end
+	const add = function(inout number a, number b): number
+		result = a = a + b
+	end
+	local number i = sum(foo, 100)
+	add(i, 1)
 end

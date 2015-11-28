@@ -13,9 +13,7 @@ end
 
 function tbase.instmeta:__tostring()
 	local name = token.codemap[self.code].name
-	if name == 'v_function_body' then
-		return '\t\t\t...)'
-	elseif name == 'v_function_end' then
+	if name == 'v_function_end' then
 		return '\t\tend --[[function]]'
 	else
 		return string.format('%16s',

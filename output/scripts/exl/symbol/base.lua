@@ -6,8 +6,8 @@ local fulltype
 function symbase:init(it)
 	self.context = it.context
 	self.defpos = it.defpos
-	-- self.name = it.name
 	self.fulltype = it.fulltype
+	self.constvalue = it.constvalue
 end
 
 function symbase:getfulltype()
@@ -15,6 +15,7 @@ function symbase:getfulltype()
 end
 
 function symbase:getconstvalue()
+	return self.constvalue
 end
 
 fulltype = require('exl.fulltype')

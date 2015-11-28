@@ -35,10 +35,6 @@ function slocal:build(pc)
 			end
 		end
 	end
-	-- local value
-	-- if self.value then
-		-- self.value:build(pc)
-	-- end
 	local ft
 	if typeinfo then
 		ft = fulltype:create(typeinfo, true, true)
@@ -51,22 +47,30 @@ function slocal:build(pc)
 	if self.targetname then
 		pc:setsymbol(self.targetname, self.symbol)
 	end
+	if self.value then
+		local ident = common.createnode{
+			name = 'expr.newident',
+			spos = self.spos,
+			epos = self.spos,
+			target = self.symbol,
+		}
+		self.assignment = common.createnode{
+			name = 'expr.binary',
+			operator = 'assign',
+			spos = self.spos,
+			epos = self.epos,
+			left = ident,
+			right = self.value,
+		}
+		self.assignment:build(pc)
+	end
 end
 
 function slocal:compile(stream)
-	-- if not self.value then
-		-- goto default
-	-- end
-	-- do
-		-- local valname = self.value:rcompile(stream)
-		-- if not valname then
-			-- goto default
-		-- end
-		-- stream:writetoken('a_createl', self.symbol.id, valname)
-		-- return
-	-- end
-::default::
-		stream:writetoken('a_createl', self.symbol.id, 0)
+	stream:writetoken('a_createl', self.symbol.id)
+	if self.assignment then
+		self.assignment:rcompile(stream)
+	end
 end
 
 function slocal:defstring(lp)

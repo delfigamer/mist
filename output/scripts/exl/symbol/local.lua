@@ -19,7 +19,7 @@ function symlocal:rcompile(stream)
 end
 
 function symlocal:defstring(lp)
-	if self.type then
+	if self.fulltype then
 		return string.format('%s local %s',
 			self.id, common.defstring(self.fulltype, lp))
 	else

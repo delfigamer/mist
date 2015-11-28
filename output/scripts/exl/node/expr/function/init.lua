@@ -4,12 +4,15 @@ local efunction = ebase:module(modname)
 local common
 local context
 local exlbstream
+local fulltype
+local functionti
 
 function efunction:init(pr)
 	ebase.init(self, pr)
 	self.arglist = pr.arglist
 	self.body = pr.body
-	if pr.rettype then
+	self.rettype = pr.rettype
+	if self.rettype then
 		self.resultarg = common.createnode{
 			name = 'expr.function.arg',
 			spos = self.arglist.epos,
@@ -29,6 +32,15 @@ function efunction:build(pc)
 		self.resultarg:build(self.context)
 	end
 	self.body:build(self.context)
+	local ti = functionti:create{
+		arglist = self.arglist,
+		rettype = self.rettype,
+	}
+	self.fulltype = fulltype:create(ti, false, true)
+end
+
+function efunction:getfulltype()
+	return self.fulltype
 end
 
 function efunction:getconstvalue()
@@ -45,6 +57,7 @@ function efunction:rcompile(stream)
 		self.resultarg:compilelocal(bodystream)
 	end
 	self.body:compile(bodystream)
+	bodystream:writetoken('d_filepos', self.body.epos.row, self.body.epos.col)
 	self.arglist:compilereturn(bodystream, self.resultarg)
 	stream:writetoken('v_function_end')
 	return name
@@ -68,3 +81,5 @@ end
 common = require('exl.common')
 context = require('exl.context')
 exlbstream = require('exlb.stream')
+fulltype = require('exl.fulltype')
+functionti = require('exl.node.expr.function.ti')

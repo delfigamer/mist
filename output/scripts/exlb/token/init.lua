@@ -1,6 +1,13 @@
 local modname = ...
 local token = package.modtable(modname)
 
+-- d - double
+-- i - int
+-- s - VLA of char
+-- r - SSA register
+-- l - (depth, name) local id
+-- v{x} - VLA of {x}
+
 token.codemap = {
 	{'v_number', 'rd'},
 	{'v_string', 'rs'},
@@ -13,10 +20,11 @@ token.codemap = {
 	{'a_div', 'rrr'},
 	{'a_concat', 'rrr'},
 
-	{'a_createl', 'lr'},
+	{'a_createl', 'l'},
 	{'a_setl', 'lr'},
 	{'a_getl', 'rl'},
 
+	{'a_call', 'rvrvr'},
 	{'a_return', 'vr'},
 
 	{'d_filepos', 'ii'},

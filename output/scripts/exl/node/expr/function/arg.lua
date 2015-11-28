@@ -18,22 +18,13 @@ function farg:build(pc)
 	local typeinfo
 	if self.typev then
 		self.typev:build(pc)
-		local ctypev = self.typev:getconstvalue()
-		if not ctypev then
+		typeinfo = self.typev:gettivalue()
+		if not typeinfo then
 			pc.env:log(
 				'error',
-				'type definition must be a constant value',
+				'this value does not define a type',
 				self.typev.spos,
 				self.typev.epos)
-		else
-			typeinfo = ctypev:gettivalue()
-			if not typeinfo then
-				pc.env:log(
-					'error',
-					'this value does not define a type',
-					self.typev.spos,
-					self.typev.epos)
-			end
 		end
 	end
 	local ft

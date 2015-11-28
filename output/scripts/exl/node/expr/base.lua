@@ -4,18 +4,16 @@ local ebase = node:module(modname)
 local common
 local fulltype
 
-local ebasefulltype
-
 function ebase:init(pr)
 	node.init(self, pr)
 end
 
 function ebase:getfulltype()
-	return ebasefulltype
+	return self.fulltype
 end
 
 function ebase:getconstvalue()
-	return nil
+	return self.constvalue
 end
 
 function ebase:islvalue()
@@ -27,9 +25,13 @@ function ebase:isrvalue()
 end
 
 function ebase:gettivalue()
+	local cv = self:getconstvalue()
+	if cv and cv ~= self then
+		return cv:gettivalue()
+	end
 end
 
 common = require('exl.common')
 fulltype = require('exl.fulltype')
 
-ebasefulltype = fulltype:create(nil, false, true)
+ebase.fulltype = fulltype:create(nil, false, true)

@@ -5,19 +5,10 @@ local common
 local fulltype
 local numberti
 
-local enumberfulltype
-
 function enumber:init(pr)
 	ebase.init(self, pr)
 	self.value = pr.value
-end
-
-function enumber:getfulltype()
-	return enumberfulltype
-end
-
-function enumber:getconstvalue()
-	return self
+	self.constvalue = self
 end
 
 function enumber:rcompile(stream)
@@ -34,4 +25,5 @@ common = require('exl.common')
 fulltype = require('exl.fulltype')
 numberti = require('exl.system.ti.number')
 
-enumberfulltype = fulltype:create(numberti, false, true)
+enumber.bsimplevalue = true
+enumber.fulltype = fulltype:create(numberti, false, true)

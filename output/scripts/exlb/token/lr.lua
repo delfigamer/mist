@@ -16,15 +16,7 @@ end
 
 function tr.instmeta:__tostring()
 	local name = token.codemap[self.code].name
-	if name == 'a_createl' then
-		if self.ra == 0 then
-			return (string.format('\tlocal d%ii%i',
-				self.l_depth, self.l_name))
-		else
-			return (string.format('\tlocal d%ii%i = r%i',
-				self.l_depth, self.l_name, self.ra))
-		end
-	elseif name == 'a_setl' then
+	if name == 'a_setl' then
 		return (string.format('\td%ii%i = r%i',
 			self.l_depth, self.l_name, self.ra))
 	else

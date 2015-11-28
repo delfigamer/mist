@@ -11,20 +11,8 @@ end
 function esubexpression:build(pc)
 	if self.value then
 		self.value:build(pc)
-	end
-end
-
-function esubexpression:getfulltype()
-	if self.value then
-		return self.value:getfulltype()
-	else
-		return ebase.getfulltype(self)
-	end
-end
-
-function esubexpression:getconstvalue()
-	if self.value then
-		return self.value:getconstvalue()
+		self.fulltype = self.value:getfulltype()
+		self.constvalue = self.value:getconstvalue()
 	end
 end
 

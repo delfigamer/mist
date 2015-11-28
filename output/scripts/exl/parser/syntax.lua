@@ -211,10 +211,50 @@ syntax.expr.element['function'] = function(ts, lead)
 		name = 'expr.function',
 		spos = lead:getspos(),
 		epos = body.epos,
-		rettype = rettype,
 		arglist = arglist,
+		rettype = rettype,
 		body = body,
 	}
+end
+
+syntax.expr.type = {}
+
+syntax.expr.type['function'] = function(ts, lead, nlead)
+	local arglist = acquirenode(ts, syntax.farglist, 'arglist')
+	local rettype
+	local token = ts:gett()
+	if token:gettype() == ':' then
+		rettype = acquirenode(ts, syntax.expr.main, 'return type')
+	else
+		ts:ungett(token)
+	end
+	if rettype then
+		return createnode{
+			name = 'expr.function.typev',
+			spos = lead:getspos(),
+			epos = rettype.epos,
+			arglist = arglist,
+			rettype = rettype,
+		}
+	else
+		return createnode{
+			name = 'expr.function.typev',
+			spos = lead:getspos(),
+			epos = arglist.epos,
+			arglist = arglist,
+		}
+	end
+end
+
+syntax.expr.element['type'] = function(ts, lead)
+	local nlead = ts:gett()
+	local func = syntax.expr.type[nlead:gettype()]
+	if func then
+		return func(ts, lead, nlead)
+	else
+		ts:ungett(nlead)
+		return
+	end
 end
 
 function syntax.expr.element.main(ts)
@@ -226,6 +266,53 @@ function syntax.expr.element.main(ts)
 		ts:ungett(lead)
 		return
 	end
+end
+
+syntax.expr.call = function(ts)
+	local base = syntax.expr.element.main(ts)
+	if not base then
+		return
+	end
+	local token = ts:gett()
+	if token:gettype() ~= '(' or token:islinestart() then
+		ts:ungett(token)
+		return base
+	end
+	token = ts:peekt()
+	if token:gettype() == ')' then
+		ts:gett()
+		return createnode{
+			name = 'expr.call',
+			spos = base.spos,
+			epos = token:getepos(),
+			base = base,
+			args = {},
+		}
+	end
+	local args = {}
+	while true do
+		local arg = acquirenode(ts, syntax.expr.main, 'argument')
+		if arg then
+			table.append(args, arg)
+		end
+		token = ts:gett()
+		if token:gettype() == ')' then
+			break
+		elseif token:gettype() ~= ',' then
+			ts.env:log('error', ') expected', token:getspos())
+			repeat
+				token = ts:gett()
+				local tt = token:gettype()
+			until tt == ',' or tt == ')' or tt == 'eof'
+		end
+	end
+	return createnode{
+		name = 'expr.call',
+		spos = base.spos,
+		epos = token:getepos(),
+		base = base,
+		args = args,
+	}
 end
 
 local binaryname = {
@@ -316,7 +403,7 @@ local function rbinary_gen(first, next, ...)
 end
 
 syntax.expr.concat = binary_gen(
-	syntax.expr.element.main, syntax.expr.element.main, '..')
+	syntax.expr.call, syntax.expr.call, '..')
 syntax.expr.prod = binary_gen(
 	syntax.expr.concat, syntax.expr.concat, '*', '/')
 syntax.expr.sum = binary_gen(

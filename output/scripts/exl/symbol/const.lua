@@ -5,11 +5,6 @@ local common
 
 function symconst:init(it)
 	symlocal.init(self, it)
-	self.constvalue = it.constvalue
-end
-
-function symconst:getconstvalue()
-	return self.constvalue
 end
 
 function symconst:defstring(lp)

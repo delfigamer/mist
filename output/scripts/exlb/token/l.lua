@@ -15,8 +15,8 @@ end
 
 function tr.instmeta:__tostring()
 	local name = token.codemap[self.code].name
-	if name == 'v_function_argument' then
-		return string.format('\t\t\td%ii%i,',
+	if name == 'a_createl' then
+		return string.format('\tlocal d%ii%i',
 			self.l_depth, self.l_name)
 	else
 		return string.format('%16s d%ii%i',

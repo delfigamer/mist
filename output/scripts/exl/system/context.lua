@@ -2,9 +2,8 @@ local modname = ...
 local context = require('exl.context')
 local scontext = context:create()
 package.modtable(modname, scontext)
-local aofunc = require('exl.system.assignoperator.func')
 local common = require('exl.common')
-local etypedef = require('exl.system.typedef')
+local etypebase = require('exl.node.expr.typebase')
 local fulltype = require('exl.fulltype')
 local nofunc = require('exl.system.nativeoperator.func')
 local numberti = require('exl.system.ti.number')
@@ -23,7 +22,7 @@ scontext.env = env
 scontext:setsymbol('number', symconst:create{
 	context = scontext,
 	fulltype = fulltype:create(nil, false, false),
-	constvalue = etypedef:create{
+	constvalue = etypebase:create{
 		typeinfo = numberti,
 	},
 })
@@ -31,7 +30,7 @@ scontext:setsymbol('number', symconst:create{
 scontext:setsymbol('string', symconst:create{
 	context = scontext,
 	fulltype = fulltype:create(nil, false, false),
-	constvalue = etypedef:create{
+	constvalue = etypebase:create{
 		typeinfo = stringti,
 	},
 })
@@ -105,20 +104,4 @@ opset:insert(
 		rettype = rvpt(numberti),
 		constfunc = binopconstf('expr.number', utility.operator.sub),
 		opcode = 'a_sub',
-	})
-
-numberti:getopset():insert(
-	'assign',
-	prototype:create{lvpt(numberti), rvpt(numberti)},
-	aofunc:create{
-		rettype = rvpt(numberti),
-		opcode = 'a_setl',
-	})
-
-stringti:getopset():insert(
-	'assign',
-	prototype:create{lvpt(stringti), rvpt(stringti)},
-	aofunc:create{
-		rettype = rvpt(stringti),
-		opcode = 'a_setl',
 	})

@@ -2,6 +2,7 @@ local modname = ...
 local ebase = require('exl.node.expr.base')
 local ebinary = ebase:module(modname)
 local common
+local edefaultassign
 -- local prototype
 
 local symbols = {
@@ -19,7 +20,7 @@ local symbols = {
 }
 
 local defaultfunc = {
-	assign = require('exl.node.expr.binary.defassign.func'),
+	assign = edefaultassign,
 }
 
 function ebinary:init(pr)
@@ -42,31 +43,50 @@ function ebinary:build(pc)
 	local leftft = self.left:getfulltype()
 	local rightft = self.right:getfulltype()
 	local opset = pc:getopset()
-	local operatorfunc = opset:resolve(
-		self.operator,
-		{leftft, rightft})
-	if not operatorfunc then
-		operatorfunc = defaultfunc[self.operator]
+	if opset then
+		self.operatorfunc = opset:resolve(
+			self.operator,
+			{leftft, rightft})
 	end
-	if operatorfunc then
-		self.operatorinstance =
-			operatorfunc:createinstance{
-				context = pc,
-				self.left,
-				self.right}
-	end
-	if self.operatorinstance then
-		self.constvalue = self.operatorinstance:getconstvalue()
-		self.fulltype = self.operatorinstance:getfulltype()
-	else
-		pc.env:log(
-			'error',
-			string.format('cannot resolve operator%s(%s, %s)',
-				symbols[self.operator],
-				leftft, rightft),
-			self.spos, self.epos)
+	if not self.operatorfunc then
+		if self.binternal then
+			pc.env:log(
+				'error',
+				string.format('cannot resolve %s::operator%s(%s, %s)',
+					common.defstring(leftft.ti),
+					symbols[self.operator],
+					leftft, rightft),
+				self.spos, self.epos)
+		else
+			pc.env:log(
+				'error',
+				string.format('cannot resolve operator%s(%s, %s)',
+					symbols[self.operator],
+					leftft, rightft),
+				self.spos, self.epos)
+		end
 		return
 	end
+	self.operatorinstance =
+		self.operatorfunc:createinstance{
+			context = pc,
+			self.left,
+			self.right}
+	if self.operatorinstance then
+		self.constvalue = self.operatorinstance:getconstvalue()
+	end
+end
+
+function ebinary:getfulltype()
+	if self.operatorinstance then
+		return self.operatorinstance:getfulltype()
+	else
+		return ebase.getfulltype(self)
+	end
+end
+
+function ebinary:getconstvalue()
+	return self.constvalue
 end
 
 function ebinary:lcompile(stream, source)

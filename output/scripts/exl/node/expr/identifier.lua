@@ -1,10 +1,10 @@
 local modname = ...
-local ebase = require('exl.node.expr.base')
-local eidentifier = ebase:module(modname)
+local esymbolbase = require('exl.node.expr.symbolbase')
+local eidentifier = esymbolbase:module(modname)
 local common
 
 function eidentifier:init(pr)
-	ebase.init(self, pr)
+	esymbolbase.init(self, pr)
 	self.targetname = pr.targetname
 end
 
@@ -17,33 +17,7 @@ function eidentifier:build(pc)
 			self.spos, self.epos)
 		return
 	end
-	self.constvalue = self.target:getconstvalue()
-end
-
-function eidentifier:getfulltype()
-	if self.target then
-		return self.target:getfulltype()
-	else
-		return ebase.getfulltype(self)
-	end
-end
-
-function eidentifier:getconstvalue()
-	return self.constvalue
-end
-
-function eidentifier:lcompile(stream, source)
-	if self.target then
-		self.target:lcompile(stream, source)
-	end
-end
-
-function eidentifier:rcompile(stream)
-	if self.constvalue then
-		return self.constvalue:rcompile(stream)
-	elseif self.target then
-		return self.target:rcompile(stream)
-	end
+	esymbolbase.build(self, pc)
 end
 
 function eidentifier:defstring(lp)
