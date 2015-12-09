@@ -24,7 +24,10 @@ function esymbolbase:rcompile(stream)
 	if self.constvalue and self.constvalue.bsimplevalue then
 		return self.constvalue:rcompile(stream)
 	elseif self.target then
-		return self.target:rcompile(stream)
+		if not self.retname then
+			self.retname = self.target:rcompile(stream)
+		end
+		return self.retname
 	end
 end
 

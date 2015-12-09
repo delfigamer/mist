@@ -59,9 +59,7 @@ local function lrvpt(ti)
 	return fulltype:create(ti, true, true)
 end
 
-local opset = scontext:getopset()
-
-opset:insert(
+scontext:setop(
 	'concat',
 	prototype:create{rvpt(stringti), rvpt(stringti)},
 	nofunc:create{
@@ -70,7 +68,7 @@ opset:insert(
 		opcode = 'a_concat',
 	})
 
-opset:insert(
+scontext:setop(
 	'mul',
 	prototype:create{rvpt(numberti), rvpt(numberti)},
 	nofunc:create{
@@ -79,7 +77,7 @@ opset:insert(
 		opcode = 'a_mul',
 	})
 
-opset:insert(
+scontext:setop(
 	'div',
 	prototype:create{rvpt(numberti), rvpt(numberti)},
 	nofunc:create{
@@ -88,7 +86,7 @@ opset:insert(
 		opcode = 'a_div',
 	})
 
-opset:insert(
+scontext:setop(
 	'add',
 	prototype:create{rvpt(numberti), rvpt(numberti)},
 	nofunc:create{
@@ -97,7 +95,7 @@ opset:insert(
 		opcode = 'a_add',
 	})
 
-opset:insert(
+scontext:setop(
 	'sub',
 	prototype:create{rvpt(numberti), rvpt(numberti)},
 	nofunc:create{

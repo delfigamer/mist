@@ -1,6 +1,7 @@
 local modname = ...
 local typeinfo = require('exl.typeinfo')
 local functionti = typeinfo:module(modname)
+local cofunc
 local common
 
 function functionti:init(pr)
@@ -41,6 +42,14 @@ function functionti:iseq(other)
 	return true
 end
 
+function functionti:getdefaultopfunc(op, proto)
+	if op == 'call' then
+		return cofunc
+	else
+		return typeinfo.getdefaultopfunc(self, op, proto)
+	end
+end
+
 function functionti:defstring(lp)
 	if self.rettype then
 		return string.format('type function%s: %s',
@@ -52,4 +61,5 @@ function functionti:defstring(lp)
 	end
 end
 
+cofunc = require('exl.node.expr.defcall.func')
 common = require('exl.common')

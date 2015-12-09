@@ -217,6 +217,64 @@ syntax.expr.element['function'] = function(ts, lead)
 	}
 end
 
+syntax.expr.element['operator'] = function(ts, lead)
+	local opname = acquiretoken(ts, 'identifier')
+	if not opname then
+		return createnode{
+			name = 'expr.operator',
+			spos = lead:getspos(),
+			epos = lead:getepos(),
+			args = {},
+		}
+	end
+	local token = ts:gett()
+	if token:gettype() ~= '(' or token:islinestart() then
+		ts:ungett(token)
+		return createnode{
+			name = 'expr.operator',
+			operator = opname:getcontent(),
+			spos = lead:getspos(),
+			epos = opname:getepos(),
+			args = {},
+		}
+	end
+	token = ts:peekt()
+	if token:gettype() == ')' then
+		ts:gett()
+		return createnode{
+			name = 'expr.operator',
+			operator = opname:getcontent(),
+			spos = lead:getspos(),
+			epos = token:getepos(),
+			args = {},
+		}
+	end
+	local args = {}
+	while true do
+		local arg = acquirenode(ts, syntax.expr.main, 'argument')
+		if arg then
+			table.append(args, arg)
+		end
+		token = ts:gett()
+		if token:gettype() == ')' then
+			break
+		elseif token:gettype() ~= ',' then
+			ts.env:log('error', ') expected', token:getspos())
+			repeat
+				token = ts:gett()
+				local tt = token:gettype()
+			until tt == ',' or tt == ')' or tt == 'eof'
+		end
+	end
+	return createnode{
+		name = 'expr.operator',
+		operator = opname:getcontent(),
+		spos = lead:getspos(),
+		epos = token:getepos(),
+		args = args,
+	}
+end
+
 syntax.expr.type = {}
 
 syntax.expr.type['function'] = function(ts, lead, nlead)
@@ -269,27 +327,26 @@ function syntax.expr.element.main(ts)
 end
 
 syntax.expr.call = function(ts)
-	local base = syntax.expr.element.main(ts)
-	if not base then
+	local args = {syntax.expr.element.main(ts)}
+	if not args[1] then
 		return
 	end
 	local token = ts:gett()
 	if token:gettype() ~= '(' or token:islinestart() then
 		ts:ungett(token)
-		return base
+		return args[1]
 	end
 	token = ts:peekt()
 	if token:gettype() == ')' then
 		ts:gett()
 		return createnode{
-			name = 'expr.call',
-			spos = base.spos,
+			name = 'expr.operator',
+			operator = 'call',
+			spos = args[1].spos,
 			epos = token:getepos(),
-			base = base,
-			args = {},
+			args = args,
 		}
 	end
-	local args = {}
 	while true do
 		local arg = acquirenode(ts, syntax.expr.main, 'argument')
 		if arg then
@@ -307,10 +364,10 @@ syntax.expr.call = function(ts)
 		end
 	end
 	return createnode{
-		name = 'expr.call',
-		spos = base.spos,
+		name = 'expr.operator',
+		operator = 'call',
+		spos = args[1].spos,
 		epos = token:getepos(),
-		base = base,
 		args = args,
 	}
 end
@@ -352,12 +409,11 @@ local function binary_gen(first, next, ...)
 				break
 			end
 			result = createnode{
-				name = 'expr.binary',
+				name = 'expr.operator',
 				operator = binaryname[sign:gettype()],
 				spos = result.spos,
 				epos = rs.epos,
-				left = result,
-				right = rs,
+				args = {result, rs},
 			}
 		end
 		return result
@@ -390,12 +446,11 @@ local function rbinary_gen(first, next, ...)
 		for i = #elist-1, 1, -1 do
 			local ls = elist[i]
 			result = createnode{
-				name = 'expr.binary',
+				name = 'expr.operator',
 				operator = binaryname[slist[i]],
 				spos = ls.spos,
 				epos = result.epos,
-				left = ls,
-				right = result,
+				args = {ls, result},
 			}
 		end
 		return result
@@ -456,6 +511,28 @@ function syntax.stat.const(ts, lead)
 		epos = value.epos,
 		targetname = targetname:getcontent(),
 		value = value,
+	}
+end
+
+syntax.stat['function'] = function(ts, lead)
+	local targetname = acquiretoken(ts, 'identifier')
+	local arglist = acquirenode(ts, syntax.farglist, 'arglist')
+	local rettype
+	local token = ts:gett()
+	if token:gettype() == ':' then
+		rettype = acquirenode(ts, syntax.expr.main, 'return type')
+	else
+		ts:ungett(token)
+	end
+	local body = syntax.block(ts, kwset_end)
+	return createnode{
+		name = 'stat.function',
+		spos = lead:getspos(),
+		epos = body.epos,
+		targetname = targetname:getcontent(),
+		arglist = arglist,
+		rettype = rettype,
+		body = body,
 	}
 end
 

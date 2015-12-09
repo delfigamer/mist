@@ -6,7 +6,8 @@ local dinstance
 function dfunc:init(pr)
 end
 
-function dfunc:createinstance(args)
+function dfunc:createinstance(it)
+	local args = it.args
 	local base = args[1]
 	local bft = base:getfulltype()
 	if not bft.ti or not bft.ti['#exl.node.expr.function.ti'] then
@@ -43,13 +44,13 @@ function dfunc:createinstance(args)
 		retti = bft.ti.rettype:gettivalue()
 	end
 	return dinstance:create{
-		spos = args.spos,
-		epos = args.epos,
-		context = args.context,
+		spos = it.spos,
+		epos = it.epos,
+		context = it.context,
 		args = args,
 		outargs = outargs,
 		ti = retti,
 	}
 end
 
-dinstance = require('exl.node.expr.call.default.instance')
+dinstance = require('exl.node.expr.defcall.instance')

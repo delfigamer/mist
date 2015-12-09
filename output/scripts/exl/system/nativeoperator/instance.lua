@@ -18,25 +18,20 @@ function noinstance:init(pr)
 		self.constvalue = self.nofunc.constfunc(cargs)
 	::cfail::
 	end
+	self.fulltype = self.nofunc.rettype
 end
 
 function noinstance:rcompile(stream)
-	local argnames = {}
-	for i, arg in ipairs(self.args) do
-		argnames[i] = arg:rcompile(stream)
-		if not argnames[i] then
-			return
+	if not self.retname then
+		local argnames = {}
+		for i, arg in ipairs(self.args) do
+			argnames[i] = arg:rcompile(stream)
+			if not argnames[i] then
+				return
+			end
 		end
+		self.retname = stream:genname()
+		stream:writetoken(self.nofunc.opcode, self.retname, unpack(argnames))
 	end
-	local name = stream:genname()
-	stream:writetoken(self.nofunc.opcode, name, unpack(argnames))
-	return name
-end
-
-function noinstance:getfulltype()
-	return self.nofunc.rettype
-end
-
-function noinstance:getconstvalue()
-	return self.constvalue
+	return self.retname
 end

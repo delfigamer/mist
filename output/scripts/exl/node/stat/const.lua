@@ -44,12 +44,12 @@ function sconst:compile(stream)
 	if not self.value then
 		return
 	end
-	stream:writetoken('a_createl', self.symbol.id)
 	local valname = self.value:rcompile(stream)
-	if not valname then
-		return
+	if valname then
+		stream:writetoken('a_initl', self.symbol.id, valname)
+	else
+		stream:writetoken('a_createl', self.symbol.id)
 	end
-	stream:writetoken('a_setl', self.symbol.id, valname)
 end
 
 function sconst:defstring(lp)

@@ -35,6 +35,7 @@ local keyword = {
 	['inout'] = true,
 	['local'] = true,
 	['nil'] = true,
+	['operator'] = true,
 	['out'] = true,
 	['type'] = true,
 	['unit'] = true,

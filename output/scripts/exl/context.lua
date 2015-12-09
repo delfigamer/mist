@@ -10,12 +10,11 @@ function context:init(parent)
 	if parent then
 		self.env = parent.env
 		self.depth = parent.depth + 1
-		self.opset = opset:create(parent.opset)
 	else
 		self.depth = 1
-		self.opset = opset:create()
 	end
 	self.lastid = 0
+	self.opcontext = {}
 end
 
 function context:setsymbol(name, symbol)
@@ -35,8 +34,28 @@ function context:getsymbol(name)
 		or self.parent and self.parent:getsymbol(name)
 end
 
-function context:getopset()
-	return self.opset
+function context:setop(op, proto, func)
+	local set = self.opcontext[op]
+	if not set then
+		set = opset:create()
+		self.opcontext[op] = set
+	end
+	local suc, err, spos, epos = set:insert(proto, func)
+	if not suc then
+		self.env:log('error', err, spos, epos)
+	end
+end
+
+function context:getop(op, proto)
+	local result
+	local set = self.opcontext[op]
+	if set then
+		result = set:resolve(proto)
+	end
+	if not result and self.parent then
+		result = self.parent:getop(op, proto)
+	end
+	return result
 end
 
 function context:genid()

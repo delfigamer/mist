@@ -6,9 +6,9 @@ local aoinstance
 function aofunc:init(pr)
 end
 
-function aofunc:createinstance(args)
-	local lv = args[1]
-	local rv = args[2]
+function aofunc:createinstance(it)
+	local lv = it.args[1]
+	local rv = it.args[2]
 	local lft = lv:getfulltype()
 	local rft = rv:getfulltype()
 	if not lft.lvalue
@@ -16,15 +16,15 @@ function aofunc:createinstance(args)
 			or not lft.ti:iseq(rft.ti) then
 		return
 	end
-	local spos = args[1].spos
-	local epos = args[2].epos
+	local spos = it.args[1].spos
+	local epos = it.args[2].epos
 	return aoinstance:create{
 		spos = spos,
 		epos = epos,
-		context = args.context,
-		args = args,
+		context = it.context,
+		args = it.args,
 		ti = lft.ti,
 	}
 end
 
-aoinstance = require('exl.node.expr.binary.defassign.instance')
+aoinstance = require('exl.node.expr.defassign.instance')

@@ -18,7 +18,7 @@ function fulltype:defstring(lp)
 	elseif not self.lvalue and self.rvalue then
 		am = 'R'
 	else
-		am = 'N'
+		return 'N'
 	end
 	return string.format('%s %s',
 		am,

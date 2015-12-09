@@ -1,40 +1,30 @@
 local modname = ...
-local object = require('base.object')
+local object = require('exl.object')
 local opset = object:module(modname)
 local common
 
-function opset:init(parent)
-	self.parent = parent
-	if parent then
-		self.env = parent.env
-	end
-	self.operators = {}
+function opset:init()
+	self.functions = {}
 end
 
-function opset:insert(opname, prototype, operator)
-	local list = table.provide(self.operators, opname)
-	for i, item in ipairs(list) do
+function opset:insert(prototype, operator)
+	for i, item in ipairs(self.functions) do
 		if item.prototype:iseq(prototype) then
-			self.env:log('error', 'duplicate operator'..operator, operator.spos)
+			return false, 'duplicate operator'..operator, operator.spos
 		end
 	end
-	table.append(list, {
+	table.append(self.functions, {
 		prototype = prototype,
 		operator = operator,
 	})
+	return true
 end
 
-function opset:resolve(opname, prototype)
-	local list = self.operators[opname]
-	if list then
-		for i, item in ipairs(list) do
-			if item.prototype:istypeeq(prototype) then
-				return item.operator
-			end
+function opset:resolve(prototype)
+	for i, item in ipairs(self.functions) do
+		if item.prototype:istypeeq(prototype) then
+			return item.operator
 		end
-	end
-	if self.parent then
-		return self.parent:resolve(opname, prototype)
 	end
 end
 
@@ -45,10 +35,6 @@ function opset:defstring(lp)
 	-- end
 	-- return table.concat(slines)
 	return 'opset'
-end
-
-function opset.instmeta:__tostring()
-	return self:defstring('')
 end
 
 common = require('exl.common')

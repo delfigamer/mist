@@ -21,6 +21,7 @@ token.codemap = {
 	{'a_concat', 'rrr'},
 
 	{'a_createl', 'l'},
+	{'a_initl', 'lr'},
 	{'a_setl', 'lr'},
 	{'a_getl', 'rl'},
 

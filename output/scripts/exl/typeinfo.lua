@@ -1,18 +1,19 @@
 local modname = ...
 local object = require('exl.object')
 local typeinfo = object:module(modname)
--- local opset
+local aofunc
 
 function typeinfo:init()
-	-- self.opset = opset:create()
 end
-
--- function typeinfo:getopset()
-	-- return self.opset
--- end
 
 function typeinfo:iseq(other)
 	return self == other
 end
 
--- opset = require('exl.opset')
+function typeinfo:getdefaultopfunc(op, proto)
+	if op == 'assign' then
+		return aofunc
+	end
+end
+
+aofunc = require('exl.node.expr.defassign.func')

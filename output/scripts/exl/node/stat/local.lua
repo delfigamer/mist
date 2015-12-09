@@ -48,29 +48,33 @@ function slocal:build(pc)
 		pc:setsymbol(self.targetname, self.symbol)
 	end
 	if self.value then
-		local ident = common.createnode{
-			name = 'expr.newident',
+		self.targetdummy = common.createnode{
+			name = 'expr.dummy',
 			spos = self.spos,
 			epos = self.spos,
-			target = self.symbol,
+			fulltype = fulltype:create(typeinfo, true, false),
 		}
 		self.assignment = common.createnode{
-			name = 'expr.binary',
+			name = 'expr.operator',
 			operator = 'assign',
 			spos = self.spos,
 			epos = self.epos,
-			left = ident,
-			right = self.value,
+			args = {self.targetdummy, self.value},
 		}
 		self.assignment:build(pc)
 	end
 end
 
 function slocal:compile(stream)
-	stream:writetoken('a_createl', self.symbol.id)
 	if self.assignment then
 		self.assignment:rcompile(stream)
+		local name = self.targetdummy.retname
+		if name then
+			stream:writetoken('a_initl', self.symbol.id, name)
+			return
+		end
 	end
+	stream:writetoken('a_createl', self.symbol.id)
 end
 
 function slocal:defstring(lp)

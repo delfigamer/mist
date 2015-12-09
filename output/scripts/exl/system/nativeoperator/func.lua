@@ -9,16 +9,16 @@ function nofunc:init(pr)
 	self.opcode = pr.opcode
 end
 
-function nofunc:createinstance(args)
+function nofunc:createinstance(it)
 	local spos, epos
-	if args[1] then
-		spos = args[1].spos
-		epos = args[#args].epos
+	if it.args[1] then
+		spos = it.args[1].spos
+		epos = it.args[#it.args].epos
 	end
 	return noinstance:create{
 		nofunc = self,
-		args = args,
-		context = args.context,
+		args = it.args,
+		context = it.context,
 		spos = spos,
 		epos = epos,
 	}

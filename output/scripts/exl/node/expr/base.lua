@@ -16,14 +16,6 @@ function ebase:getconstvalue()
 	return self.constvalue
 end
 
-function ebase:islvalue()
-	return false
-end
-
-function ebase:isrvalue()
-	return true
-end
-
 function ebase:gettivalue()
 	local cv = self:getconstvalue()
 	if cv and cv ~= self then
@@ -34,4 +26,4 @@ end
 common = require('exl.common')
 fulltype = require('exl.fulltype')
 
-ebase.fulltype = fulltype:create(nil, false, true)
+ebase.fulltype = fulltype:create(nil, false, false)

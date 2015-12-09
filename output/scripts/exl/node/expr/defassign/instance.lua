@@ -11,13 +11,11 @@ function aoinstance:init(pr)
 end
 
 function aoinstance:rcompile(stream)
-	local name = self.args[2]:rcompile(stream)
-	self.args[1]:lcompile(stream, name)
-	return name
-end
-
-function aoinstance:getfulltype()
-	return self.fulltype
+	if not self.retname then
+		self.retname = self.args[2]:rcompile(stream)
+		self.args[1]:lcompile(stream, self.retname)
+	end
+	return self.retname
 end
 
 fulltype = require('exl.fulltype')
