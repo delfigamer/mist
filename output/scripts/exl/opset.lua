@@ -3,13 +3,47 @@ local object = require('exl.object')
 local opset = object:module(modname)
 local common
 
+local function prototypeeq(a, b)
+	if #a ~= #b then
+		return false
+	end
+	for i, aarg in ipairs(a) do
+		local barg = b[i]
+		if aarg.ti ~= barg.ti then
+			return false
+		elseif aarg.lvalue and not barg.lvalue then
+			return false
+		elseif aarg.rvalue and not barg.rvalue then
+			return false
+		end
+	end
+	return true
+end
+
+function protoexacteq(a, b)
+	if #a ~= #b then
+		return false
+	end
+	for i, aarg in ipairs(a) do
+		local barg = b[i]
+		if aarg.ti ~= barg.ti then
+			return false
+		elseif aarg.lvalue ~= barg.lvalue then
+			return false
+		elseif aarg.rvalue ~= barg.rvalue then
+			return false
+		end
+	end
+	return true
+end
+
 function opset:init()
 	self.functions = {}
 end
 
 function opset:insert(prototype, operator)
 	for i, item in ipairs(self.functions) do
-		if item.prototype:iseq(prototype) then
+		if protoexacteq(item.prototype, prototype) then
 			return false, 'duplicate operator'..operator, operator.spos
 		end
 	end
@@ -21,8 +55,9 @@ function opset:insert(prototype, operator)
 end
 
 function opset:resolve(prototype)
+	local candidates = {}
 	for i, item in ipairs(self.functions) do
-		if item.prototype:istypeeq(prototype) then
+		if prototypeeq(item.prototype, prototype) then
 			return item.operator
 		end
 	end
