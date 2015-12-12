@@ -18,6 +18,7 @@ function dfunc:createinstance(it)
 		return
 	end
 	local outargs = {}
+	local inargs = {}
 	for i = 1, #args - 1 do
 		local aarg = args[i+1]
 		local farg = bft.ti.arglist.args[i]
@@ -38,6 +39,9 @@ function dfunc:createinstance(it)
 		if farg.blvalue then
 			table.append(outargs, aarg)
 		end
+		if farg.brvalue then
+			table.append(inargs, aarg)
+		end
 	end
 	local retti
 	if bft.ti.rettype then
@@ -47,8 +51,9 @@ function dfunc:createinstance(it)
 		spos = it.spos,
 		epos = it.epos,
 		context = it.context,
-		args = args,
+		base = base,
 		outargs = outargs,
+		inargs = inargs,
 		ti = retti,
 	}
 end

@@ -462,7 +462,7 @@ tokentable['0'] = function(stream, env)
 	else
 		stream:ungetc(ch)
 		stream:ungetc('0')
-		return obtainnumber(stream, env, spos)
+		return obtaindecnumber(stream, env, spos)
 	end
 end
 

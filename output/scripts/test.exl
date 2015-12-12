@@ -1,11 +1,8 @@
-	const foo = 123 + 0x123 - 20
-	function add(inout number a, number b): number
+	operator adda(inout number a, in number b): number
 		result = a = a + b
 	end
-	function n(): number
-		result = 10
-	end
-	local number i = foo
-	local number j = add(i, 1)
-	i = operator add(i, n())
+
+	const foo = 123 + 0x123 - 20
+	local number i = 0
+	i += 1
 end

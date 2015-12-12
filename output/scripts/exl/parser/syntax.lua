@@ -207,10 +207,11 @@ syntax.expr.element['function'] = function(ts, lead)
 		ts:ungett(token)
 	end
 	local body = syntax.block(ts, kwset_end)
+	token = ts:gett()
 	return createnode{
 		name = 'expr.function',
 		spos = lead:getspos(),
-		epos = body.epos,
+		epos = token:getepos(),
 		arglist = arglist,
 		rettype = rettype,
 		body = body,
@@ -525,11 +526,35 @@ syntax.stat['function'] = function(ts, lead)
 		ts:ungett(token)
 	end
 	local body = syntax.block(ts, kwset_end)
+	token = ts:gett()
 	return createnode{
 		name = 'stat.function',
 		spos = lead:getspos(),
-		epos = body.epos,
+		epos = token:getepos(),
 		targetname = targetname:getcontent(),
+		arglist = arglist,
+		rettype = rettype,
+		body = body,
+	}
+end
+
+syntax.stat['operator'] = function(ts, lead)
+	local opname = acquiretoken(ts, 'identifier')
+	local arglist = acquirenode(ts, syntax.farglist, 'arglist')
+	local rettype
+	local token = ts:gett()
+	if token:gettype() == ':' then
+		rettype = acquirenode(ts, syntax.expr.main, 'return type')
+	else
+		ts:ungett(token)
+	end
+	local body = syntax.block(ts, kwset_end)
+	token = ts:gett()
+	return createnode{
+		name = 'stat.operator',
+		spos = lead:getspos(),
+		epos = token:getepos(),
+		operator = opname:getcontent(),
 		arglist = arglist,
 		rettype = rettype,
 		body = body,
@@ -611,7 +636,7 @@ end
 
 -- block parser
 -- consumes a sequence of statements until one of the terminating tokens is reached (e.g. 'end', 'else' or 'until')
--- on success, consumes the statements and the terminating token
+-- on success, consumes the statements
 -- tokens not recognized as statements are skipped
 -- 'eof' is always a terminating token, though encountering it is treated as an error
 function syntax.block(ts, termtypes)
@@ -626,7 +651,6 @@ function syntax.block(ts, termtypes)
 			ts.env:log('error', 'block end expected', token:getspos())
 			break
 		elseif termtypes[ttype] then
-			ts:gett()
 			break
 		else
 			local stat = syntax.stat.main(ts)
@@ -645,7 +669,7 @@ function syntax.block(ts, termtypes)
 	return createnode{
 		name = 'block',
 		spos = spos,
-		epos = token:getepos(),
+		epos = token:getspos(),
 		statements = statements,
 	}
 end

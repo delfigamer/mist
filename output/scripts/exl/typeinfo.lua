@@ -16,4 +16,8 @@ function typeinfo:getdefaultopfunc(op, proto)
 	end
 end
 
+function typeinfo:getserial()
+	return self.serial
+end
+
 aofunc = require('exl.node.expr.defassign.func')

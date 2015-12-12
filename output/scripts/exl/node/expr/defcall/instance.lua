@@ -6,8 +6,9 @@ local fulltype
 function dinstance:init(pr)
 	ebase.init(self, pr)
 	self.context = pr.context
-	self.args = pr.args
+	self.base = pr.base
 	self.outargs = pr.outargs
+	self.inargs = pr.inargs
 	if pr.ti then
 		self.fulltype = fulltype:create(pr.ti, false, true)
 	else
@@ -16,16 +17,18 @@ function dinstance:init(pr)
 end
 
 function dinstance:rcompile(stream)
-	if not self.retname then
-		local basename = self.args[1]:rcompile(stream)
+	if self.retname == nil then
+		local basename = self.base:rcompile(stream)
 		local innames = {}
-		for i = 1, #self.args - 1 do
-			innames[i] = self.args[i+1]:rcompile(stream)
+		for i, iarg in ipairs(self.inargs) do
+			innames[i] = iarg:rcompile(stream)
 		end
 		local outnames = {}
 		if self.fulltype.rvalue then
 			self.retname = stream:genname()
 			outnames[1] = self.retname
+		else
+			self.retname = false
 		end
 		for i, oarg in ipairs(self.outargs) do
 			table.append(outnames, stream:genname())
