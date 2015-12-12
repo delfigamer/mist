@@ -389,18 +389,20 @@ local function obtaincomment(stream, env, spos)
 			if ch == '[' then
 				obtainlongstring(stream, env, level, spos)
 				return
-			end
-			if ch == '=' then
+			elseif ch == '=' then
 				level = level + 1
 			else
 				stream:ungetc(ch)
 				break
 			end
 		end
+	else
+		stream:ungetc(ch)
 	end
 	repeat
 		ch = stream:getc()
 	until ch == '\n' or ch == ''
+	stream:ungetc(ch)
 end
 
 local tokentable = {

@@ -5,7 +5,6 @@ local common
 local dcfunc
 local efunctionbase
 local fulltype
-local prototype
 local symconst
 
 function soperator:init(pr)
@@ -43,7 +42,7 @@ function soperator:build(pc)
 			end
 			proto[i] = fulltype:create(argti, arg.blvalue, arg.brvalue)
 		end
-		pc:setop(self.operator, prototype:create(proto), self)
+		pc:setop(self.operator, proto, self)
 	end
 ::opfail::
 	self.value.body:build(self.value.context)
@@ -95,9 +94,21 @@ function soperator:defstring(lp)
 	end
 end
 
+function soperator.instmeta:__tostring()
+	if self.rettype then
+		return string.format('operator %s%s: %s',
+			common.defstring(self.operator, self.lpindent),
+			common.defstring(self.arglist, self.lpindent),
+			common.defstring(self.rettype, self.lpindent))
+	else
+		return string.format('operator %s%s',
+			common.defstring(self.operator, self.lpindent),
+			common.defstring(self.arglist, self.lpindent))
+	end
+end
+
 common = require('exl.common')
 dcfunc = require('exl.node.expr.defcall.func')
 efunctionbase = require('exl.node.expr.function.base')
 fulltype = require('exl.fulltype')
-prototype = require('exl.prototype')
 symconst = require('exl.symbol.const')

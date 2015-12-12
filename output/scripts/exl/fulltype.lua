@@ -33,10 +33,6 @@ function fulltype:getserial()
 end
 
 function fulltype:defstring(lp)
-	local s = self:getserial()
-	if s then
-		return s
-	end
 	local am
 	if self.lvalue and self.rvalue then
 		am = 'RL'

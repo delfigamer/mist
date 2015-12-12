@@ -332,6 +332,7 @@ syntax.expr.call = function(ts)
 	if not args[1] then
 		return
 	end
+::start::
 	local token = ts:gett()
 	if token:gettype() ~= '(' or token:islinestart() then
 		ts:ungett(token)
@@ -340,13 +341,16 @@ syntax.expr.call = function(ts)
 	token = ts:peekt()
 	if token:gettype() == ')' then
 		ts:gett()
-		return createnode{
-			name = 'expr.operator',
-			operator = 'call',
-			spos = args[1].spos,
-			epos = token:getepos(),
-			args = args,
+		args = {
+			createnode{
+				name = 'expr.operator',
+				operator = 'call',
+				spos = args[1].spos,
+				epos = token:getepos(),
+				args = args,
+			},
 		}
+		goto start
 	end
 	while true do
 		local arg = acquirenode(ts, syntax.expr.main, 'argument')
@@ -364,13 +368,16 @@ syntax.expr.call = function(ts)
 			until tt == ',' or tt == ')' or tt == 'eof'
 		end
 	end
-	return createnode{
-		name = 'expr.operator',
-		operator = 'call',
-		spos = args[1].spos,
-		epos = token:getepos(),
-		args = args,
+	args = {
+		createnode{
+			name = 'expr.operator',
+			operator = 'call',
+			spos = args[1].spos,
+			epos = token:getepos(),
+			args = args,
+		},
 	}
+	goto start
 end
 
 local binaryname = {

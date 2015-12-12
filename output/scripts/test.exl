@@ -1,8 +1,4 @@
-	operator adda(inout number a, in number b): number
-		result = a = a + b
-	end
-
-	const foo = 123 + 0x123 - 20
 	local number i = 0
-	i += 1
+	(1 = 0)
+	(i = 0)
 end

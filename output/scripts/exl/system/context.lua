@@ -7,7 +7,6 @@ local etypebase = require('exl.node.expr.typebase')
 local fulltype = require('exl.fulltype')
 local nofunc = require('exl.system.nativeoperator.func')
 local numberti = require('exl.system.ti.number')
-local prototype = require('exl.prototype')
 local stringti = require('exl.system.ti.string')
 local symconst = require('exl.symbol.const')
 local utility = require('base.utility')
@@ -61,7 +60,7 @@ end
 
 scontext:setop(
 	'concat',
-	prototype:create{rvpt(stringti), rvpt(stringti)},
+	{rvpt(stringti), rvpt(stringti)},
 	nofunc:create{
 		rettype = rvpt(stringti),
 		constfunc = binopconstf('expr.string', utility.operator.concat),
@@ -70,7 +69,7 @@ scontext:setop(
 
 scontext:setop(
 	'mul',
-	prototype:create{rvpt(numberti), rvpt(numberti)},
+	{rvpt(numberti), rvpt(numberti)},
 	nofunc:create{
 		rettype = rvpt(numberti),
 		constfunc = binopconstf('expr.number', utility.operator.mul),
@@ -79,7 +78,7 @@ scontext:setop(
 
 scontext:setop(
 	'div',
-	prototype:create{rvpt(numberti), rvpt(numberti)},
+	{rvpt(numberti), rvpt(numberti)},
 	nofunc:create{
 		rettype = rvpt(numberti),
 		constfunc = binopconstf('expr.number', utility.operator.div),
@@ -88,7 +87,7 @@ scontext:setop(
 
 scontext:setop(
 	'add',
-	prototype:create{rvpt(numberti), rvpt(numberti)},
+	{rvpt(numberti), rvpt(numberti)},
 	nofunc:create{
 		rettype = rvpt(numberti),
 		constfunc = binopconstf('expr.number', utility.operator.add),
@@ -97,7 +96,7 @@ scontext:setop(
 
 scontext:setop(
 	'sub',
-	prototype:create{rvpt(numberti), rvpt(numberti)},
+	{rvpt(numberti), rvpt(numberti)},
 	nofunc:create{
 		rettype = rvpt(numberti),
 		constfunc = binopconstf('expr.number', utility.operator.sub),

@@ -2,7 +2,6 @@ local modname = ...
 local ebase = require('exl.node.expr.base')
 local eoperator = ebase:module(modname)
 local common
--- local prototype
 
 local binary = {
 	concat = '..',
@@ -41,10 +40,38 @@ function eoperator:build(pc)
 		end
 		proto[i] = argft
 	end
-	local operatorfunc = pc:getop(
+	local protostr = {}
+	for i, arg in ipairs(proto) do
+		table.append(protostr, common.defstring(arg))
+	end
+	protostr = string.format('operator %s(%s)',
 		self.operator,
-		proto)
-	if not operatorfunc and proto[1] then
+		table.concat(protostr, ', '))
+	local operatorfunc
+	do
+		local itemlist = pc:getop(
+			self.operator,
+			proto)
+		if #itemlist == 1 then
+			operatorfunc = itemlist[1].operator
+		elseif #itemlist > 1 then
+			pc.env:log(
+				'error',
+				'ambiguous ' .. protostr,
+				self.spos, self.epos)
+			pc.env:log(
+				'note',
+				'possible candidates are:',
+				self.spos, self.epos)
+			for i, item in ipairs(itemlist) do
+				pc.env:log(
+					'note',
+					item.operator,
+					item.operator.spos, item.operator.epos)
+			end
+		end
+	end
+	if not operatorfunc and proto[1] and proto[1].ti then
 		operatorfunc = proto[1].ti:getdefaultopfunc(self.operator, proto)
 	end
 	if operatorfunc then
@@ -61,15 +88,9 @@ function eoperator:build(pc)
 		self.constvalue = self.operatorinstance:getconstvalue()
 		self.fulltype = self.operatorinstance:getfulltype()
 	else
-		local fts = {}
-		for i, arg in ipairs(proto) do
-			table.append(fts, common.defstring(arg))
-		end
 		pc.env:log(
 			'error',
-			string.format('cannot resolve operator %s(%s)',
-				self.operator,
-				table.concat(fts, ', ')),
+			'cannot resolve ' .. protostr,
 			self.spos, self.epos)
 		return
 	end
@@ -116,4 +137,3 @@ function eoperator:defstring(lp)
 end
 
 common = require('exl.common')
--- prototype = require('exl.prototype')
