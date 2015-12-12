@@ -52,22 +52,24 @@ function eoperator:build(pc)
 		local itemlist = pc:getop(
 			self.operator,
 			proto)
-		if #itemlist == 1 then
-			operatorfunc = itemlist[1].operator
-		elseif #itemlist > 1 then
-			pc.env:log(
-				'error',
-				'ambiguous ' .. protostr,
-				self.spos, self.epos)
-			pc.env:log(
-				'note',
-				'possible candidates are:',
-				self.spos, self.epos)
-			for i, item in ipairs(itemlist) do
+		if itemlist then
+			if #itemlist == 1 then
+				operatorfunc = itemlist[1].operator
+			elseif #itemlist > 1 then
+				pc.env:log(
+					'error',
+					'ambiguous ' .. protostr,
+					self.spos, self.epos)
 				pc.env:log(
 					'note',
-					item.operator,
-					item.operator.spos, item.operator.epos)
+					'possible candidates are:',
+					self.spos, self.epos)
+				for i, item in ipairs(itemlist) do
+					pc.env:log(
+						'note',
+						item.operator,
+						item.operator.spos, item.operator.epos)
+				end
 			end
 		end
 	end

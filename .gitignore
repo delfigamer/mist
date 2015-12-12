@@ -38,3 +38,6 @@
 
 # Log files
 *.log
+
+# SciTE files
+SciTE.*

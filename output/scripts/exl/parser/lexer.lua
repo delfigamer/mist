@@ -28,6 +28,7 @@ comments and blanks are ignored
 ]]
 
 local keyword = {
+	['class'] = true,
 	['const'] = true,
 	['end'] = true,
 	['function'] = true,

@@ -206,7 +206,7 @@ syntax.expr.element['function'] = function(ts, lead)
 	else
 		ts:ungett(token)
 	end
-	local body = syntax.block(ts, kwset_end)
+	local body = syntax.block(ts, 'block', syntax.stat.main, kwset_end)
 	token = ts:gett()
 	return createnode{
 		name = 'expr.function',
@@ -277,6 +277,26 @@ syntax.expr.element['operator'] = function(ts, lead)
 end
 
 syntax.expr.type = {}
+
+syntax.expr.type['class'] = function(ts, lead, nlead)
+	local parent
+	local token = ts:gett()
+	if token:gettype() == ':' then
+		parent = acquirenode(ts, syntax.expr.main, 'parent')
+	else
+		ts:ungett(token)
+	end
+	local body = syntax.block(
+		ts, 'class.body', syntax.class.member.main, kwset_end)
+	token = ts:gett()
+	return createnode{
+		name = 'expr.class.typev',
+		spos = lead:getspos(),
+		epos = token:getepos(),
+		parent = parent,
+		body = body,
+	}
+end
 
 syntax.expr.type['function'] = function(ts, lead, nlead)
 	local arglist = acquirenode(ts, syntax.farglist, 'arglist')
@@ -532,7 +552,7 @@ syntax.stat['function'] = function(ts, lead)
 	else
 		ts:ungett(token)
 	end
-	local body = syntax.block(ts, kwset_end)
+	local body = syntax.block(ts, 'block', syntax.stat.main, kwset_end)
 	token = ts:gett()
 	return createnode{
 		name = 'stat.function',
@@ -555,7 +575,7 @@ syntax.stat['operator'] = function(ts, lead)
 	else
 		ts:ungett(token)
 	end
-	local body = syntax.block(ts, kwset_end)
+	local body = syntax.block(ts, 'block', syntax.stat.main, kwset_end)
 	token = ts:gett()
 	return createnode{
 		name = 'stat.operator',
@@ -641,12 +661,12 @@ function syntax.stat.main(ts)
 	end
 end
 
--- block parser
--- consumes a sequence of statements until one of the terminating tokens is reached (e.g. 'end', 'else' or 'until')
+-- generic block parser
+-- consumes a sequence of [statparser] until one of the [termtypes] is reached (e.g. 'end', 'else' or 'until')
 -- on success, consumes the statements
 -- tokens not recognized as statements are skipped
 -- 'eof' is always a terminating token, though encountering it is treated as an error
-function syntax.block(ts, termtypes)
+function syntax.block(ts, nodename, statparser, termtypes)
 	local token = ts:peekt()
 	local spos = token:getspos()
 	local statements = {}
@@ -660,7 +680,7 @@ function syntax.block(ts, termtypes)
 		elseif termtypes[ttype] then
 			break
 		else
-			local stat = syntax.stat.main(ts)
+			local stat = statparser(ts)
 			if stat then
 				errorwritten = false
 				table.append(statements, stat)
@@ -674,9 +694,16 @@ function syntax.block(ts, termtypes)
 		end
 	end
 	return createnode{
-		name = 'block',
+		name = nodename,
 		spos = spos,
 		epos = token:getspos(),
 		statements = statements,
 	}
+end
+
+syntax.class = {}
+
+syntax.class.member = {}
+
+syntax.class.member.main = function(ts)
 end

@@ -10,9 +10,7 @@ function dfunc:createinstance(it)
 	local args = it.args
 	local base = args[1]
 	local bft = base:getfulltype()
-	if not bft.ti or not bft.ti['#exl.node.expr.function.ti'] then
-		return
-	elseif not bft.ti.arglist then
+	if not bft.ti.arglist then
 		return
 	elseif #bft.ti.arglist.args ~= #args - 1 then
 		return
