@@ -1,5 +1,5 @@
 local modname = ...
-local object = require('base.object')
+local object = require('exl.object')
 local context = object:module(modname)
 local id
 local opset
@@ -70,10 +70,6 @@ function context:defstring(lp)
 	end
 	return table.concat(slines)
 end
-
--- function context.instmeta:__tostring()
-	-- return self:defstring('')
--- end
 
 id = require('exl.id')
 opset = require('exl.opset')

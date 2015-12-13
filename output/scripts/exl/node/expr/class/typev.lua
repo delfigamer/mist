@@ -2,7 +2,7 @@ local modname = ...
 local etypebase = require('exl.node.expr.typebase')
 local eclasstypev = etypebase:module(modname)
 local common
-local context
+local classcontext
 local classti
 
 function eclasstypev:init(pr)
@@ -16,8 +16,7 @@ function eclasstypev:build(pc)
 		self.parent:build(pc)
 	end
 -- inheritance is not implemented, so the parent value is ignored
-	self.context = context:create()
-	self.context.env = pc.env
+	self.context = classcontext:create(nil, pc)
 	self.typeinfo = classti:create{
 		parent = self.parent,
 		body = self.body,
@@ -30,5 +29,5 @@ function eclasstypev:defstring(lp)
 end
 
 common = require('exl.common')
-context = require('exl.context')
+classcontext = require('exl.node.class.context')
 classti = require('exl.node.class.ti')

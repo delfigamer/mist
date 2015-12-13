@@ -119,7 +119,7 @@ function eoperator:defstring(lp)
 				common.defstring(self.args[1], lp .. self.lpindent),
 				binary[self.operator],
 				common.defstring(self.args[2], lp .. self.lpindent))
-		elseif self.operator == 'call' then
+		elseif self.operator == 'call' and #self.args > 0 then
 			local args = {}
 			for i = 2, #self.args do
 				args[i-1] = common.defstring(self.args[i], lp .. self.lpindent)
