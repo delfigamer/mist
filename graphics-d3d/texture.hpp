@@ -3,10 +3,13 @@
 
 #include "resource.hpp"
 
-namespace graphics {
-	class Texture: public Resource {
+namespace graphics
+{
+	class Texture: public Resource
+	{
 	public:
-		enum {
+		enum
+		{
 			MinFilter_Nearest = 0,
 			MinFilter_Linear = 1,
 			MinFilter_NearestMipNearest = 2,
@@ -33,7 +36,8 @@ namespace graphics {
 		int m_wrapt;
 
 	protected:
-		virtual void doadvance( IDirect3DDevice9* device, int framecount ) override;
+		virtual void doadvance(
+			IDirect3DDevice9* device, int framecount ) override;
 		virtual void update( IDirect3DDevice9* device ) = 0;
 
 	public:
@@ -46,17 +50,15 @@ namespace graphics {
 
 		bool istexture();
 		void bind( IDirect3DDevice9* device, int sampler );
-// 		static void unbind();
+		// static void unbind();
 		void setminfilter( int value );
 		void setmagfilter( int value );
 		void setwrapmode( int ws, int wt );
 	};
 
-	extern "C" {
-		bool graphics_texture_setminfilter( Texture* t, int value ) noexcept;
-		bool graphics_texture_setmagfilter( Texture* t, int value ) noexcept;
-		bool graphics_texture_setwrapmode( Texture* t, int ws, int wt ) noexcept;
-	}
+	bool graphics_texture_setminfilter( Texture* t, int value ) noexcept;
+	bool graphics_texture_setmagfilter( Texture* t, int value ) noexcept;
+	bool graphics_texture_setwrapmode( Texture* t, int ws, int wt ) noexcept;
 }
 
 #endif

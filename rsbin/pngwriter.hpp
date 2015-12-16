@@ -5,14 +5,18 @@
 #include <utils/cyclicbuffer.hpp>
 #include <utils/ref.hpp>
 #include <utils/databuffer.hpp>
+#include <utils/console.hpp>
 #include <png/png.hpp>
 #include <csetjmp>
 
-namespace rsbin {
-	class PngWriter {
+namespace rsbin
+{
+	class PngWriter
+	{
 	public:
-		enum {
-			BitmapFormat_R8G8B8A8 = 0,
+		enum
+		{
+			BitmapFormat_Int8_Gamma = 0,
 			BitmapFormat_Invalid = 1,
 		};
 
@@ -29,6 +33,7 @@ namespace rsbin {
 		png_infop m_info;
 		utils::String m_error;
 		jmp_buf m_jmpbuf;
+		utils::SingletonRef< utils::ConsoleClass > m_console;
 
 		static void error_handler(
 			png_structp png, png_const_charp msg );
@@ -57,16 +62,14 @@ namespace rsbin {
 		bool isfinished();
 	};
 
-	extern "C" {
-		PngWriter* rsbin_pngwriter_new(
-			int format, int width, int height,
-			utils::DataBuffer* data ) noexcept;
-		bool rsbin_pngwriter_delete( PngWriter* writer ) noexcept;
-		bool rsbin_pngwriter_grab(
-			PngWriter* writer, int length, void* buffer,
-			int* result ) noexcept;
-		int rsbin_pngwriter_isfinished( PngWriter* writer ) noexcept;
-	}
+	PngWriter* rsbin_pngwriter_new(
+		int format, int width, int height,
+		utils::DataBuffer* data ) noexcept;
+	bool rsbin_pngwriter_delete( PngWriter* writer ) noexcept;
+	bool rsbin_pngwriter_grab(
+		PngWriter* writer, int length, void* buffer,
+		int* result ) noexcept;
+	int rsbin_pngwriter_isfinished( PngWriter* writer ) noexcept;
 }
 
 #endif

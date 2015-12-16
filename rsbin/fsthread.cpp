@@ -1,7 +1,6 @@
 #include "fsthread.hpp"
 #include "fileio.hpp"
 #include <utils/strexception.hpp>
-#include <utils/console.hpp>
 #include <utils/cbase.hpp>
 #include <exception>
 #include <cstring>
@@ -16,9 +15,11 @@
 namespace rsbin
 {
 #if defined( _WIN32 ) || defined( _WIN64 )
-	static void WinError() {
+	static void WinError()
+	{
 		DWORD LastError = GetLastError();
-		if( !LastError ) {
+		if( !LastError )
+		{
 			throw std::runtime_error( "unknown Win32 error" );
 		}
 		char StrBuffer[ 1024 ];
@@ -83,14 +84,16 @@ namespace rsbin
 				switch( task->m_direction )
 				{
 				case IoActionRead:
-					if( !ReadFile( handle, task->m_buffer, length, ( LPDWORD )&result, 0 ) )
+					if( !ReadFile(
+						handle, task->m_buffer, length, ( LPDWORD )&result, 0 ) )
 					{
 						WinError();
 					}
 					break;
 
 				case IoActionWrite:
-					if( !WriteFile( handle, task->m_buffer, length, ( LPDWORD )&result, 0 ) )
+					if( !WriteFile(
+						handle, task->m_buffer, length, ( LPDWORD )&result, 0 ) )
 					{
 						WinError();
 					}
@@ -197,36 +200,34 @@ namespace rsbin
 	}
 
 	utils::Singleton< FsThreadClass > FsThread;
+	utils::SingletonRef< FsThreadClass > FsThreadRef( FsThread );
 
-	extern "C"
+	bool rsbin_fstask_promote( FsTask* task ) noexcept
 	{
-		bool rsbin_fstask_promote( FsTask* task ) noexcept
-		{
-		CBASE_PROTECT(
-			FsThread()->pushhigh( task );
-			return 1;
-		)
-		}
+	CBASE_PROTECT(
+		FsThreadRef->pushhigh( task );
+		return 1;
+	)
+	}
 
-		int rsbin_fstask_isfinished( FsTask* task ) noexcept
-		{
-		CBASE_PROTECT(
-			return task->m_finished.load( std::memory_order_acquire ) ? 1 : 2;
-		)
-		}
+	int rsbin_fstask_isfinished( FsTask* task ) noexcept
+	{
+	CBASE_PROTECT(
+		return task->m_finished.load( std::memory_order_acquire ) ? 1 : 2;
+	)
+	}
 
-		int rsbin_fstask_getresult( FsTask* task ) noexcept
-		{
-		CBASE_PROTECT(
-			return task->m_result;
-		)
-		}
+	int rsbin_fstask_getresult( FsTask* task ) noexcept
+	{
+	CBASE_PROTECT(
+		return task->m_result;
+	)
+	}
 
-		char const* rsbin_fstask_geterror( FsTask* task ) noexcept
-		{
-		CBASE_PROTECT(
-			return task->m_error.getchars();
-		)
-		}
+	char const* rsbin_fstask_geterror( FsTask* task ) noexcept
+	{
+	CBASE_PROTECT(
+		return task->m_error.getchars();
+	)
 	}
 }

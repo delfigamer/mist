@@ -1,7 +1,6 @@
 #ifndef GRAPHICS_MESHBUFFER_HPP__
 #define GRAPHICS_MESHBUFFER_HPP__ 1
 
-// #include "resource.hpp"
 #include <utils/databuffer.hpp>
 #include <utils/ref.hpp>
 #include <atomic>
@@ -28,13 +27,14 @@ namespace graphics
 		void setindexdata( utils::DataBuffer* db );
 	};
 
-	extern "C"
-	{
-		utils::DataBuffer* graphics_meshbuffer_getvertexdata( MeshBuffer* mb ) noexcept;
-		bool graphics_meshbuffer_setvertexdata( MeshBuffer* mb, utils::DataBuffer* db ) noexcept;
-		utils::DataBuffer* graphics_meshbuffer_getindexdata( MeshBuffer* mb ) noexcept;
-		bool graphics_meshbuffer_setindexdata( MeshBuffer* mb, utils::DataBuffer* db ) noexcept;
-	}
+	utils::DataBuffer* graphics_meshbuffer_getvertexdata(
+		MeshBuffer* mb ) noexcept;
+	bool graphics_meshbuffer_setvertexdata(
+		MeshBuffer* mb, utils::DataBuffer* db ) noexcept;
+	utils::DataBuffer* graphics_meshbuffer_getindexdata(
+		MeshBuffer* mb ) noexcept;
+	bool graphics_meshbuffer_setindexdata(
+		MeshBuffer* mb, utils::DataBuffer* db ) noexcept;
 }
 
 #endif

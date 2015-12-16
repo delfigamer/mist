@@ -4,14 +4,18 @@
 #include <utils/string.hpp>
 #include <utils/ref.hpp>
 #include <utils/databuffer.hpp>
+#include <utils/console.hpp>
 #include <png/png.hpp>
 #include <csetjmp>
 
-namespace rsbin {
-	class PngReader {
+namespace rsbin
+{
+	class PngReader
+	{
 	public:
-		enum BitmapFormat {
-			BitmapFormat_R8G8B8A8 = 0,
+		enum BitmapFormat
+		{
+			BitmapFormat_Int8_Gamma = 0,
 			BitmapFormat_Invalid = 1,
 		};
 
@@ -26,6 +30,7 @@ namespace rsbin {
 		png_infop m_info;
 		utils::String m_error;
 		jmp_buf m_jmpbuf;
+		utils::SingletonRef< utils::ConsoleClass > m_console;
 
 		static void error_handler( png_structp png, png_const_charp msg );
 		static void warning_handler( png_structp png, png_const_charp msg );
@@ -53,18 +58,16 @@ namespace rsbin {
 		utils::Ref< utils::DataBuffer > const& getdata();
 	};
 
-	extern "C" {
-		PngReader* rsbin_pngreader_new( int format ) noexcept;
-		bool rsbin_pngreader_delete( PngReader* reader ) noexcept;
-		bool rsbin_pngreader_feed(
-			PngReader* reader,
-			int length, void const* buffer ) noexcept;
-		int rsbin_pngreader_isfinished( PngReader* reader ) noexcept;
-		int rsbin_pngreader_getwidth( PngReader* reader ) noexcept;
-		int rsbin_pngreader_getheight( PngReader* reader ) noexcept;
-		utils::DataBuffer* rsbin_pngreader_getdata(
-			PngReader* reader ) noexcept;
-	}
+	PngReader* rsbin_pngreader_new( int format ) noexcept;
+	bool rsbin_pngreader_delete( PngReader* reader ) noexcept;
+	bool rsbin_pngreader_feed(
+		PngReader* reader,
+		int length, void const* buffer ) noexcept;
+	int rsbin_pngreader_isfinished( PngReader* reader ) noexcept;
+	int rsbin_pngreader_getwidth( PngReader* reader ) noexcept;
+	int rsbin_pngreader_getheight( PngReader* reader ) noexcept;
+	utils::DataBuffer* rsbin_pngreader_getdata(
+		PngReader* reader ) noexcept;
 }
 
 #endif

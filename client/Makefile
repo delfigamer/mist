@@ -62,9 +62,7 @@ EXLIBS = \
 	../libwindow$(TARGET_SUFFIX).a \
 	../lib$(GRAPHICSLIB)$(TARGET_SUFFIX).a \
 	../librsbin$(TARGET_SUFFIX).a \
-	../libutils$(TARGET_SUFFIX).a \
-	../libluajit$(TARGET_SUFFIX).a \
-	../libpng$(TARGET_SUFFIX).a
+	../libutils$(TARGET_SUFFIX).a
 
 ifeq ($(OS),Windows_NT)
 #~ RUNCMD = pushd ../output && $(TARGETNAME) && popd

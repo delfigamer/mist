@@ -1,10 +1,18 @@
 #ifndef WINDOW_METHODLIST_HPP__
 #define WINDOW_METHODLIST_HPP__ 1
 
-#include "window.hpp"
+namespace graphics
+{
+	class Shape;
+}
 
-namespace window {
-	struct MethodList {
+namespace window
+{
+	class Window;
+	class WindowInfo;
+
+	struct MethodList
+	{
 		typedef graphics::Shape Shape;
 
 		bool( *window_setshape )( Window* window, Shape* shape );

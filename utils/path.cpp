@@ -69,7 +69,10 @@ namespace utils
 			{
 				( ( char_t* )data )[ -1 ] = PATH_SEP;
 				data -= current->m_result->m_length;
-				memcpy( data, current->m_result->m_data, current->m_result->m_length - sizeof( char_t ) );
+				memcpy(
+					data,
+					current->m_result->m_data,
+					current->m_result->m_length - sizeof( char_t ) );
 				break;
 			}
 			( ( char_t* )data )[ -1 ] = PATH_SEP;
@@ -115,7 +118,8 @@ namespace utils
 		{
 			throw std::runtime_error( "invalid UTF-8 string" );
 		}
-		Ref< DataBuffer > db = DataBuffer::create( translation.destresult, translation.destresult, 0 );
+		Ref< DataBuffer > db = DataBuffer::create(
+			translation.destresult, translation.destresult, 0 );
 		translation.dest = db->m_data;
 		translation.destsize = translation.destresult;
 		if( translatestr( &translation ) != translate_success )
@@ -203,7 +207,8 @@ namespace utils
 					if( partstr[ 0 ] == '.' && partlen == 1 )
 					{
 					}
-					else if( partstr[ 0 ] == '.' && partstr[ 1 ] == '.' && partlen == 2 )
+					else if(
+						partstr[ 0 ] == '.' && partstr[ 1 ] == '.' && partlen == 2 )
 					{
 						current = current->m_base;
 						if( !current )
@@ -213,7 +218,8 @@ namespace utils
 					}
 					else
 					{
-						current = Ref< Path >::create( intern( partstr, partlen ), current );
+						current = Ref< Path >::create(
+							intern( partstr, partlen ), current );
 					}
 				}
 			}
@@ -231,7 +237,8 @@ namespace utils
 				if( partstr[ 0 ] == '.' && partlen == 1 )
 				{
 				}
-				else if( partstr[ 0 ] == '.' && partstr[ 1 ] == '.' && partlen == 2 )
+				else if(
+					partstr[ 0 ] == '.' && partstr[ 1 ] == '.' && partlen == 2 )
 				{
 					current = current->m_base;
 					if( !current )
@@ -241,7 +248,8 @@ namespace utils
 				}
 				else
 				{
-					current = Ref< Path >::create( intern( partstr, partlen ), current );
+					current = Ref< Path >::create(
+						intern( partstr, partlen ), current );
 				}
 			}
 		}

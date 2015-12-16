@@ -6,7 +6,8 @@
 #include "pngwriter.hpp"
 
 namespace rsbin {
-	MethodList const* getmethodlist() {
+	MethodList const* getmethodlist()
+	{
 		static MethodList const List = {
 			rsbin_fileio_new,
 			rsbin_fileio_startread,

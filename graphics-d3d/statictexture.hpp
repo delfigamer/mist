@@ -35,11 +35,10 @@ namespace graphics
 		void assign( int format, utils::DataBuffer* data, int width, int height );
 	};
 
-	extern "C"
-	{
 		StaticTexture* graphics_statictexture_new() noexcept;
-		bool graphics_statictexture_assign( StaticTexture* st, int format, utils::DataBuffer* data, int width, int height ) noexcept;
-	}
+		bool graphics_statictexture_assign(
+			StaticTexture* st,
+			int format, utils::DataBuffer* data, int width, int height ) noexcept;
 }
 
 #endif

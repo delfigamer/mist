@@ -1,6 +1,7 @@
 #ifndef UTILS_PROFILE_HPP__
 #define UTILS_PROFILE_HPP__ 1
 
+#include "console.hpp"
 #include <atomic>
 #include <time.h>
 #include <ctime>
@@ -17,8 +18,10 @@
 	{ __VA_ARGS__ } \
 }
 
-namespace utils {
-	class Profiler {
+namespace utils
+{
+	class Profiler
+	{
 	private:
 		std::atomic_flag m_aflag;
 		uint64_t m_time;
@@ -26,6 +29,7 @@ namespace utils {
 		uint32_t m_max;
 		int m_count;
 		char const* m_name;
+		SingletonRef< ConsoleClass > m_console;
 
 	public:
 		Profiler() = delete;
@@ -39,7 +43,8 @@ namespace utils {
 		void sample( uint32_t ns );
 	};
 
-	class ProfileTimer {
+	class ProfileTimer
+	{
 	private:
 		Profiler* m_profiler;
 #if defined( __i386__ ) || defined( __x86_64__ )
@@ -59,14 +64,18 @@ namespace utils {
 		ProfileTimer operator=( ProfileTimer&& other ) = delete;
 	};
 
-	inline void Profiler::sample( uint32_t time ) {
-		while( m_aflag.test_and_set() ) {
+	inline void Profiler::sample( uint32_t time )
+	{
+		while( m_aflag.test_and_set() )
+		{
 		}
 		m_time += time;
-		if( time < m_min ) {
+		if( time < m_min )
+		{
 			m_min = time;
 		}
-		if( time > m_max ) {
+		if( time > m_max )
+		{
 			m_max = time;
 		}
 		m_count += 1;
@@ -74,15 +83,18 @@ namespace utils {
 	}
 
 #if defined( __i386__ ) || defined( __x86_64__ )
-	inline uint64_t RDTSC() {
+	inline uint64_t RDTSC()
+	{
 		uint32_t hi, lo;
 		__asm__ volatile( "rdtsc" : "=a"( lo ), "=d"( hi ) );
 		return ( uint64_t( hi ) << 32 ) | lo;
 	}
 
-	inline uint64_t current_time() {
+	inline uint64_t current_time()
+	{
 		static uint32_t factor = 0;
-		if( factor == 0 ) {
+		if( factor == 0 )
+		{
 			clock_t cv = clock() + CLOCKS_PER_SEC;
 			uint64_t base = RDTSC();
 			while( clock() < cv ) {
@@ -93,21 +105,25 @@ namespace utils {
 		return ( RDTSC() * factor ) >> 16;
 	}
 
-	inline ProfileTimer::ProfileTimer( Profiler* profiler ) :
-		m_profiler( profiler ) {
+	inline ProfileTimer::ProfileTimer( Profiler* profiler )
+		: m_profiler( profiler )
+	{
 		m_start = current_time();
 	}
 
-	inline ProfileTimer::~ProfileTimer() {
+	inline ProfileTimer::~ProfileTimer()
+	{
 		m_profiler->sample( current_time() - m_start );
 	}
 #else
-	inline ProfileTimer::ProfileTimer( Profiler* profiler ) :
-		m_profiler( profiler ) {
+	inline ProfileTimer::ProfileTimer( Profiler* profiler )
+		: m_profiler( profiler )
+	{
 		clock_gettime( CLOCK_MONOTONIC, &m_start );
 	}
 
-	inline ProfileTimer::~ProfileTimer() {
+	inline ProfileTimer::~ProfileTimer()
+	{
 		timespec ts;
 		clock_gettime( CLOCK_MONOTONIC, &ts );
 		int32_t dt = ts.tv_nsec - m_start.tv_nsec +

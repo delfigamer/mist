@@ -11,7 +11,8 @@
 #define PRIPTR "#10" PRIxPTR
 #endif
 
-namespace utils {
+namespace utils
+{
 #ifdef COUNT_OBJECTS
 	std::atomic< int > rocount( 0 );
 #endif
@@ -21,7 +22,10 @@ namespace utils {
 	{
 // 		LOG( "((RefObject*) %" PRIPTR ")->RefObject()", uintptr_t( this ) );
 #ifdef COUNT_OBJECTS
-		LOG( "   new refobject %" PRIPTR ", utils::rocount = %i", uintptr_t( this ), rocount.fetch_add( 1, std::memory_order_relaxed ) + 1 );
+		LOG( Console.get(),
+			"   new refobject %" PRIPTR ", utils::rocount = %i",
+			uintptr_t( this ),
+			rocount.fetch_add( 1, std::memory_order_relaxed ) + 1 );
 #endif
 	}
 
@@ -30,7 +34,10 @@ namespace utils {
 	{
 // 		LOG( "((RefObject*) %" PRIPTR ")->RefObject()", uintptr_t( this ) );
 #ifdef COUNT_OBJECTS
-		LOG( "   new refobject %" PRIPTR ", utils::rocount = %i", uintptr_t( this ), rocount.fetch_add( 1, std::memory_order_relaxed ) + 1 );
+		LOG( Console.get(),
+			"   new refobject %" PRIPTR ", utils::rocount = %i",
+			uintptr_t( this ),
+			rocount.fetch_add( 1, std::memory_order_relaxed ) + 1 );
 #endif
 	}
 
@@ -39,7 +46,10 @@ namespace utils {
 	{
 // 		LOG( "((RefObject*) %" PRIPTR ")->RefObject()", uintptr_t( this ) );
 #ifdef COUNT_OBJECTS
-		LOG( "   new refobject %" PRIPTR ", utils::rocount = %i", uintptr_t( this ), rocount.fetch_add( 1, std::memory_order_relaxed ) + 1 );
+		LOG( Console.get(),
+			"   new refobject %" PRIPTR ", utils::rocount = %i",
+			uintptr_t( this ),
+			rocount.fetch_add( 1, std::memory_order_relaxed ) + 1 );
 #endif
 	}
 
@@ -47,7 +57,12 @@ namespace utils {
 	{
 // 		LOG( "((RefObject*) %" PRIPTR ")->~RefObject()", uintptr_t( this ) );
 #ifdef COUNT_OBJECTS
-		LOG( "delete refobject %" PRIPTR ", utils::rocount = %i", uintptr_t( this ), rocount.fetch_sub( 1, std::memory_order_relaxed ) - 1 );
+		LOG( Console.get(),
+			"delete refobject %" PRIPTR ", utils::rocount = %i",
+			uintptr_t( this ),
+			rocount.fetch_sub( 1, std::memory_order_relaxed ) - 1 );
+		Console.release();
+		Console.release();
 #endif
 	}
 
@@ -56,36 +71,41 @@ namespace utils {
 		delete this;
 	}
 
-	RefObject& RefObject::operator=( RefObject const& other ) noexcept {
-		return *this;
-	}
-
-	RefObject& RefObject::operator=( RefObject&& other ) noexcept {
-		return *this;
-	}
-
-	extern "C"
+	RefObject& RefObject::operator=( RefObject const& other ) noexcept
 	{
-		int utils_refobject_addref( RefObject* ro ) noexcept
-		{
-		CBASE_PROTECT(
-			if( ro ) {
-				return ro->addref();
-			} else {
-				return -1;
-			}
-		)
-		}
+		return *this;
+	}
 
-		int utils_refobject_release( RefObject* ro ) noexcept
+	RefObject& RefObject::operator=( RefObject&& other ) noexcept
+	{
+		return *this;
+	}
+
+	int utils_refobject_addref( RefObject* ro ) noexcept
+	{
+	CBASE_PROTECT(
+		if( ro )
 		{
-		CBASE_PROTECT(
-			if( ro ) {
-				return ro->release();
-			} else {
-				return -1;
-			}
-		)
+			return ro->addref();
 		}
+		else
+		{
+			return -1;
+		}
+	)
+	}
+
+	int utils_refobject_release( RefObject* ro ) noexcept
+	{
+	CBASE_PROTECT(
+		if( ro )
+		{
+			return ro->release();
+		}
+		else
+		{
+			return -1;
+		}
+	)
 	}
 }

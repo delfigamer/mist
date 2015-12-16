@@ -5,8 +5,10 @@
 #include <utils/flaglock.hpp>
 #include <mutex>
 
-namespace graphics {
-	class ClearShape: public Shape {
+namespace graphics
+{
+	class ClearShape: public Shape
+	{
 	private:
 		typedef utils::FlagLock mutex_t;
 		typedef std::lock_guard< mutex_t > lock_t;
@@ -28,11 +30,11 @@ namespace graphics {
 		void setcolor( float const* color );
 	};
 
-	extern "C" {
 		ClearShape* graphics_clearshape_new() noexcept;
-		bool graphics_clearshape_getcolor( ClearShape* shape, float* color ) noexcept;
-		bool graphics_clearshape_setcolor( ClearShape* shape, float const* color ) noexcept;
-	}
+		bool graphics_clearshape_getcolor(
+			ClearShape* shape, float* color ) noexcept;
+		bool graphics_clearshape_setcolor(
+			ClearShape* shape, float const* color ) noexcept;
 }
 
 #endif

@@ -1,21 +1,27 @@
 #include "flaglock.hpp"
 #include <thread>
 
-namespace utils {
-	FlagLock::FlagLock() {
+namespace utils
+{
+	FlagLock::FlagLock()
+	{
 		m_flag.clear();
 	}
 
-	FlagLock::~FlagLock() {
+	FlagLock::~FlagLock()
+	{
 	}
 
-	void FlagLock::lock() noexcept {
-		while( m_flag.test_and_set( std::memory_order_seq_cst ) ) {
+	void FlagLock::lock() noexcept
+	{
+		while( m_flag.test_and_set( std::memory_order_seq_cst ) )
+		{
 			std::this_thread::yield();
 		}
 	}
 
-	void FlagLock::unlock() noexcept {
+	void FlagLock::unlock() noexcept
+	{
 		m_flag.clear( std::memory_order_seq_cst );
 	}
 }

@@ -4,8 +4,10 @@
 #include <cstdio>
 #include <atomic>
 
-namespace utils {
-	class RefObject {
+namespace utils
+{
+	class RefObject
+	{
 	protected:
 		mutable std::atomic< int > m_refcount;
 
@@ -22,7 +24,8 @@ namespace utils {
 		RefObject& operator=( RefObject&& other ) noexcept;
 	};
 
-	inline int RefObject::addref() const noexcept {
+	inline int RefObject::addref() const noexcept
+	{
 		int rc = m_refcount.fetch_add( 1, std::memory_order_relaxed ) + 1;
 // 		LOG( "((RefObject*) %#10x)->addref()  - %i", uint32_t( this ), rc );
 // 		if( rc == 1 ) {
@@ -31,23 +34,24 @@ namespace utils {
 		return rc;
 	}
 
-	inline int RefObject::release() const noexcept {
+	inline int RefObject::release() const noexcept
+	{
 		int rc = m_refcount.fetch_sub( 1, std::memory_order_relaxed ) - 1;
 // 		LOG( "((RefObject*) %#10x)->release() - %i", uint32_t( this ), rc );
-		if( rc == 0 ) {
+		if( rc == 0 )
+		{
 			const_cast< RefObject* >( this )->destroy();
 		}
 		return rc;
 	}
 
-	inline int RefObject::refcount() const noexcept {
+	inline int RefObject::refcount() const noexcept
+	{
 		return m_refcount.load( std::memory_order_relaxed );
 	}
 
-	extern "C" {
-		int utils_refobject_addref( RefObject* ro ) noexcept;
-		int utils_refobject_release( RefObject* ro ) noexcept;
-	}
+	int utils_refobject_addref( RefObject* ro ) noexcept;
+	int utils_refobject_release( RefObject* ro ) noexcept;
 }
 
 

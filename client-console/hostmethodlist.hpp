@@ -1,15 +1,30 @@
 #ifndef WINDOW_HOSTMETHODLIST_HPP__
 #define WINDOW_HOSTMETHODLIST_HPP__ 1
 
-#include "methodlist.hpp"
-#include <rsbin/methodlist.hpp>
-#include <utils/methodlist.hpp>
+namespace utils
+{
+	class MethodList;
+}
 
-namespace window {
-	struct HostMethodList {
+namespace rsbin
+{
+	class MethodList;
+}
+
+namespace graphics
+{
+	class MethodList;
+}
+
+namespace window
+{
+	class MethodList;
+
+	struct HostMethodList
+	{
 		utils::MethodList const* utils;
 		rsbin::MethodList const* rsbin;
-		void const* graphics;
+		graphics::MethodList const* graphics;
 		MethodList const* window;
 	};
 

@@ -60,13 +60,10 @@ namespace rsbin
 
 	extern utils::Singleton< FsThreadClass > FsThread;
 
-	extern "C"
-	{
-		bool rsbin_fstask_promote( FsTask* task ) noexcept;
-		int rsbin_fstask_isfinished( FsTask* task ) noexcept;
-		int rsbin_fstask_getresult( FsTask* task ) noexcept;
-		char const* rsbin_fstask_geterror( FsTask* task ) noexcept;
-	}
+	bool rsbin_fstask_promote( FsTask* task ) noexcept;
+	int rsbin_fstask_isfinished( FsTask* task ) noexcept;
+	int rsbin_fstask_getresult( FsTask* task ) noexcept;
+	char const* rsbin_fstask_geterror( FsTask* task ) noexcept;
 }
 
 #endif

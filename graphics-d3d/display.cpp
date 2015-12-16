@@ -3,11 +3,13 @@
 #include "common.hpp"
 #include <utils/profile.hpp>
 #include <stdexcept>
+#include <ctime>
 
-namespace graphics {
-	Display::Display() :
-		m_hwnd( 0 ) ,
-		m_presentparameters {
+namespace graphics
+{
+	Display::Display()
+		: m_hwnd( 0 )
+		, m_presentparameters{
 			0,
 			0,
 			D3DFMT_A8R8G8B8,
@@ -21,18 +23,22 @@ namespace graphics {
 			D3DFMT_D24S8,
 			0,
 			0,
-			D3DPRESENT_INTERVAL_IMMEDIATE },
-		m_direct3d( 0 ) ,
-		m_device( 0 ) ,
-		m_info{ 0, 0, 0.5, -0.5 } ,
-		m_framecounter( 0 ) {
+			D3DPRESENT_INTERVAL_IMMEDIATE }
+		, m_direct3d( 0 )
+		, m_device( 0 )
+		, m_info{ 0, 0, 0.5, -0.5 }
+		, m_framecounter( 0 )
+	{
 	}
 
-	Display::~Display() {
+	Display::~Display()
+	{
 	}
 
-	void Display::initialize( utils::ConfigSet const& config, HWND hwnd ) {
-		if( m_hwnd ) {
+	void Display::initialize( utils::ConfigSet const& config, HWND hwnd )
+	{
+		if( m_hwnd )
+		{
 			return;
 		}
 		if( config.boolean( "vsync" ) )
@@ -41,7 +47,8 @@ namespace graphics {
 		}
 		m_hwnd = hwnd;
 		m_direct3d = Direct3DCreate9( D3D_SDK_VERSION );
-		if( !m_direct3d ) {
+		if( !m_direct3d )
+		{
 			throw std::runtime_error( "Direct3DCreate9 failed" );
 		}
 		checkerror( m_direct3d->CreateDevice(
@@ -52,24 +59,30 @@ namespace graphics {
 		m_info.height = m_presentparameters.BackBufferHeight;
 		checkerror( m_device->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE ) );
 		checkerror( m_device->SetRenderState( D3DRS_LIGHTING, false ) );
-		checkerror( m_device->SetRenderState( D3DRS_SRCBLEND, D3DBLEND_SRCALPHA ) );
-		checkerror( m_device->SetRenderState( D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA ) );
+		checkerror( m_device->SetRenderState(
+			D3DRS_SRCBLEND, D3DBLEND_SRCALPHA ) );
+		checkerror( m_device->SetRenderState(
+			D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA ) );
 		checkerror( m_device->SetRenderState( D3DRS_ALPHABLENDENABLE, true ) );
 	}
 
-	void Display::finalize() {
+	void Display::finalize()
+	{
 		RELEASE( m_device );
 		RELEASE( m_direct3d );
 		m_hwnd = 0;
 	}
 
-	void Display::paint() {
+	void Display::paint()
+	{
 	PROFILE( "paint",
-		if( !m_device ) {
+		if( !m_device )
+		{
 			return;
 		}
 		utils::Ref< graphics::Shape > shape = m_shape;
-		if( shape ) {
+		if( shape )
+		{
 		PROFILE( "paint m_device->BeginScene",
 			checkerror( m_device->BeginScene() );
 		)
@@ -82,7 +95,9 @@ namespace graphics {
 		PROFILE( "paint m_device->EndScene",
 			checkerror( m_device->EndScene() );
 		)
-		} else {
+		}
+		else
+		{
 		PROFILE( "paint m_device->Clear",
 			checkerror( m_device->Clear(
 				0, 0, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL,
@@ -98,15 +113,18 @@ namespace graphics {
 	)
 	}
 
-	Shape* Display::getshape() {
+	Shape* Display::getshape()
+	{
 		return m_shape;
 	}
 
-	void Display::setshape( Shape* nv ) {
+	void Display::setshape( Shape* nv )
+	{
 		m_shape = nv;
 	}
 
-	DisplayInfo const* Display::displayinfo() {
+	DisplayInfo const* Display::displayinfo()
+	{
 		return &m_info;
 	}
 }

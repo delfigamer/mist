@@ -9,8 +9,8 @@ if ml == nil then
 	error('graphics are not supported')
 end
 
-function rendertarget:create(width, height)
-	local ptr = ml.rendertarget_new(width, height)
+function rendertarget:create(format, width, height)
+	local ptr = ml.rendertarget_new(format, width, height)
 	if ptr ~= nil then
 		return self:new(ptr)
 	else

@@ -3,6 +3,7 @@
 
 #include <utils/configset.hpp>
 #include <utils/ref.hpp>
+#include <utils/console.hpp>
 #include <lua/lua.hpp>
 #include <ctime>
 
@@ -38,6 +39,7 @@ namespace window
 		utils::String m_cmdline;
 		lua_State* m_lstate;
 		WindowInfo m_info;
+		utils::SingletonRef< utils::ConsoleClass > m_console;
 		void initialize();
 		void initlstate();
 
@@ -54,14 +56,11 @@ namespace window
 		void finish();
 	};
 
-	extern "C"
-	{
-		bool window_window_setshape(
-			Window* window, graphics::Shape* shape ) noexcept;
-		window::WindowInfo const* window_window_getinfo(
-			Window* window ) noexcept;
-		bool window_window_finish( Window* window ) noexcept;
-	}
+	bool window_window_setshape(
+		Window* window, graphics::Shape* shape ) noexcept;
+	window::WindowInfo const* window_window_getinfo(
+		Window* window ) noexcept;
+	bool window_window_finish( Window* window ) noexcept;
 }
 
 #endif

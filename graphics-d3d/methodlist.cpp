@@ -9,8 +9,10 @@
 #include "shapegroup.hpp"
 #include "clearshape.hpp"
 
-namespace graphics {
-	MethodList const* getmethodlist() {
+namespace graphics
+{
+	MethodList const* getmethodlist()
+	{
 		static MethodList const List = {
 			graphics_texture_setminfilter,
 			graphics_texture_setmagfilter,

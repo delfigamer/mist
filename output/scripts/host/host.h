@@ -25,8 +25,7 @@
 	{
 		bool( *encode )( void* dest, uint32_t charcode, size_t destsize, size_t* pointlength );
 		bool( *decode )( void const* source, uint32_t* charcode, size_t sourcesize, size_t* pointlength );
-	}
-	encoding_t;
+	} encoding_t;
 
 	typedef struct
 	{
@@ -38,8 +37,7 @@
 		float tex2_x;
 		float tex2_y;
 		uint32_t color;
-	}
-	Vertex;
+	} Vertex;
 
 	typedef struct
 	{
@@ -52,8 +50,7 @@
 		bool pointinput;
 		bool keyboardinput;
 		bool silent;
-	}
-	WindowInfo;
+	} WindowInfo;
 
 	typedef struct
 	{
@@ -68,13 +65,13 @@
 			void const* source, void* dest, size_t bufsize );
 		int( *refobject_addref )( RefObject* ro );
 		int( *refobject_release )( RefObject* ro );
-		DataBuffer*( *databuffer_new )( int length, int capacity, void const* data );
+		DataBuffer*( *databuffer_new )(
+			int length, int capacity, void const* data );
 		void*( *databuffer_getdata )( DataBuffer* db );
 		int( *databuffer_getlength )( DataBuffer* db );
 		bool( *databuffer_setlength )( DataBuffer* db, int length );
 		int( *databuffer_getcapacity )( DataBuffer* db );
-	}
-	UtilsMethodList;
+	} UtilsMethodList;
 
 	typedef struct
 	{
@@ -108,8 +105,7 @@
 		int( *pngwriter_isfinished )( PngWriter* writer );
 		int( *fileexists )( char const* path );
 		bool( *filesize )( char const* path, uint64_t* size );
-	}
-	RsbinMethodList;
+	} RsbinMethodList;
 
 	typedef struct
 	{
@@ -117,16 +113,23 @@
 		bool( *texture_setmagfilter )( Texture* t, int value );
 		bool( *texture_setwrapmode )( Texture* t, int ws, int wt );
 		StaticTexture*( *statictexture_new )();
-		bool( *statictexture_assign )( StaticTexture* st, int format, DataBuffer* data, int width, int height );
-		RenderTarget*( *rendertarget_new )( int width, int height );
+		bool( *statictexture_assign )(
+			StaticTexture* st,
+			int format, DataBuffer* data, int width, int height );
+		RenderTarget*( *rendertarget_new )( int format, int width, int height );
 		bool( *rendertarget_setdepthstenciluse )( RenderTarget* rt, bool use );
 		bool( *rendertarget_setshape )( RenderTarget* rt, Shape* shape );
-		bool( *rendertarget_setclearcolor )( RenderTarget* rt, bool flag, float const* value );
-		bool( *rendertarget_setcleardepth )( RenderTarget* rt, bool flag, float value );
-		bool( *rendertarget_setclearstencil )( RenderTarget* rt, bool flag, int value );
+		bool( *rendertarget_setclearcolor )(
+			RenderTarget* rt, bool flag, float const* value );
+		bool( *rendertarget_setcleardepth )(
+			RenderTarget* rt, bool flag, float value );
+		bool( *rendertarget_setclearstencil )(
+			RenderTarget* rt, bool flag, int value );
 		Shader*( *shader_new )();
 		bool( *shader_settexture )( Shader* sh, int stage, Texture* texture );
-		bool( *shader_setshadersources )( Shader* sh, char const* vert, char const* frag, char const* texnames );
+		bool( *shader_setshadersources )(
+			Shader* sh,
+			int format, char const* vert, char const* frag, char const* texnames );
 		DataBuffer*( *meshbuffer_getvertexdata )( MeshBuffer* mb );
 		bool( *meshbuffer_setvertexdata )( MeshBuffer* mb, DataBuffer* db );
 		DataBuffer*( *meshbuffer_getindexdata )( MeshBuffer* mb );
@@ -138,25 +141,25 @@
 		bool( *meshshape_setmeshdata )( MeshShape* shape, MeshData* md );
 		bool( *meshshape_setshader )( MeshShape* shape, Shader* sh );
 		bool( *meshshape_setblendmethod )( MeshShape* shape, int method );
-		bool( *meshshape_settexture )( MeshShape* shape, int stage, Texture* texture );
+		bool( *meshshape_settexture )(
+			MeshShape* shape, int stage, Texture* texture );
 		bool( *meshshape_setmatrix )( MeshShape* shape, float const* data );
 		ClearShape*( *clearshape_new )();
 		bool( *clearshape_getcolor )( ClearShape* shape, float* color );
 		bool( *clearshape_setcolor )( ClearShape* shape, float const* color );
 		ShapeGroup*( *shapegroup_new )();
-		bool( *shapegroup_insert )( ShapeGroup* shape, Shape* item, int order, ShapeGroup_iterator* it );
+		bool( *shapegroup_insert )(
+			ShapeGroup* shape, Shape* item, int order, ShapeGroup_iterator* it );
 		bool( *shapegroup_remove )( ShapeGroup* shape, ShapeGroup_iterator* it );
 		bool( *shapegroup_setactive )( ShapeGroup* shape, bool active );
-	}
-	GraphicsMethodList;
+	} GraphicsMethodList;
 
 	typedef struct
 	{
 		bool( *window_setshape )( Window* window, Shape* shape );
 		WindowInfo const*( *window_getinfo )( Window* window );
 		bool( *window_finish )( Window* window );
-	}
-	WindowMethodList;
+	} WindowMethodList;
 
 	typedef struct
 	{
@@ -164,5 +167,4 @@
 		RsbinMethodList const* rsbin;
 		GraphicsMethodList const* graphics;
 		WindowMethodList const* window;
-	}
-	HostMethodList;
+	} HostMethodList;

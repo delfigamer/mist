@@ -2,7 +2,6 @@
 #include <utils/strexception.hpp>
 #include <utils/ref.hpp>
 #include <utils/path.hpp>
-#include <utils/console.hpp>
 #include <utils/cbase.hpp>
 #include <thread>
 #include <stdexcept>
@@ -16,9 +15,6 @@
 #include <windows.h>
 #include <unordered_map>
 #endif
-
-// #undef LOG
-// #define LOG( ... )
 
 namespace rsbin
 {
@@ -66,9 +62,11 @@ namespace rsbin
 		},
 	};
 
-	static void WinError() {
+	static void WinError()
+	{
 		DWORD LastError = GetLastError();
-		if( !LastError ) {
+		if( !LastError )
+		{
 			throw std::runtime_error( "unknown Win32 error" );
 		}
 		char StrBuffer[ 1024 ];
@@ -86,6 +84,8 @@ namespace rsbin
 #endif
 	FileIo::FileIo( char const* path, int mode )
 		: m_handle( 0 )
+		, m_console( utils::Console )
+		, m_fsthread( FsThread )
 	{
 #if defined( _WIN32 ) || defined( _WIN64 )
 		if( mode < 0 || mode >= int( sizeof( fp_map ) / sizeof( fp_map[ 0 ] ) ) )
@@ -190,7 +190,7 @@ namespace rsbin
 		task->m_buffer = ( uint8_t* )buffer;
 		task->m_direction = IoActionRead;
 		task->m_result = 0;
-		FsThread()->pushmain( task );
+		m_fsthread->pushmain( task );
 		return task;
 	}
 
@@ -203,7 +203,7 @@ namespace rsbin
 		task->m_buffer = ( uint8_t* )buffer;
 		task->m_direction = IoActionWrite;
 		task->m_result = 0;
-		FsThread()->pushmain( task );
+		m_fsthread->pushmain( task );
 		return task;
 	}
 
@@ -217,7 +217,7 @@ namespace rsbin
 		task->m_buffer = 0;
 		task->m_direction = IoActionTruncate;
 		task->m_result = 0;
-		FsThread()->pushhigh( task );
+		m_fsthread->pushhigh( task );
 		while( !task->m_finished.load( std::memory_order_acquire ) )
 		{
 			std::this_thread::yield();
@@ -240,35 +240,34 @@ namespace rsbin
 #endif
 	}
 
-	extern "C"
+	FileIo* rsbin_fileio_new( char const* path, int mode ) noexcept
 	{
-		FileIo* rsbin_fileio_new( char const* path, int mode ) noexcept
-		{
-		CBASE_PROTECT(
-			return new FileIo( path, mode );
-		)
-		}
+	CBASE_PROTECT(
+		return new FileIo( path, mode );
+	)
+	}
 
-		FsTask* rsbin_fileio_startread( FileIo* io, uint64_t offset, int length, void* buffer ) noexcept
-		{
-		CBASE_PROTECT(
-			return io->startread( offset, length, buffer );
-		)
-		}
+	FsTask* rsbin_fileio_startread(
+		FileIo* io, uint64_t offset, int length, void* buffer ) noexcept
+	{
+	CBASE_PROTECT(
+		return io->startread( offset, length, buffer );
+	)
+	}
 
-		FsTask* rsbin_fileio_startwrite( FileIo* io, uint64_t offset, int length, void const* buffer ) noexcept
-		{
-		CBASE_PROTECT(
-			return io->startwrite( offset, length, buffer );
-		)
-		}
+	FsTask* rsbin_fileio_startwrite(
+		FileIo* io, uint64_t offset, int length, void const* buffer ) noexcept
+	{
+	CBASE_PROTECT(
+		return io->startwrite( offset, length, buffer );
+	)
+	}
 
-		bool rsbin_fileio_setsize( FileIo* fileio, uint64_t size ) noexcept
-		{
-		CBASE_PROTECT(
-			fileio->setsize( size );
-			return 1;
-		)
-		}
+	bool rsbin_fileio_setsize( FileIo* fileio, uint64_t size ) noexcept
+	{
+	CBASE_PROTECT(
+		fileio->setsize( size );
+		return 1;
+	)
 	}
 }

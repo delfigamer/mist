@@ -38,7 +38,8 @@ namespace graphics
 		MeshBuffer m_buffer2;
 
 	protected:
-		virtual void doadvance( IDirect3DDevice9* device, int framecount ) override;
+		virtual void doadvance(
+			IDirect3DDevice9* device, int framecount ) override;
 
 	public:
 		MeshData();
@@ -55,12 +56,9 @@ namespace graphics
 		void unlockback( MeshBuffer* mb );
 	};
 
-	extern "C"
-	{
-		MeshData* graphics_meshdata_new() noexcept;
-		int graphics_meshdata_trylock( MeshData* md, MeshBuffer** pmb ) noexcept;
-		bool graphics_meshdata_unlock( MeshData* md, MeshBuffer* mb ) noexcept;
-	}
+	MeshData* graphics_meshdata_new() noexcept;
+	int graphics_meshdata_trylock( MeshData* md, MeshBuffer** pmb ) noexcept;
+	bool graphics_meshdata_unlock( MeshData* md, MeshBuffer* mb ) noexcept;
 }
 
 #endif

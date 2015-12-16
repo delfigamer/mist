@@ -3,12 +3,14 @@
 
 #include <atomic>
 
-namespace utils {
-	class CounterLock {
+namespace utils
+{
+	class CounterLock
+	{
 	private:
 		std::atomic< int > m_first;
 		std::atomic< int > m_last;
-		
+
 	public:
 		CounterLock();
 		~CounterLock();
@@ -16,7 +18,7 @@ namespace utils {
 		CounterLock( CounterLock&& other ) = delete;
 		CounterLock& operator=( CounterLock const& other ) = delete;
 		CounterLock& operator=( CounterLock&& other ) = delete;
-		
+
 		void lock() noexcept;
 		void unlock() noexcept;
 	};

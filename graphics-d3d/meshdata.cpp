@@ -6,7 +6,6 @@
 namespace graphics
 {
 #define finally( op ) catch( ... ) { { op } throw; } { op }
-
 	void MeshData::doadvance( IDirect3DDevice9* device, int framecount )
 	{
 		if( !m_dirty.exchange( false, std::memory_order_relaxed ) )
@@ -17,10 +16,14 @@ namespace graphics
 		{
 			static D3DVERTEXELEMENT9 const VDElements[] =
 			{
-				{ 0, offsetof( Vertex, pos_x ), D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
-				{ 0, offsetof( Vertex, tex1_x ), D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0 },
-				{ 0, offsetof( Vertex, tex2_x ), D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 1 },
-				{ 0, offsetof( Vertex, color ), D3DDECLTYPE_D3DCOLOR, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR, 0 },
+				{ 0, offsetof( Vertex, pos_x ), D3DDECLTYPE_FLOAT3,
+					D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
+				{ 0, offsetof( Vertex, tex1_x ), D3DDECLTYPE_FLOAT2,
+					D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0 },
+				{ 0, offsetof( Vertex, tex2_x ), D3DDECLTYPE_FLOAT2,
+					D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 1 },
+				{ 0, offsetof( Vertex, color ), D3DDECLTYPE_D3DCOLOR,
+					D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR, 0 },
 				D3DDECL_END(),
 			};
 			checkerror( device->CreateVertexDeclaration(
@@ -77,10 +80,13 @@ namespace graphics
 			{
 				void* vertices;
 				m_vertexcount = mb->m_vertexdata->m_length / sizeof( Vertex );
-				checkerror( m_vertexbuffer->Lock( 0, 0, &vertices, D3DLOCK_DISCARD | D3DLOCK_NOSYSLOCK ) );
+				checkerror( m_vertexbuffer->Lock(
+					0, 0, &vertices, D3DLOCK_DISCARD | D3DLOCK_NOSYSLOCK ) );
 				try
 				{
-					memcpy( vertices, mb->m_vertexdata->m_data, mb->m_vertexdata->m_length );
+					memcpy(
+						vertices,
+						mb->m_vertexdata->m_data, mb->m_vertexdata->m_length );
 				}
 				finally(
 					m_vertexbuffer->Unlock();
@@ -90,10 +96,13 @@ namespace graphics
 			{
 				void* indices;
 				m_indexcount = mb->m_indexdata->m_length / sizeof( uint16_t );
-				checkerror( m_indexbuffer->Lock( 0, 0, &indices, D3DLOCK_DISCARD | D3DLOCK_NOSYSLOCK ) );
+				checkerror( m_indexbuffer->Lock(
+					0, 0, &indices, D3DLOCK_DISCARD | D3DLOCK_NOSYSLOCK ) );
 				try
 				{
-					memcpy( indices, mb->m_indexdata->m_data, mb->m_indexdata->m_length );
+					memcpy(
+						indices,
+						mb->m_indexdata->m_data, mb->m_indexdata->m_length );
 				}
 				finally(
 					m_indexbuffer->Unlock();
@@ -126,14 +135,16 @@ namespace graphics
 		RELEASE( m_vertexdeclaration );
 	}
 
-	bool MeshData::bind( IDirect3DDevice9* device, int* vertexcount, int* indexcount )
+	bool MeshData::bind(
+		IDirect3DDevice9* device, int* vertexcount, int* indexcount )
 	{
 		if( !m_vertexdeclaration || !m_vertexbuffer || !m_indexbuffer )
 		{
 			return false;
 		}
 		checkerror( device->SetVertexDeclaration( m_vertexdeclaration ) );
-		checkerror( device->SetStreamSource( 0, m_vertexbuffer, 0, sizeof( Vertex ) ) );
+		checkerror( device->SetStreamSource(
+			0, m_vertexbuffer, 0, sizeof( Vertex ) ) );
 		checkerror( device->SetIndices( m_indexbuffer ) );
 		*vertexcount = m_vertexcount;
 		*indexcount = m_indexcount;
@@ -167,12 +178,14 @@ namespace graphics
 		// (2) -> (1), returns 0
 		// (3) -> (3), returns front (which means mb is now back)
 		// (4) -> (3), returns 0
-		MeshBuffer* oldmb = m_frontbuffer.exchange( mb, std::memory_order_relaxed );
+		MeshBuffer* oldmb = m_frontbuffer.exchange(
+			mb, std::memory_order_relaxed );
 		if( oldmb )
 		{
 			// (3) -> (1)
 			m_frontbuffer.store( oldmb, std::memory_order_relaxed );
-			m_backbuffer.store( mb, std::memory_order_release ); // so (l) won't see front == back
+			m_backbuffer.store( mb, std::memory_order_release );
+			// memory_order_release prevents (l) from seeing front == back
 		}
 	}
 
@@ -192,7 +205,8 @@ namespace graphics
 		// (2) invalid
 		// (3) -> (3), returns front
 		// (4) -> (3), returns 0
-		MeshBuffer* oldmb = m_frontbuffer.exchange( mb, std::memory_order_release );
+		MeshBuffer* oldmb = m_frontbuffer.exchange(
+			mb, std::memory_order_release );
 		if( oldmb )
 		{
 			// (3) -> (1)
@@ -201,28 +215,26 @@ namespace graphics
 		m_dirty.store( true, std::memory_order_relaxed );
 	}
 
-	extern "C" {
-		MeshData* graphics_meshdata_new() noexcept
-		{
-		CBASE_PROTECT(
-			return new MeshData();
-		)
-		}
+	MeshData* graphics_meshdata_new() noexcept
+	{
+	CBASE_PROTECT(
+		return new MeshData();
+	)
+	}
 
-		int graphics_meshdata_trylock( MeshData* md, MeshBuffer** pmb ) noexcept
-		{
-		CBASE_PROTECT(
-			*pmb = md->trylockback();
-			return *pmb ? 1 : 2;
-		)
-		}
+	int graphics_meshdata_trylock( MeshData* md, MeshBuffer** pmb ) noexcept
+	{
+	CBASE_PROTECT(
+		*pmb = md->trylockback();
+		return *pmb ? 1 : 2;
+	)
+	}
 
-		bool graphics_meshdata_unlock( MeshData* md, MeshBuffer* mb ) noexcept
-		{
-		CBASE_PROTECT(
-			md->unlockback( mb );
-			return 1;
-		)
-		}
+	bool graphics_meshdata_unlock( MeshData* md, MeshBuffer* mb ) noexcept
+	{
+	CBASE_PROTECT(
+		md->unlockback( mb );
+		return 1;
+	)
 	}
 }

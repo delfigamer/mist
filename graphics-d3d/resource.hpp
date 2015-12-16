@@ -1,14 +1,21 @@
 #ifndef GRAPHICS_RESOURCE_HPP__
 #define GRAPHICS_RESOURCE_HPP__ 1
 
+#ifdef GRAPHICS_NOLOG
+#define LOG( ... )
+#else
+#include <utils/console.hpp>
+#endif
 #include <utils/refobject.hpp>
 #include <utils/counterlock.hpp>
 #include <mutex>
 #include <stack>
 #include <d3d9.h>
 
-namespace graphics {
-	class Resource: public utils::RefObject {
+namespace graphics
+{
+	class Resource: public utils::RefObject
+	{
 	private:
 		typedef std::stack< Resource* > resourcestack_t;
 		typedef utils::CounterLock mutex_t;
@@ -20,6 +27,9 @@ namespace graphics {
 
 	protected:
 		int m_lastframe;
+#ifndef GRAPHICS_NOLOG
+		utils::SingletonRef< utils::ConsoleClass > m_console;
+#endif
 
 	protected:
 		virtual void doadvance( IDirect3DDevice9* device, int framecount ) = 0;
@@ -37,9 +47,6 @@ namespace graphics {
 
 		static void cleanup();
 	};
-
-	extern "C" {
-	}
 }
 
 #endif

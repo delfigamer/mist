@@ -11,14 +11,22 @@ namespace utils
 	// dest may be 0
 	// if destsize == 0 && dest == 0, always succeeds
 	// if destsize == 0 && dest != 0, always fails
-	typedef bool( *encoder_t )( void* dest, uint32_t charcode, size_t destsize, size_t* pointlength );
+	typedef bool( *encoder_t )(
+		void* dest,
+		uint32_t charcode,
+		size_t destsize,
+		size_t* pointlength );
 
 	// on success - return true, *pointlength <- number of bytes consumed
 	// invalid stream - return false, *pointlength <- number of bytes consumed
 	// buffer overrun - return false, *pointlength <- 0
 	// charcode may be 0
 	// is sourcesize == 0, source is assumed to be unbound
-	typedef bool( *decoder_t )( void const* source, uint32_t* charcode, size_t sourcesize, size_t* pointlength );
+	typedef bool( *decoder_t )(
+		void const* source,
+		uint32_t* charcode,
+		size_t sourcesize,
+		size_t* pointlength );
 
 	struct encoding_t
 	{
@@ -40,7 +48,8 @@ namespace utils
 		extern encoding_t const utf16be;
 		extern encoding_t const utf32le;
 		extern encoding_t const utf32be;
-		enum indices {
+		enum indices
+		{
 			index_utf8 = 0,
 			index_utf16 = 1,
 			index_utf32 = 2,
@@ -59,7 +68,7 @@ namespace utils
 		void* dest; // may be 0
 		size_t sourcesize; // if 0, source is null-terminated
 		size_t destsize; // if 0, dest is not written
-		uint32_t defaultchar; // if 0, stops the conversion immediately after a error
+		uint32_t defaultchar; // if 0, stops immediately after a error
 			// if invalid, returns immediately
 		size_t sourceresult; // out
 		size_t destresult; // out
@@ -70,17 +79,14 @@ namespace utils
 	enum
 	{
 		translate_success = 1,
-		translate_failure_source_overrun = 2,
-		translate_failure_source_corrupted = 3,
-		translate_failure_dest_unsupported = 4,
-		translate_failure_dest_overrun = 5,
+		translate_source_overrun = 2,
+		translate_source_corrupted = 3,
+		translate_dest_unsupported = 4,
+		translate_dest_overrun = 5,
 	};
 
-	extern "C"
-	{
-		encoding_t const* utils_encoding_getencoding( int index ) noexcept;
-		int utils_encoding_translatestr( translation_t* translation ) noexcept;
-	}
+	encoding_t const* utils_encoding_getencoding( int index ) noexcept;
+	int utils_encoding_translatestr( translation_t* translation ) noexcept;
 }
 
 #endif

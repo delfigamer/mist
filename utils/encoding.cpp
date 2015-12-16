@@ -2,7 +2,8 @@
 #include "cbase.hpp"
 #include <stdexcept>
 
-namespace utils {
+namespace utils
+{
 	// returns the expected length of the code point, or 0 on error
 	// charcode may be 0
 	static inline size_t mbfirst( uint8_t ch, uint32_t* charcode )
@@ -35,7 +36,11 @@ namespace utils {
 		return result;
 	}
 
-	static bool utf8_encode( void* dest, uint32_t charcode, size_t destsize, size_t* pointlength )
+	static bool utf8_encode(
+		void* dest,
+		uint32_t charcode,
+		size_t destsize,
+		size_t* pointlength )
 	{
 		size_t length;
 		if( charcode <= 0x7f )
@@ -110,7 +115,11 @@ namespace utils {
 		return false;
 	}
 
-	static bool utf8_decode( void const* source, uint32_t* charcode, size_t sourcesize, size_t* pointlength )
+	static bool utf8_decode(
+		void const* source,
+		uint32_t* charcode,
+		size_t sourcesize,
+		size_t* pointlength )
 	{
 		uint8_t const* sourcew = ( uint8_t const* )source;
 		if( ( sourcew[ 0 ] & 0x80 ) == 0 )
@@ -158,7 +167,11 @@ namespace utils {
 		return true;
 	}
 
-	static bool utf16_encode( void* dest, uint32_t charcode, size_t destsize, size_t* pointlength )
+	static bool utf16_encode(
+		void* dest,
+		uint32_t charcode,
+		size_t destsize,
+		size_t* pointlength )
 	{
 		if( charcode <= 0xd7ff || ( charcode >= 0xe000 && charcode <= 0xffff ) )
 		{
@@ -211,7 +224,11 @@ namespace utils {
 		}
 	}
 
-	static bool utf16_decode( void const* source, uint32_t* charcode, size_t sourcesize, size_t* pointlength )
+	static bool utf16_decode(
+		void const* source,
+		uint32_t* charcode,
+		size_t sourcesize,
+		size_t* pointlength )
 	{
 		if( sourcesize == 1 ) // sourcesize != 0 && sourcesize < 2
 		{
@@ -261,7 +278,11 @@ namespace utils {
 		}
 	}
 
-	static bool utf32_encode( void* dest, uint32_t charcode, size_t destsize, size_t* pointlength )
+	static bool utf32_encode(
+		void* dest,
+		uint32_t charcode,
+		size_t destsize,
+		size_t* pointlength )
 	{
 		if( ( charcode >= 0xd800 && charcode <= 0xdfff ) || charcode > 0x10ffff )
 		{
@@ -291,7 +312,11 @@ namespace utils {
 		}
 	}
 
-	static bool utf32_decode( void const* source, uint32_t* charcode, size_t sourcesize, size_t* pointlength )
+	static bool utf32_decode(
+		void const* source,
+		uint32_t* charcode,
+		size_t sourcesize,
+		size_t* pointlength )
 	{
 		if( sourcesize != 0 && sourcesize < 4 )
 		{
@@ -314,7 +339,11 @@ namespace utils {
 	}
 
 	template< int bl, int bh >
-	static bool utf16xe_encode( void* dest, uint32_t charcode, size_t destsize, size_t* pointlength )
+	static bool utf16xe_encode(
+		void* dest,
+		uint32_t charcode,
+		size_t destsize,
+		size_t* pointlength )
 	{
 		if( dest )
 		{
@@ -342,23 +371,34 @@ namespace utils {
 	}
 
 	template< int bl, int bh >
-	static bool utf16xe_decode( void const* source, uint32_t* charcode, size_t sourcesize, size_t* pointlength )
+	static bool utf16xe_decode(
+		void const* source,
+		uint32_t* charcode,
+		size_t sourcesize,
+		size_t* pointlength )
 	{
 		uint8_t const* sourcew = ( uint8_t const* )source;
 		uint16_t buffer[ 2 ];
 		if( sourcesize >= 2 )
 		{
-			buffer[ 0 ] = uint16_t( sourcew[ bl ] ) | uint16_t( sourcew[ bh ] << 8 );
+			buffer[ 0 ] =
+				uint16_t( sourcew[ bl ] ) | uint16_t( sourcew[ bh ] << 8 );
 			if( buffer[ 0 ] >= 0xd800 && buffer[ 0 ] <= 0xdbff && sourcesize >= 4 )
 			{
-				buffer[ 1 ] = uint16_t( sourcew[ 2 + bl ] ) | uint16_t( sourcew[ 2 + bh ] << 8 );
+				buffer[ 1 ] =
+					uint16_t( sourcew[ 2 + bl ] )
+					| uint16_t( sourcew[ 2 + bh ] << 8 );
 			}
 		}
 		return utf16_decode( buffer, charcode, sourcesize, pointlength );
 	}
 
 	template< int b1, int b2, int b3, int b4 >
-	static bool utf32xe_encode( void* dest, uint32_t charcode, size_t destsize, size_t* pointlength )
+	static bool utf32xe_encode(
+		void* dest,
+		uint32_t charcode,
+		size_t destsize,
+		size_t* pointlength )
 	{
 		if( dest )
 		{
@@ -381,7 +421,11 @@ namespace utils {
 	}
 
 	template< int b1, int b2, int b3, int b4 >
-	static bool utf32xe_decode( void const* source, uint32_t* charcode, size_t sourcesize, size_t* pointlength )
+	static bool utf32xe_decode(
+		void const* source,
+		uint32_t* charcode,
+		size_t sourcesize,
+		size_t* pointlength )
 	{
 		uint8_t const* sourcew = ( uint8_t const* )source;
 		uint32_t buffer[ 1 ];
@@ -409,11 +453,15 @@ namespace utils {
 		encoding_t const utf16le( &utf16_encode, &utf16_decode );
 		encoding_t const utf32le( &utf32_encode, &utf32_decode );
 #else
-		encoding_t const utf16le( &utf16xe_encode< 0, 1 >, &utf16xe_decode< 0, 1 > );
-		encoding_t const utf32le( &utf32xe_encode< 0, 1, 2, 3 >, &utf32xe_decode< 0, 1, 2, 3 > );
+		encoding_t const utf16le(
+			&utf16xe_encode< 0, 1 >, &utf16xe_decode< 0, 1 > );
+		encoding_t const utf32le(
+			&utf32xe_encode< 0, 1, 2, 3 >, &utf32xe_decode< 0, 1, 2, 3 > );
 #endif
-		encoding_t const utf16be( &utf16xe_encode< 1, 0 >, &utf16xe_decode< 1, 0 > );
-		encoding_t const utf32be( &utf32xe_encode< 3, 2, 1, 0 >, &utf32xe_decode< 3, 2, 1, 0 > );
+		encoding_t const utf16be(
+			&utf16xe_encode< 1, 0 >, &utf16xe_decode< 1, 0 > );
+		encoding_t const utf32be(
+			&utf32xe_encode< 3, 2, 1, 0 >, &utf32xe_decode< 3, 2, 1, 0 > );
 	}
 
 	enum
@@ -441,18 +489,21 @@ namespace utils {
 		{
 			uint32_t charcode;
 			size_t spointlength;
-			if( !senc->decode( source, &charcode, sourcesize == sourcesize_zterm ? 0 : sourcesize, &spointlength ) )
+			if( !senc->decode(
+				source,
+				&charcode,
+				sourcesize == sourcesize_zterm ? 0 : sourcesize, &spointlength ) )
 			{
 				if( spointlength == 0 )
 				{
-					resultcode = translate_failure_source_overrun;
+					resultcode = translate_source_overrun;
 					break;
 				}
 				else
 				{
 					if( defaultchar == 0 )
 					{
-						resultcode = translate_failure_source_corrupted;
+						resultcode = translate_source_corrupted;
 						break;
 					}
 					else
@@ -471,12 +522,12 @@ namespace utils {
 			{
 				if( dpointlength == 0 )
 				{
-					resultcode = translate_failure_dest_unsupported;
+					resultcode = translate_dest_unsupported;
 					break;
 				}
 				else
 				{
-					resultcode = translate_failure_dest_overrun;
+					resultcode = translate_dest_overrun;
 					break;
 				}
 			}
@@ -511,24 +562,24 @@ namespace utils {
 		&encoding::utf32be,
 	};
 
-	extern "C"
+	encoding_t const* utils_encoding_getencoding( int index ) noexcept
 	{
-		encoding_t const* utils_encoding_getencoding( int index ) noexcept
+	CBASE_PROTECT(
+		if(
+			index < 0
+			|| index >= int(
+				sizeof( encoding_table ) / sizeof( encoding_table[ 0 ] ) ) )
 		{
-		CBASE_PROTECT(
-			if( index < 0 || index >= int( sizeof( encoding_table ) / sizeof( encoding_table[ 0 ] ) ) )
-			{
-				throw std::runtime_error( "invalid encoding index" );
-			}
-			return encoding_table[ index ];
-		)
+			throw std::runtime_error( "invalid encoding index" );
 		}
+		return encoding_table[ index ];
+	)
+	}
 
-		int utils_encoding_translatestr( translation_t* translation ) noexcept
-		{
-		CBASE_PROTECT(
-			return translatestr( translation );
-		)
-		}
+	int utils_encoding_translatestr( translation_t* translation ) noexcept
+	{
+	CBASE_PROTECT(
+		return translatestr( translation );
+	)
 	}
 }

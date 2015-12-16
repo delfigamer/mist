@@ -59,8 +59,8 @@ namespace utils
 	extern utils::Singleton< ConsoleClass > Console;
 }
 
-#define LOG( format, ... ) \
-	utils::Console()->writeln( \
+#define LOG( conref, format, ... ) \
+	conref->writeln( \
 		"[%48s:%24s@%4i]\t" format, \
 		__FILE__, __FUNCTION__, __LINE__, ##__VA_ARGS__ )
 

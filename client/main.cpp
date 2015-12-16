@@ -57,7 +57,8 @@ static wchar_t const* trimpath( wchar_t const* argstr )
 #endif
 
 #if defined( _WIN32 ) || defined( _WIN64 )
-int CALLBACK WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+int CALLBACK WinMain(
+	HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
 #elif defined(__ANDROID__)
 void android_main( android_app* app )
 #endif
@@ -65,14 +66,15 @@ void android_main( android_app* app )
 #if defined(__ANDROID__)
 	app_dummy();
 #endif
-	LOG( "~ Application start" );
+	utils::SingletonRef< utils::ConsoleClass > console( utils::Console );
+	LOG( console, "~ Application start" );
 	window::WindowCreationData wcd;
-	try {
+	try
+	{
 #if defined( _WIN32 ) || defined( _WIN64 )
 		wcd.hInstance = hInstance;
 		wchar_t const* cmdline = trimpath( GetCommandLineW() );
-		utils::translation_t translation =
-		{
+		utils::translation_t translation = {
 			&utils::encoding::utf16,
 			&utils::encoding::utf8,
 			cmdline,
@@ -85,7 +87,8 @@ void android_main( android_app* app )
 		{
 			throw std::runtime_error( "cannot translate command line" );
 		}
-		utils::Ref< utils::DataBuffer > db = utils::DataBuffer::create( translation.destresult, translation.destresult, 0 );
+		utils::Ref< utils::DataBuffer > db = utils::DataBuffer::create(
+			translation.destresult, translation.destresult, 0 );
 		translation.dest = db->m_data;
 		translation.sourcesize = translation.sourceresult;
 		translation.destsize = db->m_capacity;
@@ -98,13 +101,15 @@ void android_main( android_app* app )
 		wcd.app = app;
 		wcd.cmdline = 0;
 #endif
-		LOG( "Command line: \"%s\"", wcd.cmdline.getchars() );
+		LOG( console, "Command line: \"%s\"", wcd.cmdline.getchars() );
 		window::Window mainwindow( wcd );
 		mainwindow.mainloop();
-	} catch( const std::exception& e ) {
-		LOG( "! Critical error: %s", e.what() );
 	}
-	LOG( "~ Application end" );
+	catch( const std::exception& e )
+	{
+		LOG( console, "! Critical error: %s", e.what() );
+	}
+	LOG( console, "~ Application end" );
 #if defined( _WIN32 ) || defined( _WIN64 )
 	return 0;
 #elif defined(__ANDROID__)

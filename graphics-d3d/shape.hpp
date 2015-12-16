@@ -4,8 +4,10 @@
 #include "resource.hpp"
 #include <d3d9.h>
 
-namespace graphics {
-	class Shape: public Resource {
+namespace graphics
+{
+	class Shape: public Resource
+	{
 	protected:
 		virtual void doadvance( IDirect3DDevice9* device, int framecount ) override;
 
@@ -19,9 +21,6 @@ namespace graphics {
 
 		virtual void paint( IDirect3DDevice9* device );
 	};
-
-	extern "C" {
-	}
 }
 
 #endif

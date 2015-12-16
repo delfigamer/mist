@@ -13,6 +13,14 @@ namespace graphics
 {
 	class Shader: public Resource
 	{
+	public:
+		enum
+		{
+			ShaderFormat_GLSL_100 = 0,
+			ShaderFormat_HLSL_3_0_Source = 1,
+			ShaderFormat_HLSL_3_0_Bytecode = 2,
+		};
+
 	private:
 		typedef utils::CounterLock mutex_t;
 		typedef std::lock_guard< mutex_t > lock_t;
@@ -29,7 +37,8 @@ namespace graphics
 		ID3DXConstantTable* m_pixelshaderconstants;
 
 	protected:
-		virtual void doadvance( IDirect3DDevice9* device, int framecount ) override;
+		virtual void doadvance(
+			IDirect3DDevice9* device, int framecount ) override;
 
 	public:
 		Shader();
@@ -39,18 +48,21 @@ namespace graphics
 		Shader& operator=( Shader const& ) = delete;
 		Shader& operator=( Shader&& ) = delete;
 
-		void bind( IDirect3DDevice9* device, utils::Ref< Texture > const* textures );
-// 		static void unbind();
+		void bind(
+			IDirect3DDevice9* device, utils::Ref< Texture > const* textures );
+		// static void unbind();
 		void settexture( int stage, Texture* texture );
-		void setshadersources( char const* vert, char const* frag, char const* texnames );
+		void setshadersources(
+			int format, char const* vert, char const* frag, char const* texnames );
 	};
 
-	extern "C"
-	{
-		Shader* graphics_shader_new() noexcept;
-		bool graphics_shader_settexture( Shader* sh, int stage, Texture* texture ) noexcept;
-		bool graphics_shader_setshadersources( Shader* sh, char const* vert, char const* frag, char const* texnames ) noexcept;
-	}
+	Shader* graphics_shader_new() noexcept;
+	bool graphics_shader_settexture(
+		Shader* sh, int stage, Texture* texture ) noexcept;
+	bool graphics_shader_setshadersources(
+		Shader* sh,
+		int format,
+		char const* vert, char const* frag, char const* texnames ) noexcept;
 }
 
 #endif

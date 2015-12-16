@@ -1,9 +1,9 @@
 #include "asyncluastate.hpp"
 #include <utils/strexception.hpp>
-#include <utils/console.hpp>
 #include <utility>
 
-namespace window {
+namespace window
+{
 	class LuaError: public utils::StrException
 	{
 	public:
@@ -21,7 +21,6 @@ namespace window {
 		lua_pcall( L, 1, 1, 0 );
 		utils::String message( lua_tostring( L, -1 ) );
 		lua_pop( L, 1 );
-		LOG( "Lua error: %s", message.getchars() );
 		return message;
 	}
 
@@ -34,7 +33,7 @@ namespace window {
 
 	void AsyncLuaState::threadfunc() noexcept
 	{
-		LOG( "~ Lua thread started" );
+		LOG( m_console, "~ Lua thread started" );
 		lua_State* lstate = luaL_newstate();
 		action_t currentaction;
 		while( m_running )
@@ -65,13 +64,14 @@ namespace window {
 			currentaction( lstate, &m_error );
 		}
 		lua_close( lstate );
-		LOG( "~ Lua thread finished" );
+		LOG( m_console, "~ Lua thread finished" );
 	}
 
 	AsyncLuaState::AsyncLuaState()
 		: m_running( true )
 		, m_minupdateperiod( 0 )
 		, m_time( 0 )
+		, m_console( utils::Console )
 	{
 		m_thread = std::thread( &AsyncLuaState::threadfunc, this );
 	}
@@ -106,9 +106,9 @@ namespace window {
 	void AsyncLuaState::join()
 	{
 		m_running = false;
-		LOG( "~ Waiting for the Lua thread..." );
+		LOG( m_console, "~ Waiting for the Lua thread..." );
 		m_thread.join();
-		LOG( "~ Lua thread joined" );
+		LOG( m_console, "~ Lua thread joined" );
 	}
 
 	void AsyncLuaState::setdefaultaction( AsyncLuaState::action_t const& action )

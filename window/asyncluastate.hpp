@@ -5,6 +5,7 @@
 #include <utils/configset.hpp>
 #include <utils/string.hpp>
 #include <utils/method.hpp>
+#include <utils/console.hpp>
 #include <lua/lua.hpp>
 #include <atomic>
 #include <thread>
@@ -16,7 +17,8 @@ namespace window
 {
 	utils::String lua_retrieveerror( lua_State* L );
 
-	class AsyncLuaState {
+	class AsyncLuaState
+	{
 	public:
 		typedef utils::Method<
 			void( lua_State* L, utils::String* error ) > action_t;
@@ -29,6 +31,7 @@ namespace window
 		utils::String m_error;
 		std::atomic< uint32_t > m_minupdateperiod;
 		uint64_t m_time;
+		utils::SingletonRef< utils::ConsoleClass > m_console;
 
 		void threadfunc() noexcept;
 
@@ -40,7 +43,6 @@ namespace window
 		AsyncLuaState& operator=( AsyncLuaState const& ) = delete;
 		AsyncLuaState& operator=( AsyncLuaState&& ) = delete;
 
-//		bool isbusy() noexcept;
 		void applyconfig( utils::ConfigSet const& config );
 		void checkerror();
 		void join();

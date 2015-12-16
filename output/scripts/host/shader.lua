@@ -25,8 +25,8 @@ function shader:settexture(stage, texture)
 	end
 end
 
-function shader:setshadersources(vert, frag, texnames)
-	if not ml.shader_setshadersources(self.ptr, vert, frag, texnames) then
+function shader:setshadersources(format, vert, frag, texnames)
+	if not ml.shader_setshadersources(self.ptr, format, vert, frag, texnames) then
 		host.checkerror()
 	end
 end

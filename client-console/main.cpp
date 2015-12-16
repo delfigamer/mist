@@ -58,7 +58,8 @@ static wchar_t const* trimpath( wchar_t const* argstr )
 
 int main( int argc, char const** argv )
 {
-	LOG( "~ Console application start" );
+	utils::SingletonRef< utils::ConsoleClass > console( utils::Console );
+	LOG( console, "~ Console application start" );
 	window::WindowCreationData wcd;
 	try
 	{
@@ -78,7 +79,8 @@ int main( int argc, char const** argv )
 		{
 			throw std::runtime_error( "cannot translate command line" );
 		}
-		utils::Ref< utils::DataBuffer > db = utils::DataBuffer::create( translation.destresult, translation.destresult, 0 );
+		utils::Ref< utils::DataBuffer > db = utils::DataBuffer::create(
+			translation.destresult, translation.destresult, 0 );
 		translation.dest = db->m_data;
 		translation.sourcesize = translation.sourceresult;
 		translation.destsize = db->m_capacity;
@@ -93,7 +95,7 @@ int main( int argc, char const** argv )
 			wcd.cmdline = argv[ 1 ];
 		}
 #endif
-		LOG( "Command line: \"%s\"", wcd.cmdline.getchars() );
+		LOG( console, "Command line: \"%s\"", wcd.cmdline.getchars() );
 		window::Window mainwindow( wcd );
 		mainwindow.mainloop();
 	}
@@ -103,6 +105,6 @@ int main( int argc, char const** argv )
 		snprintf( buffer, sizeof( buffer ), "! Critical error: %s\n", e.what() );
 		utils::cbase_write( buffer );
 	}
-	LOG( "~ Application end" );
+	LOG( console, "~ Application end" );
 	return 0;
 }

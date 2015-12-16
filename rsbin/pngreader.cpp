@@ -1,12 +1,13 @@
 #include "pngreader.hpp"
-#include <utils/console.hpp>
 #include <utils/strexception.hpp>
 #include <utils/cbase.hpp>
 #include <stdexcept>
 #include <cstring>
 
-namespace rsbin {
-	struct format_t {
+namespace rsbin
+{
+	struct format_t
+	{
 		void( *setformat )(
 			png_structp png, png_infop info,
 			int bitdepth, int colortype );
@@ -15,32 +16,44 @@ namespace rsbin {
 
 	void setformat_r8g8b8a8(
 			png_structp png, png_infop info,
-			int bitdepth, int colortype ) {
+			int bitdepth, int colortype )
+	{
 		double gamma;
-		if( png_get_gAMA( png, info, &gamma ) ) {
+		if( png_get_gAMA( png, info, &gamma ) )
+		{
 			png_set_gamma( png, 2.2, gamma );
-		} else {
+		}
+		else
+		{
 			png_set_gamma( png, 2.2, 0.45455 );
 		}
-		if( colortype == PNG_COLOR_TYPE_PALETTE ) {
+		if( colortype == PNG_COLOR_TYPE_PALETTE )
+		{
 			png_set_palette_to_rgb( png );
 		}
-		if( colortype == PNG_COLOR_TYPE_GRAY && bitdepth < 8 ) {
+		if( colortype == PNG_COLOR_TYPE_GRAY && bitdepth < 8 )
+		{
 			png_set_expand_gray_1_2_4_to_8( png );
 		}
-		if( png_get_valid( png, info, PNG_INFO_tRNS ) ) {
+		if( png_get_valid( png, info, PNG_INFO_tRNS ) )
+		{
 			png_set_tRNS_to_alpha( png );
-		} else {
+		}
+		else
+		{
 			int channels = png_get_channels( png, info );
-			if( channels == 1 || channels == 3 ) {
+			if( channels == 1 || channels == 3 )
+			{
 				png_set_add_alpha( png, 255, PNG_FILLER_AFTER );
 			}
 		}
 		if( colortype == PNG_COLOR_TYPE_GRAY ||
-				colortype == PNG_COLOR_TYPE_GRAY_ALPHA ) {
+			colortype == PNG_COLOR_TYPE_GRAY_ALPHA )
+		{
 			png_set_gray_to_rgb( png );
 		}
-		if( bitdepth == 16 ) {
+		if( bitdepth == 16 )
+		{
 			png_set_scale_16( png );
 		}
 	}
@@ -49,18 +62,22 @@ namespace rsbin {
 		{ &setformat_r8g8b8a8, 4 },
 	};
 
-	void PngReader::error_handler( png_structp png, png_const_charp msg ) {
+	void PngReader::error_handler( png_structp png, png_const_charp msg )
+	{
 		PngReader* reader = ( PngReader* )png_get_error_ptr( png );
 		reader->m_error = msg;
 		longjmp( reader->m_jmpbuf, 1 );
 	}
 
-	void PngReader::warning_handler( png_structp png, png_const_charp msg ) {
-		LOG( "png warning: %s", msg );
+	void PngReader::warning_handler( png_structp png, png_const_charp msg )
+	{
+		PngReader* reader = ( PngReader* )png_get_error_ptr( png );
+		LOG( reader->m_console, "png warning: %s", msg );
 	}
 
 	void PngReader::info_callback(
-			png_structp png, png_infop info ) {
+			png_structp png, png_infop info )
+	{
 		PngReader* reader =
 			( PngReader* )png_get_progressive_ptr( png );
 		int bitdepth;
@@ -84,8 +101,10 @@ namespace rsbin {
 
 	void PngReader::row_callback(
 			png_structp png, png_bytep row,
-			png_uint_32 rowpos, int pass ) {
-		if( !row ) {
+			png_uint_32 rowpos, int pass )
+	{
+		if( !row )
+		{
 			return;
 		}
 		PngReader* reader =
@@ -98,30 +117,36 @@ namespace rsbin {
 	}
 
 	void PngReader::end_callback(
-			png_structp png, png_infop info ) {
+			png_structp png, png_infop info )
+	{
 		PngReader* reader =
 			( PngReader* )png_get_progressive_ptr( png );
 		reader->m_finished = true;
 	}
 
-	PngReader::PngReader( int format ) :
-		m_format( BitmapFormat( format ) ) ,
-		m_finished( false ) ,
-		m_width( 0 ) ,
-		m_height( 0 ) ,
-		m_data( nullptr ) ,
-		m_png( 0 ) ,
-		m_info( 0 ) {
-		if( format < 0 || format >= BitmapFormat_Invalid ) {
+	PngReader::PngReader( int format )
+		: m_format( BitmapFormat( format ) )
+		, m_finished( false )
+		, m_width( 0 )
+		, m_height( 0 )
+		, m_data( nullptr )
+		, m_png( 0 )
+		, m_info( 0 )
+		, m_console( utils::Console )
+	{
+		if( format < 0 || format >= BitmapFormat_Invalid )
+		{
 			throw std::runtime_error( "invalid bitmap format" );
 		}
 		m_png = png_create_read_struct( PNG_LIBPNG_VER_STRING, this,
 			&PngReader::error_handler, &PngReader::warning_handler );
-		if( !m_png ) {
+		if( !m_png )
+		{
 			throw std::runtime_error( "out of memory" );
 		}
 		m_info = png_create_info_struct( m_png );
-		if( !m_info ) {
+		if( !m_info )
+		{
 			png_destroy_read_struct( &m_png, 0, 0 );
 			throw std::runtime_error( "out of memory" );
 		}
@@ -130,85 +155,98 @@ namespace rsbin {
 			&PngReader::row_callback, &PngReader::end_callback );
 	}
 
-	PngReader::~PngReader() {
-		if( m_png ) {
+	PngReader::~PngReader()
+	{
+		if( m_png )
+		{
 			png_destroy_read_struct(
 				&m_png, m_info ? &m_info : 0, 0 );
 		}
 	}
 
-	void PngReader::feed( int length, void const* buffer ) {
-		if( setjmp( m_jmpbuf ) ) {
+	void PngReader::feed( int length, void const* buffer )
+	{
+		if( setjmp( m_jmpbuf ) )
+		{
 			throw utils::StrException( m_error );
 		}
 		png_process_data(
 			m_png, m_info, png_bytep( buffer ), length );
 	}
 
-	bool PngReader::isfinished() {
+	bool PngReader::isfinished()
+	{
 		return m_finished;
 	}
 
-	int PngReader::getwidth() {
+	int PngReader::getwidth()
+	{
 		return m_width;
 	}
 
-	int PngReader::getheight() {
+	int PngReader::getheight()
+	{
 		return m_height;
 	}
 
 	utils::Ref< utils::DataBuffer > const&
-			PngReader::getdata() {
+		PngReader::getdata()
+	{
 		return m_data;
 	}
 
-	extern "C" {
-		PngReader* rsbin_pngreader_new( int format ) noexcept {
-		CBASE_PROTECT(
-			return new PngReader( format );
-		)
-		}
+	PngReader* rsbin_pngreader_new( int format ) noexcept
+	{
+	CBASE_PROTECT(
+		return new PngReader( format );
+	)
+	}
 
-		bool rsbin_pngreader_delete( PngReader* reader ) noexcept {
-		CBASE_PROTECT(
-			delete reader;
-			return 1;
-		)
-		}
+	bool rsbin_pngreader_delete( PngReader* reader ) noexcept
+	{
+	CBASE_PROTECT(
+		delete reader;
+		return 1;
+	)
+	}
 
-		bool rsbin_pngreader_feed(
-			PngReader* reader,
-			int length, void const* buffer ) noexcept {
-		CBASE_PROTECT(
-			reader->feed( length, buffer );
-			return 1;
-		)
-		}
+	bool rsbin_pngreader_feed(
+		PngReader* reader,
+		int length, void const* buffer ) noexcept
+	{
+	CBASE_PROTECT(
+		reader->feed( length, buffer );
+		return 1;
+	)
+	}
 
-		int rsbin_pngreader_isfinished(
-			PngReader* reader ) noexcept {
-		CBASE_PROTECT(
-			return reader->isfinished() ? 1 : 2;
-		)
-		}
+	int rsbin_pngreader_isfinished(
+		PngReader* reader ) noexcept
+	{
+	CBASE_PROTECT(
+		return reader->isfinished() ? 1 : 2;
+	)
+	}
 
-		int rsbin_pngreader_getwidth( PngReader* reader ) noexcept {
-		CBASE_PROTECT(
-			return reader->getwidth();
-		)
-		}
+	int rsbin_pngreader_getwidth( PngReader* reader ) noexcept
+	{
+	CBASE_PROTECT(
+		return reader->getwidth();
+	)
+	}
 
-		int rsbin_pngreader_getheight( PngReader* reader ) noexcept {
-		CBASE_PROTECT(
-			return reader->getheight();
-		)
-		}
+	int rsbin_pngreader_getheight( PngReader* reader ) noexcept
+	{
+	CBASE_PROTECT(
+		return reader->getheight();
+	)
+	}
 
-		utils::DataBuffer* rsbin_pngreader_getdata(
-			PngReader* reader ) noexcept {
-		CBASE_PROTECT(
-			return reader->getdata();
-		)
-		}
+	utils::DataBuffer* rsbin_pngreader_getdata(
+		PngReader* reader ) noexcept
+	{
+	CBASE_PROTECT(
+		return reader->getdata();
+	)
 	}
 }

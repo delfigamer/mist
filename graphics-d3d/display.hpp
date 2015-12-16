@@ -1,7 +1,7 @@
 #ifndef GRAPHICS_DISPLAY_HPP__
 #define GRAPHICS_DISPLAY_HPP__ 1
 
-#if !defined( _WIN32 )
+#if !defined( _WIN32 ) || !defined( _WIN64 )
 #error "Unsupported target platform"
 #endif
 
@@ -10,17 +10,19 @@
 #include <utils/ref.hpp>
 #include <d3d9.h>
 #include <windows.h>
-#include <ctime>
 
-namespace graphics {
-	struct DisplayInfo {
+namespace graphics
+{
+	struct DisplayInfo
+	{
 		int width;
 		int height;
 		float texelsoffset;
 		float texeltoffset;
 	};
 
-	class Display {
+	class Display
+	{
 	private:
 		HWND m_hwnd;
 		D3DPRESENT_PARAMETERS m_presentparameters;

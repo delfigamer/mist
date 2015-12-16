@@ -8,8 +8,10 @@
 #include <utility>
 #include <cstddef>
 
-namespace utils {
-	class RefBase {
+namespace utils
+{
+	class RefBase
+	{
 	private:
 		std::atomic< RefObject* > m_ref;
 		RefObject* possess_silent( RefObject* ref ) noexcept;
@@ -33,7 +35,8 @@ namespace utils {
 	};
 
 	template< typename T >
-	class Ref: public RefBase {
+	class Ref: public RefBase
+	{
 	public:
 		Ref() noexcept;
 		Ref( std::nullptr_t ) noexcept;
@@ -55,7 +58,8 @@ namespace utils {
 	};
 
 	template<>
-	class Ref< RefObject >: public RefBase {
+	class Ref< RefObject >: public RefBase
+	{
 	public:
 		Ref() noexcept;
 		Ref( RefObject* ref ) noexcept;

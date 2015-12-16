@@ -4,9 +4,12 @@
 #include "refobject.hpp"
 #include "databuffer.hpp"
 
-namespace utils {
-	MethodList const* getmethodlist() {
-		static MethodList const List = {
+namespace utils
+{
+	MethodList const* getmethodlist()
+	{
+		static MethodList const List =
+		{
 			cbase_geterror,
 			cbase_seterror,
 			cbase_write,

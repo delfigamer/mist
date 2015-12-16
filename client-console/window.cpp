@@ -2,7 +2,6 @@
 #include "hostmethodlist.hpp"
 #include <utils/strexception.hpp>
 #include <utils/profile.hpp>
-#include <utils/console.hpp>
 #include <utils/encoding.hpp>
 #include <utils/cbase.hpp>
 #include <cstdlib>
@@ -13,7 +12,7 @@
 
 namespace window
 {
-#define marker() /* LOG( "-" ) */ ( void )( 0 )
+#define marker() /* LOG( m_console, "-" ) */ ( void )( 0 )
 
 #if defined( _WIN32 ) || defined( _WIN64 )
 #define PATH ".\\"
@@ -26,8 +25,8 @@ namespace window
 #define MAINCONFIG_STR "_PLATFORM = '" PLATFORM "'; _CONSOLE = true; _PATH = [[" PATH "]]"
 
 	void CriticalError(
-			char const* file, char const* function, int line,
-			char const* msg )
+		char const* file, char const* function, int line,
+		char const* msg )
 	{
 		char StrBuffer[ 1024 ];
 		snprintf(
@@ -53,6 +52,7 @@ namespace window
 		: m_mainconfig( MAINCONFIG_PATH, MAINCONFIG_STR )
 		, m_cmdline( wcd.cmdline )
 		, m_lstate( 0 )
+		, m_console( utils::Console )
 	{
 		marker();
 		m_mainconfig.runcmd( m_cmdline );
@@ -92,7 +92,7 @@ namespace window
 	{
 		utils::String bootscript = m_mainconfig.string(
 			"bootscript" );
-		LOG( "~ Boot script location: %s", bootscript.getchars() );
+		LOG( m_console, "~ Boot script location: %s", bootscript.getchars() );
 		if( bootscript )
 		{
 			m_lstate = luaL_newstate();
@@ -131,28 +131,27 @@ namespace window
 	{
 	}
 
-	extern "C" {
-		bool window_window_setshape( Window* window, graphics::Shape* shape ) noexcept
-		{
-		CBASE_PROTECT(
-			window->setshape( shape );
-			return 1;
-		)
-		}
+	bool window_window_setshape(
+		Window* window, graphics::Shape* shape ) noexcept
+	{
+	CBASE_PROTECT(
+		window->setshape( shape );
+		return 1;
+	)
+	}
 
-		WindowInfo const* window_window_getinfo( Window* window ) noexcept
-		{
-		CBASE_PROTECT(
-			return window->windowinfo();
-		)
-		}
+	WindowInfo const* window_window_getinfo( Window* window ) noexcept
+	{
+	CBASE_PROTECT(
+		return window->windowinfo();
+	)
+	}
 
-		bool window_window_finish( Window* window ) noexcept
-		{
-		CBASE_PROTECT(
-			window->finish();
-			return 1;
-		)
-		}
+	bool window_window_finish( Window* window ) noexcept
+	{
+	CBASE_PROTECT(
+		window->finish();
+		return 1;
+	)
 	}
 }

@@ -30,7 +30,7 @@ local function getshader()
 	]]
 	local tres = mistsh.translate(source)
 	local sh = shader:create()
-	sh:setshadersources(tres.vertex, tres.fragment, tres.texnames)
+	sh:setshadersources(1, tres.vertex, tres.fragment, tres.texnames)
 	return sh
 end
 

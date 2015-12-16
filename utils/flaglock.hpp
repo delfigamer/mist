@@ -3,8 +3,10 @@
 
 #include <atomic>
 
-namespace utils {
-	class FlagLock {
+namespace utils
+{
+	class FlagLock
+	{
 	private:
 		std::atomic_flag m_flag;
 

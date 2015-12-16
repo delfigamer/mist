@@ -4,7 +4,8 @@
 #include <unordered_map>
 #include <d3d9.h>
 
-namespace graphics {
+namespace graphics
+{
 #define ENTRY( name ) { name, #name }
 	static std::unordered_map< HRESULT, char const* > const errmap = {
 		ENTRY( D3D_OK ),
@@ -45,18 +46,27 @@ namespace graphics {
 		ENTRY( D3DERR_PRESENT_STATISTICS_DISJOINT )
 	};
 
-	void checkerror_pos( char const* filename, char const* function, int line, HRESULT hr ) {
-		if( hr ) {
+	void checkerror_pos(
+		char const* filename, char const* function, int line, HRESULT hr )
+	{
+		if( hr )
+		{
 			char buffer[ 1024 ];
 			auto it = errmap.find( hr );
-			if( it != errmap.end() ) {
-				snprintf( buffer, sizeof( buffer ), "Direct3D error: %s", it->second );
-			} else {
-				snprintf( buffer, sizeof( buffer ), "Direct3D error: %#x", uint32_t( hr ) );
+			if( it != errmap.end() )
+			{
+				snprintf(
+					buffer, sizeof( buffer ),
+					"Direct3D error: %s", it->second );
 			}
-			utils::Console()->writeln(
+			else
+			{
+				snprintf(
+					buffer, sizeof( buffer ),
+					"Direct3D error: %#x", uint32_t( hr ) );
+			}
+			throw utils::StrException(
 				"[%48s:%24s@%4i]\t%s", filename, function, line, buffer );
-			throw utils::StrException( buffer );
 		}
 	}
 }

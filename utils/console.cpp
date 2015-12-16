@@ -42,15 +42,15 @@ namespace utils
 				switch( trresult )
 				{
 				case translate_success:
-				case translate_failure_source_overrun:
+				case translate_source_overrun:
 					return;
 
-				case translate_failure_dest_unsupported:
+				case translate_dest_unsupported:
 					fprintf( stderr, "%i\n", __LINE__ );
 					winerror();
 					break;
 
-				case translate_failure_dest_overrun:
+				case translate_dest_overrun:
 					break;
 				}
 			}

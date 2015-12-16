@@ -9,7 +9,8 @@
 #include <utils/flaglock.hpp>
 #include <mutex>
 
-namespace graphics {
+namespace graphics
+{
 	class MeshShape: public Shape
 	{
 	public:
@@ -37,7 +38,8 @@ namespace graphics {
 		D3DMATRIX m_matrix;
 
 	protected:
-		virtual void doadvance( IDirect3DDevice9* device, int framecount ) override;
+		virtual void doadvance(
+			IDirect3DDevice9* device, int framecount ) override;
 
 	public:
 		MeshShape();
@@ -55,15 +57,17 @@ namespace graphics {
 		void setmatrix( float const* data );
 	};
 
-	extern "C"
-	{
-		MeshShape* graphics_meshshape_new() noexcept;
-		bool graphics_meshshape_setmeshdata( MeshShape* shape, MeshData* md ) noexcept;
-		bool graphics_meshshape_setshader( MeshShape* shape, Shader* sh ) noexcept;
-		bool graphics_meshshape_setblendmethod( MeshShape* shape, int method ) noexcept;
-		bool graphics_meshshape_settexture( MeshShape* shape, int stage, Texture* texture ) noexcept;
-		bool graphics_meshshape_setmatrix( MeshShape* shape, float const* data ) noexcept;
-	}
+	MeshShape* graphics_meshshape_new() noexcept;
+	bool graphics_meshshape_setmeshdata(
+		MeshShape* shape, MeshData* md ) noexcept;
+	bool graphics_meshshape_setshader(
+		MeshShape* shape, Shader* sh ) noexcept;
+	bool graphics_meshshape_setblendmethod(
+		MeshShape* shape, int method ) noexcept;
+	bool graphics_meshshape_settexture(
+		MeshShape* shape, int stage, Texture* texture ) noexcept;
+	bool graphics_meshshape_setmatrix(
+		MeshShape* shape, float const* data ) noexcept;
 }
 
 #endif

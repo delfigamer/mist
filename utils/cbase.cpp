@@ -6,47 +6,45 @@
 
 namespace utils
 {
-	extern "C"
+	static SingletonRef< ConsoleClass > ConsoleRef( Console );
+	static String cbase_error;
+
+	char const* cbase_geterror() noexcept
 	{
-		static String cbase_error;
-
-		char const* cbase_geterror() noexcept
+		DataBuffer* db = cbase_error.m_payload;
+		if( db )
 		{
-			DataBuffer* db = cbase_error.m_payload;
-			if( db )
-			{
-				return ( char const* )db->m_data;
-			}
-			else
-			{
-				return 0;
-			}
+			return ( char const* )db->m_data;
 		}
-
-		void cbase_seterror( char const* error ) noexcept
+		else
 		{
-			cbase_error.setchars( error );
+			return 0;
 		}
+	}
 
-		bool cbase_write( char const* str ) noexcept
-		{
-		CBASE_PROTECT(
-			Console()->write( "%s", str );
-			return 1;
-		)
-		}
+	void cbase_seterror( char const* error ) noexcept
+	{
+		cbase_error.setchars( error );
+	}
 
-		bool cbase_getchar( char* str ) noexcept
-		{
-		CBASE_PROTECT(
-			Console()->getchar( str );
-			return 1;
-		)
-		}
+	bool cbase_write( char const* str ) noexcept
+	{
+	CBASE_PROTECT(
+		ConsoleRef->write( "%s", str );
+		return 1;
+	)
+	}
 
-		void cbase_yield() noexcept
-		{
-			std::this_thread::yield();
-		}
+	bool cbase_getchar( char* str ) noexcept
+	{
+	CBASE_PROTECT(
+		ConsoleRef->getchar( str );
+		return 1;
+	)
+	}
+
+	void cbase_yield() noexcept
+	{
+		std::this_thread::yield();
 	}
 }

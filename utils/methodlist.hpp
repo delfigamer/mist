@@ -21,7 +21,8 @@ namespace utils
 		int( *encoding_translatestr )( translation_t* translation );
 		int( *refobject_addref )( RefObject* ro );
 		int( *refobject_release )( RefObject* ro );
-		DataBuffer*( *databuffer_new )( int length, int capacity, void const* data );
+		DataBuffer*( *databuffer_new )(
+			int length, int capacity, void const* data );
 		void*( *databuffer_getdata )( DataBuffer* db );
 		int( *databuffer_getlength )( DataBuffer* db );
 		bool( *databuffer_setlength )( DataBuffer* db, int length );

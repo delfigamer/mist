@@ -4,6 +4,7 @@
 #include "asyncluastate.hpp"
 #include <utils/configset.hpp>
 #include <utils/ref.hpp>
+#include <utils/console.hpp>
 #if defined( _WIN32 ) || defined( _WIN64 )
 #include <graphics-d3d/display.hpp>
 #include <windows.h>
@@ -20,8 +21,10 @@
 #include <atomic>
 #include <ctime>
 
-namespace window {
-	struct WindowInfo {
+namespace window
+{
+	struct WindowInfo
+	{
 		int width;
 		int height;
 		float texelsoffset;
@@ -33,7 +36,8 @@ namespace window {
 		bool silent;
 	};
 
-	struct WindowCreationData {
+	struct WindowCreationData
+	{
 #if defined( CON_TARGET )
 #elif defined( _WIN32 ) || defined( _WIN64 )
 		HINSTANCE hInstance;
@@ -43,7 +47,8 @@ namespace window {
 		utils::String cmdline;
 	};
 
-	class Window {
+	class Window
+	{
 #if defined( _WIN32 ) || defined( _WIN64 )
 	private:
 		static wchar_t const* ClassName;
@@ -99,6 +104,7 @@ namespace window {
 		clock_t m_fpstime;
 		clock_t m_tpstime;
 		bool m_finished;
+		utils::SingletonRef< utils::ConsoleClass > m_console;
 		void initialize();
 		void finalize();
 		void paint();
@@ -124,13 +130,11 @@ namespace window {
 		void finish();
 	};
 
-	extern "C" {
-		bool window_window_setshape(
-			Window* window, graphics::Shape* shape ) noexcept;
-		window::WindowInfo const* window_window_getinfo(
-			Window* window ) noexcept;
-		bool window_window_finish( Window* window ) noexcept;
-	}
+	bool window_window_setshape(
+		Window* window, graphics::Shape* shape ) noexcept;
+	window::WindowInfo const* window_window_getinfo(
+		Window* window ) noexcept;
+	bool window_window_finish( Window* window ) noexcept;
 }
 
 #endif

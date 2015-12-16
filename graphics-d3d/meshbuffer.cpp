@@ -34,36 +34,33 @@ namespace graphics
 		m_indexdata = db;
 	}
 
-	extern "C"
+	utils::DataBuffer* graphics_meshbuffer_getvertexdata( MeshBuffer* mb ) noexcept
 	{
-		utils::DataBuffer* graphics_meshbuffer_getvertexdata( MeshBuffer* mb ) noexcept
-		{
-		CBASE_PROTECT(
-			return mb->getvertexdata();
-		)
-		}
+	CBASE_PROTECT(
+		return mb->getvertexdata();
+	)
+	}
 
-		bool graphics_meshbuffer_setvertexdata( MeshBuffer* mb, utils::DataBuffer* db ) noexcept
-		{
-		CBASE_PROTECT(
-			mb->setvertexdata( db );
-			return 1;
-		)
-		}
+	bool graphics_meshbuffer_setvertexdata( MeshBuffer* mb, utils::DataBuffer* db ) noexcept
+	{
+	CBASE_PROTECT(
+		mb->setvertexdata( db );
+		return 1;
+	)
+	}
 
-		utils::DataBuffer* graphics_meshbuffer_getindexdata( MeshBuffer* mb ) noexcept
-		{
-		CBASE_PROTECT(
-			return mb->getindexdata();
-		)
-		}
+	utils::DataBuffer* graphics_meshbuffer_getindexdata( MeshBuffer* mb ) noexcept
+	{
+	CBASE_PROTECT(
+		return mb->getindexdata();
+	)
+	}
 
-		bool graphics_meshbuffer_setindexdata( MeshBuffer* mb, utils::DataBuffer* db ) noexcept
-		{
-		CBASE_PROTECT(
-			mb->setindexdata( db );
-			return 1;
-		)
-		}
+	bool graphics_meshbuffer_setindexdata( MeshBuffer* mb, utils::DataBuffer* db ) noexcept
+	{
+	CBASE_PROTECT(
+		mb->setindexdata( db );
+		return 1;
+	)
 	}
 }
