@@ -1,5 +1,5 @@
 local modname = ...
-local object = require('exl.object')
+local object = package.relrequire(modname, 1, 'object')
 local fulltype = object:module(modname)
 local common
 
@@ -45,7 +45,7 @@ function fulltype:defstring(lp)
 	end
 	return string.format('%s %s',
 		am,
-		common.defstring(self.ti, lp))
+		self.ti:defstring(lp))
 end
 
-common = require('exl.common')
+common = package.relrequire(modname, 1, 'common')

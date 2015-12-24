@@ -1,5 +1,5 @@
 local modname = ...
-local esymbolbase = require('exl.node.expr.symbolbase')
+local esymbolbase = package.relrequire(modname, 1, 'symbolbase')
 local ereference = esymbolbase:module(modname)
 local common
 
@@ -9,4 +9,4 @@ function ereference:init(pr)
 	esymbolbase.build(self, pc)
 end
 
-common = require('exl.common')
+common = package.relrequire(modname, 3, 'common')

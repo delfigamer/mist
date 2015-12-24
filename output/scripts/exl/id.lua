@@ -23,5 +23,5 @@ local function idtostr(i)
 end
 
 function id.instmeta:__tostring()
-	return string.format('%i:%i', self.depth, self.name)
+	return string.format('d%ii%i', self.depth, self.name)
 end

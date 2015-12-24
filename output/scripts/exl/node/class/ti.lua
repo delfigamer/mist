@@ -1,10 +1,10 @@
 local modname = ...
-local typeinfo = require('exl.typeinfo')
-local classti = typeinfo:module(modname)
+local baseti = package.relrequire(modname, 2, 'expr.base.ti')
+local classti = baseti:module(modname)
 local common
 
 function classti:init(pr)
-	typeinfo.init(self, pr)
+	baseti.init(self, pr)
 	self.parent = pr.parent
 	self.body = pr.body
 end
@@ -16,25 +16,25 @@ function classti:iseq(other)
 	return true
 end
 
-function classti:getdefaultopfunc(op, proto)
+function classti:internalresolve(op, proto)
 	-- if op == 'call' then
 		-- return cofunc
 	-- else
-		return typeinfo.getdefaultopfunc(self, op, proto)
+		return baseti.internalresolve(self, op, proto)
 	-- end
 end
 
 function classti:defstring(lp)
 	if self.parent then
 		return string.format('type class: %s%s\n%send',
-			common.defstring(self.parent, lp .. self.lpindent),
-			common.defstring(self.body, lp .. self.lpindent),
+			self.parent:defstring(lp .. self.lpindent),
+			self.body:defstring(lp .. self.lpindent),
 			lp)
 	else
 		return string.format('type class%s\n%send',
-			common.defstring(self.body, lp .. self.lpindent),
+			self.body:defstring(lp .. self.lpindent),
 			lp)
 	end
 end
 
-common = require('exl.common')
+common = package.relrequire(modname, 3, 'common')

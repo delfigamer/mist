@@ -1,17 +1,17 @@
 local modname = ...
-local etypebase = require('exl.node.expr.typebase')
-local eclasstypev = etypebase:module(modname)
+local etypedef = package.relrequire(modname, 1, 'typedef')
+local eclassdef = etypedef:module(modname)
 local common
 local classcontext
 local classti
 
-function eclasstypev:init(pr)
-	etypebase.init(self, pr)
+function eclassdef:init(pr)
+	etypedef.init(self, pr)
 	self.parent = pr.parent
 	self.body = pr.body
 end
 
-function eclasstypev:build(pc)
+function eclassdef:build(pc)
 	if self.parent then
 		self.parent:build(pc)
 	end
@@ -24,10 +24,10 @@ function eclasstypev:build(pc)
 	self.body:build(pc)
 end
 
-function eclasstypev:defstring(lp)
+function eclassdef:defstring(lp)
 	return classti.defstring(self, lp)
 end
 
-common = require('exl.common')
-classcontext = require('exl.node.class.context')
-classti = require('exl.node.class.ti')
+common = package.relrequire(modname, 3, 'common')
+classcontext = package.relrequire(modname, 2, 'class.context')
+classti = package.relrequire(modname, 2, 'class.ti')

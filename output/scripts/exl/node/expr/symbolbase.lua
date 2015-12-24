@@ -1,5 +1,5 @@
 local modname = ...
-local ebase = require('exl.node.expr.base')
+local ebase = package.relrequire(modname, 1, 'base')
 local esymbolbase = ebase:module(modname)
 local common
 
@@ -8,22 +8,18 @@ function esymbolbase:init(pr)
 end
 
 function esymbolbase:build(pc)
-	if self.target then
-		self.fulltype = self.target:getfulltype()
-		self.constvalue = self.target:getconstvalue()
-	end
+	self.fulltype = self.target:getfulltype()
+	self.constvalue = self.target:getconstvalue()
 end
 
 function esymbolbase:lcompile(stream, source)
-	if self.target then
-		self.target:lcompile(stream, source)
-	end
+	self.target:lcompile(stream, source)
 end
 
 function esymbolbase:rcompile(stream)
 	if self.constvalue and self.constvalue.bsimplevalue then
 		return self.constvalue:rcompile(stream)
-	elseif self.target then
+	else
 		if not self.retname then
 			self.retname = self.target:rcompile(stream)
 		end
@@ -31,4 +27,4 @@ function esymbolbase:rcompile(stream)
 	end
 end
 
-common = require('exl.common')
+common = package.relrequire(modname, 3, 'common')

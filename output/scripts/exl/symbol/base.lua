@@ -1,5 +1,5 @@
 local modname = ...
-local object = require('exl.object')
+local object = package.relrequire(modname, 2, 'object')
 local symbase = object:module(modname)
 local fulltype
 
@@ -18,6 +18,4 @@ function symbase:getconstvalue()
 	return self.constvalue
 end
 
-fulltype = require('exl.fulltype')
-
-symbase.fulltype = fulltype:create(nil, false, true)
+fulltype = package.relrequire(modname, 2, 'node.expr.base').fulltype

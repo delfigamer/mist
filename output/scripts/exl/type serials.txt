@@ -1,0 +1,18 @@
+access modes:
+B = lrvalue
+L = lvalue
+N = nvalue
+R = rvalue
+
+typeinfo:
+f{%f}%t = function (value-returning)
+n = number
+p{%f} = function (non-value-returning)
+s = string
+v = nil
+
+parameters:
+%f = fulltype
+%t = typeinfo
+
+{...} - length-prepended list

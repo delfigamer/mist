@@ -43,12 +43,30 @@ function package.modtable(modname, value)
 	return mt
 end
 
+function package.relpath(base, uplevel, suffix)
+	if uplevel then
+		for i = 1, uplevel do
+			if not base then
+				error('unreachable module path requested')
+			end
+			base = string.match(base, '(.*)%.[^%.]-')
+		end
+	end
+	if suffix then
+		if base then
+			return base .. '.' .. suffix
+		else
+			return suffix
+		end
+	else
+		return base
+	end
+end
+
 function module(modname, ...)
 	local mt = package.modtable(modname)
 	mt._NAME = modname
 	mt._M = mt
-	local ai, bi
-	ai, bi, mt._PACKAGE = string.find(modname, '(.*)%.[^%.]-')
 	for i, func in ipairs{...} do
 		func(mt)
 	end
@@ -91,18 +109,10 @@ function require(modname, ...)
 		modname, errstr), 2)
 end
 
--- function package.find(modname, pathmask)
--- 	modname = modname:gsub('%.', package.dirsep)
--- 	local errstr = ''
--- 	for l,r in pathmask:gmatch('([^;?]*)%?([^;?]*)') do
--- 		local path = l .. modname .. r
--- 		if io.fileexists(path) then
--- 			return path
--- 		end
--- 		errstr = errstr .. '\n\tno file \'' .. path .. '\''
--- 	end
--- 	return nil, errstr
--- end
+function package.relrequire(base, uplevel, suffix, ...)
+	local modname = package.relpath(base, uplevel, suffix)
+	return require(modname, ...)
+end
 
 package.loaders[#package.loaders + 1] = function(modname)
 	local path, perr = package.searchpath(modname, package.lcpath)

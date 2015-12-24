@@ -1,5 +1,5 @@
 local modname = ...
-local ebase = require('exl.node.expr.base')
+local ebase = package.relrequire(modname, 1, 'base')
 local eoperator = ebase:module(modname)
 local common
 
@@ -25,24 +25,15 @@ end
 
 function eoperator:build(pc)
 	for i, arg in ipairs(self.args) do
-		if arg then
-			arg:build(pc)
-		end
-	end
-	if not self.operator then
-		return
+		arg:build(pc)
 	end
 	local proto = {}
 	for i, arg in ipairs(self.args) do
-		local argft = arg:getfulltype()
-		if not argft then
-			return
-		end
-		proto[i] = argft
+		proto[i] = arg:getfulltype()
 	end
 	local protostr = {}
 	for i, arg in ipairs(proto) do
-		table.append(protostr, common.defstring(arg))
+		table.append(protostr, arg:defstring(''))
 	end
 	protostr = string.format('operator %s(%s)',
 		self.operator,
@@ -56,25 +47,24 @@ function eoperator:build(pc)
 			if #itemlist == 1 then
 				operatorfunc = itemlist[1].operator
 			elseif #itemlist > 1 then
-				pc.env:log(
-					'error',
-					'ambiguous ' .. protostr,
-					self.spos, self.epos)
-				pc.env:log(
-					'note',
-					'possible candidates are:',
-					self.spos, self.epos)
+				local candidates = {}
 				for i, item in ipairs(itemlist) do
-					pc.env:log(
-						'note',
-						item.operator,
-						item.operator.spos, item.operator.epos)
+					candidates[i] = string.format(
+						'%s-%s\t%s',
+						item.operator.spos, item.operator.epos,
+						item.operator)
 				end
+				pc.env:error(
+					'error',
+					'ambiguous ' .. protostr .. '\n' ..
+						'possible candidates are:\n' ..
+						table.concat(candidates, '\n'),
+					self.spos, self.epos)
 			end
 		end
 	end
-	if not operatorfunc and proto[1] and proto[1].ti then
-		operatorfunc = proto[1].ti:getdefaultopfunc(self.operator, proto)
+	if not operatorfunc and proto[1] then
+		operatorfunc = proto[1].ti:internalresolve(self.operator, proto)
 	end
 	if operatorfunc then
 		local it = {
@@ -83,15 +73,13 @@ function eoperator:build(pc)
 			epos = self.epos,
 			args = self.args,
 		}
-		self.operatorinstance =
-			operatorfunc:createinstance(it)
+		self.operatorinstance = operatorfunc:createinstance(it)
 	end
 	if self.operatorinstance then
 		self.constvalue = self.operatorinstance:getconstvalue()
 		self.fulltype = self.operatorinstance:getfulltype()
 	else
-		pc.env:log(
-			'error',
+		pc.env:error(
 			'cannot resolve ' .. protostr,
 			self.spos, self.epos)
 		return
@@ -99,43 +87,42 @@ function eoperator:build(pc)
 end
 
 function eoperator:lcompile(stream, source)
-	if self.operatorinstance then
-		return self.operatorinstance:lcompile(stream, source)
-	end
+	return self.operatorinstance:lcompile(stream, source)
 end
 
 function eoperator:rcompile(stream)
 	if self.constvalue and self.constvalue.bsimplevalue then
 		return self.constvalue:rcompile(stream)
-	elseif self.operatorinstance then
-		return self.operatorinstance:rcompile(stream)
+	else
+		local name = self.operatorinstance:rcompile(stream)
+		local fts = self.fulltype:getserial()
+		stream:writetoken('d_comment', fts or '-')
+		return name
 	end
 end
 
 function eoperator:defstring(lp)
-	if self.operator then
-		if binary[self.operator] and #self.args == 2 then
-			return string.format('(%s %s %s)',
-				common.defstring(self.args[1], lp .. self.lpindent),
-				binary[self.operator],
-				common.defstring(self.args[2], lp .. self.lpindent))
-		elseif self.operator == 'call' and #self.args > 0 then
-			local args = {}
-			for i = 2, #self.args do
-				args[i-1] = common.defstring(self.args[i], lp .. self.lpindent)
-			end
-			return string.format('%s(%s)',
-				common.defstring(self.args[1], lp .. self.lpindent),
-				table.concat(args, ', '))
+	if binary[self.operator] and #self.args == 2 then
+		return string.format('(%s %s %s)',
+			self.args[1]:defstring(lp .. self.lpindent),
+			binary[self.operator],
+			self.args[2]:defstring(lp .. self.lpindent))
+	elseif self.operator == 'call' and #self.args > 0 then
+		local argstr = {}
+		for i = 2, #self.args do
+			argstr[i-1] = self.args[i]:defstring(lp .. self.lpindent)
 		end
+		return string.format('%s(%s)',
+			self.args[1]:defstring(lp .. self.lpindent),
+			table.concat(argstr, ', '))
 	end
-	local args = {}
+	local argstr = {}
 	for i, arg in ipairs(self.args) do
-		args[i] = common.defstring(arg, lp .. self.lpindent)
+		argstr[i] = arg:defstring(lp .. self.lpindent)
 	end
 	return string.format('operator %s(%s)',
-		common.defstring(self.operator, lp .. self.lpindent),
-		table.concat(args, ', '))
+		self.operator,
+		table.concat(argstr, ', '))
 end
 
-common = require('exl.common')
+common = package.relrequire(modname, 3, 'common')

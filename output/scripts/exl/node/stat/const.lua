@@ -1,5 +1,5 @@
 local modname = ...
-local node = require('exl.node')
+local node = package.relrequire(modname, 2, 'base')
 local sconst = node:module(modname)
 local common
 local context
@@ -13,52 +13,35 @@ function sconst:init(pr)
 end
 
 function sconst:build(pc)
-	local value
-	if self.value then
-		self.value:build(pc)
-		value = self.value:getconstvalue()
-		if not value then
-			pc.env:log(
-				'error',
-				'the value is not constant',
-				self.value.spos,
-				self.value.epos)
-		end
+	self.value:build(pc)
+	local value = self.value:getconstvalue()
+	if not value then
+		pc.error(
+			'the value is not constant',
+			self.value.spos, self.value.epos)
 	end
-	local ft
-	if value then
-		ft = fulltype:create(value:getfulltype().ti, false, true)
-	end
+	local ft = fulltype:create(value:getfulltype().ti, false, true)
 	self.symbol = symconst:create{
 		context = pc,
 		defpos = self.epos,
 		fulltype = ft,
 		constvalue = value,
 	}
-	if self.targetname then
-		pc:setsymbol(self.targetname, self.symbol)
-	end
+	pc:setsymbol(self.targetname, self.symbol)
 end
 
 function sconst:compile(stream)
-	if not self.value then
-		return
-	end
 	local valname = self.value:rcompile(stream)
-	if valname then
-		stream:writetoken('a_initl', self.symbol.id, valname)
-	else
-		stream:writetoken('a_createl', self.symbol.id)
-	end
+	stream:writetoken('a_initl', self.symbol.id, valname)
 end
 
 function sconst:defstring(lp)
 	return string.format('const %s = %s',
-		common.defstring(self.targetname, lp .. self.lpindent),
-		common.defstring(self.value, lp .. self.lpindent))
+		common.identstring(self.targetname),
+		self.value:defstring(lp .. self.lpindent))
 end
 
-common = require('exl.common')
-context = require('exl.context')
-fulltype = require('exl.fulltype')
-symconst = require('exl.symbol.const')
+common = package.relrequire(modname, 3, 'common')
+context = package.relrequire(modname, 3, 'context')
+fulltype = package.relrequire(modname, 3, 'fulltype')
+symconst = package.relrequire(modname, 3, 'symbol.const')

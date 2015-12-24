@@ -1,12 +1,12 @@
 local modname = ...
-local etypebase = require('exl.node.expr.typebase')
-local efunctiontypev = etypebase:module(modname)
+local etypedef = package.relrequire(modname, 2, 'typedef')
+local efunctiontypev = etypedef:module(modname)
 local common
 local context
 local functionti
 
 function efunctiontypev:init(pr)
-	etypebase.init(self, pr)
+	etypedef.init(self, pr)
 	self.arglist = pr.arglist
 	self.rettype = pr.rettype
 end
@@ -27,6 +27,6 @@ function efunctiontypev:defstring(lp)
 	return functionti.defstring(self, lp)
 end
 
-common = require('exl.common')
-context = require('exl.context')
-functionti = require('exl.node.expr.function.ti')
+common = package.relrequire(modname, 4, 'common')
+context = package.relrequire(modname, 4, 'context')
+functionti = package.relrequire(modname, 1, 'ti')

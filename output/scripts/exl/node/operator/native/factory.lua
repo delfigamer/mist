@@ -1,21 +1,22 @@
 local modname = ...
-local object = require('exl.object')
-local nofunc = object:module(modname)
-local noinstance
+local baseof = package.relrequire(modname, 2, 'base.factory')
+local nativeof = baseof:module(modname)
+local nativeoi
 
-function nofunc:init(pr)
+function nativeof:init(pr)
+	baseof.init(self, pr)
 	self.rettype = pr.rettype
 	self.constfunc = pr.constfunc
 	self.opcode = pr.opcode
 end
 
-function nofunc:createinstance(it)
+function nativeof:createinstance(it)
 	local spos, epos
 	if it.args[1] then
 		spos = it.args[1].spos
 		epos = it.args[#it.args].epos
 	end
-	return noinstance:create{
+	return nativeoi:create{
 		nofunc = self,
 		args = it.args,
 		context = it.context,
@@ -24,4 +25,4 @@ function nofunc:createinstance(it)
 	}
 end
 
-noinstance = require('exl.system.nativeoperator.instance')
+nativeoi = package.relrequire(modname, 1, 'instance')

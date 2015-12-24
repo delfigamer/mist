@@ -13,7 +13,10 @@ tr.fields = [[
 ]]
 
 function tr:create(ct, ra, vrb, vrc)
-	local inst = self:new(#vrb + #vrc, ct.code, ra, #vrb, #vrc, vrb)
+	local inst = self:new(#vrb + #vrc, ct.code, ra, #vrb, #vrc)
+	for i = 1, #vrb do
+		inst.r[i-1] = vrb[i]
+	end
 	local offset = (#vrb - 1)
 	for i = 1, #vrc do
 		inst.r[i + offset] = vrc[i]

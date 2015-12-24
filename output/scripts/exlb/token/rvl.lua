@@ -12,7 +12,11 @@ tr.fields = [[
 ]]
 
 function tr:create(ct, ra, ldepth, lname)
-	return self:new(#lname, ct.code, ra, ldepth, #lname, lname)
+	local inst = self:new(#lname, ct.code, ra, ldepth, #lname)
+	for i = 1, #lname do
+		inst.l_name[i-1] = lname[i]
+	end
+	return inst
 end
 
 function tr.instmeta:__tostring()

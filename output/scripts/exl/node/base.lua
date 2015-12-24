@@ -1,5 +1,5 @@
 local modname = ...
-local object = require('exl.object')
+local object = package.relrequire(modname, 2, 'object')
 local node = object:module(modname)
 
 function node:init(pr)

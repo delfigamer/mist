@@ -1,16 +1,15 @@
 local modname = ...
 local lexer = package.modtable(modname)
 local object = require('base.object')
-local token = require('exl.parser.token')
+local token = package.relrequire(modname, 1, 'token')
 local utf8 = require('utf8')
 
 -- input stream interface:
--- function getc() - returns '' on eof
--- function ungetc()
--- function getpos() - returns the current position
+-- function stream:getc() - returns '' on eof
+-- function stream:ungetc()
+-- function stream:getpos() - returns the current position
 -- env interface:
--- function log(level, msg, spos, epos) - prints a message with a reference to the specified position
--- possible level values are 'error' and 'warning'
+-- function env:error(msg, spos, epos) - raises an error with a range pointer
 
 --[[
 exl tokens:
@@ -18,7 +17,7 @@ exl tokens:
 	'number' - contains the value
 	'string' - contains the converted payload
 	'eof'
-	keywords - each one is a distinct type
+	lexer.keywords - each one is a distinct type
 	symbols and digraphs - each one is a distinct type
 
 	'newline' - internal token, is not returned by lexer.obtaintoken
@@ -27,7 +26,7 @@ exl tokens:
 comments and blanks are ignored
 ]]
 
-local keyword = {
+lexer.keyword = {
 	['class'] = true,
 	['const'] = true,
 	['end'] = true,
@@ -86,8 +85,7 @@ local function obtaincharacter(stream, env, char)
 		return true
 	else
 		stream:ungetc(c)
-		env:log('error', char..' expected', stream:getpos())
-		return false
+		env:error(char..' expected', stream:getpos())
 	end
 end
 
@@ -113,8 +111,7 @@ local function obtainhexfixed(stream, env, length)
 			ret = ret * 16 + hexdigit[ch]
 		else
 			stream:ungetc(ch)
-			env:log('error', 'invalid hex digit', stream:getpos())
-			return nil
+			env:error('invalid hex digit', stream:getpos())
 		end
 	end
 	return ret
@@ -129,8 +126,7 @@ local function obtainhex(stream, env, length)
 		else
 			stream:ungetc(ch)
 			if i == 1 then
-				env:log('error', 'invalid hex digit', stream:getpos())
-				return nil
+				env:error('invalid hex digit', stream:getpos())
 			else
 				break
 			end
@@ -168,8 +164,7 @@ local function obtainstringelement(stream, env, first)
 			stream:ungetc(ch)
 			local val = obtaindec(stream, env, 1, 3)
 			if val > 255 then
-				env:log('error', 'invalid byte value', stream:getpos())
-				return ''
+				env:error('invalid byte value', stream:getpos())
 			else
 				return string.char(val)
 			end
@@ -185,8 +180,7 @@ local function obtainstringelement(stream, env, first)
 			if r then
 				return r
 			else
-				env:log('error', 'invalid code point', stream:getpos())
-				return ''
+				env:error('invalid code point', stream:getpos())
 			end
 		elseif ch == 'z' then
 			repeat
@@ -195,8 +189,7 @@ local function obtainstringelement(stream, env, first)
 			stream:ungetc(ch)
 			return ''
 		else
-			env:log('error', 'unknown escape character', stream:getpos())
-			return ''
+			env:error('unknown escape character', stream:getpos())
 		end
 	else
 		return first
@@ -212,9 +205,7 @@ local function obtainstring(stream, env)
 		if ch == open then
 			break
 		elseif ch == '\n' or ch == '' then
-			env:log('error', 'unterminated string', stream:getpos())
-			stream:ungetc(ch)
-			break
+			env:error('unterminated string', spos, stream:getpos())
 		end
 		table.append(content, obtainstringelement(stream, env, ch))
 	end
@@ -247,8 +238,7 @@ local function obtainlongstring(stream, env, level, spos)
 				end
 			end
 		elseif ch == '' then
-			env:log('error', 'unterminated long string', stream:getpos())
-			break
+			env:error('unterminated long string', spos, stream:getpos())
 		else
 			table.append(content, ch)
 		end
@@ -269,7 +259,7 @@ local function obtainword(stream, env)
 		end
 	end
 	word = table.concat(word)
-	if keyword[word] then
+	if lexer.keyword[word] then
 		return token:create(word, nil, spos, stream:getpos())
 	else
 		return token:create('identifier', word, spos, stream:getpos())
@@ -361,11 +351,7 @@ local function obtainnumber_base(
 		end
 	end
 ::fail::
-	do
-		env:log('error', 'invalid hex number', stream:getpos())
-		skipinvalidnumber(stream, env)
-		return token:create('number', 0, spos, stream:getpos())
-	end
+	env:error('invalid hex number', spos, stream:getpos())
 ::success::
 	return token:create('number', val, spos, stream:getpos())
 end
@@ -539,6 +525,7 @@ tokentable['{'] = obtainsymbol
 tokentable['}'] = obtainsymbol
 tokentable[';'] = obtainsymbol
 tokentable[':'] = obtainsymbol
+tokentable['!'] = obtainsymbol
 tokentable['='] = obtaindigraph_gen('==')
 tokentable['+'] = obtaindigraph_gen('+=')
 tokentable['*'] = obtaindigraph_gen('*=')
@@ -566,7 +553,8 @@ function lexer.obtaintoken(stream, env)
 				return token
 			end
 		elseif not whitespace[ch] then
-			env:log('error', 'invalid symbol', stream:getpos())
+			stream:ungetc(ch)
+			env:error('invalid symbol', stream:getpos())
 		end
 	end
 end

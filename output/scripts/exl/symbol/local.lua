@@ -1,5 +1,5 @@
 local modname = ...
-local symbase = require('exl.symbol.base')
+local symbase = package.relrequire(modname, 1, 'base')
 local symlocal = symbase:module(modname)
 local common
 
@@ -28,4 +28,4 @@ function symlocal:defstring(lp)
 	end
 end
 
-common = require('exl.common')
+common = package.relrequire(modname, 2, 'common')

@@ -1,8 +1,7 @@
 local modname = ...
-local node = require('exl.node')
+local node = package.relrequire(modname, 2, 'base')
 local slocal = node:module(modname)
 local common
-local context
 local fulltype
 local symlocal
 
@@ -15,82 +14,42 @@ end
 
 function slocal:build(pc)
 	local typeinfo
-	if self.typev then
-		self.typev:build(pc)
-		local ctypev = self.typev:getconstvalue()
-		if not ctypev then
-			pc.env:log(
-				'error',
-				'type definition must be a constant value',
-				self.typev.spos,
-				self.typev.epos)
-		else
-			typeinfo = ctypev:gettivalue()
-			if not typeinfo then
-				pc.env:log(
-					'error',
-					'this value does not define a type',
-					self.typev.spos,
-					self.typev.epos)
-			end
-		end
+	self.typev:build(pc)
+	typeinfo = self.typev:gettivalue()
+	if not typeinfo then
+		pc.env:error(
+			'this value does not define a type',
+			self.typev.spos, self.typev.epos)
 	end
-	local ft
-	if typeinfo then
-		ft = fulltype:create(typeinfo, true, true)
-	end
+	local ft = fulltype:create(typeinfo, true, true)
 	self.symbol = symlocal:create{
 		context = pc,
 		defpos = self.epos,
 		fulltype = ft,
 	}
-	if self.targetname then
-		pc:setsymbol(self.targetname, self.symbol)
-	end
+	pc:setsymbol(self.targetname, self.symbol)
 	if self.value then
-		self.targetdummy = common.createnode{
-			name = 'expr.dummy',
-			spos = self.spos,
-			epos = self.spos,
-			fulltype = fulltype:create(typeinfo, true, false),
-		}
-		self.assignment = common.createnode{
-			name = 'expr.operator',
-			operator = 'assign',
-			spos = self.spos,
-			epos = self.epos,
-			args = {self.targetdummy, self.value},
-		}
-		self.assignment:build(pc)
+
 	end
 end
 
 function slocal:compile(stream)
-	if self.assignment then
-		self.assignment:rcompile(stream)
-		local name = self.targetdummy.retname
-		if name then
-			stream:writetoken('a_initl', self.symbol.id, name)
-			return
-		end
-	end
 	stream:writetoken('a_createl', self.symbol.id)
 end
 
 function slocal:defstring(lp)
 	if self.value then
 		return string.format('local %s %s = %s',
-			common.defstring(self.typev, lp .. self.lpindent),
-			common.defstring(self.targetname, lp .. self.lpindent),
-			common.defstring(self.value, lp .. self.lpindent))
+			self.typev:defstring(lp .. self.lpindent),
+			common.identstring(self.targetname, lp .. self.lpindent),
+			self.value:defstring(lp .. self.lpindent))
 	else
 		return string.format('local %s %s',
-			common.defstring(self.typev, lp .. self.lpindent),
-			common.defstring(self.targetname, lp .. self.lpindent))
+			self.typev:defstring(lp .. self.lpindent),
+			common.identstring(self.targetname, lp .. self.lpindent))
 	end
 end
 
-common = require('exl.common')
-context = require('exl.context')
-fulltype = require('exl.fulltype')
-symlocal = require('exl.symbol.local')
+common = package.relrequire(modname, 3, 'common')
+fulltype = package.relrequire(modname, 3, 'fulltype')
+symlocal = package.relrequire(modname, 3, 'symbol.local')

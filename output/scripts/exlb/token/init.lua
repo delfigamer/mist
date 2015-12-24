@@ -30,6 +30,7 @@ token.codemap = {
 
 	{'d_filepos', 'ii'},
 	{'d_filename', 's'},
+	{'d_comment', 's'},
 }
 for i, ct in ipairs(token.codemap) do
 	ct.code = i

@@ -1,5 +1,5 @@
 local modname = ...
-local node = require('exl.node')
+local node = package.relrequire(modname, 2, 'base')
 local sexpression = node:module(modname)
 local common
 
@@ -9,19 +9,15 @@ function sexpression:init(pr)
 end
 
 function sexpression:build(pc)
-	if self.value then
-		self.value:build(pc)
-	end
+	self.value:build(pc)
 end
 
 function sexpression:compile(stream)
-	if self.value then
-		self.value:rcompile(stream)
-	end
+	self.value:rcompile(stream)
 end
 
 function sexpression:defstring(lp)
-	return common.defstring(self.value, lp .. self.lpindent)
+	return self.value:defstring(lp .. self.lpindent)
 end
 
-common = require('exl.common')
+common = package.relrequire(modname, 3, 'common')

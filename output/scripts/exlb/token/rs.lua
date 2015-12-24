@@ -12,7 +12,9 @@ ts.fields = [[
 ]]
 
 function ts:create(ct, ra, data)
-	return self:new(#data, ct.code, ra, #data, data)
+	local inst = self:new(#data, ct.code, ra, #data)
+	ffi.copy(inst.data, data, inst.length)
+	return inst
 end
 
 function ts.instmeta:__tostring()

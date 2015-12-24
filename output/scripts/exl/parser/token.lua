@@ -1,5 +1,5 @@
 local modname = ...
-local object = require('base.object')
+local object = package.relrequire(modname, 2, 'object')
 local token = object:module(modname)
 
 function token:init(type, content, spos, epos)
@@ -29,7 +29,7 @@ function token:islinestart()
 	return self.bislinestart
 end
 
-function token.instmeta:__tostring()
+function token:defstring(lp)
 	local contentstr
 	if type(self.content) == 'string' then
 		contentstr = string.format(' %q', self.content)

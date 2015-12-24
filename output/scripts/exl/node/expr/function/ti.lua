@@ -1,65 +1,84 @@
 local modname = ...
-local typeinfo = require('exl.typeinfo')
-local functionti = typeinfo:module(modname)
-local cofunc
+local baseti = package.relrequire(modname, 2, 'base.ti')
+local functionti = baseti:module(modname)
+local defcallof
 local common
 
 function functionti:init(pr)
-	typeinfo.init(self, pr)
+	baseti.init(self, pr)
 	self.arglist = pr.arglist
 	self.rettype = pr.rettype
+	local aser = {}
+	for i, arg in ipairs(self.arglist.args) do
+		local ti = arg.typev:gettivalue()
+		local am = arg.blvalue and (
+				arg.brvalue and 'B' or 'L'
+			) or (
+				arg.brvalue and 'R' or 'N'
+			)
+		aser[i] = am .. ti:getserial()
+	end
+	if self.rettype then
+		local rti = self.rettype:gettivalue()
+		self.serial = string.format(
+			'f%i%s%s',
+			#aser,
+			table.concat(aser),
+			rti:getserial())
+	else
+		self.serial = string.format(
+			'p%i%s',
+			#aser,
+			table.concat(aser))
+	end
 end
 
 function functionti:iseq(other)
 	if not other['#' .. functionti._NAME] then
-		return false
-	elseif not self.arglist or not other.arglist then
 		return false
 	elseif #self.arglist.args ~= #other.arglist.args then
 		return false
 	elseif (not self.rettype) ~= (not other.rettype) then
 		return false
 	elseif self.rettype then
-		local rti = self.rettype:gettivalue()
+		local srti = self.rettype:gettivalue()
 		local orti = other.rettype:gettivalue()
-		if not rti or not orti or not rti:iseq(orti) then
+		if not srti or not orti or not srti:iseq(orti) then
 			return false
 		end
 	end
-	for i, arg in ipairs(self.arglist.args) do
+	for i, sarg in ipairs(self.arglist.args) do
 		local oarg = other.arglist.args[i]
-		if not arg.typev or not oarg.typev then
-			return false
-		elseif arg.blvalue ~= oarg.blvalue or arg.brvalue ~= oarg.brvalue then
+		if sarg.blvalue ~= oarg.blvalue or sarg.brvalue ~= oarg.brvalue then
 			return false
 		end
-		local ati = arg.typev:gettivalue()
+		local sti = sarg.typev:gettivalue()
 		local oti = oarg.typev:gettivalue()
-		if not ati or not oti or not ati:iseq(oti) then
+		if not sti:iseq(oti) then
 			return false
 		end
 	end
 	return true
 end
 
-function functionti:getdefaultopfunc(op, proto)
+function functionti:internalresolve(op, proto)
 	if op == 'call' then
-		return cofunc
+		return defcallof
 	else
-		return typeinfo.getdefaultopfunc(self, op, proto)
+		return baseti.internalresolve(self, op, proto)
 	end
 end
 
 function functionti:defstring(lp)
 	if self.rettype then
 		return string.format('type function%s: %s',
-			common.defstring(self.arglist, lp .. self.lpindent),
-			common.defstring(self.rettype, lp .. self.lpindent))
+			self.arglist:defstring(lp .. self.lpindent),
+			self.rettype:defstring(lp .. self.lpindent))
 	else
 		return string.format('type function%s',
-			common.defstring(self.arglist, lp .. self.lpindent))
+			self.arglist:defstring(lp .. self.lpindent))
 	end
 end
 
-cofunc = require('exl.node.expr.defcall.func')
-common = require('exl.common')
+defcallof = package.relrequire(modname, 3, 'operator.defcall.factory')
+common = package.relrequire(modname, 4, 'common')

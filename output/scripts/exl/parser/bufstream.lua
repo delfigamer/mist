@@ -1,6 +1,6 @@
 local modname = ...
 local object = require('base.object')
-local cpos = require('exl.parser.cpos')
+local cpos = package.relrequire(modname, 1, 'cpos')
 local bufstream = object:module(modname)
 local ffi = require('ffi')
 

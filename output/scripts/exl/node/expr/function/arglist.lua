@@ -1,5 +1,5 @@
 local modname = ...
-local node = require('exl.node')
+local node = package.relrequire(modname, 3, 'base')
 local farglist = node:module(modname)
 local common
 local context
@@ -22,7 +22,7 @@ end
 function farglist:getargnames()
 	local names = {}
 	for i, arg in ipairs(self.args) do
-		if arg.symbol and arg.brvalue then
+		if arg.brvalue then
 			table.append(names, arg.symbol.id.name)
 		end
 	end
@@ -41,7 +41,7 @@ function farglist:compilereturn(stream, resultarg)
 		table.append(names, resultarg.symbol:rcompile(stream))
 	end
 	for i, arg in ipairs(self.args) do
-		if arg.symbol and arg.blvalue then
+		if arg.blvalue then
 			table.append(names, arg.symbol:rcompile(stream))
 		end
 	end
@@ -51,10 +51,10 @@ end
 function farglist:defstring(lp)
 	local arglines = {}
 	for i, arg in ipairs(self.args) do
-		arglines[i] = common.defstring(arg, lp)
+		arglines[i] = arg:defstring(lp)
 	end
 	return string.format('(%s)', table.concat(arglines, ', '))
 end
 
-common = require('exl.common')
-context = require('exl.context')
+common = package.relrequire(modname, 4, 'common')
+context = package.relrequire(modname, 4, 'context')

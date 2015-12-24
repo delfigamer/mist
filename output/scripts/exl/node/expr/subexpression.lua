@@ -1,5 +1,5 @@
 local modname = ...
-local ebase = require('exl.node.expr.base')
+local ebase = package.relrequire(modname, 1, 'base')
 local esubexpression = ebase:module(modname)
 local common
 
@@ -9,29 +9,22 @@ function esubexpression:init(pr)
 end
 
 function esubexpression:build(pc)
-	if self.value then
-		self.value:build(pc)
-		self.fulltype = self.value:getfulltype()
-		self.constvalue = self.value:getconstvalue()
-	end
+	self.value:build(pc)
+	self.fulltype = self.value:getfulltype()
+	self.constvalue = self.value:getconstvalue()
 end
 
 function esubexpression:lcompile(stream, source)
-	if self.value then
-		return self.value:lcompile(stream, source)
-	end
+	return self.value:lcompile(stream, source)
 end
 
 function esubexpression:rcompile(stream)
-	if self.value then
-		return self.value:rcompile(stream)
-	end
+	return self.value:rcompile(stream)
 end
 
 function esubexpression:defstring(lp)
-	return string.format('--[[%s]] (%s)',
-		common.defstring(self:getfulltype(), lp .. self.lpindent),
-		common.defstring(self.value, lp .. self.lpindent))
+	return string.format('(%s)',
+		self.value:defstring(lp .. self.lpindent))
 end
 
-common = require('exl.common')
+common = package.relrequire(modname, 3, 'common')

@@ -1,25 +1,20 @@
 local modname = ...
-module(modname, package.seeall)
+local common = package.modtable(modname)
 local default
+local lexer
 
-function createnode(pr)
-	local success, result = pcall(require, 'exl.node.' .. pr.name)
-	if success then
-		return result:create(pr)
+function common.createnode(pr)
+	local class = package.relrequire(modname, 1, 'node.' .. pr.name)
+	return class:create(pr)
+end
+
+function common.identstring(ident)
+	if lexer.keyword[ident] or not ident:match('^[%a_][%w_]*$') then
+		return '@' .. tostring(ident)
 	else
-		print(result)
-		return default:create(pr)
+		return tostring(ident)
 	end
 end
 
-function defstring(node, lp)
-	if not node then
-		return '<error>'
-	elseif type(node) == 'table' and node.defstring then
-		return node:defstring(lp or '')
-	else
-		return tostring(node)
-	end
-end
-
-default = require('exl.defaultnode')
+default = package.relrequire(modname, 1, 'node.default')
+lexer = package.relrequire(modname, 1, 'parser.lexer')

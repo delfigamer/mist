@@ -1,3 +1,33 @@
-	const Point = type class
+	const strc = 'foo' .. 'bar' -- d2i1
+	const numc = 12 + 3 * 10 -- d2i2
+	const nilc = nil -- d2i3
+	local number num -- d2i4
+	num = (numc - 20) * 2
+	const classc = type class -- d2i5
+		local number x
+		local number y
 	end
+	const funct = type function(number, number): number -- d2i6
+	local funct func -- d2i7
+	func = function(number a, number b): number
+	--              d3i1      d3i2       d3i3
+		result = a + b
+	end
+
+	-- d2i8
+	function adda(inout number a, number b): number
+	--            d3i1            d3i2       d3i3
+		result = a = a + b
+	end
+
+	-- d2i9
+	operator adda(inout number a, number b): number
+	--            d3i1            d3i2       d3i3
+		result = adda(a, b)
+	end
+
+	num += 10
+
+	local type function(inout number a, number b): number opaf -- d2i10
+	opaf = adda
 end

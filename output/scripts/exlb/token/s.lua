@@ -11,7 +11,9 @@ ts.fields = [[
 ]]
 
 function ts:create(ct, data)
-	return self:new(#data, ct.code, #data, data)
+	local inst = self:new(#data, ct.code, #data)
+	ffi.copy(inst.data, data, inst.length)
+	return inst
 end
 
 function ts.instmeta:__tostring()
@@ -19,6 +21,9 @@ function ts.instmeta:__tostring()
 	local str = ffi.string(self.data, self.length)
 	if name == 'd_filename' then
 		return string.format('--[[%s]]',
+			str)
+	elseif name == 'd_comment' then
+		return string.format('-- %s',
 			str)
 	else
 		return string.format('%16s %q',

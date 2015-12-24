@@ -1,5 +1,5 @@
 local modname = ...
-local esymbolbase = require('exl.node.expr.symbolbase')
+local esymbolbase = package.relrequire(modname, 1, 'symbolbase')
 local eidentifier = esymbolbase:module(modname)
 local common
 
@@ -11,17 +11,15 @@ end
 function eidentifier:build(pc)
 	self.target = pc:getsymbol(self.targetname)
 	if not self.target then
-		pc.env:log(
-			'error',
+		pc.env:error(
 			string.format('unknown identifier: %s', self.targetname),
 			self.spos, self.epos)
-		return
 	end
 	esymbolbase.build(self, pc)
 end
 
 function eidentifier:defstring(lp)
-	return self.targetname
+	return common.identstring(self.targetname)
 end
 
-common = require('exl.common')
+common = package.relrequire(modname, 3, 'common')

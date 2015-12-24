@@ -1,19 +1,25 @@
 local modname = ...
-local context = require('exl.context')
+local context = package.relrequire(modname, 2, 'context')
 local scontext = context:create()
 package.modtable(modname, scontext)
-local common = require('exl.common')
-local etypebase = require('exl.node.expr.typebase')
-local fulltype = require('exl.fulltype')
-local nofunc = require('exl.system.nativeoperator.func')
-local numberti = require('exl.system.ti.number')
-local stringti = require('exl.system.ti.string')
-local symconst = require('exl.symbol.const')
+local common = package.relrequire(modname, 2, 'common')
+local etypedef = package.relrequire(modname, 2, 'node.expr.typedef')
+local fulltype = package.relrequire(modname, 2, 'fulltype')
+local nativeof = package.relrequire(modname, 2, 'node.operator.native.factory')
+local numberti = package.relrequire(modname, 2, 'node.expr.number').fulltype.ti
+local stringti = package.relrequire(modname, 2, 'node.expr.string').fulltype.ti
+local symconst = package.relrequire(modname, 2, 'symbol.const')
 local utility = require('base.utility')
 
 local env = {}
-function env:log(...)
-	print('=', ...)
+function env:error(msg, spos, epos)
+	if epos then
+		error(string.format('%s-%s\t%s', spos, epos, msg))
+	elseif spos then
+		error(string.format('%s\t%s', spos, msg))
+	else
+		error(msg)
+	end
 end
 
 scontext.env = env
@@ -21,7 +27,7 @@ scontext.env = env
 scontext:setsymbol('number', symconst:create{
 	context = scontext,
 	fulltype = fulltype:create(nil, false, false),
-	constvalue = etypebase:create{
+	constvalue = etypedef:create{
 		typeinfo = numberti,
 	},
 })
@@ -29,7 +35,7 @@ scontext:setsymbol('number', symconst:create{
 scontext:setsymbol('string', symconst:create{
 	context = scontext,
 	fulltype = fulltype:create(nil, false, false),
-	constvalue = etypebase:create{
+	constvalue = etypedef:create{
 		typeinfo = stringti,
 	},
 })
@@ -61,7 +67,7 @@ end
 scontext:setop(
 	'concat',
 	{rvpt(stringti), rvpt(stringti)},
-	nofunc:create{
+	nativeof:create{
 		rettype = rvpt(stringti),
 		constfunc = binopconstf('expr.string', utility.operator.concat),
 		opcode = 'a_concat',
@@ -70,7 +76,7 @@ scontext:setop(
 scontext:setop(
 	'mul',
 	{rvpt(numberti), rvpt(numberti)},
-	nofunc:create{
+	nativeof:create{
 		rettype = rvpt(numberti),
 		constfunc = binopconstf('expr.number', utility.operator.mul),
 		opcode = 'a_mul',
@@ -79,7 +85,7 @@ scontext:setop(
 scontext:setop(
 	'div',
 	{rvpt(numberti), rvpt(numberti)},
-	nofunc:create{
+	nativeof:create{
 		rettype = rvpt(numberti),
 		constfunc = binopconstf('expr.number', utility.operator.div),
 		opcode = 'a_div',
@@ -88,7 +94,7 @@ scontext:setop(
 scontext:setop(
 	'add',
 	{rvpt(numberti), rvpt(numberti)},
-	nofunc:create{
+	nativeof:create{
 		rettype = rvpt(numberti),
 		constfunc = binopconstf('expr.number', utility.operator.add),
 		opcode = 'a_add',
@@ -97,7 +103,7 @@ scontext:setop(
 scontext:setop(
 	'sub',
 	{rvpt(numberti), rvpt(numberti)},
-	nofunc:create{
+	nativeof:create{
 		rettype = rvpt(numberti),
 		constfunc = binopconstf('expr.number', utility.operator.sub),
 		opcode = 'a_sub',

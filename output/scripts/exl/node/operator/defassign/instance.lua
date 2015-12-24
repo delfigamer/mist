@@ -1,16 +1,16 @@
 local modname = ...
-local ebase = require('exl.node.expr.base')
-local aoinstance = ebase:module(modname)
+local baseoi = package.relrequire(modname, 2, 'base.instance')
+local defassignoi = baseoi:module(modname)
 local fulltype
 
-function aoinstance:init(pr)
-	ebase.init(self, pr)
+function defassignoi:init(pr)
+	baseoi.init(self, pr)
 	self.context = pr.context
 	self.args = pr.args
 	self.fulltype = fulltype:create(pr.ti, false, true)
 end
 
-function aoinstance:rcompile(stream)
+function defassignoi:rcompile(stream)
 	if not self.retname then
 		self.retname = self.args[2]:rcompile(stream)
 		self.args[1]:lcompile(stream, self.retname)
@@ -18,4 +18,4 @@ function aoinstance:rcompile(stream)
 	return self.retname
 end
 
-fulltype = require('exl.fulltype')
+fulltype = package.relrequire(modname, 4, 'fulltype')

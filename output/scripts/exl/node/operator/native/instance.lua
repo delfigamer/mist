@@ -1,9 +1,9 @@
 local modname = ...
-local ebase = require('exl.node.expr.base')
-local noinstance = ebase:module(modname)
+local baseoi = package.relrequire(modname, 2, 'base.instance')
+local nativeoi = baseoi:module(modname)
 
-function noinstance:init(pr)
-	ebase.init(self, pr)
+function nativeoi:init(pr)
+	baseoi.init(self, pr)
 	self.nofunc = pr.nofunc
 	self.args = pr.args
 	if self.nofunc.constfunc then
@@ -21,7 +21,7 @@ function noinstance:init(pr)
 	self.fulltype = self.nofunc.rettype
 end
 
-function noinstance:rcompile(stream)
+function nativeoi:rcompile(stream)
 	if not self.retname then
 		local argnames = {}
 		for i, arg in ipairs(self.args) do

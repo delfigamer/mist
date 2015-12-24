@@ -1,5 +1,5 @@
 local modname = ...
-local node = require('exl.node')
+local node = package.relrequire(modname, 2, 'base')
 local sfunction = node:module(modname)
 local common
 local efunctionbase
@@ -30,40 +30,35 @@ function sfunction:build(pc)
 		fulltype = fulltype:create(self.value:getfulltype().ti, false, true),
 		constvalue = self.value,
 	}
-	if self.targetname then
-		pc:setsymbol(self.targetname, self.symbol)
-	end
+	pc:setsymbol(self.targetname, self.symbol)
 	self.value.body:build(self.value.context)
 end
 
 function sfunction:compile(stream)
 	stream:writetoken('a_createl', self.symbol.id)
 	local valname = self.value:rcompile(stream)
-	if not valname then
-		return
-	end
 	stream:writetoken('a_setl', self.symbol.id, valname)
 end
 
 function sfunction:defstring(lp)
 	if self.rettype then
 		return string.format('function %s%s: %s%s\n%send',
-			common.defstring(self.targetname, lp .. self.lpindent),
-			common.defstring(self.arglist, lp .. self.lpindent),
-			common.defstring(self.rettype, lp .. self.lpindent),
-			common.defstring(self.body, lp .. self.lpindent),
+			common.identstring(self.targetname),
+			self.arglist:defstring(lp .. self.lpindent),
+			self.rettype:defstring(lp .. self.lpindent),
+			self.body:defstring(lp .. self.lpindent),
 			lp)
 	else
 		return string.format('function %s%s%s\n%send',
-			common.defstring(self.targetname, lp .. self.lpindent),
-			common.defstring(self.arglist, lp .. self.lpindent),
-			common.defstring(self.body, lp .. self.lpindent),
+			common.identstring(self.targetname),
+			self.arglist:defstring(lp .. self.lpindent),
+			self.body:defstring(lp .. self.lpindent),
 			lp)
 	end
 end
 
-common = require('exl.common')
-efunctionbase = require('exl.node.expr.function.base')
-fulltype = require('exl.fulltype')
-functionti = require('exl.node.expr.function.ti')
-symconst = require('exl.symbol.const')
+common = package.relrequire(modname, 3, 'common')
+efunctionbase = package.relrequire(modname, 2, 'expr.function.base')
+fulltype = package.relrequire(modname, 3, 'fulltype')
+functionti = package.relrequire(modname, 2, 'expr.function.ti')
+symconst = package.relrequire(modname, 3, 'symbol.const')

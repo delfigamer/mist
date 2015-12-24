@@ -1,8 +1,7 @@
 local modname = ...
-local node = require('exl.node')
+local node = package.relrequire(modname, 2, 'base')
 local ebase = node:module(modname)
 local common
-local fulltype
 
 function ebase:init(pr)
 	node.init(self, pr)
@@ -23,7 +22,9 @@ function ebase:gettivalue()
 	end
 end
 
-common = require('exl.common')
-fulltype = require('exl.fulltype')
+common = package.relrequire(modname, 3, 'common')
 
-ebase.fulltype = fulltype:create(nil, false, false)
+local default = package.relrequire(modname, 0, 'ti')
+local fulltype = package.relrequire(modname, 3, 'fulltype')
+
+ebase.fulltype = fulltype:create(default, false, false)

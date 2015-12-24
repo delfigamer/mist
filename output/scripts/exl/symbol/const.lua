@@ -1,5 +1,5 @@
 local modname = ...
-local symlocal = require('exl.symbol.local')
+local symlocal = package.relrequire(modname, 1, 'local')
 local symconst = symlocal:module(modname)
 local common
 
@@ -11,13 +11,10 @@ function symconst:defstring(lp)
 	if self.constvalue then
 		return string.format('%s const %s',
 			self.id, common.defstring(self.constvalue, lp))
-	elseif self.type then
-		return string.format('%s const forward %s',
-			self.id, common.defstring(self.fulltype, lp))
 	else
 		return string.format('%s const <error>',
 			self.id)
 	end
 end
 
-common = require('exl.common')
+common = package.relrequire(modname, 2, 'common')

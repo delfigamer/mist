@@ -1,3 +1,7 @@
+local modname = ...
+module(modname, package.seeall)
+local window = require('host.window')
+local mainconf = require('main')
 local invoke = require('base.invoke')
 
 local function main()
@@ -21,4 +25,17 @@ local function main()
 	io.open('testr.lua', 'w'):write(tostring(bs))
 end
 
-invoke(function() assert(pcall(main)) end)
+local function action()
+	invoke(function() assert(pcall(main)) end)
+end
+
+function register()
+	local suc, err = pcall(action)
+	if not suc then
+		print(err)
+	end
+	window:finish()
+end
+
+function unregister()
+end

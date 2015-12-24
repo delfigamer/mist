@@ -1,14 +1,13 @@
 local modname = ...
-local ebase = require('exl.node.expr.base')
-local enumber = ebase:module(modname)
-local common
-local fulltype
-local numberti
+local eliteral = package.relrequire(modname, 1, 'literal')
+local enumber = eliteral:module(modname, {
+	serial = 'n',
+	fullname = 'number',
+})
 
 function enumber:init(pr)
-	ebase.init(self, pr)
+	eliteral.init(self, pr)
 	self.value = pr.value
-	self.constvalue = self
 end
 
 function enumber:rcompile(stream)
@@ -20,10 +19,3 @@ end
 function enumber:defstring(lp)
 	return tostring(self.value)
 end
-
-common = require('exl.common')
-fulltype = require('exl.fulltype')
-numberti = require('exl.system.ti.number')
-
-enumber.bsimplevalue = true
-enumber.fulltype = fulltype:create(numberti, false, true)

@@ -1,8 +1,8 @@
 local modname = ...
 local object = require('base.object')
 local tokenstream = object:module(modname)
-local lexer = require('exl.parser.lexer')
-local bufstream = require('exl.parser.bufstream')
+local lexer = package.relrequire(modname, 1, 'lexer')
+local bufstream = package.relrequire(modname, 1, 'bufstream')
 
 function tokenstream:init(istream, env)
 	self.istream = istream

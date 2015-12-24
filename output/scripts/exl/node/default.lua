@@ -1,8 +1,9 @@
 local modname = ...
-local node = require('exl.node')
+local node = package.relrequire(modname, 1, 'base')
 local defaultnode = node:module(modname)
 
 function defaultnode:init(pr)
+	node.init(self, pr)
 	self.pr = pr
 end
 

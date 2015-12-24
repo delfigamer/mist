@@ -1,14 +1,15 @@
 local modname = ...
 local syntax = package.modtable(modname)
-local common = require('exl.common')
+local common = package.relrequire(modname, 2, 'common')
 
 local createnode = common.createnode
 
-local function acquiretoken(ts, type)
+local function acquiretoken(ts, type, blinestart)
 	local token = ts:gett()
-	if token:gettype() ~= type then
-		ts:ungett(token)
-		ts.env:log('error', type..' expected', token:getspos())
+	if token:gettype() ~= type
+		or blinestart ~= nil and token:islinestart() ~= blinestart
+	then
+		ts.env:error(type..' expected', token:getspos(), token:getepos())
 	else
 		return token
 	end
@@ -17,9 +18,23 @@ end
 local function acquirenode(ts, func, name)
 	local node = func(ts)
 	if not node then
-		ts.env:log('error', name..' expected', ts:getpos())
+		local token = ts:peekt()
+		ts.env:error(name..' expected', token:getspos())
 	else
 		return node
+	end
+end
+
+local function selector_gen(table)
+	return function(ts, ...)
+		local lead = ts:gett()
+		local func = table[lead:gettype()]
+		if func then
+			return func(ts, lead, ...)
+		else
+			ts:ungett(lead)
+			return
+		end
 	end
 end
 
@@ -27,14 +42,8 @@ local kwset_end = {
 	['end'] = true,
 }
 
--- expression parsers
--- tries to parse a corresponding type of expression
--- on success, consumes it and returns its AST
--- on failure, leaves the stream unchanged and returns nil
--- on malformed, consumes up to the error and returns an approximate AST
 syntax.expr = {}
 
--- lowest-level expressions, detected by the type of their lead token
 syntax.expr.element = {}
 
 syntax.expr.element['number'] = function(ts, lead)
@@ -78,12 +87,12 @@ syntax.expr.element['('] = function(ts, lead)
 	return createnode{
 		name = 'expr.subexpression',
 		spos = lead:getspos(),
-		epos = et and et:getepos() or value and value.epos or lead:getepos(),
+		epos = et:getepos(),
 		value = value,
 	}
 end
 
-function syntax.farg(ts)
+syntax.farg = function(ts)
 	local node, target, lvalue, rvalue
 	local token = ts:gett()
 	if token:gettype() == 'in' then
@@ -97,16 +106,6 @@ function syntax.farg(ts)
 		lvalue, rvalue = false, true
 	end
 	local typev = acquirenode(ts, syntax.expr.main, 'type')
-	if not typev then
-		node = createnode{
-			name = 'expr.function.arg',
-			spos = typev.spos,
-			epos = typev.epos,
-			lvalue = lvalue,
-			rvalue = rvalue,
-		}
-		goto fail
-	end
 	target = ts:gett()
 	if target:gettype() == ',' or target:gettype() == ')' then
 		ts:ungett(target)
@@ -133,41 +132,15 @@ function syntax.farg(ts)
 			ts:ungett(nt)
 			return node
 		else
-			ts.env:log('error', ') expected', nt:getspos())
-			goto fail
+			ts.env:error(') expected', nt:getspos())
 		end
 	else
-		ts.env:log('error', 'identifier expected', target:getspos())
-		node = createnode{
-			name = 'expr.function.arg',
-			spos = typev.spos,
-			epos = target:getepos(),
-			lvalue = lvalue,
-			rvalue = rvalue,
-			typev = typev,
-		}
-		goto fail
+		ts.env:error('identifier expected', target:getspos())
 	end
-::fail::
-	local token
-	repeat
-		token = ts:gett()
-		local tt = token:gettype()
-	until tt == ',' or tt == ')' or tt == 'eof'
-	ts:ungett(token)
-	return node
 end
 
 function syntax.farglist(ts)
-	local lead = acquiretoken(ts, '(')
-	if not lead then
-		return createnode{
-			name = 'expr.function.arglist',
-			spos = ts:getpos(),
-			epos = ts:getpos(),
-			args = {},
-		}
-	end
+	local lead = acquiretoken(ts, '(', false)
 	local nt = ts:peekt()
 	if nt:gettype() == ')' then
 		ts:gett()
@@ -186,7 +159,7 @@ function syntax.farglist(ts)
 		if nt:gettype() == ')' then
 			break
 		elseif nt:gettype() ~= ',' then
-			ts.env:log('error', ') expected', nt:getspos())
+			ts.env:error(') expected', nt:getspos())
 		end
 	end
 	return createnode{
@@ -220,25 +193,7 @@ end
 
 syntax.expr.element['operator'] = function(ts, lead)
 	local opname = acquiretoken(ts, 'identifier')
-	if not opname then
-		return createnode{
-			name = 'expr.operator',
-			spos = lead:getspos(),
-			epos = lead:getepos(),
-			args = {},
-		}
-	end
-	local token = ts:gett()
-	if token:gettype() ~= '(' or token:islinestart() then
-		ts:ungett(token)
-		return createnode{
-			name = 'expr.operator',
-			operator = opname:getcontent(),
-			spos = lead:getspos(),
-			epos = opname:getepos(),
-			args = {},
-		}
-	end
+	local token = acquiretoken(ts, '(', false)
 	token = ts:peekt()
 	if token:gettype() == ')' then
 		ts:gett()
@@ -253,18 +208,12 @@ syntax.expr.element['operator'] = function(ts, lead)
 	local args = {}
 	while true do
 		local arg = acquirenode(ts, syntax.expr.main, 'argument')
-		if arg then
-			table.append(args, arg)
-		end
+		table.append(args, arg)
 		token = ts:gett()
 		if token:gettype() == ')' then
 			break
 		elseif token:gettype() ~= ',' then
-			ts.env:log('error', ') expected', token:getspos())
-			repeat
-				token = ts:gett()
-				local tt = token:gettype()
-			until tt == ',' or tt == ')' or tt == 'eof'
+			ts.env:error(') expected', token:getspos())
 		end
 	end
 	return createnode{
@@ -278,7 +227,7 @@ end
 
 syntax.expr.type = {}
 
-syntax.expr.type['class'] = function(ts, lead, nlead)
+syntax.expr.type['class'] = function(ts, nlead, lead)
 	local parent
 	local token = ts:gett()
 	if token:gettype() == ':' then
@@ -290,7 +239,7 @@ syntax.expr.type['class'] = function(ts, lead, nlead)
 		ts, 'class.body', syntax.class.member.main, kwset_end)
 	token = ts:gett()
 	return createnode{
-		name = 'expr.class.typev',
+		name = 'expr.class',
 		spos = lead:getspos(),
 		epos = token:getepos(),
 		parent = parent,
@@ -298,7 +247,7 @@ syntax.expr.type['class'] = function(ts, lead, nlead)
 	}
 end
 
-syntax.expr.type['function'] = function(ts, lead, nlead)
+syntax.expr.type['function'] = function(ts, nlead, lead)
 	local arglist = acquirenode(ts, syntax.farglist, 'arglist')
 	local rettype
 	local token = ts:gett()
@@ -325,27 +274,9 @@ syntax.expr.type['function'] = function(ts, lead, nlead)
 	end
 end
 
-syntax.expr.element['type'] = function(ts, lead)
-	local nlead = ts:gett()
-	local func = syntax.expr.type[nlead:gettype()]
-	if func then
-		return func(ts, lead, nlead)
-	else
-		ts:ungett(nlead)
-		return
-	end
-end
+syntax.expr.element['type'] = selector_gen(syntax.expr.type)
 
-function syntax.expr.element.main(ts)
-	local lead = ts:gett()
-	local func = syntax.expr.element[lead:gettype()]
-	if func then
-		return func(ts, lead)
-	else
-		ts:ungett(lead)
-		return
-	end
-end
+syntax.expr.element['main'] = selector_gen(syntax.expr.element)
 
 syntax.expr.call = function(ts)
 	local args = {syntax.expr.element.main(ts)}
@@ -381,11 +312,7 @@ syntax.expr.call = function(ts)
 		if token:gettype() == ')' then
 			break
 		elseif token:gettype() ~= ',' then
-			ts.env:log('error', ') expected', token:getspos())
-			repeat
-				token = ts:gett()
-				local tt = token:gettype()
-			until tt == ',' or tt == ')' or tt == 'eof'
+			ts.env:error(') expected', token:getspos())
 		end
 	end
 	args = {
@@ -431,11 +358,7 @@ local function binary_gen(first, next, ...)
 				ts:ungett(sign)
 				break
 			end
-			local rs = acquirenode(
-				ts, next, 'element')
-			if not rs then
-				break
-			end
+			local rs = acquirenode(ts, next, 'element')
 			result = createnode{
 				name = 'expr.operator',
 				operator = binaryname[sign:gettype()],
@@ -462,11 +385,7 @@ local function rbinary_gen(first, next, ...)
 				ts:ungett(sign)
 				break
 			end
-			local rs = acquirenode(
-				ts, next, 'element')
-			if not rs then
-				break
-			end
+			local rs = acquirenode(ts, next, 'element')
 			local i = table.append(elist, rs)
 			slist[i-1] = sign:gettype()
 		end
@@ -485,8 +404,46 @@ local function rbinary_gen(first, next, ...)
 	end
 end
 
+local unaryname = {
+	['+'] = 'identity',
+	['-'] = 'negate',
+	['!'] = 'bnot',
+}
+
+local function unary_gen(base, ...)
+	local set = table.makeset{...}
+	return function(ts)
+		local prefixes = {}
+		while true do
+			local sign = ts:gett()
+			if not set[sign:gettype()] then
+				ts:ungett(sign)
+				break
+			end
+			table.append(prefixes, sign)
+		end
+		if not prefixes[1] then
+			return base(ts)
+		end
+		local result = acquirenode(ts, base, 'element')
+		for i = #prefixes, 1, -1 do
+			local sign = prefixes[i]
+			result = createnode{
+				name = 'expr.operator',
+				operator = unaryname[sign:gettype()],
+				spos = sign:getspos(),
+				epos = result.epos,
+				args = {result},
+			}
+		end
+		return result
+	end
+end
+
+syntax.expr.unary = unary_gen(
+	syntax.expr.call, '+', '-', '!')
 syntax.expr.concat = binary_gen(
-	syntax.expr.call, syntax.expr.call, '..')
+	syntax.expr.unary, syntax.expr.unary, '..')
 syntax.expr.prod = binary_gen(
 	syntax.expr.concat, syntax.expr.concat, '*', '/')
 syntax.expr.sum = binary_gen(
@@ -498,41 +455,12 @@ function syntax.expr.main(ts)
 	return syntax.expr.assign(ts)
 end
 
--- statement parsers
--- the name must correspond to the leading keyword, e.g. "const", "function"
--- the stream is right past the leading keyword
--- on success, consumes the definition and returns its AST
--- as the leading keyword is already consumed, these cannot fail legitimately
--- on malformed, consumes up to the error and returns an approximate AST, possibly with some fields missing
 syntax.stat = {}
 
 function syntax.stat.const(ts, lead)
 	local targetname = acquiretoken(ts, 'identifier')
-	if not targetname then
-		return createnode{
-			name = 'stat.const',
-			spos = lead:getspos(),
-			epos = lead:getepos(),
-		}
-	end
 	local sign = acquiretoken(ts, '=')
-	if not sign then
-		return createnode{
-			name = 'stat.const',
-			spos = lead:getspos(),
-			epos = targetname:getepos(),
-			targetname = targetname:getcontent(),
-		}
-	end
 	local value = acquirenode(ts, syntax.expr.main, 'expression')
-	if not value then
-		return createnode{
-			name = 'stat.const',
-			spos = lead:getspos(),
-			epos = sign:getepos(),
-			targetname = targetname:getcontent(),
-		}
-	end
 	return createnode{
 		name = 'stat.const',
 		spos = lead:getspos(),
@@ -581,7 +509,7 @@ syntax.stat['operator'] = function(ts, lead)
 		name = 'stat.operator',
 		spos = lead:getspos(),
 		epos = token:getepos(),
-		operator = opname:getcontent(),
+		operator = opname and opname:getcontent(),
 		arglist = arglist,
 		rettype = rettype,
 		body = body,
@@ -590,22 +518,7 @@ end
 
 syntax.stat['local'] = function(ts, lead)
 	local typev = acquirenode(ts, syntax.expr.main, 'type')
-	if not typev then
-		return createnode{
-			name = 'stat.local',
-			spos = lead:getspos(),
-			epos = lead:getepos(),
-		}
-	end
 	local targetname = acquiretoken(ts, 'identifier')
-	if not targetname then
-		return createnode{
-			name = 'stat.local',
-			spos = lead:getspos(),
-			epos = typev.epos,
-			typev = typev,
-		}
-	end
 	local sign = ts:gett()
 	if sign:gettype() ~= '=' then
 		ts:ungett(sign)
@@ -618,15 +531,6 @@ syntax.stat['local'] = function(ts, lead)
 		}
 	end
 	local value = acquirenode(ts, syntax.expr.main, 'expression')
-	if not value then
-		return createnode{
-			name = 'stat.local',
-			spos = lead:getspos(),
-			epos = sign:getepos(),
-			typev = typev,
-			targetname = targetname:getcontent(),
-		}
-	end
 	return createnode{
 		name = 'stat.local',
 		spos = lead:getspos(),
@@ -661,36 +565,20 @@ function syntax.stat.main(ts)
 	end
 end
 
--- generic block parser
--- consumes a sequence of [statparser] until one of the [termtypes] is reached (e.g. 'end', 'else' or 'until')
--- on success, consumes the statements
--- tokens not recognized as statements are skipped
--- 'eof' is always a terminating token, though encountering it is treated as an error
 function syntax.block(ts, nodename, statparser, termtypes)
 	local token = ts:peekt()
 	local spos = token:getspos()
 	local statements = {}
-	local errorwritten = false
 	while true do
 		token = ts:peekt()
 		local ttype = token:gettype()
 		if ttype == 'eof' then
-			ts.env:log('error', 'block end expected', token:getspos())
-			break
+			ts.env:error('block end expected', token:getspos())
 		elseif termtypes[ttype] then
 			break
 		else
-			local stat = statparser(ts)
-			if stat then
-				errorwritten = false
-				table.append(statements, stat)
-			else
-				local token = ts:gett()
-				if not errorwritten then
-					ts.env:log('error', 'statement expected', token:getspos())
-					errorwritten = true
-				end
-			end
+			local stat = acquirenode(ts, statparser, 'statement')
+			table.append(statements, stat)
 		end
 	end
 	return createnode{
@@ -705,5 +593,16 @@ syntax.class = {}
 
 syntax.class.member = {}
 
-syntax.class.member.main = function(ts)
+syntax.class.member['local'] = function(ts, lead)
+	local typev = acquirenode(ts, syntax.expr.main, 'type')
+	local targetname = acquiretoken(ts, 'identifier')
+	return createnode{
+		name = 'class.member.local',
+		spos = lead:getspos(),
+		epos = targetname:getepos(),
+		typev = typev,
+		targetname = targetname:getcontent(),
+	}
 end
+
+syntax.class.member.main = selector_gen(syntax.class.member)

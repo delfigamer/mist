@@ -1,5 +1,5 @@
 local modname = ...
-local object = require('exl.object')
+local object = package.relrequire(modname, 1, 'object')
 local opset = object:module(modname)
 local common
 
@@ -112,7 +112,7 @@ function opset:defstring(lp)
 	return 'opset'
 end
 
-common = require('exl.common')
+common = package.relrequire(modname, 1, 'common')
 
 --
 

@@ -1,8 +1,8 @@
 local modname = ...
-local node = require('exl.node')
+local node = package.relrequire(modname, 2, 'base')
 local soperator = node:module(modname)
 local common
-local dcfunc
+local defcallof
 local efunctionbase
 local fulltype
 local symconst
@@ -30,30 +30,18 @@ function soperator:build(pc)
 		fulltype = fulltype:create(self.value:getfulltype().ti, false, true),
 		constvalue = self.value,
 	}
-	if self.operator then
-		local proto = {}
-		for i, arg in ipairs(self.arglist.args) do
-			if not arg.typev then
-				goto opfail
-			end
-			local argti = arg.typev:gettivalue()
-			if not argti then
-				goto opfail
-			end
-			proto[i] = fulltype:create(argti, arg.blvalue, arg.brvalue)
-		end
-		pc:setop(self.operator, proto, self)
+	local proto = {}
+	for i, arg in ipairs(self.arglist.args) do
+		local argti = arg.typev:gettivalue()
+		proto[i] = fulltype:create(argti, arg.blvalue, arg.brvalue)
 	end
-::opfail::
+	pc:setop(self.operator, proto, self)
 	self.value.body:build(self.value.context)
 end
 
 function soperator:compile(stream)
 	stream:writetoken('a_createl', self.symbol.id)
 	local valname = self.value:rcompile(stream)
-	if not valname then
-		return
-	end
 	stream:writetoken('a_setl', self.symbol.id, valname)
 end
 
@@ -69,7 +57,7 @@ function soperator:createinstance(it)
 	for i, arg in ipairs(it.args) do
 		dcargs[i+1] = arg
 	end
-	return dcfunc:createinstance{
+	return defcallof:createinstance{
 		context = it.context,
 		spos = it.spos,
 		epos = it.epos,
@@ -80,16 +68,16 @@ end
 function soperator:defstring(lp)
 	if self.rettype then
 		return string.format('operator %s%s: %s%s\n%send',
-			common.defstring(self.operator, lp .. self.lpindent),
-			common.defstring(self.arglist, lp .. self.lpindent),
-			common.defstring(self.rettype, lp .. self.lpindent),
-			common.defstring(self.body, lp .. self.lpindent),
+			common.identstring(self.operator),
+			self.arglist:defstring(lp .. self.lpindent),
+			self.rettype:defstring(lp .. self.lpindent),
+			self.body:defstring(lp .. self.lpindent),
 			lp)
 	else
 		return string.format('operator %s%s%s\n%send',
-			common.defstring(self.operator, lp .. self.lpindent),
-			common.defstring(self.arglist, lp .. self.lpindent),
-			common.defstring(self.body, lp .. self.lpindent),
+			common.identstring(self.operator),
+			self.arglist:defstring(lp .. self.lpindent),
+			self.body:defstring(lp .. self.lpindent),
 			lp)
 	end
 end
@@ -97,18 +85,18 @@ end
 function soperator.instmeta:__tostring()
 	if self.rettype then
 		return string.format('operator %s%s: %s',
-			common.defstring(self.operator, self.lpindent),
-			common.defstring(self.arglist, self.lpindent),
-			common.defstring(self.rettype, self.lpindent))
+			common.identstring(self.operator),
+			self.arglist:defstring(self.lpindent),
+			self.rettype:defstring(self.lpindent))
 	else
 		return string.format('operator %s%s',
-			common.defstring(self.operator, self.lpindent),
-			common.defstring(self.arglist, self.lpindent))
+			common.identstring(self.operator),
+			self.arglist:defstring(self.lpindent))
 	end
 end
 
-common = require('exl.common')
-dcfunc = require('exl.node.expr.defcall.func')
-efunctionbase = require('exl.node.expr.function.base')
-fulltype = require('exl.fulltype')
-symconst = require('exl.symbol.const')
+common = package.relrequire(modname, 3, 'common')
+defcallof = package.relrequire(modname, 2, 'operator.defcall.factory')
+efunctionbase = package.relrequire(modname, 2, 'expr.function.base')
+fulltype = package.relrequire(modname, 3, 'fulltype')
+symconst = package.relrequire(modname, 3, 'symbol.const')

@@ -11,7 +11,11 @@ tr.fields = [[
 ]]
 
 function tr:create(ct, r)
-	return self:new(#r, ct.code, #r, r)
+	local inst = self:new(#r, ct.code, #r)
+	for i = 1, #r do
+		inst.r[i-1] = r[i]
+	end
+	return inst
 end
 
 function tr.instmeta:__tostring()

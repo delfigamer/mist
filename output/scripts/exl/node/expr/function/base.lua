@@ -1,5 +1,5 @@
 local modname = ...
-local ebase = require('exl.node.expr.base')
+local ebase = package.relrequire(modname, 2, 'base')
 local efunctionbase = ebase:module(modname)
 local common
 local context
@@ -58,8 +58,8 @@ function efunctionbase:rcompile(stream)
 	return self.retname
 end
 
-common = require('exl.common')
-context = require('exl.context')
+common = package.relrequire(modname, 4, 'common')
+context = package.relrequire(modname, 4, 'context')
 exlbstream = require('exlb.stream')
-fulltype = require('exl.fulltype')
-functionti = require('exl.node.expr.function.ti')
+fulltype = package.relrequire(modname, 4, 'fulltype')
+functionti = package.relrequire(modname, 1, 'ti')

@@ -1,14 +1,13 @@
 local modname = ...
-local ebase = require('exl.node.expr.base')
-local estring = ebase:module(modname)
-local common
-local fulltype
-local stringti
+local eliteral = package.relrequire(modname, 1, 'literal')
+local estring = eliteral:module(modname, {
+	serial = 's',
+	fullname = 'string',
+})
 
 function estring:init(pr)
-	ebase.init(self, pr)
+	eliteral.init(self, pr)
 	self.value = pr.value
-	self.constvalue = self
 end
 
 function estring:rcompile(stream)
@@ -20,10 +19,3 @@ end
 function estring:defstring(lp)
 	return string.format('%q', self.value)
 end
-
-common = require('exl.common')
-fulltype = require('exl.fulltype')
-stringti = require('exl.system.ti.string')
-
-estring.bsimplevalue = true
-estring.fulltype = fulltype:create(stringti, false, true)

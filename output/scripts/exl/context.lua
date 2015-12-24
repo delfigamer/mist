@@ -1,5 +1,5 @@
 local modname = ...
-local object = require('exl.object')
+local object = package.relrequire(modname, 1, 'object')
 local context = object:module(modname)
 local id
 local opset
@@ -71,5 +71,5 @@ function context:defstring(lp)
 	return table.concat(slines)
 end
 
-id = require('exl.id')
-opset = require('exl.opset')
+id = package.relrequire(modname, 1, 'id')
+opset = package.relrequire(modname, 1, 'opset')

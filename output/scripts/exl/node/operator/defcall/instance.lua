@@ -1,10 +1,10 @@
 local modname = ...
-local ebase = require('exl.node.expr.base')
-local dinstance = ebase:module(modname)
+local baseoi = package.relrequire(modname, 2, 'base.instance')
+local dinstance = baseoi:module(modname)
 local fulltype
 
 function dinstance:init(pr)
-	ebase.init(self, pr)
+	baseoi.init(self, pr)
 	self.context = pr.context
 	self.base = pr.base
 	self.outargs = pr.outargs
@@ -12,7 +12,7 @@ function dinstance:init(pr)
 	if pr.ti then
 		self.fulltype = fulltype:create(pr.ti, false, true)
 	else
-		self.fulltype = fulltype:create(nil, false, false)
+		self.fulltype = fulltype:create(baseoi.fulltype.default, false, false)
 	end
 end
 
@@ -45,4 +45,4 @@ function dinstance:rcompile(stream)
 	return self.retname
 end
 
-fulltype = require('exl.fulltype')
+fulltype = package.relrequire(modname, 4, 'fulltype')

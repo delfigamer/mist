@@ -1,18 +1,17 @@
 local modname = ...
-local object = require('exl.object')
-local dfunc = object:module(modname)
-local dinstance
+local baseof = package.relrequire(modname, 2, 'base.factory')
+local defcallof = baseof:module(modname)
+local defcalloi
 
-function dfunc:init(pr)
+function defcallof:init(pr)
+	baseof.init(self, pr)
 end
 
-function dfunc:createinstance(it)
+function defcallof:createinstance(it)
 	local args = it.args
 	local base = args[1]
 	local bft = base:getfulltype()
-	if not bft.ti.arglist then
-		return
-	elseif #bft.ti.arglist.args ~= #args - 1 then
+	if #bft.ti.arglist.args ~= #args - 1 then
 		return
 	end
 	local outargs = {}
@@ -20,9 +19,6 @@ function dfunc:createinstance(it)
 	for i = 1, #args - 1 do
 		local aarg = args[i+1]
 		local farg = bft.ti.arglist.args[i]
-		if not aarg or not farg or not farg.typev then
-			return
-		end
 		local aargft = aarg:getfulltype()
 		local fargti = farg.typev:gettivalue()
 		if not aargft or not fargti then
@@ -31,7 +27,7 @@ function dfunc:createinstance(it)
 			return
 		elseif not aargft.rvalue and farg.brvalue then
 			return
-		elseif not aargft.ti or not fargti or not aargft.ti:iseq(fargti) then
+		elseif not aargft.ti or not aargft.ti:iseq(fargti) then
 			return
 		end
 		if farg.blvalue then
@@ -45,7 +41,7 @@ function dfunc:createinstance(it)
 	if bft.ti.rettype then
 		retti = bft.ti.rettype:gettivalue()
 	end
-	return dinstance:create{
+	return defcalloi:create{
 		spos = it.spos,
 		epos = it.epos,
 		context = it.context,
@@ -56,4 +52,4 @@ function dfunc:createinstance(it)
 	}
 end
 
-dinstance = require('exl.node.expr.defcall.instance')
+defcalloi = package.relrequire(modname, 1, 'instance')
