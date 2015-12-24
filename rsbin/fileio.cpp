@@ -19,11 +19,10 @@
 namespace rsbin
 {
 	int const BlockingReadThreshold = 0x1000; // 4K
-#if defined( _WIN32 )
-	uint64_t const MaxViewSize = 0x1000000; // 16M
-#elif defined( _WIN64 )
-	uint64_t const MaxViewSize = 0x10000000000ULL; // 1T
-#endif
+	uint64_t const MaxViewSize = (
+		sizeof( void* ) >= 8 ?
+		0x10000000000ULL : // 1T
+		0x1000000 ); // 16M
 
 #if defined( _WIN32 ) || defined( _WIN64 )
 	struct FileParameters
