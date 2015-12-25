@@ -17,6 +17,7 @@ function efunctionbase:init(pr)
 			name = 'expr.function.arg',
 			spos = self.arglist.epos,
 			epos = self.arglist.epos,
+			filename = self.arglist.filename,
 			lvalue = true,
 			rvalue = false,
 			typev = pr.rettype,

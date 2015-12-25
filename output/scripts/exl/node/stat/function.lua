@@ -16,6 +16,7 @@ function sfunction:init(pr)
 	self.value = efunctionbase:create{
 		spos = self.spos,
 		epos = self.epos,
+		filename = self.filename,
 		arglist = self.arglist,
 		rettype = self.rettype,
 		body = self.body,
@@ -35,7 +36,7 @@ function sfunction:build(pc)
 end
 
 function sfunction:compile(stream)
-	stream:writetoken('a_createl', self.symbol.id)
+	stream:writetoken('a_createl', self.symbol.id, 0)
 	local valname = self.value:rcompile(stream)
 	stream:writetoken('a_setl', self.symbol.id, valname)
 end

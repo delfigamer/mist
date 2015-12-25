@@ -2,7 +2,7 @@ local modname = ...
 local node = package.relrequire(modname, 2, 'base')
 local soperator = node:module(modname)
 local common
-local defcallof
+local functioncallof
 local efunctionbase
 local fulltype
 local symconst
@@ -16,6 +16,7 @@ function soperator:init(pr)
 	self.value = efunctionbase:create{
 		spos = self.spos,
 		epos = self.epos,
+		filename = self.filename,
 		arglist = self.arglist,
 		rettype = self.rettype,
 		body = self.body,
@@ -40,7 +41,7 @@ function soperator:build(pc)
 end
 
 function soperator:compile(stream)
-	stream:writetoken('a_createl', self.symbol.id)
+	stream:writetoken('a_createl', self.symbol.id, 0)
 	local valname = self.value:rcompile(stream)
 	stream:writetoken('a_setl', self.symbol.id, valname)
 end
@@ -51,16 +52,18 @@ function soperator:createinstance(it)
 		context = it.context,
 		spos = it.spos,
 		epos = it.spos,
+		filename = it.filename,
 		target = self.symbol,
 	}
 	local dcargs = {ref}
 	for i, arg in ipairs(it.args) do
 		dcargs[i+1] = arg
 	end
-	return defcallof:createinstance{
+	return functioncallof:createinstance{
 		context = it.context,
 		spos = it.spos,
 		epos = it.epos,
+		filename = it.filename,
 		args = dcargs,
 	}
 end
@@ -96,7 +99,7 @@ function soperator.instmeta:__tostring()
 end
 
 common = package.relrequire(modname, 3, 'common')
-defcallof = package.relrequire(modname, 2, 'operator.defcall.factory')
+functioncallof = package.relrequire(modname, 2, 'operator.functioncall.factory')
 efunctionbase = package.relrequire(modname, 2, 'expr.function.base')
 fulltype = package.relrequire(modname, 3, 'fulltype')
 symconst = package.relrequire(modname, 3, 'symbol.const')

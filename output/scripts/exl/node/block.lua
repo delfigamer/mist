@@ -17,10 +17,12 @@ function block:build(pc)
 end
 
 function block:compile(stream)
+	stream:writetoken('d_filename_start', self.filename or '-')
 	for i, stat in ipairs(self.statements) do
 		stream:writetoken('d_filepos', stat.spos.row, stat.spos.col)
 		stat:compile(stream)
 	end
+	stream:writetoken('d_filename_end', self.filename)
 end
 
 function block:defstring(lp)

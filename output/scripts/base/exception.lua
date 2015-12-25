@@ -2,21 +2,27 @@ local modname = ...
 local object = require('base.object')
 local exception = object:module(modname)
 
-function exception:init(message, depth)
+function exception:create()
+	error('cannot create an exception, use exception:throw instead')
+end
+
+function exception:throw(...)
+	local inst = self:new()
+	inst.traceback = debug.traceback('', 2)
+	inst:init(...)
+	error(inst)
+end
+
+function exception:init(message)
 	self.message = tostring(message)
-	self.traceback = debug.traceback('', depth and depth+2 or 3)
 end
 
 exception.instmeta.__exception = true
 
-function exception.instmeta:__tostring()
+function exception:tostring()
 	return self.message .. self.traceback
 end
 
-function _G.errobj(msg)
-	local mt = getmetatable(msg)
-	if mt and mt.__exception then
-		return msg
-	end
-	return exception:create(msg)
+function exception.instmeta:__tostring()
+	return self:tostring()
 end

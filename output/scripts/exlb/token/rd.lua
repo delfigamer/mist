@@ -1,7 +1,7 @@
 local modname = ...
-local tbase = require('exlb.token.base')
+local tbase = package.relrequire(modname, 1, 'base')
 local td = tbase:module(modname)
-local token = require('exlb.token')
+local token = package.relrequire(modname, 2, 'token')
 
 td.fields = [[
 	uint32_t code;

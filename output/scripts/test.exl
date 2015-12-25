@@ -3,7 +3,7 @@
 	const nilc = nil -- d2i3
 	local number num -- d2i4
 	num = (numc - 20) * 2
-	const classc = type class -- d2i5
+	const classc = type class _classc -- d2i5
 		local number x
 		local number y
 	end
@@ -30,4 +30,12 @@
 
 	local type function(inout number a, number b): number opaf -- d2i10
 	opaf = adda
+
+	local classc classi
+	classi = classc()
+
+	function classfunc(classc a, inout classc b): classc
+	end
+	local type function(classc a, inout classc b): classc classfuncl
+	classfuncl = classfunc
 end

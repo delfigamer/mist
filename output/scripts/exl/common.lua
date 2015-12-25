@@ -16,5 +16,21 @@ function common.identstring(ident)
 	end
 end
 
+local escape_start = table.makeset{
+	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '_',
+}
+
+function common.identserial(ident)
+	local parts = string.split(ident, '.', true)
+	for i, part in ipairs(parts) do
+		if escape_start[string.sub(part, 1, 1)] then
+			parts[i] = string.format('%i_%s', #part, part)
+		else
+			parts[i] = string.format('%i%s', #part, part)
+		end
+	end
+	return table.concat(parts, '_')
+end
+
 default = package.relrequire(modname, 1, 'node.default')
 lexer = package.relrequire(modname, 1, 'parser.lexer')

@@ -1,7 +1,7 @@
 local modname = ...
-local tbase = require('exlb.token.base')
+local tbase = package.relrequire(modname, 1, 'base')
 local tr = tbase:module(modname)
-local token = require('exlb.token')
+local token = package.relrequire(modname, 2, 'token')
 
 tr.fields = [[
 	uint32_t code;
@@ -17,13 +17,16 @@ end
 function tr.instmeta:__tostring()
 	local name = token.codemap[self.code].name
 	if name == 'a_setl' then
-		return (string.format('\td%ii%i = r%i',
-			self.l_depth, self.l_name, self.ra))
-	elseif name == 'a_initl' then
-		return (string.format('\tlocal d%ii%i = r%i',
-			self.l_depth, self.l_name, self.ra))
+		return string.format('\td%ii%i = r%i',
+			self.l_depth, self.l_name, self.ra)
+	elseif name == 'a_getl' then
+		return string.format('\tr%i = d%ii%i',
+			self.ra, self.l_depth, self.l_name)
+	elseif name == 'a_createl' then
+		return string.format('\tlocal d%ii%i = r%i',
+			self.l_depth, self.l_name, self.ra)
 	else
-		return (string.format('%16s d%ii%i, r%i',
-			name, self.l_depth, self.l_name, self.ra))
+		return string.format('%16s d%ii%i, r%i',
+			name, self.l_depth, self.l_name, self.ra)
 	end
 end

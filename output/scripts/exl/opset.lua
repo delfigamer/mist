@@ -3,36 +3,31 @@ local object = package.relrequire(modname, 1, 'object')
 local opset = object:module(modname)
 local common
 
-local function pcomp_exact(a, b)
-	if #a ~= #b then
-		return false
+local function proto_getserial(a)
+	local items = {}
+	for i, aarg in ipairs(a) do
+		items[i] = aarg.ti:getserial()
 	end
+	return table.concat(items, '_')
+end
+
+local function pamcomp_equal(a, b)
 	for i, aarg in ipairs(a) do
 		local barg = b[i]
-		if aarg.ti ~= barg.ti then
-			return false
-		elseif aarg.lvalue ~= barg.lvalue then
-			return false
-		elseif aarg.rvalue ~= barg.rvalue then
+		if aarg.lvalue ~= barg.lvalue or aarg.rvalue ~= barg.rvalue then
 			return false
 		end
 	end
 	return true
 end
 
-local function pcomp_permits(a, b)
-	if #a ~= #b then
-		return false
-	end
+local function pamcomp_permits(a, b)
 	for i, aarg in ipairs(a) do
 		local barg = b[i]
-		if aarg.ti ~= barg.ti then
-			if aarg.ti and barg.ti and not aarg.ti:iseq(barg.ti) then
-				return false
-			end
-		elseif aarg.lvalue and not barg.lvalue then
-			return false
-		elseif aarg.rvalue and not barg.rvalue then
+		if
+			(aarg.lvalue and not barg.lvalue) or
+			(aarg.rvalue and not barg.rvalue)
+		then
 			return false
 		end
 	end
@@ -65,16 +60,22 @@ local function pcomp_prefer(a, b)
 end
 
 function opset:init()
-	self.functions = {}
+	self.serialmap = {}
 end
 
 function opset:insert(prototype, operator)
-	for i, item in ipairs(self.functions) do
-		if pcomp_exact(item.prototype, prototype) then
+	local serial = proto_getserial(prototype)
+	local slist = self.serialmap[serial]
+	if not slist then
+		slist = {}
+		self.serialmap[serial] = slist
+	end
+	for i, item in ipairs(slist) do
+		if pamcomp_equal(item.prototype, prototype) then
 			return false, 'duplicate operator'..operator, operator.spos
 		end
 	end
-	table.append(self.functions, {
+	table.append(slist, {
 		prototype = prototype,
 		operator = operator,
 	})
@@ -82,25 +83,31 @@ function opset:insert(prototype, operator)
 end
 
 function opset:resolve(prototype)
-	local fcand = {}
-	for i, item in ipairs(self.functions) do
-		if pcomp_permits(item.prototype, prototype) then
-			table.append(fcand, item)
-		end
-	end
-	local scand = {}
-	for i = 1, #fcand do
-		local ip = fcand[i].prototype
-		for j = 1, #fcand do
-			local jp = fcand[j].prototype
-			if i ~= j and pcomp_prefer(jp, ip) then
-				goto next
+	local serial = proto_getserial(prototype)
+	local slist = self.serialmap[serial]
+	if slist then
+		local fcand = {}
+		for i, item in ipairs(slist) do
+			if pamcomp_permits(item.prototype, prototype) then
+				table.append(fcand, item)
 			end
 		end
-		table.append(scand, fcand[i])
-	::next::
+		local scand = {}
+		for i = 1, #fcand do
+			local ip = fcand[i].prototype
+			for j = 1, #fcand do
+				local jp = fcand[j].prototype
+				if i ~= j and pamcomp_prefer(jp, ip) then
+					goto next
+				end
+			end
+			table.append(scand, fcand[i])
+		::next::
+		end
+		if #scand > 0 then
+			return scand
+		end
 	end
-	return scand
 end
 
 function opset:defstring(lp)
@@ -117,7 +124,7 @@ common = package.relrequire(modname, 1, 'common')
 --
 
 local function pcomp_prefer_test()
-	local ft = require('exl.fulltype')
+	local ft = package.relrequire(modname, 1, 'common')
 -- when possible, [inout] variants are preferred
 	print(pcomp_prefer(
 		{ft:create(nil, true, true)},

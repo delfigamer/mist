@@ -71,6 +71,7 @@ function eoperator:build(pc)
 			context = pc,
 			spos = self.spos,
 			epos = self.epos,
+			filename = self.filename,
 			args = self.args,
 		}
 		self.operatorinstance = operatorfunc:createinstance(it)

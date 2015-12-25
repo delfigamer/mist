@@ -10,6 +10,7 @@ function context:init(parent)
 	if parent then
 		self.env = parent.env
 		self.depth = parent.depth + 1
+		self.namespace = parent.namespace
 	else
 		self.depth = 1
 	end
@@ -30,8 +31,8 @@ end
 
 function context:getsymbol(name)
 	return
-		self.symbols[name]
-		or self.parent and self.parent:getsymbol(name)
+		self.symbols[name] or
+		self.parent and self.parent:getsymbol(name)
 end
 
 function context:setop(op, proto, func)
@@ -56,6 +57,10 @@ function context:getop(op, proto)
 		result = self.parent:getop(op, proto)
 	end
 	return result
+end
+
+function context:getnamespace()
+	return self.namespace
 end
 
 function context:genid()

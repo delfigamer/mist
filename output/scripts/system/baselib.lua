@@ -154,7 +154,9 @@ function gmeta:__newindex(key, value)
 			kstr = tostring(key)
 		end
 		local info = debug.getinfo(2, 'nSl')
-		local str = string.format('[%48s:%24s@%4i]\t_G[%s] = %s', info.short_src, info.name or '', info.currentline, kstr, value)
+		local str = string.format(
+			'[%48s:%24s@%4i]\t_G[%s] = %s',
+			info.short_src, info.name or '', info.currentline, kstr, value)
 		print(str)
 	end
 	rawset(_G, key, value)
@@ -167,7 +169,8 @@ function protectglobaltable(protect)
 end
 
 function assert(value, errstr, pos)
-	return value or error(errstr or 'assertion failure', pos and (pos == 0 and 0 or pos+1) or 2)
+	return value or error(
+		errstr or 'assertion failure', pos and (pos == 0 and 0 or pos+1) or 2)
 end
 
 errobj_meta = {}
@@ -178,7 +181,7 @@ function errobj_meta:__tostring()
 	return self.message .. self.traceback
 end
 
-function errobj(msg)
+local function errobj(msg)
 	local mt = getmetatable(msg)
 	if mt and mt.__exception then
 		return msg
@@ -193,20 +196,11 @@ function pcall(func, ...)
 	return xpcall(func, errobj, ...)
 end
 
-local native_type = type
-
-function type(object)
-	local mt = getmetatable(object)
-	if mt and mt.__type then
-		return mt.__type
-	else
-		return native_type(object)
-	end
-end
-
 function log(...)
 	local info = debug.getinfo(2, 'nSl')
-	local str = string.format('[%48s:%24s@%4i]', info.short_src, info.name or '', info.currentline)
+	local str = string.format(
+		'[%48s:%24s@%4i]',
+		info.short_src, info.name or '', info.currentline)
 	print(str, ...)
 end
 
@@ -274,17 +268,6 @@ function table.deepset(t, nv, k, k2, ...)
 	end
 end
 
-function table.flattenindex(t, k, k2, ...)
-	if k2 then
-		if t[k] == nil then
-			t[k] = {}
-		end
-		return table.flattenindex(t[k], k2, ...)
-	else
-		return t, k
-	end
-end
-
 function table.provide(t, k)
 	local st = t[k]
 	if not st then
@@ -314,45 +297,3 @@ function table.makeset(list)
 	end
 	return r
 end
-
--- local native_coroutine = coroutine
--- coroutine = {}
-
--- local function rett(...)
-	-- local argc = select('#', ...)
-	-- local argv = {...}
-	-- return function(a, b)
-		-- return unpack(argv, a, b or argc)
-	-- end
--- end
-
--- local function coroutine_wrapper(func)
-	-- local rett = rett(pcall(func, native_coroutine.yield()))
-	-- if rett(1, 1) then
-		-- error(rett(2, 2))
-	-- else
-		-- return rett(2)
-	-- end
--- end
-
--- function coroutine.create(func)
-	-- local thread = native_coroutine.create(coroutine_wrapper)
-	-- native_coroutine.resume(thread, func)
-	-- return thread
--- end
-
--- function coroutine:status(...)
-	-- return native_coroutine.status(self, ...)
--- end
-
--- function coroutine:resume(...)
-	-- return native_coroutine.resume(self, ...)
--- end
-
--- function coroutine.yield(...)
-	-- return native_coroutine.yield(...)
--- end
-
--- debug.setmetatable(native_coroutine.create(function()end), {
-	-- __index = coroutine,
--- })

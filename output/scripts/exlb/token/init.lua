@@ -13,6 +13,8 @@ token.codemap = {
 	{'v_string', 'rs'},
 	{'v_function', 'rvl'},
 	{'v_function_end', 'base'},
+	{'v_table', 'r'},
+	{'v_table_end', 'base'},
 
 	{'a_add', 'rrr'},
 	{'a_sub', 'rrr'},
@@ -20,22 +22,23 @@ token.codemap = {
 	{'a_div', 'rrr'},
 	{'a_concat', 'rrr'},
 
-	{'a_createl', 'l'},
-	{'a_initl', 'lr'},
+	{'a_createl', 'lr'},
 	{'a_setl', 'lr'},
-	{'a_getl', 'rl'},
+	{'a_getl', 'lr'},
 
 	{'a_call', 'rvrvr'},
 	{'a_return', 'vr'},
 
 	{'d_filepos', 'ii'},
-	{'d_filename', 's'},
+	{'d_filename_start', 's'},
+	{'d_filename_end', 'base'},
 	{'d_comment', 's'},
 }
 for i, ct in ipairs(token.codemap) do
 	ct.code = i
 	ct.name = ct[1]
 	ct.format = ct[2]
+	ct.class = package.relrequire(modname, 0, ct.format)
 	token.codemap[ct.name] = ct
 end
 
@@ -44,6 +47,5 @@ function token:create(cname, ...)
 	if not ct then
 		error('unknown code: ' .. cname)
 	end
-	local class = require('exlb.token.' .. ct.format)
-	return class:create(ct, ...)
+	return ct.class:create(ct, ...)
 end

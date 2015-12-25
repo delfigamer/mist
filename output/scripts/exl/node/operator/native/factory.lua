@@ -11,17 +11,19 @@ function nativeof:init(pr)
 end
 
 function nativeof:createinstance(it)
-	local spos, epos
+	local spos, epos, filename
 	if it.args[1] then
 		spos = it.args[1].spos
 		epos = it.args[#it.args].epos
+		filename = it.args[1].filename
 	end
 	return nativeoi:create{
-		nofunc = self,
-		args = it.args,
 		context = it.context,
 		spos = spos,
 		epos = epos,
+		filename = filename,
+		nofunc = self,
+		args = it.args,
 	}
 end
 

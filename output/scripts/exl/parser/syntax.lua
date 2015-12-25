@@ -9,7 +9,7 @@ local function acquiretoken(ts, type, blinestart)
 	if token:gettype() ~= type
 		or blinestart ~= nil and token:islinestart() ~= blinestart
 	then
-		ts.env:error(type..' expected', token:getspos(), token:getepos())
+		ts:error(type..' expected', token:getspos(), token:getepos())
 	else
 		return token
 	end
@@ -19,7 +19,7 @@ local function acquirenode(ts, func, name)
 	local node = func(ts)
 	if not node then
 		local token = ts:peekt()
-		ts.env:error(name..' expected', token:getspos())
+		ts:error(name..' expected', token:getspos())
 	else
 		return node
 	end
@@ -51,6 +51,7 @@ syntax.expr.element['number'] = function(ts, lead)
 		name = 'expr.number',
 		spos = lead:getspos(),
 		epos = lead:getepos(),
+		filename = ts.filename,
 		value = lead:getcontent(),
 	}
 end
@@ -60,6 +61,7 @@ syntax.expr.element['string'] = function(ts, lead)
 		name = 'expr.string',
 		spos = lead:getspos(),
 		epos = lead:getepos(),
+		filename = ts.filename,
 		value = lead:getcontent(),
 	}
 end
@@ -69,6 +71,7 @@ syntax.expr.element['nil'] = function(ts, lead)
 		name = 'expr.nil',
 		spos = lead:getspos(),
 		epos = lead:getepos(),
+		filename = ts.filename,
 	}
 end
 
@@ -77,6 +80,7 @@ syntax.expr.element['identifier'] = function(ts, lead)
 		name = 'expr.identifier',
 		spos = lead:getspos(),
 		epos = lead:getepos(),
+		filename = ts.filename,
 		targetname = lead:getcontent(),
 	}
 end
@@ -88,6 +92,7 @@ syntax.expr.element['('] = function(ts, lead)
 		name = 'expr.subexpression',
 		spos = lead:getspos(),
 		epos = et:getepos(),
+		filename = ts.filename,
 		value = value,
 	}
 end
@@ -113,6 +118,7 @@ syntax.farg = function(ts)
 			name = 'expr.function.arg',
 			spos = typev.spos,
 			epos = typev.epos,
+			filename = ts.filename,
 			lvalue = lvalue,
 			rvalue = rvalue,
 			typev = typev,
@@ -122,6 +128,7 @@ syntax.farg = function(ts)
 			name = 'expr.function.arg',
 			spos = typev.spos,
 			epos = target:getepos(),
+			filename = ts.filename,
 			lvalue = lvalue,
 			rvalue = rvalue,
 			typev = typev,
@@ -132,10 +139,10 @@ syntax.farg = function(ts)
 			ts:ungett(nt)
 			return node
 		else
-			ts.env:error(') expected', nt:getspos())
+			ts:error(') expected', nt:getspos())
 		end
 	else
-		ts.env:error('identifier expected', target:getspos())
+		ts:error('identifier expected', target:getspos())
 	end
 end
 
@@ -148,6 +155,7 @@ function syntax.farglist(ts)
 			name = 'expr.function.arglist',
 			spos = lead:getspos(),
 			epos = nt:getepos(),
+			filename = ts.filename,
 			args = {},
 		}
 	end
@@ -159,13 +167,14 @@ function syntax.farglist(ts)
 		if nt:gettype() == ')' then
 			break
 		elseif nt:gettype() ~= ',' then
-			ts.env:error(') expected', nt:getspos())
+			ts:error(') expected', nt:getspos())
 		end
 	end
 	return createnode{
 		name = 'expr.function.arglist',
 		spos = lead:getspos(),
 		epos = nt:getepos(),
+		filename = ts.filename,
 		args = args,
 	}
 end
@@ -185,6 +194,7 @@ syntax.expr.element['function'] = function(ts, lead)
 		name = 'expr.function',
 		spos = lead:getspos(),
 		epos = token:getepos(),
+		filename = ts.filename,
 		arglist = arglist,
 		rettype = rettype,
 		body = body,
@@ -202,6 +212,7 @@ syntax.expr.element['operator'] = function(ts, lead)
 			operator = opname:getcontent(),
 			spos = lead:getspos(),
 			epos = token:getepos(),
+			filename = ts.filename,
 			args = {},
 		}
 	end
@@ -213,7 +224,7 @@ syntax.expr.element['operator'] = function(ts, lead)
 		if token:gettype() == ')' then
 			break
 		elseif token:gettype() ~= ',' then
-			ts.env:error(') expected', token:getspos())
+			ts:error(') expected', token:getspos())
 		end
 	end
 	return createnode{
@@ -221,6 +232,7 @@ syntax.expr.element['operator'] = function(ts, lead)
 		operator = opname:getcontent(),
 		spos = lead:getspos(),
 		epos = token:getepos(),
+		filename = ts.filename,
 		args = args,
 	}
 end
@@ -228,6 +240,7 @@ end
 syntax.expr.type = {}
 
 syntax.expr.type['class'] = function(ts, nlead, lead)
+	local classname = acquiretoken(ts, 'identifier')
 	local parent
 	local token = ts:gett()
 	if token:gettype() == ':' then
@@ -239,9 +252,11 @@ syntax.expr.type['class'] = function(ts, nlead, lead)
 		ts, 'class.body', syntax.class.member.main, kwset_end)
 	token = ts:gett()
 	return createnode{
-		name = 'expr.class',
+		name = 'expr.class.typev',
 		spos = lead:getspos(),
 		epos = token:getepos(),
+		filename = ts.filename,
+		classname = classname:getcontent(),
 		parent = parent,
 		body = body,
 	}
@@ -261,6 +276,7 @@ syntax.expr.type['function'] = function(ts, nlead, lead)
 			name = 'expr.function.typev',
 			spos = lead:getspos(),
 			epos = rettype.epos,
+			filename = ts.filename,
 			arglist = arglist,
 			rettype = rettype,
 		}
@@ -269,6 +285,7 @@ syntax.expr.type['function'] = function(ts, nlead, lead)
 			name = 'expr.function.typev',
 			spos = lead:getspos(),
 			epos = arglist.epos,
+			filename = ts.filename,
 			arglist = arglist,
 		}
 	end
@@ -298,6 +315,7 @@ syntax.expr.call = function(ts)
 				operator = 'call',
 				spos = args[1].spos,
 				epos = token:getepos(),
+				filename = ts.filename,
 				args = args,
 			},
 		}
@@ -312,7 +330,7 @@ syntax.expr.call = function(ts)
 		if token:gettype() == ')' then
 			break
 		elseif token:gettype() ~= ',' then
-			ts.env:error(') expected', token:getspos())
+			ts:error(') expected', token:getspos())
 		end
 	end
 	args = {
@@ -321,6 +339,7 @@ syntax.expr.call = function(ts)
 			operator = 'call',
 			spos = args[1].spos,
 			epos = token:getepos(),
+			filename = ts.filename,
 			args = args,
 		},
 	}
@@ -364,6 +383,7 @@ local function binary_gen(first, next, ...)
 				operator = binaryname[sign:gettype()],
 				spos = result.spos,
 				epos = rs.epos,
+				filename = ts.filename,
 				args = {result, rs},
 			}
 		end
@@ -397,6 +417,7 @@ local function rbinary_gen(first, next, ...)
 				operator = binaryname[slist[i]],
 				spos = ls.spos,
 				epos = result.epos,
+				filename = ts.filename,
 				args = {ls, result},
 			}
 		end
@@ -433,6 +454,7 @@ local function unary_gen(base, ...)
 				operator = unaryname[sign:gettype()],
 				spos = sign:getspos(),
 				epos = result.epos,
+				filename = ts.filename,
 				args = {result},
 			}
 		end
@@ -465,6 +487,7 @@ function syntax.stat.const(ts, lead)
 		name = 'stat.const',
 		spos = lead:getspos(),
 		epos = value.epos,
+		filename = ts.filename,
 		targetname = targetname:getcontent(),
 		value = value,
 	}
@@ -486,6 +509,7 @@ syntax.stat['function'] = function(ts, lead)
 		name = 'stat.function',
 		spos = lead:getspos(),
 		epos = token:getepos(),
+		filename = ts.filename,
 		targetname = targetname:getcontent(),
 		arglist = arglist,
 		rettype = rettype,
@@ -509,6 +533,7 @@ syntax.stat['operator'] = function(ts, lead)
 		name = 'stat.operator',
 		spos = lead:getspos(),
 		epos = token:getepos(),
+		filename = ts.filename,
 		operator = opname and opname:getcontent(),
 		arglist = arglist,
 		rettype = rettype,
@@ -526,6 +551,7 @@ syntax.stat['local'] = function(ts, lead)
 			name = 'stat.local',
 			spos = lead:getspos(),
 			epos = targetname:getepos(),
+			filename = ts.filename,
 			typev = typev,
 			targetname = targetname:getcontent(),
 		}
@@ -535,6 +561,7 @@ syntax.stat['local'] = function(ts, lead)
 		name = 'stat.local',
 		spos = lead:getspos(),
 		epos = value.epos,
+		filename = ts.filename,
 		typev = typev,
 		targetname = targetname:getcontent(),
 		value = value,
@@ -550,6 +577,7 @@ function syntax.stat.expr(ts)
 		name = 'stat.expression',
 		spos = value.spos,
 		epos = value.epos,
+		filename = ts.filename,
 		value = value,
 	}
 end
@@ -573,7 +601,7 @@ function syntax.block(ts, nodename, statparser, termtypes)
 		token = ts:peekt()
 		local ttype = token:gettype()
 		if ttype == 'eof' then
-			ts.env:error('block end expected', token:getspos())
+			ts:error('block end expected', token:getspos())
 		elseif termtypes[ttype] then
 			break
 		else
@@ -585,6 +613,7 @@ function syntax.block(ts, nodename, statparser, termtypes)
 		name = nodename,
 		spos = spos,
 		epos = token:getspos(),
+		filename = ts.filename,
 		statements = statements,
 	}
 end
@@ -600,6 +629,7 @@ syntax.class.member['local'] = function(ts, lead)
 		name = 'class.member.local',
 		spos = lead:getspos(),
 		epos = targetname:getepos(),
+		filename = ts.filename,
 		typev = typev,
 		targetname = targetname:getcontent(),
 	}

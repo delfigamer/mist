@@ -1,7 +1,7 @@
 local modname = ...
 local baseti = package.relrequire(modname, 2, 'base.ti')
 local functionti = baseti:module(modname)
-local defcallof
+local functioncallof
 local common
 
 function functionti:init(pr)
@@ -27,7 +27,7 @@ function functionti:init(pr)
 			rti:getserial())
 	else
 		self.serial = string.format(
-			'p%i%s',
+			'f%i%sN',
 			#aser,
 			table.concat(aser))
 	end
@@ -63,7 +63,7 @@ end
 
 function functionti:internalresolve(op, proto)
 	if op == 'call' then
-		return defcallof
+		return functioncallof
 	else
 		return baseti.internalresolve(self, op, proto)
 	end
@@ -80,5 +80,5 @@ function functionti:defstring(lp)
 	end
 end
 
-defcallof = package.relrequire(modname, 3, 'operator.defcall.factory')
+functioncallof = package.relrequire(modname, 3, 'operator.functioncall.factory')
 common = package.relrequire(modname, 4, 'common')

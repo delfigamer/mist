@@ -44,6 +44,7 @@ function defcallof:createinstance(it)
 	return defcalloi:create{
 		spos = it.spos,
 		epos = it.epos,
+		filename = it.filename,
 		context = it.context,
 		base = base,
 		outargs = outargs,

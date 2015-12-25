@@ -1,8 +1,8 @@
 local modname = ...
-local tbase = require('exlb.token.base')
+local tbase = package.relrequire(modname, 1, 'base')
 local ts = tbase:module(modname)
 local ffi = require('ffi')
-local token = require('exlb.token')
+local token = package.relrequire(modname, 2, 'token')
 
 ts.fields = [[
 	uint32_t code;
@@ -19,7 +19,7 @@ end
 function ts.instmeta:__tostring()
 	local name = token.codemap[self.code].name
 	local str = ffi.string(self.data, self.length)
-	if name == 'd_filename' then
+	if name == 'd_filename_start' then
 		return string.format('--[[%s]]',
 			str)
 	elseif name == 'd_comment' then

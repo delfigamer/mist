@@ -3,6 +3,7 @@ local context = package.relrequire(modname, 2, 'context')
 local scontext = context:create()
 package.modtable(modname, scontext)
 local common = package.relrequire(modname, 2, 'common')
+local env = package.relrequire(modname, 2, 'env')
 local etypedef = package.relrequire(modname, 2, 'node.expr.typedef')
 local fulltype = package.relrequire(modname, 2, 'fulltype')
 local nativeof = package.relrequire(modname, 2, 'node.operator.native.factory')
@@ -11,18 +12,7 @@ local stringti = package.relrequire(modname, 2, 'node.expr.string').fulltype.ti
 local symconst = package.relrequire(modname, 2, 'symbol.const')
 local utility = require('base.utility')
 
-local env = {}
-function env:error(msg, spos, epos)
-	if epos then
-		error(string.format('%s-%s\t%s', spos, epos, msg))
-	elseif spos then
-		error(string.format('%s\t%s', spos, msg))
-	else
-		error(msg)
-	end
-end
-
-scontext.env = env
+scontext.env = env:create()
 
 scontext:setsymbol('number', symconst:create{
 	context = scontext,
@@ -46,6 +36,7 @@ local function binopconstf(name, valf)
 			name = name,
 			spos = args[1].spos,
 			epos = args[2].epos,
+			filename = args[1].filename,
 			value = valf(args[1].value, args[2].value),
 		}
 		return node

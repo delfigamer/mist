@@ -34,7 +34,7 @@ function slocal:build(pc)
 end
 
 function slocal:compile(stream)
-	stream:writetoken('a_createl', self.symbol.id)
+	stream:writetoken('a_createl', self.symbol.id, 0)
 end
 
 function slocal:defstring(lp)

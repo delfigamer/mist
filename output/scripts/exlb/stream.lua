@@ -1,7 +1,7 @@
 local modname = ...
 local object = require('base.object')
 local stream = object:module(modname)
-local token = require('exlb.token')
+local token = package.relrequire(modname, 1, 'token')
 
 function stream:init()
 	self.parts = {}

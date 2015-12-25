@@ -3,13 +3,14 @@ local object = require('base.object')
 local tokenstream = object:module(modname)
 local lexer = package.relrequire(modname, 1, 'lexer')
 local bufstream = package.relrequire(modname, 1, 'bufstream')
+local exlerror = package.relrequire(modname, 2, 'exlerror')
 
-function tokenstream:init(istream, env)
+function tokenstream:init(istream, filename)
 	self.istream = istream
-	self.bufstream = bufstream:create(istream)
+	self.bufstream = bufstream:create(istream, filename)
 	self.buffer = {}
 	self.pos = self.bufstream:getpos()
-	self.env = env
+	self.filename = filename
 end
 
 function tokenstream:gett()
@@ -39,6 +40,6 @@ function tokenstream:getpos()
 	return self.pos
 end
 
-function tokenstream:getenv()
-	return self.env
+function tokenstream:error(message, spos, epos)
+	exlerror:throw(message, spos, epos, self.filename)
 end

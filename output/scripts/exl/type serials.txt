@@ -1,18 +1,25 @@
 access modes:
-B = lrvalue
-L = lvalue
-N = nvalue
-R = rvalue
+'B' = lrvalue
+'L' = lvalue
+'N' = nvalue
+'R' = rvalue
 
 typeinfo:
-f{%f}%t = function (value-returning)
-n = number
-p{%f} = function (non-value-returning)
-s = string
-v = nil
+'_' = invalid
+globalname = class instance
+'c' .. globalname = class definition
+'f' .. list(args) .. ti(rettype) = function (value-returning)
+'f' .. list(args) .. 'N' = function (non-value-returning)
+'n' = number
+'s' = string
+'v' = nil
 
-parameters:
-%f = fulltype
-%t = typeinfo
+list encoding:
+#items .. concat(items)
 
-{...} - length-prepended list
+identifier encoding:
+#str .. str, if str starts with [A-Za-z]
+#str .. '_' .. str, if str starts with [0-9_]
+
+globalname encoding:
+ident(part), concatenated with '_'

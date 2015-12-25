@@ -2,12 +2,14 @@ local modname = ...
 local object = require('base.object')
 local cpos = package.relrequire(modname, 1, 'cpos')
 local bufstream = object:module(modname)
+local exlerror = package.relrequire(modname, 2, 'exlerror')
 local ffi = require('ffi')
 
 bufstream.tabsize = 3
 
-function bufstream:init(stream)
+function bufstream:init(stream, filename)
 	self.stream = stream
+	self.filename = filename
 	self.buffer = {}
 	self.row = 1
 	self.col = 1
@@ -66,4 +68,8 @@ end
 
 function bufstream:getpos()
 	return cpos:create(self.row, self.col)
+end
+
+function bufstream:error(message, spos, epos)
+	exlerror:throw(message, spos, epos, self.filename)
 end

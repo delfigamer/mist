@@ -20,6 +20,7 @@ function defassignof:createinstance(it)
 	return defassignoi:create{
 		spos = spos,
 		epos = epos,
+		filename = it.args[1].filename,
 		context = it.context,
 		args = it.args,
 		ti = lft.ti,

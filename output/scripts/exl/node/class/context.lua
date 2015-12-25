@@ -9,3 +9,9 @@ function classcontext:init(parent, outer)
 	end
 	self.outer = outer
 end
+
+function classcontext:getsymbol(name)
+	return
+		context.getsymbol(self, name) or
+		self.outer and self.outer:getsymbol(name)
+end

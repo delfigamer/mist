@@ -32,7 +32,7 @@ end
 
 function sconst:compile(stream)
 	local valname = self.value:rcompile(stream)
-	stream:writetoken('a_initl', self.symbol.id, valname)
+	stream:writetoken('a_createl', self.symbol.id, valname)
 end
 
 function sconst:defstring(lp)

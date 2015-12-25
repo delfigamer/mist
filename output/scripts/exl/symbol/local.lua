@@ -14,7 +14,7 @@ end
 
 function symlocal:rcompile(stream)
 	local name = stream:genname()
-	stream:writetoken('a_getl', name, self.id)
+	stream:writetoken('a_getl', self.id, name)
 	return name
 end
 

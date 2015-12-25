@@ -1,7 +1,7 @@
 local modname = ...
-local tbase = require('exlb.token.base')
+local tbase = package.relrequire(modname, 1, 'base')
 local tr = tbase:module(modname)
-local token = require('exlb.token')
+local token = package.relrequire(modname, 2, 'token')
 
 tr.fields = [[
 	uint32_t code;
@@ -14,8 +14,8 @@ end
 
 function tr.instmeta:__tostring()
 	local name = token.codemap[self.code].name
-	if name == 'v_function' then
-		return string.format('\tlocal r%i = function(',
+	if name == 'v_table' then
+		return string.format('\tlocal r%i = {',
 			self.ra)
 	else
 		return string.format('%16s r%i',

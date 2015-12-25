@@ -1,7 +1,7 @@
 local modname = ...
 local object = package.relrequire(modname, 4, 'object')
 local typeinfo = object:module(modname)
-local defassignof
+local assignof
 
 typeinfo.serial = '< error >'
 
@@ -14,7 +14,7 @@ end
 
 function typeinfo:internalresolve(op, proto)
 	if op == 'assign' then
-		return defassignof
+		return assignof
 	end
 end
 
@@ -26,4 +26,4 @@ function typeinfo:defstring(lp)
 	return self:getserial()
 end
 
-defassignof = package.relrequire(modname, 3, 'operator.defassign.factory')
+assignof = package.relrequire(modname, 3, 'operator.assign.factory')
