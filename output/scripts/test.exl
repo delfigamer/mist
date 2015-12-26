@@ -1,26 +1,26 @@
-	const strc = 'foo' .. 'bar' -- d2i1
-	const numc = 12 + 3 * 10 -- d2i2
-	const nilc = nil -- d2i3
-	local number num -- d2i4
+	const strc = 'foo' .. 'bar' -- d3i1
+	const numc = 12 + 3 * 10 -- d3i2
+	const nilc = nil -- d3i3
+	local number num -- d3i4
 	num = (numc - 20) * 2
-	const classc = type class _classc -- d2i5
+	class classc -- d3i5
 		local number x
 		local number y
 	end
-	const funct = type function(number, number): number -- d2i6
-	local funct func -- d2i7
+	const funct = type function(number, number): number -- d3i6
+	local funct func -- d3i7
 	func = function(number a, number b): number
 	--              d3i1      d3i2       d3i3
 		result = a + b
 	end
 
-	-- d2i8
+	-- d3i8
 	function adda(inout number a, number b): number
 	--            d3i1            d3i2       d3i3
 		result = a = a + b
 	end
 
-	-- d2i9
+	-- d3i9
 	operator adda(inout number a, number b): number
 	--            d3i1            d3i2       d3i3
 		result = adda(a, b)
@@ -28,14 +28,19 @@
 
 	num += 10
 
-	local type function(inout number a, number b): number opaf -- d2i10
+	local type function(inout number a, number b): number opaf -- d3i10
 	opaf = adda
 
-	local classc classi
+	local classc classi -- d3i11
 	classi = classc()
 
-	function classfunc(classc a, inout classc b): classc
+	function classfunc(classc a, inout classc b): classc -- d3i12
 	end
-	local type function(classc a, inout classc b): classc classfuncl
+	local type function(classc a, inout classc b): classc classfuncl -- d3i13
 	classfuncl = classfunc
+
+	operator call(type classc cc, number x, number y): classc -- d3i14
+		result = cc()
+	end
+	classi = classc(10, 20)
 end

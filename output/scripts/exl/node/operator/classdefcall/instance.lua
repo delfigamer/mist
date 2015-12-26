@@ -12,9 +12,9 @@ end
 
 function classcalloi:rcompile(stream)
 	if self.retname == nil then
+		local base = self.base:rcompile(stream)
 		self.retname = stream:genname()
-		stream:writetoken('v_table', self.retname)
-		stream:writetoken('v_table_end')
+		stream:writetoken('a_instance', self.retname, base)
 	end
 	return self.retname
 end

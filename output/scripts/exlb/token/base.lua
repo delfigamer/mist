@@ -16,7 +16,7 @@ function tbase.instmeta:__tostring()
 	if name == 'v_function_end' then
 		return '\t\tend --[[function]]'
 	elseif name == 'v_table_end' then
-		return '\t\t}'
+		return '\t\t} --[[table]]'
 	elseif name == 'd_filename_end' then
 		return '--[[file end]]'
 	else

@@ -15,12 +15,17 @@ token.codemap = {
 	{'v_function_end', 'base'},
 	{'v_table', 'r'},
 	{'v_table_end', 'base'},
+	{'v_class', 'rrs'},
 
 	{'a_add', 'rrr'},
 	{'a_sub', 'rrr'},
 	{'a_mul', 'rrr'},
 	{'a_div', 'rrr'},
+
 	{'a_concat', 'rrr'},
+	{'a_negate', 'rr'},
+
+	{'a_instance', 'rr'},
 
 	{'a_createl', 'lr'},
 	{'a_setl', 'lr'},

@@ -20,7 +20,7 @@ function tr.instmeta:__tostring()
 		return string.format('\td%ii%i = r%i',
 			self.l_depth, self.l_name, self.ra)
 	elseif name == 'a_getl' then
-		return string.format('\tr%i = d%ii%i',
+		return string.format('\tlocal r%i = d%ii%i',
 			self.ra, self.l_depth, self.l_name)
 	elseif name == 'a_createl' then
 		return string.format('\tlocal d%ii%i = r%i',

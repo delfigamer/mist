@@ -71,7 +71,7 @@ function exl.deserializetype(str, start)
 	if first == 'c' then
 		local classname
 		classname, start = deserializeident(str, start + 1)
-		return am .. 'typeof ' .. classname, start
+		return am .. 'type ' .. classname, start
 	elseif first == 'f' then
 		local args, rettype
 		args, start = deserializeargs(str, start + 1)

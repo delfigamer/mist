@@ -25,7 +25,7 @@ local function acquirenode(ts, func, name)
 	end
 end
 
-local function selector_gen(table)
+local function selector_gen(table, default)
 	return function(ts, ...)
 		local lead = ts:gett()
 		local func = table[lead:gettype()]
@@ -33,7 +33,11 @@ local function selector_gen(table)
 			return func(ts, lead, ...)
 		else
 			ts:ungett(lead)
-			return
+			if default then
+				return default(ts, ...)
+			else
+				return
+			end
 		end
 	end
 end
@@ -239,29 +243,6 @@ end
 
 syntax.expr.type = {}
 
-syntax.expr.type['class'] = function(ts, nlead, lead)
-	local classname = acquiretoken(ts, 'identifier')
-	local parent
-	local token = ts:gett()
-	if token:gettype() == ':' then
-		parent = acquirenode(ts, syntax.expr.main, 'parent')
-	else
-		ts:ungett(token)
-	end
-	local body = syntax.block(
-		ts, 'class.body', syntax.class.member.main, kwset_end)
-	token = ts:gett()
-	return createnode{
-		name = 'expr.class.typev',
-		spos = lead:getspos(),
-		epos = token:getepos(),
-		filename = ts.filename,
-		classname = classname:getcontent(),
-		parent = parent,
-		body = body,
-	}
-end
-
 syntax.expr.type['function'] = function(ts, nlead, lead)
 	local arglist = acquirenode(ts, syntax.farglist, 'arglist')
 	local rettype
@@ -291,7 +272,19 @@ syntax.expr.type['function'] = function(ts, nlead, lead)
 	end
 end
 
-syntax.expr.element['type'] = selector_gen(syntax.expr.type)
+syntax.expr.type.expr = function(ts, lead)
+	local expr = acquirenode(ts, syntax.expr.main, 'expression')
+	return createnode{
+		name = 'expr.typeof',
+		spos = lead:getspos(),
+		epos = expr.epos,
+		filename = ts.filename,
+		expression = expr,
+	}
+end
+
+syntax.expr.element['type'] = selector_gen(
+	syntax.expr.type, syntax.expr.type.expr)
 
 syntax.expr.element['main'] = selector_gen(syntax.expr.element)
 
@@ -302,13 +295,34 @@ syntax.expr.call = function(ts)
 	end
 ::start::
 	local token = ts:gett()
-	if token:gettype() ~= '(' or token:islinestart() then
-		ts:ungett(token)
-		return args[1]
-	end
-	token = ts:peekt()
-	if token:gettype() == ')' then
-		ts:gett()
+	if token:gettype() == '(' and not token:islinestart() then
+		token = ts:peekt()
+		if token:gettype() == ')' then
+			ts:gett()
+			args = {
+				createnode{
+					name = 'expr.operator',
+					operator = 'call',
+					spos = args[1].spos,
+					epos = token:getepos(),
+					filename = ts.filename,
+					args = args,
+				},
+			}
+			goto start
+		end
+		while true do
+			local arg = acquirenode(ts, syntax.expr.main, 'argument')
+			if arg then
+				table.append(args, arg)
+			end
+			token = ts:gett()
+			if token:gettype() == ')' then
+				break
+			elseif token:gettype() ~= ',' then
+				ts:error(') expected', token:getspos())
+			end
+		end
 		args = {
 			createnode{
 				name = 'expr.operator',
@@ -320,30 +334,10 @@ syntax.expr.call = function(ts)
 			},
 		}
 		goto start
+	else
+		ts:ungett(token)
+		return args[1]
 	end
-	while true do
-		local arg = acquirenode(ts, syntax.expr.main, 'argument')
-		if arg then
-			table.append(args, arg)
-		end
-		token = ts:gett()
-		if token:gettype() == ')' then
-			break
-		elseif token:gettype() ~= ',' then
-			ts:error(') expected', token:getspos())
-		end
-	end
-	args = {
-		createnode{
-			name = 'expr.operator',
-			operator = 'call',
-			spos = args[1].spos,
-			epos = token:getepos(),
-			filename = ts.filename,
-			args = args,
-		},
-	}
-	goto start
 end
 
 local binaryname = {
@@ -479,7 +473,30 @@ end
 
 syntax.stat = {}
 
-function syntax.stat.const(ts, lead)
+syntax.stat['class'] = function(ts, lead)
+	local classname = acquiretoken(ts, 'identifier')
+	local parent
+	local token = ts:gett()
+	if token:gettype() == ':' then
+		parent = acquirenode(ts, syntax.expr.main, 'parent')
+	else
+		ts:ungett(token)
+	end
+	local body = syntax.block(
+		ts, 'class.body', syntax.class.member.main, kwset_end)
+	token = ts:gett()
+	return createnode{
+		name = 'stat.class',
+		spos = lead:getspos(),
+		epos = token:getepos(),
+		filename = ts.filename,
+		classname = classname:getcontent(),
+		parent = parent,
+		body = body,
+	}
+end
+
+syntax.stat['const'] = function(ts, lead)
 	local targetname = acquiretoken(ts, 'identifier')
 	local sign = acquiretoken(ts, '=')
 	local value = acquirenode(ts, syntax.expr.main, 'expression')
@@ -582,16 +599,7 @@ function syntax.stat.expr(ts)
 	}
 end
 
-function syntax.stat.main(ts)
-	local lead = ts:gett()
-	local func = syntax.stat[lead:gettype()]
-	if func then
-		return func(ts, lead)
-	else
-		ts:ungett(lead)
-		return syntax.stat.expr(ts)
-	end
-end
+syntax.stat.main = selector_gen(syntax.stat, syntax.stat.expr)
 
 function syntax.block(ts, nodename, statparser, termtypes)
 	local token = ts:peekt()
