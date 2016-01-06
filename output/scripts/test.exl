@@ -9,8 +9,9 @@
 		result.y = y
 	end
 	pinst = Point(10, 20)
-	function scale(inout Point a, number b)
-		a = Point(a.x * b, a.y * b)
+	operator adda(inout number a, number b): number
+		result = a = a + b
 	end
-	scale(pinst, 2)
+	pinst.x += 30
+	pinst.y += 40
 end

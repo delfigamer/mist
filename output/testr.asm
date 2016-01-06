@@ -7,7 +7,7 @@ ancillary "comment", 5, 4, "scripts/test.exl", ""
 local_create .nil, d3i2
 ancillary "comment", 6, 4, "scripts/test.exl", ""
 local_create .nil, d3i3
-function [d4i1, d4i2, d4i3], {
+move .function[d4i1, d4i2, d4i3] {
         local_create .nil, d4i4
         ancillary "comment", 7, 7, "scripts/test.exl", ""
         move d4i1, .1
@@ -34,7 +34,7 @@ call .3, [.4, .5, .6], [.7]
 move .7, d3i2
 ancillary "comment", 12, 4, "scripts/test.exl", ""
 local_create .nil, d3i4
-function [d4i1, d4i2], {
+move .function[d4i1, d4i2] {
         ancillary "comment", 13, 7, "scripts/test.exl", ""
         move d3i3, .1
         move d3i1, .2

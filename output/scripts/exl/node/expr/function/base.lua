@@ -45,9 +45,6 @@ function efunctionbase:rcompile(stream)
 		self.retname = stream:genname()
 		local substream = bcblock:create()
 		local inargs = self.arglist:getinargs()
-		for i, id in ipairs(inargs) do
-			inargs[i] = {'local', id}
-		end
 		local arglocals = self.arglist:getarglocals()
 		for i, id in ipairs(arglocals) do
 			substream:writetoken{
@@ -92,11 +89,11 @@ function efunctionbase:rcompile(stream)
 				{'list', items = rettokenargs}, -- values
 			},
 		}
+		substream:compact()
 		stream:writetoken{
-			op = 'function',
+			op = 'move',
 			args = {
-				{'list', items = inargs}, -- args
-				{'block', substream}, -- body
+				{'function', inargs, substream}, -- source
 				{'ssa', self.retname}, -- target
 			},
 		}

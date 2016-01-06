@@ -1,6 +1,7 @@
 local modname = ...
 local object = package.relrequire(modname, 2, 'object')
 local block = object:module(modname)
+local compact = package.relrequire(modname, 1, 'compact')
 local crc32 = require('crc32')
 local scalars = require('rs.scalars')
 local token = package.relrequire(modname, 1, 'token')
@@ -48,6 +49,10 @@ end
 function block:writetoken(it)
 	local t = token:create(it)
 	table.append(self.parts, t)
+end
+
+function block:compact()
+	compact(self)
 end
 
 function block:defstring(lp)

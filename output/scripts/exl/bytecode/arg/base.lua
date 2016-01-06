@@ -14,7 +14,10 @@ function basearg:derive(target, modname)
 end
 
 function basearg:createarg(it)
-	return argclasses[it[1]]:create(it)
+	local instance = argclasses[it[1]]:new()
+	instance.type = it[1]
+	instance:init(it)
+	return instance
 end
 
 function basearg:writearg(stream)
@@ -33,6 +36,7 @@ end
 
 for i, name in ipairs{
 		'block',
+		'function',
 		'int',
 		'list',
 		'local',

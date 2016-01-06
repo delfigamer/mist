@@ -1,25 +1,27 @@
 #include <cstdio>
 #include <cinttypes>
 
-void printlineheader( FILE* fo ) {
-	fprintf( fo, "             0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f\n" );
+void printlineheader( FILE* fo )
+{
+	fprintf( fo, "             0 1 2 3  4 5 6 7  8 9 a b  c d e f\n" );
 }
 
-void printline( FILE* fo, uint8_t const* buffer, uint64_t begin, int length ) {
+void printline( FILE* fo, uint8_t const* buffer, uint64_t begin, int length )
+{
 	fprintf( fo, "%10llx:", begin & 0xfffffffffffffff0LL );
 	int loffset = begin & 0xf;
 	buffer -= loffset;
 	length += loffset;
 	for( int i = 0; i < loffset; ++i ) {
-		fprintf( fo, "   " );
+		fprintf( fo, "%s  ", i % 4 == 0 ? " " : "" );
 	}
 	for( int i = loffset; i < length; ++i ) {
-		fprintf( fo, " %.2x", buffer[ i ] );
+		fprintf( fo, "%s%.2x", i % 4 == 0 ? " " : "", buffer[ i ] );
 	}
 	for( int i = length; i < 16; ++i ) {
-		fprintf( fo, "   " );
+		fprintf( fo, "%s  ", i % 4 == 0 ? " " : "" );
 	}
-	fprintf( fo, " : " );
+	fprintf( fo, " " );
 	for( int i = 0; i < loffset; ++i ) {
 		fprintf( fo, " " );
 	}
