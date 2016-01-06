@@ -2,6 +2,7 @@ local modname = ...
 local common = package.modtable(modname)
 local default
 local lexer
+local nodeerror
 
 function common.createnode(pr)
 	local class = package.relrequire(modname, 1, 'node.' .. pr.name)
@@ -32,5 +33,10 @@ function common.identserial(ident)
 	return table.concat(parts, '_')
 end
 
+function common.nodeerror(message, node)
+	nodeerror:throw(message, node)
+end
+
 default = package.relrequire(modname, 1, 'node.default')
 lexer = package.relrequire(modname, 1, 'parser.lexer')
+nodeerror = package.relrequire(modname, 1, 'nodeerror')

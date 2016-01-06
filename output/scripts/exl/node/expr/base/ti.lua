@@ -2,6 +2,7 @@ local modname = ...
 local object = package.relrequire(modname, 4, 'object')
 local typeinfo = object:module(modname)
 local assignof
+local common
 
 typeinfo.serial = '< error >'
 
@@ -27,3 +28,4 @@ function typeinfo:defstring(lp)
 end
 
 assignof = package.relrequire(modname, 3, 'operator.assign.factory')
+common = package.relrequire(modname, 4, 'common')

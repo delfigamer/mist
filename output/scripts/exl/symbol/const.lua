@@ -10,7 +10,7 @@ end
 function symconst:defstring(lp)
 	if self.constvalue then
 		return string.format('%s const %s',
-			self.id, common.defstring(self.constvalue, lp))
+			self.id, self.constvalue:defstring(lp))
 	else
 		return string.format('%s const <error>',
 			self.id)

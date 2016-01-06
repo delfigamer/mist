@@ -1,9 +1,9 @@
 local modname = ...
 local ebase = package.relrequire(modname, 2, 'base')
 local efunctionbase = ebase:module(modname)
+local bcblock
 local common
 local context
-local exlbstream
 local fulltype
 local functionti
 
@@ -43,24 +43,69 @@ end
 function efunctionbase:rcompile(stream)
 	if not self.retname then
 		self.retname = stream:genname()
-		local argnames = self.arglist:getargnames()
-		stream:writetoken(
-			'v_function', self.retname, self.context.depth, argnames)
-		local bodystream = stream:substream()
-		self.arglist:compilelocals(bodystream)
-		if self.resultarg then
-			self.resultarg:compilelocal(bodystream)
+		local substream = bcblock:create()
+		local inargs = self.arglist:getinargs()
+		for i, id in ipairs(inargs) do
+			inargs[i] = {'local', id}
 		end
-		self.body:compile(bodystream)
-		bodystream:writetoken('d_filepos', self.body.epos.row, self.body.epos.col)
-		self.arglist:compilereturn(bodystream, self.resultarg)
-		stream:writetoken('v_function_end')
+		local arglocals = self.arglist:getarglocals()
+		for i, id in ipairs(arglocals) do
+			substream:writetoken{
+				op = 'local_create',
+				args = {
+					{'ssa', 0}, -- value
+					{'local', id}, -- id
+				},
+			}
+		end
+		if self.resultarg then
+			substream:writetoken{
+				op = 'local_create',
+				args = {
+					{'ssa', 0}, -- value
+					{'local', self.resultarg.symbol.id}, -- id
+				},
+			}
+		end
+		self.body:compile(substream)
+		substream:writetoken{
+			op = 'ancillary',
+			args = {
+				{'string', 'comment'}, -- name
+				{'int', self.body.epos.row}, -- row
+				{'int', self.body.epos.col}, -- col
+				{'string', self.body.filename or '-'}, -- filename
+				{'string', ''}, -- text
+			},
+		}
+		local outargs = self.arglist:getoutargs()
+		local rettokenargs = {}
+		if self.resultarg then
+			rettokenargs[1] = {'local', self.resultarg.symbol.id}
+		end
+		for i, id in ipairs(outargs) do
+			table.append(rettokenargs, {'local', id})
+		end
+		substream:writetoken{
+			op = 'return',
+			args = {
+				{'list', items = rettokenargs}, -- values
+			},
+		}
+		stream:writetoken{
+			op = 'function',
+			args = {
+				{'list', items = inargs}, -- args
+				{'block', substream}, -- body
+				{'ssa', self.retname}, -- target
+			},
+		}
 	end
 	return self.retname
 end
 
+bcblock = package.relrequire(modname, 4, 'bytecode.block')
 common = package.relrequire(modname, 4, 'common')
 context = package.relrequire(modname, 4, 'context')
-exlbstream = require('exlb.stream')
 fulltype = package.relrequire(modname, 4, 'fulltype')
 functionti = package.relrequire(modname, 1, 'ti')

@@ -12,7 +12,13 @@ end
 
 function enumber:rcompile(stream)
 	local name = stream:genname()
-	stream:writetoken('v_number', name, self.value)
+	stream:writetoken{
+		op = 'move',
+		args = {
+			{'number', self.value}, -- source
+			{'ssa', name}, -- target
+		},
+	}
 	return name
 end
 

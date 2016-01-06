@@ -34,7 +34,13 @@ function slocal:build(pc)
 end
 
 function slocal:compile(stream)
-	stream:writetoken('a_createl', self.symbol.id, 0)
+	stream:writetoken{
+		op = 'local_create',
+		args = {
+			{'ssa', 0}, -- value
+			{'local', self.symbol.id}, -- id
+		},
+	}
 end
 
 function slocal:defstring(lp)

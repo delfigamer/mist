@@ -1,31 +1,38 @@
 local modname = ...
 local node = package.relrequire(modname, 1, 'base')
-local block = node:module(modname)
+local stream = node:module(modname)
 local common
 local context
 
-function block:init(pr)
+function stream:init(pr)
 	node.init(self, pr)
 	self.statements = pr.statements
 end
 
-function block:build(pc)
+function stream:build(pc)
 	self.context = context:create(pc)
 	for i, stat in ipairs(self.statements) do
 		stat:build(self.context)
 	end
 end
 
-function block:compile(stream)
-	stream:writetoken('d_filename_start', self.filename or '-')
+function stream:compile(stream)
 	for i, stat in ipairs(self.statements) do
-		stream:writetoken('d_filepos', stat.spos.row, stat.spos.col)
+		stream:writetoken{
+			op = 'ancillary',
+			args = {
+				{'string', 'comment'}, -- name
+				{'int', stat.spos.row}, -- row
+				{'int', stat.spos.col}, -- col
+				{'string', self.filename or '-'}, -- filename
+				{'string', ''} -- text
+			},
+		}
 		stat:compile(stream)
 	end
-	stream:writetoken('d_filename_end', self.filename)
 end
 
-function block:defstring(lp)
+function stream:defstring(lp)
 	local statlines = {}
 	for i, stat in ipairs(self.statements) do
 		statlines[i] = ('\n' .. lp) .. stat:defstring(lp)

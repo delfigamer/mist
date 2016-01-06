@@ -33,15 +33,6 @@ function cmlocal:build(pc)
 end
 
 function cmlocal:compile(stream)
-	-- if self.assignment then
-		-- self.assignment:rcompile(stream)
-		-- local name = self.targetdummy.retname
-		-- if name then
-			-- stream:writetoken('a_initl', self.symbol.id, name)
-			-- return
-		-- end
-	-- end
-	-- stream:writetoken('a_createl', self.symbol.id)
 end
 
 function cmlocal:defstring(lp)

@@ -1,9 +1,9 @@
 local modname = ...
 local baseoi = package.relrequire(modname, 2, 'base.instance')
-local dinstance = baseoi:module(modname)
+local functioncalloi = baseoi:module(modname)
 local fulltype
 
-function dinstance:init(pr)
+function functioncalloi:init(pr)
 	baseoi.init(self, pr)
 	self.context = pr.context
 	self.base = pr.base
@@ -12,33 +12,44 @@ function dinstance:init(pr)
 	if pr.ti then
 		self.fulltype = fulltype:create(pr.ti, false, true)
 	else
-		self.fulltype = fulltype:create(baseoi.fulltype.default, false, false)
+		self.fulltype = fulltype:create(baseoi:getfulltype().ti, false, false)
 	end
 end
 
-function dinstance:rcompile(stream)
+function functioncalloi:rcompile(stream)
 	if self.retname == nil then
 		local basename = self.base:rcompile(stream)
-		local innames = {}
+		local args = {}
 		for i, iarg in ipairs(self.inargs) do
-			innames[i] = iarg:rcompile(stream)
+			args[i] = {'ssa', iarg:rcompile(stream)}
 		end
-		local outnames = {}
+		local results = {}
 		if self.fulltype.rvalue then
 			self.retname = stream:genname()
-			outnames[1] = self.retname
+			results[1] = self.retname
 		else
 			self.retname = false
 		end
 		for i, oarg in ipairs(self.outargs) do
-			table.append(outnames, stream:genname())
+			table.append(results, stream:genname())
 		end
-		stream:writetoken('a_call', basename, outnames, innames)
+		local resultargs = {}
+		for i, rarg in ipairs(results) do
+			table.append(resultargs, {'ssa', rarg})
+		end
+		stream:writetoken{
+			op = 'call',
+			args = {
+				{'ssa', basename}, -- function
+				{'list', items = args}, -- args
+				{'list', items = resultargs}, -- results
+			},
+		}
 		for i, oarg in ipairs(self.outargs) do
 			if self.retname then
-				oarg:lcompile(stream, outnames[i+1])
+				oarg:lcompile(stream, results[i+1])
 			else
-				oarg:lcompile(stream, outnames[i])
+				oarg:lcompile(stream, results[i])
 			end
 		end
 	end

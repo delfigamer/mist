@@ -36,9 +36,21 @@ function sfunction:build(pc)
 end
 
 function sfunction:compile(stream)
-	stream:writetoken('a_createl', self.symbol.id, 0)
+	stream:writetoken{
+		op = 'local_create',
+		args = {
+			{'ssa', 0}, -- value
+			{'local', self.symbol.id}, -- id
+		},
+	}
 	local valname = self.value:rcompile(stream)
-	stream:writetoken('a_setl', self.symbol.id, valname)
+	stream:writetoken{
+		op = 'move',
+		args = {
+			{'ssa', valname}, -- source
+			{'local', self.symbol.id}, -- target
+		},
+	}
 end
 
 function sfunction:defstring(lp)

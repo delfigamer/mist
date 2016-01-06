@@ -35,12 +35,6 @@ function farg:build(pc)
 	end
 end
 
-function farg:compilelocal(stream)
-	if not self.brvalue and self.blvalue then
-		stream:writetoken('a_createl', self.symbol.id, 0)
-	end
-end
-
 function farg:defstring(lp)
 	local am
 	if self.blvalue then

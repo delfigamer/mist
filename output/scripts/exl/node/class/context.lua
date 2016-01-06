@@ -10,8 +10,6 @@ function classcontext:init(parent, outer)
 	self.outer = outer
 end
 
-function classcontext:getsymbol(name)
-	return
-		context.getsymbol(self, name) or
-		self.outer and self.outer:getsymbol(name)
+function classcontext:defstring(lp)
+	return 'class context:\n' .. context.defstring(self, lp)
 end

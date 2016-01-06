@@ -27,8 +27,14 @@ end
 function eclassdef:rcompile(stream)
 	if not self.retname then
 		self.retname = stream:genname()
-		stream:writetoken(
-			'v_class', self.retname, 0, self.classinfo:getclassname())
+		stream:writetoken{
+			op = 'newclass',
+			args = {
+				{'ssa', 0}, -- parent
+				{'string', self.classinfo:getclassname()}, -- classname
+				{'ssa', self.retname}, -- target
+			},
+		}
 	end
 	return self.retname
 end

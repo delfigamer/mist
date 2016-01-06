@@ -23,15 +23,16 @@ end
 
 function nativeoi:rcompile(stream)
 	if not self.retname then
-		local argnames = {}
+		local tokenargs = {}
 		for i, arg in ipairs(self.args) do
-			argnames[i] = arg:rcompile(stream)
-			if not argnames[i] then
-				return
-			end
+			tokenargs[i] = {'ssa', arg:rcompile(stream)}
 		end
 		self.retname = stream:genname()
-		stream:writetoken(self.nofunc.opcode, self.retname, unpack(argnames))
+		table.append(tokenargs, {'ssa', self.retname})
+		stream:writetoken{
+			op = self.nofunc.opcode,
+			args = tokenargs,
+		}
 	end
 	return self.retname
 end

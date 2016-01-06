@@ -34,7 +34,13 @@ end
 
 function sclass:compile(stream)
 	local valname = self.value:rcompile(stream)
-	stream:writetoken('a_createl', self.symbol.id, valname)
+	stream:writetoken{
+		op = 'local_create',
+		args = {
+			{'ssa', valname}, -- value
+			{'local', self.symbol.id}, -- id
+		},
+	}
 	self.body:compile(stream)
 end
 

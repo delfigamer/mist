@@ -1,7 +1,7 @@
 local modname = ...
 local object = package.relrequire(modname, 1, 'object')
 local context = object:module(modname)
-local id
+-- local id
 local opset
 
 function context:init(parent)
@@ -65,7 +65,7 @@ end
 
 function context:genid()
 	self.lastid = self.lastid + 1
-	return id:create(self.depth, self.lastid)
+	return string.format('d%ii%i', self.depth, self.lastid)
 end
 
 function context:defstring(lp)
@@ -76,5 +76,5 @@ function context:defstring(lp)
 	return table.concat(slines)
 end
 
-id = package.relrequire(modname, 1, 'id')
+-- id = package.relrequire(modname, 1, 'id')
 opset = package.relrequire(modname, 1, 'opset')

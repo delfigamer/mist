@@ -14,7 +14,19 @@ function classcalloi:rcompile(stream)
 	if self.retname == nil then
 		local base = self.base:rcompile(stream)
 		self.retname = stream:genname()
-		stream:writetoken('a_instance', self.retname, base)
+		stream:writetoken{
+			op = 'call_method',
+			args = {
+				{'ssa', base}, -- instance
+				{'local', 'new'}, -- index
+				{'list', items = {}}, -- args
+				{'list', -- results
+					items = {
+						{'ssa', self.retname},
+					}
+				},
+			},
+		}
 	end
 	return self.retname
 end

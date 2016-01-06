@@ -25,5 +25,9 @@ function classdefti:internalresolve(op, proto)
 	end
 end
 
+function classdefti:defstring(lp)
+	return string.format('type %s', self.classinfo:getclassname())
+end
+
 classdefcallof = package.relrequire(modname, 2, 'operator.classdefcall.factory')
 common = package.relrequire(modname, 3, 'common')

@@ -61,7 +61,7 @@ scontext:setop(
 	nativeof:create{
 		rettype = rvpt(stringti),
 		constfunc = binopconstf('expr.string', utility.operator.concat),
-		opcode = 'a_concat',
+		opcode = 'concat',
 	})
 
 scontext:setop(
@@ -70,7 +70,7 @@ scontext:setop(
 	nativeof:create{
 		rettype = rvpt(numberti),
 		constfunc = binopconstf('expr.number', utility.operator.mul),
-		opcode = 'a_mul',
+		opcode = 'mul',
 	})
 
 scontext:setop(
@@ -79,7 +79,7 @@ scontext:setop(
 	nativeof:create{
 		rettype = rvpt(numberti),
 		constfunc = binopconstf('expr.number', utility.operator.div),
-		opcode = 'a_div',
+		opcode = 'div',
 	})
 
 scontext:setop(
@@ -88,7 +88,7 @@ scontext:setop(
 	nativeof:create{
 		rettype = rvpt(numberti),
 		constfunc = binopconstf('expr.number', utility.operator.add),
-		opcode = 'a_add',
+		opcode = 'add',
 	})
 
 scontext:setop(
@@ -97,5 +97,5 @@ scontext:setop(
 	nativeof:create{
 		rettype = rvpt(numberti),
 		constfunc = binopconstf('expr.number', utility.operator.sub),
-		opcode = 'a_sub',
+		opcode = 'sub',
 	})

@@ -19,33 +19,34 @@ function farglist:build(pc)
 	end
 end
 
-function farglist:getargnames()
-	local names = {}
+function farglist:getinargs()
+	local inargs = {}
 	for i, arg in ipairs(self.args) do
 		if arg.brvalue then
-			table.append(names, arg.symbol.id.name)
+			table.append(inargs, arg.symbol.id)
 		end
 	end
-	return names
+	return inargs
 end
 
-function farglist:compilelocals(stream)
+function farglist:getarglocals()
+	local args = {}
 	for i, arg in ipairs(self.args) do
-		arg:compilelocal(stream)
+		if not arg.brvalue and arg.blvalue then
+			table.append(args, arg.symbol.id)
+		end
 	end
+	return args
 end
 
-function farglist:compilereturn(stream, resultarg)
-	local names = {}
-	if resultarg then
-		table.append(names, resultarg.symbol:rcompile(stream))
-	end
+function farglist:getoutargs(stream)
+	local outargs = {}
 	for i, arg in ipairs(self.args) do
 		if arg.blvalue then
-			table.append(names, arg.symbol:rcompile(stream))
+			table.append(outargs, arg.symbol.id)
 		end
 	end
-	stream:writetoken('a_return', names)
+	return outargs
 end
 
 function farglist:defstring(lp)

@@ -17,9 +17,9 @@ function etypedef:gettivalue()
 	return self.typeinfo
 end
 
-function etypedef:defstring(lp)
-	return self.typeinfo:defstring(lp)
-end
+-- function etypedef:defstring(lp)
+	-- return self.typeinfo:defstring(lp)
+-- end
 
 common = package.relrequire(modname, 3, 'common')
 

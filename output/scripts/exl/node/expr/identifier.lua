@@ -11,9 +11,8 @@ end
 function eidentifier:build(pc)
 	self.target = pc:getsymbol(self.targetname)
 	if not self.target then
-		pc.env:error(
-			string.format('unknown identifier: %s', self.targetname),
-			self.spos, self.epos)
+		common.nodeerror(string.format(
+			'unknown identifier: %s', self.targetname), self)
 	end
 	esymbolbase.build(self, pc)
 end

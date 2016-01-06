@@ -8,13 +8,31 @@ function csymlocal:init(it)
 	self.id = it.context:genid()
 end
 
-function csymlocal:lcompile(stream, source)
-	stream:writetoken('a_setselfl', self.id, source)
+function csymlocal:lcompile(stream, source, basename)
+	stream:writetoken{
+		op = 'move',
+		args = {
+			{'ssa', source}, -- source
+			{'member', -- target
+				{'ssa', basename},
+				self.id
+			},
+		},
+	}
 end
 
-function csymlocal:rcompile(stream)
+function csymlocal:rcompile(stream, basename)
 	local name = stream:genname()
-	stream:writetoken('a_getselfl', name, self.id)
+	stream:writetoken{
+		op = 'move',
+		args = {
+			{'member', -- source
+				{'ssa', basename},
+				self.id
+			},
+			{'ssa', name}, -- target
+		},
+	}
 	return name
 end
 

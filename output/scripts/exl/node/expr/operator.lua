@@ -96,8 +96,7 @@ function eoperator:rcompile(stream)
 		return self.constvalue:rcompile(stream)
 	else
 		local name = self.operatorinstance:rcompile(stream)
-		local fts = self.fulltype:getserial()
-		stream:writetoken('d_comment', fts or '-')
+		-- local fts = self.fulltype:getserial()
 		return name
 	end
 end

@@ -3,12 +3,17 @@ local node = package.relrequire(modname, 2, 'base')
 local ebase = node:module(modname)
 local common
 
+function ebase:derive(...)
+	local child = node.derive(self, ...)
+	return child
+end
+
 function ebase:init(pr)
 	node.init(self, pr)
 end
 
 function ebase:getfulltype()
-	return self.fulltype
+	return self.fulltype or ebase.fulltype
 end
 
 function ebase:getconstvalue()

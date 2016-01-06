@@ -9,19 +9,31 @@ function symlocal:init(it)
 end
 
 function symlocal:lcompile(stream, source)
-	stream:writetoken('a_setl', self.id, source)
+	stream:writetoken{
+		op = 'move',
+		args = {
+			{'ssa', source}, -- source
+			{'local', self.id}, -- target
+		},
+	}
 end
 
 function symlocal:rcompile(stream)
 	local name = stream:genname()
-	stream:writetoken('a_getl', self.id, name)
+	stream:writetoken{
+		op = 'move',
+		args = {
+			{'local', self.id}, -- source
+			{'ssa', name}, -- target
+		},
+	}
 	return name
 end
 
 function symlocal:defstring(lp)
 	if self.fulltype then
 		return string.format('%s local %s',
-			self.id, common.defstring(self.fulltype, lp))
+			self.id, self.fulltype:defstring(lp))
 	else
 		return string.format('%s local <error>',
 			self.id)

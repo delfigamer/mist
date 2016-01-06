@@ -34,5 +34,5 @@ function fstask:geterror()
 		host.checkerror()
 		return nil
 	end
-	return ffi.string(ptr)
+	return ptr[0] ~= 0 and ffi.string(ptr)
 end

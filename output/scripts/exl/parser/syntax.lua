@@ -288,7 +288,7 @@ syntax.expr.element['type'] = selector_gen(
 
 syntax.expr.element['main'] = selector_gen(syntax.expr.element)
 
-syntax.expr.call = function(ts)
+syntax.expr.call_and_index = function(ts)
 	local args = {syntax.expr.element.main(ts)}
 	if not args[1] then
 		return
@@ -331,6 +331,19 @@ syntax.expr.call = function(ts)
 				epos = token:getepos(),
 				filename = ts.filename,
 				args = args,
+			},
+		}
+		goto start
+	elseif token:gettype() == '.' then
+		local index = acquiretoken(ts, 'identifier')
+		args = {
+			createnode{
+				name = 'expr.scope',
+				spos = args[1].spos,
+				epos = index:getepos(),
+				filename = ts.filename,
+				base = args[1],
+				index = index:getcontent(),
 			},
 		}
 		goto start
@@ -457,7 +470,7 @@ local function unary_gen(base, ...)
 end
 
 syntax.expr.unary = unary_gen(
-	syntax.expr.call, '+', '-', '!')
+	syntax.expr.call_and_index, '+', '-', '!')
 syntax.expr.concat = binary_gen(
 	syntax.expr.unary, syntax.expr.unary, '..')
 syntax.expr.prod = binary_gen(
