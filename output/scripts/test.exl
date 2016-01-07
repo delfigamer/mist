@@ -12,6 +12,6 @@
 	operator adda(inout number a, number b): number
 		result = a = a + b
 	end
-	pinst.x += 30
+	pinst.x += 30.1234567890123456789
 	pinst.y += 40
 end

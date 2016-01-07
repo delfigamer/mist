@@ -1,12 +1,3 @@
-local path = '../'
-local baselibfunc, err =
-	loadfile(path .. 'scripts/system/baselib.lua')
-if baselibfunc then
-	baselibfunc(path)
-else
-	error(err)
-end
-
 local peg = require('peg')
 local syntaxscript = [[
 	digit := [0-9];

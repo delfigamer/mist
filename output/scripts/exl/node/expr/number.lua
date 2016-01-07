@@ -4,6 +4,7 @@ local enumber = eliteral:module(modname, {
 	serial = 'n',
 	fullname = 'number',
 })
+local common
 
 function enumber:init(pr)
 	eliteral.init(self, pr)
@@ -23,5 +24,7 @@ function enumber:rcompile(stream)
 end
 
 function enumber:defstring(lp)
-	return tostring(self.value)
+	return common.dtos(self.value)
 end
+
+common = package.relrequire(modname, 3, 'common')

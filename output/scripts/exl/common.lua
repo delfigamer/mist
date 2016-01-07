@@ -37,6 +37,37 @@ function common.nodeerror(message, node)
 	nodeerror:throw(message, node)
 end
 
+function common.base26(id)
+	id = id - 1
+	local str = ''
+	if id < 0 then
+		str = '1'
+		id = -id
+	end
+	repeat
+		local a = string.char(string.byte('a') + math.mod(id, 26))
+		str = a .. str
+		id = math.floor(id / 26)
+	until id <= 0
+	return str
+end
+
+function common.dtos(d)
+	local format
+	if d < 1e6 and d > 1e-6 then
+		format = 'f'
+	else
+		format = 'e'
+	end
+	local precision = 0
+	local str
+	repeat
+		str = string.format('%.' .. precision .. format, d)
+		precision = precision + 1
+	until tonumber(str) == d
+	return str
+end
+
 default = package.relrequire(modname, 1, 'node.default')
 lexer = package.relrequire(modname, 1, 'parser.lexer')
 nodeerror = package.relrequire(modname, 1, 'nodeerror')
