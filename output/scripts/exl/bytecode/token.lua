@@ -121,6 +121,21 @@ for i, opinfo in ipairs{
 			},
 		},
 		{
+			name = 'instantiate',
+			args = {
+				{
+					name = 'class',
+					role = 'input',
+					type = {},
+				},
+				{
+					name = 'target',
+					role = 'output',
+					type = {},
+				},
+			},
+		},
+		{
 			name = 'local_create',
 			args = {
 				{

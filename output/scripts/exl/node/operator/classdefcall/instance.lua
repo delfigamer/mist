@@ -15,16 +15,10 @@ function classcalloi:rcompile(stream)
 		local base = self.base:rcompile(stream)
 		self.retname = stream:genname()
 		stream:writetoken{
-			op = 'call_method',
+			op = 'instantiate',
 			args = {
-				{'ssa', base}, -- instance
-				{'local', 'new'}, -- index
-				{'list', items = {}}, -- args
-				{'list', -- results
-					items = {
-						{'ssa', self.retname},
-					}
-				},
+				{'ssa', base}, -- class
+				{'ssa', self.retname}, -- target
 			},
 		}
 	end

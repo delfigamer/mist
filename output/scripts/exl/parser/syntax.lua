@@ -288,68 +288,78 @@ syntax.expr.element['type'] = selector_gen(
 
 syntax.expr.element['main'] = selector_gen(syntax.expr.element)
 
-syntax.expr.call_and_index = function(ts)
-	local args = {syntax.expr.element.main(ts)}
-	if not args[1] then
+syntax.expr.suffix = {}
+
+syntax.expr.suffix['('] = function(ts, lead, base)
+	if lead:islinestart() then
 		return
 	end
-::start::
-	local token = ts:gett()
-	if token:gettype() == '(' and not token:islinestart() then
-		token = ts:peekt()
+	local token = ts:peekt()
+	if token:gettype() == ')' then
+		ts:gett()
+		return createnode{
+			name = 'expr.operator',
+			operator = 'call',
+			spos = base.spos,
+			epos = token:getepos(),
+			filename = ts.filename,
+			args = {base},
+		}
+	end
+	local args = {base}
+	while true do
+		local arg = acquirenode(ts, syntax.expr.main, 'argument')
+		if arg then
+			table.append(args, arg)
+		end
+		token = ts:gett()
 		if token:gettype() == ')' then
-			ts:gett()
-			args = {
-				createnode{
-					name = 'expr.operator',
-					operator = 'call',
-					spos = args[1].spos,
-					epos = token:getepos(),
-					filename = ts.filename,
-					args = args,
-				},
-			}
-			goto start
+			break
+		elseif token:gettype() ~= ',' then
+			ts:error(') expected', token:getspos())
 		end
-		while true do
-			local arg = acquirenode(ts, syntax.expr.main, 'argument')
-			if arg then
-				table.append(args, arg)
+	end
+	return createnode{
+		name = 'expr.operator',
+		operator = 'call',
+		spos = base.spos,
+		epos = token:getepos(),
+		filename = ts.filename,
+		args = args,
+	}
+end
+
+syntax.expr.suffix['.'] = function(ts, lead, base)
+	local index = acquiretoken(ts, 'identifier')
+	return createnode{
+		name = 'expr.scope',
+		spos = base.spos,
+		epos = index:getepos(),
+		filename = ts.filename,
+		base = base,
+		index = index:getcontent(),
+	}
+end
+
+syntax.expr.suffix.main = function(ts)
+	local base = syntax.expr.element.main(ts)
+	if not base then
+		return
+	end
+	while true do
+		local token = ts:gett()
+		local func = syntax.expr.suffix[token:gettype()]
+		if func then
+			local value = func(ts, token, base)
+			if value then
+				base = value
+			else
+				return base
 			end
-			token = ts:gett()
-			if token:gettype() == ')' then
-				break
-			elseif token:gettype() ~= ',' then
-				ts:error(') expected', token:getspos())
-			end
+		else
+			ts:ungett(token)
+			return base
 		end
-		args = {
-			createnode{
-				name = 'expr.operator',
-				operator = 'call',
-				spos = args[1].spos,
-				epos = token:getepos(),
-				filename = ts.filename,
-				args = args,
-			},
-		}
-		goto start
-	elseif token:gettype() == '.' then
-		local index = acquiretoken(ts, 'identifier')
-		args = {
-			createnode{
-				name = 'expr.scope',
-				spos = args[1].spos,
-				epos = index:getepos(),
-				filename = ts.filename,
-				base = args[1],
-				index = index:getcontent(),
-			},
-		}
-		goto start
-	else
-		ts:ungett(token)
-		return args[1]
 	end
 end
 
@@ -470,7 +480,7 @@ local function unary_gen(base, ...)
 end
 
 syntax.expr.unary = unary_gen(
-	syntax.expr.call_and_index, '+', '-', '!')
+	syntax.expr.suffix.main, '+', '-', '!')
 syntax.expr.concat = binary_gen(
 	syntax.expr.unary, syntax.expr.unary, '..')
 syntax.expr.prod = binary_gen(

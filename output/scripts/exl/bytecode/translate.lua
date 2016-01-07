@@ -158,6 +158,12 @@ translate_token['concat'] = translate_binary_gen('..')
 
 translate_token['div'] = translate_binary_gen('/')
 
+translate_token['instantiate'] = function(token, context)
+	local class = translate_value(token.args[1], context)
+	local target = translate_value(token.args[2], context)
+	return string.format('%s=%s:new()\n', target, class)
+end
+
 translate_token['local_create'] = function(token, context)
 	local target = arg_checktype(token.args[2], 'local').value
 	target = local_name(check_identifier(target))

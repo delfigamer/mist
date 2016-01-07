@@ -25,19 +25,21 @@ exl tokens:
 comments and blanks are ignored
 ]]
 
-lexer.keyword = {
-	['class'] = true,
-	['const'] = true,
-	['end'] = true,
-	['function'] = true,
-	['in'] = true,
-	['inout'] = true,
-	['local'] = true,
-	['nil'] = true,
-	['operator'] = true,
-	['out'] = true,
-	['type'] = true,
-	['unit'] = true,
+lexer.keyword = table.makeset{
+	'as',
+	'cast',
+	'class',
+	'const',
+	'end',
+	'function',
+	'in',
+	'inout',
+	'local',
+	'nil',
+	'operator',
+	'out',
+	'type',
+	'unit',
 }
 local decdigit = {
 	['0'] = 0, ['5'] = 5,
