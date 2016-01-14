@@ -569,17 +569,18 @@ namespace window
 			int x;
 			int y;
 
-			void action( lua_State* L, utils::String* error )
+			static void action( void* vself, lua_State* L, utils::String* error )
 			{
 			PROFILE( "pointevent",
+				Msg* self = ( Msg* )vself;
 				lua_pushvalue( L, 1 );
-				lua_pushstring( L, event );
-				lua_pushinteger( L, point );
+				lua_pushstring( L, self->event );
+				lua_pushinteger( L, self->point );
 				int callresult;
-				if( x >= 0 && y >= 0 )
+				if( self->x >= 0 && self->y >= 0 )
 				{
-					lua_pushinteger( L, x );
-					lua_pushinteger( L, y );
+					lua_pushinteger( L, self->x );
+					lua_pushinteger( L, self->y );
 					callresult = lua_pcall( L, 4, 0, 0 );
 				}
 				else
@@ -590,7 +591,7 @@ namespace window
 				{
 					*error = lua_retrieveerror( L );
 				}
-				delete this;
+				delete self;
 			)
 			}
 		};
@@ -609,17 +610,18 @@ namespace window
 			char const* event;
 			int key;
 
-			void action( lua_State* L, utils::String* error )
+			static void action( void* vself, lua_State* L, utils::String* error )
 			{
 			PROFILE( "keyevent",
+				Msg* self = ( Msg* )vself;
 				lua_pushvalue( L, 1 );
-				lua_pushstring( L, event );
-				lua_pushinteger( L, key );
+				lua_pushstring( L, self->event );
+				lua_pushinteger( L, self->key );
 				if( lua_pcall( L, 2, 0, 0 ) != 0 )
 				{
 					*error = lua_retrieveerror( L );
 				}
-				delete this;
+				delete self;
 			)
 			}
 		};
@@ -638,24 +640,25 @@ namespace window
 			char const* event;
 			int ch;
 
-			void action( lua_State* L, utils::String* error )
+			static void action( void* vself, lua_State* L, utils::String* error )
 			{
 			PROFILE( "charevent",
+				Msg* self = ( Msg* )vself;
 				char buffer[ 5 ];
 				size_t pointsize;
 				if( utils::encoding::utf8.encode(
-					buffer, ch, sizeof( buffer ) - 1, &pointsize ) )
+					buffer, self->ch, sizeof( buffer ) - 1, &pointsize ) )
 				{
 					buffer[ pointsize ] = 0;
 					lua_pushvalue( L, 1 );
-					lua_pushstring( L, event );
+					lua_pushstring( L, self->event );
 					lua_pushstring( L, buffer );
 					if( lua_pcall( L, 2, 0, 0 ) != 0 )
 					{
 						*error = lua_retrieveerror( L );
 					}
 				}
-				delete this;
+				delete self;
 			)
 			}
 		};
@@ -671,18 +674,18 @@ namespace window
 		}
 		struct Msg
 		{
-			void action( lua_State* L, utils::String* error )
+			static void action( void* vevent, lua_State* L, utils::String* error )
 			{
 			PROFILE( "notifyevent",
 				lua_pushvalue( L, 1 );
-				lua_pushstring( L, ( char const* )this );
+				lua_pushstring( L, ( char const* )vevent );
 				if( lua_pcall( L, 1, 0, 0 ) != 0 ) {
 					*error = lua_retrieveerror( L );
 				}
 			)
 			}
 		};
-		m_lstate.schedule( &Msg::action, ( Msg* )event );
+		m_lstate.schedule( &Msg::action, ( void* )event );
 	}
 
 	void Window::initlstate()
@@ -697,27 +700,29 @@ namespace window
 			{
 				Window* window;
 				utils::String bootscript;
-				void action( lua_State* L, utils::String* error )
+				static void action(
+					void* vself, lua_State* L, utils::String* error )
 				{
+					Msg* self = ( Msg* )vself;
 					lua_settop( L, 0 );
 					luaL_openlibs( L );
-					if( luaL_loadfile( L, bootscript ) != 0 )
+					if( luaL_loadfile( L, self->bootscript ) != 0 )
 					{
 						*error = lua_retrieveerror( L );
-						delete this;
-						window->m_finished = true;
+						self->window->m_finished = true;
+						delete self;
 						return;
 					}
-					lua_pushlightuserdata( L, window );
+					lua_pushlightuserdata( L, self->window );
 					lua_pushlightuserdata( L, gethostmethodlist() );
 					lua_pushstring( L, PATH );
 					lua_pushstring( L, MAINCONFIG_STR );
 					if( lua_pcall( L, 4, 1, 0 ) != 0 )
 					{
 						*error = lua_retrieveerror( L );
-						window->m_finished = true;
+						self->window->m_finished = true;
 					}
-					delete this;
+					delete self;
 				}
 			};
 			Msg* msg = new Msg{ this, bootscript };
@@ -730,7 +735,9 @@ namespace window
 		m_lstateready = true;
 		m_timeoffset = clock();
 		m_tpstime = clock() + CLOCKS_PER_SEC;
-		m_lstate.setdefaultaction( &Window::ticklstate, this );
+		m_lstate.setdefaultaction(
+			&AsyncLuaState::action_t::bind_method< Window, &Window::ticklstate >,
+			this );
 	}
 
 	void Window::closelstate()
@@ -741,7 +748,7 @@ namespace window
 		}
 		struct Msg
 		{
-			void action( lua_State* L, utils::String* error )
+			static void action( void* vself, lua_State* L, utils::String* error )
 			{
 				marker();
 				lua_pushvalue( L, 1 );
@@ -755,8 +762,8 @@ namespace window
 		};
 		marker();
 		m_lstateready = false;
-		m_lstate.setdefaultaction( AsyncLuaState::action_t() );
-		m_lstate.schedule( &Msg::action, ( Msg* )0 );
+		m_lstate.setdefaultaction();
+		m_lstate.schedule( &Msg::action );
 		m_lstate.join();
 		marker();
 	}

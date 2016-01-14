@@ -9,7 +9,7 @@ function escope:init(pr)
 	self.index = pr.index
 end
 
-function escope:build(pc)
+function escope:dobuild(pc)
 	self.base:build(pc)
 	local proto = {self.base:getfulltype()}
 	-- local protostr = {}

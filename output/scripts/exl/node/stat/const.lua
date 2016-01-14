@@ -12,7 +12,7 @@ function sconst:init(pr)
 	self.value = pr.value
 end
 
-function sconst:build(pc)
+function sconst:dobuild(pc)
 	self.value:build(pc)
 	local value = self.value:getconstvalue()
 	if not value then

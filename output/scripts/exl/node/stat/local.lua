@@ -12,32 +12,66 @@ function slocal:init(pr)
 	self.value = pr.value
 end
 
-function slocal:build(pc)
-	local typeinfo
+function slocal:dobuild(pc)
 	self.typev:build(pc)
-	typeinfo = self.typev:gettivalue()
+	local typeinfo = self.typev:gettivalue()
 	if not typeinfo then
-		pc.env:error(
+		common.nodeerror(
 			'this value does not define a type',
-			self.typev.spos, self.typev.epos)
+			self.typev)
 	end
 	local ft = fulltype:create(typeinfo, true, true)
 	self.symbol = symlocal:create{
 		context = pc,
 		defpos = self.epos,
+		deffile = self.filename,
 		fulltype = ft,
 	}
-	pc:setsymbol(self.targetname, self.symbol)
-	if self.value then
-
+	if self.targetname then
+		pc:setsymbol(self.targetname, self.symbol)
 	end
+	self.itarget = common.createnode{
+		name = 'expr.dummy',
+		spos = self.spos,
+		epos = self.epos,
+		filename = self.filename,
+		fulltype = fulltype:create(typeinfo, true, false),
+	}
+	if self.value then
+		self.value:build(pc)
+		self.initop = common.createnode{
+			name = 'expr.operator',
+			operator = 'init',
+			spos = self.spos,
+			epos = self.epos,
+			filename = self.filename,
+			args = {
+				self.itarget,
+				self.value,
+			},
+		}
+	else
+		self.initop = common.createnode{
+			name = 'expr.operator',
+			operator = 'init',
+			spos = self.spos,
+			epos = self.epos,
+			filename = self.filename,
+			args = {
+				self.itarget,
+			},
+		}
+	end
+	self.initop:build(pc)
 end
 
 function slocal:compile(stream)
+	self.initop:rcompile(stream)
+	local value = self.itarget:rcompile(stream)
 	stream:writetoken{
 		op = 'local_create',
 		args = {
-			{'ssa', 0}, -- value
+			{'ssa', value}, -- value
 			{'local', self.symbol.id}, -- id
 		},
 	}

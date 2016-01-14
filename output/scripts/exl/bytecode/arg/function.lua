@@ -6,7 +6,13 @@ local scalars = require('rs.scalars')
 
 function functionarg:init(it)
 	basearg.init(self, it)
+	if type(it[2]) ~= 'table' then
+		error('arglist expected')
+	end
 	self.args = it[2]
+	if type(it[3]) ~= 'table' or not it[3]['#'..block._NAME] then
+		error('body expected')
+	end
 	self.body = it[3]
 end
 

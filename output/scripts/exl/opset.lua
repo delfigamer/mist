@@ -35,7 +35,7 @@ local function pamcomp_permits(a, b)
 end
 
 -- true means a is preferred over b
-local function pcomp_prefer(a, b)
+local function pamcomp_prefer(a, b)
 	for i, aarg in ipairs(a) do
 		local barg = b[i]
 		if barg.lvalue then
@@ -72,7 +72,7 @@ function opset:insert(prototype, operator)
 	end
 	for i, item in ipairs(slist) do
 		if pamcomp_equal(item.prototype, prototype) then
-			return false, 'duplicate operator'..operator, operator.spos
+			return false, item.operator
 		end
 	end
 	table.append(slist, {
@@ -111,11 +111,6 @@ function opset:resolve(prototype)
 end
 
 function opset:defstring(lp)
-	-- local slines = {}
-	-- for i, item in table.spairs(self.list) do
-		-- slines[i] = '\n' .. lp .. common.defstring(item.operator, lp)
-	-- end
-	-- return table.concat(slines)
 	return 'opset'
 end
 

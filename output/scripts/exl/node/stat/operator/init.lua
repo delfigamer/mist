@@ -1,29 +1,29 @@
 local modname = ...
 local node = package.relrequire(modname, 2, 'base')
-local sfunction = node:module(modname)
+local soperator = node:module(modname)
 local common
-local efunctionbase
+local customof
 local fulltype
-local functionti
 local symconst
 
-function sfunction:init(pr)
+function soperator:init(pr)
 	node.init(self, pr)
-	self.targetname = pr.targetname
-	self.arglist = pr.arglist
+	self.operator = pr.operator
+	self.args = pr.args
 	self.rettype = pr.rettype
 	self.body = pr.body
-	self.value = efunctionbase:create{
+	self.value = common.createnode{
+		name = 'expr.function',
 		spos = self.spos,
 		epos = self.epos,
 		filename = self.filename,
-		arglist = self.arglist,
+		args = self.args,
 		rettype = self.rettype,
 		body = self.body,
 	}
 end
 
-function sfunction:build(pc)
+function soperator:dobuild(pc)
 	self.value:build(pc)
 	self.symbol = symconst:create{
 		context = pc,
@@ -31,11 +31,23 @@ function sfunction:build(pc)
 		fulltype = fulltype:create(self.value:getfulltype().ti, false, true),
 		constvalue = self.value,
 	}
-	pc:setsymbol(self.targetname, self.symbol)
-	self.value.body:build(self.value.context)
+	self.opfactory = customof:create{
+		defpos = self.epos,
+		deffile = self.filename,
+		operator = self.operator,
+		args = self.args,
+		rettype = self.rettype,
+		symbol = self.symbol,
+	}
+	local proto = {}
+	for i, arg in ipairs(self.args) do
+		local argti = arg.typev:gettivalue()
+		proto[i] = fulltype:create(argti, arg.blvalue, arg.brvalue)
+	end
+	pc:setop(self.operator, proto, self.opfactory, self)
 end
 
-function sfunction:compile(stream)
+function soperator:compile(stream)
 	stream:writetoken{
 		op = 'local_create',
 		args = {
@@ -53,25 +65,28 @@ function sfunction:compile(stream)
 	}
 end
 
-function sfunction:defstring(lp)
+function soperator:defstring(lp)
+	local argstr = {}
+	for i, arg in ipairs(self.args) do
+		argstr[i] = arg:defstring(lp .. self.lpindent)
+	end
 	if self.rettype then
-		return string.format('function %s%s: %s%s\n%send',
-			common.identstring(self.targetname),
-			self.arglist:defstring(lp .. self.lpindent),
+		return string.format('operator %s(%s): %s%s\n%send',
+			common.identstring(self.operator),
+			table.concat(argstr, ', '),
 			self.rettype:defstring(lp .. self.lpindent),
 			self.body:defstring(lp .. self.lpindent),
 			lp)
 	else
-		return string.format('function %s%s%s\n%send',
-			common.identstring(self.targetname),
-			self.arglist:defstring(lp .. self.lpindent),
+		return string.format('operator %s(%s)%s\n%send',
+			common.identstring(self.operator),
+			table.concat(argstr, ', '),
 			self.body:defstring(lp .. self.lpindent),
 			lp)
 	end
 end
 
 common = package.relrequire(modname, 3, 'common')
-efunctionbase = package.relrequire(modname, 2, 'expr.function.base')
+customof = package.relrequire(modname, 0, 'of')
 fulltype = package.relrequire(modname, 3, 'fulltype')
-functionti = package.relrequire(modname, 2, 'expr.function.ti')
 symconst = package.relrequire(modname, 3, 'symbol.const')

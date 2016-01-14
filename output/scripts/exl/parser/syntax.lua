@@ -155,13 +155,7 @@ function syntax.farglist(ts)
 	local nt = ts:peekt()
 	if nt:gettype() == ')' then
 		ts:gett()
-		return createnode{
-			name = 'expr.function.arglist',
-			spos = lead:getspos(),
-			epos = nt:getepos(),
-			filename = ts.filename,
-			args = {},
-		}
+		return {}
 	end
 	local args = {}
 	while true do
@@ -174,17 +168,11 @@ function syntax.farglist(ts)
 			ts:error(') expected', nt:getspos())
 		end
 	end
-	return createnode{
-		name = 'expr.function.arglist',
-		spos = lead:getspos(),
-		epos = nt:getepos(),
-		filename = ts.filename,
-		args = args,
-	}
+	return args
 end
 
 syntax.expr.element['function'] = function(ts, lead)
-	local arglist = acquirenode(ts, syntax.farglist, 'arglist')
+	local args = acquirenode(ts, syntax.farglist, 'arglist')
 	local rettype
 	local token = ts:gett()
 	if token:gettype() == ':' then
@@ -199,7 +187,7 @@ syntax.expr.element['function'] = function(ts, lead)
 		spos = lead:getspos(),
 		epos = token:getepos(),
 		filename = ts.filename,
-		arglist = arglist,
+		args = args,
 		rettype = rettype,
 		body = body,
 	}
@@ -273,7 +261,7 @@ syntax.expr.type['function'] = function(ts, nlead, lead)
 end
 
 syntax.expr.type.expr = function(ts, lead)
-	local expr = acquirenode(ts, syntax.expr.main, 'expression')
+	local expr = acquirenode(ts, syntax.expr.unary, 'expression')
 	return createnode{
 		name = 'expr.typeof',
 		spos = lead:getspos(),
@@ -287,6 +275,40 @@ syntax.expr.element['type'] = selector_gen(
 	syntax.expr.type, syntax.expr.type.expr)
 
 syntax.expr.element['main'] = selector_gen(syntax.expr.element)
+
+local unaryname = {
+	['+'] = 'identity',
+	['-'] = 'negate',
+	['!'] = 'bnot',
+}
+
+syntax.expr.unary = function(ts)
+	local prefixes = {}
+	while true do
+		local sign = ts:gett()
+		if not unaryname[sign:gettype()] then
+			ts:ungett(sign)
+			break
+		end
+		table.append(prefixes, sign)
+	end
+	if not prefixes[1] then
+		return syntax.expr.element.main(ts)
+	end
+	local result = acquirenode(ts, syntax.expr.element.main, 'element')
+	for i = #prefixes, 1, -1 do
+		local sign = prefixes[i]
+		result = createnode{
+			name = 'expr.operator',
+			operator = unaryname[sign:gettype()],
+			spos = sign:getspos(),
+			epos = result.epos,
+			filename = ts.filename,
+			args = {result},
+		}
+	end
+	return result
+end
 
 syntax.expr.suffix = {}
 
@@ -341,8 +363,34 @@ syntax.expr.suffix['.'] = function(ts, lead, base)
 	}
 end
 
+syntax.expr.suffix['as'] = function(ts, lead, base)
+	local token = ts:gett()
+	local lvalue, rvalue
+	if token:gettype() == 'in' then
+		lvalue, rvalue = false, true
+	elseif token:gettype() == 'out' then
+		lvalue, rvalue = true, false
+	elseif token:gettype() == 'inout' then
+		lvalue, rvalue = true, true
+	else
+		lvalue, rvalue = false, true
+		ts:ungett(token)
+	end
+	local typev = acquirenode(ts, syntax.expr.unary, 'identifier')
+	return createnode{
+		name = 'expr.cast',
+		spos = base.spos,
+		epos = typev.epos,
+		filename = ts.filename,
+		base = base,
+		typev = typev,
+		blvalue = lvalue,
+		brvalue = rvalue,
+	}
+end
+
 syntax.expr.suffix.main = function(ts)
-	local base = syntax.expr.element.main(ts)
+	local base = syntax.expr.unary(ts)
 	if not base then
 		return
 	end
@@ -354,6 +402,7 @@ syntax.expr.suffix.main = function(ts)
 			if value then
 				base = value
 			else
+				ts:ungett(token)
 				return base
 			end
 		else
@@ -442,47 +491,8 @@ local function rbinary_gen(first, next, ...)
 	end
 end
 
-local unaryname = {
-	['+'] = 'identity',
-	['-'] = 'negate',
-	['!'] = 'bnot',
-}
-
-local function unary_gen(base, ...)
-	local set = table.makeset{...}
-	return function(ts)
-		local prefixes = {}
-		while true do
-			local sign = ts:gett()
-			if not set[sign:gettype()] then
-				ts:ungett(sign)
-				break
-			end
-			table.append(prefixes, sign)
-		end
-		if not prefixes[1] then
-			return base(ts)
-		end
-		local result = acquirenode(ts, base, 'element')
-		for i = #prefixes, 1, -1 do
-			local sign = prefixes[i]
-			result = createnode{
-				name = 'expr.operator',
-				operator = unaryname[sign:gettype()],
-				spos = sign:getspos(),
-				epos = result.epos,
-				filename = ts.filename,
-				args = {result},
-			}
-		end
-		return result
-	end
-end
-
-syntax.expr.unary = unary_gen(
-	syntax.expr.suffix.main, '+', '-', '!')
 syntax.expr.concat = binary_gen(
-	syntax.expr.unary, syntax.expr.unary, '..')
+	syntax.expr.suffix.main, syntax.expr.suffix.main, '..')
 syntax.expr.prod = binary_gen(
 	syntax.expr.concat, syntax.expr.concat, '*', '/')
 syntax.expr.sum = binary_gen(
@@ -491,7 +501,8 @@ syntax.expr.assign = rbinary_gen(
 	syntax.expr.sum, syntax.expr.sum, '=', '+=', '-=')
 
 function syntax.expr.main(ts)
-	return syntax.expr.assign(ts)
+	local node = syntax.expr.assign(ts)
+	return node
 end
 
 syntax.stat = {}
@@ -535,7 +546,7 @@ end
 
 syntax.stat['function'] = function(ts, lead)
 	local targetname = acquiretoken(ts, 'identifier')
-	local arglist = acquirenode(ts, syntax.farglist, 'arglist')
+	local args = acquirenode(ts, syntax.farglist, 'arglist')
 	local rettype
 	local token = ts:gett()
 	if token:gettype() == ':' then
@@ -551,7 +562,7 @@ syntax.stat['function'] = function(ts, lead)
 		epos = token:getepos(),
 		filename = ts.filename,
 		targetname = targetname:getcontent(),
-		arglist = arglist,
+		args = args,
 		rettype = rettype,
 		body = body,
 	}
@@ -559,7 +570,7 @@ end
 
 syntax.stat['operator'] = function(ts, lead)
 	local opname = acquiretoken(ts, 'identifier')
-	local arglist = acquirenode(ts, syntax.farglist, 'arglist')
+	local args = acquirenode(ts, syntax.farglist, 'arglist')
 	local rettype
 	local token = ts:gett()
 	if token:gettype() == ':' then
@@ -575,7 +586,7 @@ syntax.stat['operator'] = function(ts, lead)
 		epos = token:getepos(),
 		filename = ts.filename,
 		operator = opname and opname:getcontent(),
-		arglist = arglist,
+		args = args,
 		rettype = rettype,
 		body = body,
 	}

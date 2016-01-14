@@ -4,7 +4,7 @@
 #include <utils/mpscqueue.hpp>
 #include <utils/configset.hpp>
 #include <utils/string.hpp>
-#include <utils/method.hpp>
+#include <utils/delegate.hpp>
 #include <utils/console.hpp>
 #include <lua/lua.hpp>
 #include <atomic>
@@ -20,7 +20,7 @@ namespace window
 	class AsyncLuaState
 	{
 	public:
-		typedef utils::Method<
+		typedef utils::Delegate<
 			void( lua_State* L, utils::String* error ) > action_t;
 
 	private:

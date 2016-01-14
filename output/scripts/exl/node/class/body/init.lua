@@ -8,7 +8,7 @@ function classbody:init(pr)
 	block.init(self, pr)
 end
 
-function classbody:build(pc)
+function classbody:dobuild(pc)
 	self.context = classbodycontext:create(pc)
 	for i, stat in ipairs(self.statements) do
 		stat:build(self.context)

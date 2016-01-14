@@ -13,7 +13,7 @@ function farglist:append(arg)
 	table.append(self.args, arg)
 end
 
-function farglist:build(pc)
+function farglist:dobuild(pc)
 	for i, arg in ipairs(self.args) do
 		arg:build(pc)
 	end
@@ -23,7 +23,7 @@ function farglist:getinargs()
 	local inargs = {}
 	for i, arg in ipairs(self.args) do
 		if arg.brvalue then
-			table.append(inargs, arg.symbol.id)
+			table.append(inargs, arg)
 		end
 	end
 	return inargs
@@ -33,7 +33,7 @@ function farglist:getarglocals()
 	local args = {}
 	for i, arg in ipairs(self.args) do
 		if not arg.brvalue and arg.blvalue then
-			table.append(args, arg.symbol.id)
+			table.append(args, arg)
 		end
 	end
 	return args
@@ -43,7 +43,7 @@ function farglist:getoutargs(stream)
 	local outargs = {}
 	for i, arg in ipairs(self.args) do
 		if arg.blvalue then
-			table.append(outargs, arg.symbol.id)
+			table.append(outargs, arg)
 		end
 	end
 	return outargs

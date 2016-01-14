@@ -7,7 +7,7 @@ function esymbolbase:init(pr)
 	ebase.init(self, pr)
 end
 
-function esymbolbase:build(pc)
+function esymbolbase:dobuild(pc)
 	self.fulltype = self.target:getfulltype()
 	self.constvalue = self.target:getconstvalue()
 end

@@ -80,7 +80,7 @@ function translate_value(arg, context)
 	end
 end
 
-function translate_vlist(arg, context)
+local function translate_vlist(arg, context)
 	arg_checktype(arg, 'list')
 	local tlist = {}
 	for i, item in ipairs(arg.items) do
@@ -113,7 +113,7 @@ end
 translate_token['add'] = translate_binary_gen('+')
 
 translate_token['ancillary'] = function(token, context)
-	do return '' end
+	-- do return '' end
 	if token.args[1] then
 		local name = arg_checktype(token.args[1], 'string').value
 		if name == 'comment' then
@@ -121,7 +121,11 @@ translate_token['ancillary'] = function(token, context)
 			local col = arg_checktype(token.args[3], 'int').value
 			local filename = arg_checktype(token.args[4], 'string').value
 			local text = arg_checktype(token.args[5], 'string').value
-			return string.format('--[[%s:%i:%i %s]]\n', filename, row, col, text)
+			if #text > 0 then
+				return string.format('--[[ %i:%i %s ]]\n', row, col, text)
+			else
+				return string.format('--[[ %i:%i ]]\n', row, col)
+			end
 		end
 	else
 		return ''

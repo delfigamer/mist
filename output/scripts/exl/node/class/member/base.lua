@@ -7,7 +7,7 @@ function cmbase:init(pr)
 	node.init(self, pr)
 end
 
-function cmbase:build(pc)
+function cmbase:dobuild(pc)
 	self.bexternal = true
 	self.bpublic = true
 end

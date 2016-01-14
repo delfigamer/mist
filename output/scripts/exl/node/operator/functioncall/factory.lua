@@ -11,14 +11,14 @@ function defcallof:createinstance(it)
 	local args = it.args
 	local base = args[1]
 	local bft = base:getfulltype()
-	if #bft.ti.arglist.args ~= #args - 1 then
+	if #bft.ti.args ~= #args - 1 then
 		return
 	end
 	local outargs = {}
 	local inargs = {}
 	for i = 1, #args - 1 do
 		local aarg = args[i+1]
-		local farg = bft.ti.arglist.args[i]
+		local farg = bft.ti.args[i]
 		local aargft = aarg:getfulltype()
 		local fargti = farg.typev:gettivalue()
 		if not aargft or not fargti then

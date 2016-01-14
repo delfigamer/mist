@@ -5,6 +5,9 @@ local scalars = require('rs.scalars')
 
 function stringarg:init(it)
 	basearg.init(self, it)
+	if type(it[2]) ~= 'string' then
+		error('string expected')
+	end
 	self.value = it[2]
 end
 

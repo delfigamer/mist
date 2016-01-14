@@ -8,11 +8,14 @@ function defassignof:init(pr)
 end
 
 function defassignof:createinstance(it)
+	if #it.args ~= 2 then
+		return
+	end
 	local lv = it.args[1]
 	local rv = it.args[2]
 	local lft = lv:getfulltype()
 	local rft = rv:getfulltype()
-	if not lft.ti:iseq(rft.ti) then
+	if not lft.lvalue or not lft.ti:iseq(rft.ti) then
 		return
 	end
 	local spos = it.args[1].spos

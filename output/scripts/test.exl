@@ -1,17 +1,2 @@
-	class Point -- d3i1
-		local number x -- d2i1
-		local number y -- d2i2
-	end
-	local Point pinst -- d3i2
-	operator call(type Point @class, number x, number y): Point
-		result = @class()
-		result.x = x
-		result.y = y
-	end
-	pinst = Point(10, 20)
-	operator adda(inout number a, number b): number
-		result = a = a + b
-	end
-	pinst.x += 30.1234567890123456789
-	pinst.y += 40
+
 end

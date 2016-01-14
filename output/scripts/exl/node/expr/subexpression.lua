@@ -8,7 +8,7 @@ function esubexpression:init(pr)
 	self.value = pr.value
 end
 
-function esubexpression:build(pc)
+function esubexpression:dobuild(pc)
 	self.value:build(pc)
 	self.fulltype = self.value:getfulltype()
 	self.constvalue = self.value:getconstvalue()

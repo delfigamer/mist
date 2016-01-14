@@ -8,7 +8,7 @@ function sexpression:init(pr)
 	self.value = pr.value
 end
 
-function sexpression:build(pc)
+function sexpression:dobuild(pc)
 	self.value:build(pc)
 end
 

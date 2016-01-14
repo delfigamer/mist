@@ -8,13 +8,13 @@ function eidentifier:init(pr)
 	self.targetname = pr.targetname
 end
 
-function eidentifier:build(pc)
+function eidentifier:dobuild(pc)
 	self.target = pc:getsymbol(self.targetname)
 	if not self.target then
 		common.nodeerror(string.format(
 			'unknown identifier: %s', self.targetname), self)
 	end
-	esymbolbase.build(self, pc)
+	esymbolbase.dobuild(self, pc)
 end
 
 function eidentifier:defstring(lp)

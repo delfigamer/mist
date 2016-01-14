@@ -7,6 +7,9 @@ local scalars = require('rs.scalars')
 function memberarg:init(it)
 	basearg.init(self, it)
 	self.base = basearg:createarg(it[2])
+	if type(it[3]) ~= 'string' then
+		error('string expected')
+	end
 	self.index = it[3]
 end
 

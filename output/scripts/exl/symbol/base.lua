@@ -6,6 +6,7 @@ local fulltype
 function symbase:init(it)
 	self.context = it.context
 	self.defpos = it.defpos
+	self.deffile = it.deffile
 	self.fulltype = it.fulltype
 	self.constvalue = it.constvalue
 end

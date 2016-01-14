@@ -1,6 +1,7 @@
 local modname = ...
 local common = package.modtable(modname)
 local default
+local exlerror
 local lexer
 local nodeerror
 
@@ -33,6 +34,10 @@ function common.identserial(ident)
 	return table.concat(parts, '_')
 end
 
+function common.exlerror(message, spos, epos, filename)
+	exlerror:throw(message, spos, epos, filename)
+end
+
 function common.nodeerror(message, node)
 	nodeerror:throw(message, node)
 end
@@ -54,7 +59,7 @@ end
 
 function common.dtos(d)
 	local format
-	if d < 1e6 and d > 1e-6 then
+	if d == 0 or math.abs(d) < 1e6 and math.abs(d) > 1e-6 then
 		format = 'f'
 	else
 		format = 'e'
@@ -69,5 +74,6 @@ function common.dtos(d)
 end
 
 default = package.relrequire(modname, 1, 'node.default')
+exlerror = package.relrequire(modname, 1, 'exlerror')
 lexer = package.relrequire(modname, 1, 'parser.lexer')
 nodeerror = package.relrequire(modname, 1, 'nodeerror')

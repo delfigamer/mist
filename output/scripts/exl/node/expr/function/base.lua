@@ -9,31 +9,33 @@ local functionti
 
 function efunctionbase:init(pr)
 	ebase.init(self, pr)
-	self.arglist = pr.arglist
+	self.args = pr.args
 	self.body = pr.body
 	self.rettype = pr.rettype
 	if self.rettype then
 		self.resultarg = common.createnode{
 			name = 'expr.function.arg',
-			spos = self.arglist.epos,
-			epos = self.arglist.epos,
-			filename = self.arglist.filename,
+			spos = self.rettype.spos,
+			epos = self.rettype.epos,
+			filename = self.rettype.filename,
 			lvalue = true,
 			rvalue = false,
-			typev = pr.rettype,
+			typev = self.rettype,
 			target = 'result',
 		}
 	end
 end
 
-function efunctionbase:build(pc)
+function efunctionbase:dobuild(pc)
 	self.context = context:create(pc)
-	self.arglist:build(self.context)
+	for i, arg in ipairs(self.args) do
+		arg:build(self.context)
+	end
 	if self.resultarg then
 		self.resultarg:build(self.context)
 	end
 	local ti = functionti:create{
-		arglist = self.arglist,
+		args = self.args,
 		rettype = self.rettype,
 	}
 	self.fulltype = fulltype:create(ti, false, true)
@@ -44,25 +46,13 @@ function efunctionbase:rcompile(stream)
 	if not self.retname then
 		self.retname = stream:genname()
 		local substream = bcblock:create()
-		local inargs = self.arglist:getinargs()
-		local arglocals = self.arglist:getarglocals()
-		for i, id in ipairs(arglocals) do
-			substream:writetoken{
-				op = 'local_create',
-				args = {
-					{'ssa', 0}, -- value
-					{'local', id}, -- id
-				},
-			}
+		for i, arg in ipairs(self.args) do
+			if not arg.brvalue and arg.blvalue then
+				arg.localdef:compile(substream)
+			end
 		end
 		if self.resultarg then
-			substream:writetoken{
-				op = 'local_create',
-				args = {
-					{'ssa', 0}, -- value
-					{'local', self.resultarg.symbol.id}, -- id
-				},
-			}
+			self.resultarg.localdef:compile(substream)
 		end
 		self.body:compile(substream)
 		substream:writetoken{
@@ -75,13 +65,14 @@ function efunctionbase:rcompile(stream)
 				{'string', ''}, -- text
 			},
 		}
-		local outargs = self.arglist:getoutargs()
 		local rettokenargs = {}
 		if self.resultarg then
 			rettokenargs[1] = {'local', self.resultarg.symbol.id}
 		end
-		for i, id in ipairs(outargs) do
-			table.append(rettokenargs, {'local', id})
+		for i, arg in ipairs(self.args) do
+			if arg.blvalue then
+				table.append(rettokenargs, {'local', arg.symbol.id})
+			end
 		end
 		substream:writetoken{
 			op = 'return',
@@ -90,6 +81,12 @@ function efunctionbase:rcompile(stream)
 			},
 		}
 		substream:compact()
+		local inargs = {}
+		for i, arg in ipairs(self.args) do
+			if arg.brvalue then
+				table.append(inargs, arg.symbol.id)
+			end
+		end
 		stream:writetoken{
 			op = 'move',
 			args = {

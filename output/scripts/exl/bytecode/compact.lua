@@ -91,6 +91,7 @@ local function remove_nop(block)
 end
 
 local function compact(block)
+	-- do return end
 	local context = context:create()
 	count_uses(context, block)
 	for tokenindex, token in ipairs(block.parts) do

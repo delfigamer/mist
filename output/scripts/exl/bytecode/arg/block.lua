@@ -6,6 +6,9 @@ local scalars = require('rs.scalars')
 
 function blockarg:init(it)
 	basearg.init(self, it)
+	if type(it[2]) ~= 'table' or not it[2]['#'..block._NAME] then
+		error('body expected')
+	end
 	self.block = it[2]
 end
 

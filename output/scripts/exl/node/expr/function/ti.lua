@@ -6,10 +6,10 @@ local common
 
 function functionti:init(pr)
 	baseti.init(self, pr)
-	self.arglist = pr.arglist
+	self.args = pr.args
 	self.rettype = pr.rettype
 	local aser = {}
-	for i, arg in ipairs(self.arglist.args) do
+	for i, arg in ipairs(self.args) do
 		local ti = arg.typev:gettivalue()
 		local am = arg.blvalue and (
 				arg.brvalue and 'B' or 'L'
@@ -36,7 +36,7 @@ end
 function functionti:iseq(other)
 	if not other['#' .. functionti._NAME] then
 		return false
-	elseif #self.arglist.args ~= #other.arglist.args then
+	elseif #self.args ~= #other.args then
 		return false
 	elseif (not self.rettype) ~= (not other.rettype) then
 		return false
@@ -47,8 +47,8 @@ function functionti:iseq(other)
 			return false
 		end
 	end
-	for i, sarg in ipairs(self.arglist.args) do
-		local oarg = other.arglist.args[i]
+	for i, sarg in ipairs(self.args) do
+		local oarg = other.args[i]
 		if sarg.blvalue ~= oarg.blvalue or sarg.brvalue ~= oarg.brvalue then
 			return false
 		end
@@ -70,13 +70,17 @@ function functionti:internalresolve(op, proto)
 end
 
 function functionti:defstring(lp)
+	local argstr = {}
+	for i, arg in ipairs(self.args) do
+		argstr[i] = arg:defstring(lp .. self.lpindent)
+	end
 	if self.rettype then
-		return string.format('type function%s: %s',
-			self.arglist:defstring(lp .. self.lpindent),
+		return string.format('type function(%s): %s',
+			table.concat(argstr, ', '),
 			self.rettype:defstring(lp .. self.lpindent))
 	else
-		return string.format('type function%s',
-			self.arglist:defstring(lp .. self.lpindent))
+		return string.format('type function(%s)',
+			table.concat(argstr, ', '))
 	end
 end
 

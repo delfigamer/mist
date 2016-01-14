@@ -11,8 +11,8 @@ function cmlocal:init(pr)
 	self.targetname = pr.targetname
 end
 
-function cmlocal:build(pc)
-	cmbase.build(self, pc)
+function cmlocal:dobuild(pc)
+	cmbase.dobuild(self, pc)
 	local typeinfo
 	self.typev:build(pc)
 	typeinfo = self.typev:gettivalue()

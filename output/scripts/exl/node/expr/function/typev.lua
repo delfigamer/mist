@@ -11,7 +11,7 @@ function efunctiontypev:init(pr)
 	self.rettype = pr.rettype
 end
 
-function efunctiontypev:build(pc)
+function efunctiontypev:dobuild(pc)
 	self.context = context:create(pc)
 	self.arglist:build(self.context)
 	if self.rettype then

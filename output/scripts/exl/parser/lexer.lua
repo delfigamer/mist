@@ -27,7 +27,6 @@ comments and blanks are ignored
 
 lexer.keyword = table.makeset{
 	'as',
-	'cast',
 	'class',
 	'const',
 	'end',

@@ -13,6 +13,7 @@ function context:init(parent)
 		self.namespace = parent.namespace
 	else
 		self.depth = 1
+		self.namespace = '_'
 	end
 	self.lastid = 0
 	self.opcontext = {}
@@ -21,9 +22,10 @@ end
 function context:setsymbol(name, symbol)
 	local sym = self.symbols[name]
 	if sym then
-		self.env:log('error',
-			'symbol "'..name..'" is already defined at '..sym:getdefpos(),
-			symbol:getdefpos())
+		common.exlerror(
+			string.format('symbol %s is already defined at %s:%s',
+				common.identstring(name), sym.deffile, sym.defpos),
+			symbol.defpos, nil, symbol.deffile)
 		return
 	end
 	self.symbols[name] = symbol
@@ -35,15 +37,18 @@ function context:getsymbol(name)
 		self.parent and self.parent:getsymbol(name)
 end
 
-function context:setop(op, proto, func)
+function context:setop(op, proto, func, node)
 	local set = self.opcontext[op]
 	if not set then
 		set = opset:create()
 		self.opcontext[op] = set
 	end
-	local suc, err, spos, epos = set:insert(proto, func)
+	local suc, prev = set:insert(proto, func)
 	if not suc then
-		self.env:log('error', err, spos, epos)
+		common.nodeerror(
+			string.format('%s is already defined at %s:%s',
+				prev:defstring(''), prev.deffile, prev.defpos),
+			node)
 	end
 end
 

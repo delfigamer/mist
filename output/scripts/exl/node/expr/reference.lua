@@ -6,7 +6,7 @@ local common
 function ereference:init(pr)
 	esymbolbase.init(self, pr)
 	self.target = pr.target
-	esymbolbase.build(self, pc)
+	esymbolbase.dobuild(self, pr.context)
 end
 
 common = package.relrequire(modname, 3, 'common')

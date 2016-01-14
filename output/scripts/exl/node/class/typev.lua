@@ -11,7 +11,7 @@ function eclassdef:init(pr)
 	self.parent = pr.parent
 end
 
-function eclassdef:build(pc)
+function eclassdef:dobuild(pc)
 	if self.parent then
 		self.parent:build(pc)
 	end

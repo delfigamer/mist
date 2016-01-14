@@ -8,7 +8,7 @@ function etypeof:init(pr)
 	self.expression = pr.expression
 end
 
-function etypeof:build(pc)
+function etypeof:dobuild(pc)
 	self.expression:build(pc)
 	self.typeinfo = self.expression:getfulltype().ti
 end

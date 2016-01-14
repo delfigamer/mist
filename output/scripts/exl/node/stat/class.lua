@@ -20,7 +20,7 @@ function sclass:init(pr)
 	}
 end
 
-function sclass:build(pc)
+function sclass:dobuild(pc)
 	self.value:build(pc)
 	self.symbol = symconst:create{
 		context = pc,

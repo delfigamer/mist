@@ -14,25 +14,18 @@ function farg:init(pr)
 	self.brvalue = pr.rvalue
 end
 
-function farg:build(pc)
-	local typeinfo
+function farg:dobuild(pc)
 	self.typev:build(pc)
-	typeinfo = self.typev:gettivalue()
-	if not typeinfo then
-		pc.env:error(
-			'this value does not define a type',
-			self.typev.spos, self.typev.epos)
-	end
-	local ft
-	ft = fulltype:create(typeinfo, true, true)
-	self.symbol = symlocal:create{
-		context = pc,
-		defpos = self.epos,
-		fulltype = ft,
+	self.localdef = common.createnode{
+		name = 'stat.local',
+		spos = self.spos,
+		epos = self.epos,
+		filename = self.filename,
+		typev = self.typev,
+		targetname = self.target,
 	}
-	if self.target then
-		pc:setsymbol(self.target, self.symbol)
-	end
+	self.localdef:build(pc)
+	self.symbol = self.localdef.symbol
 end
 
 function farg:defstring(lp)

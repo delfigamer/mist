@@ -5,6 +5,9 @@ local scalars = require('rs.scalars')
 
 function intarg:init(it)
 	basearg.init(self, it)
+	if type(it[2]) ~= 'number' then
+		error('number expected')
+	end
 	self.value = it[2]
 end
 
