@@ -28,7 +28,7 @@ function slocal:dobuild(pc)
 		fulltype = ft,
 	}
 	if self.targetname then
-		pc:setsymbol(self.targetname, self.symbol)
+		pc:setsymbol(self.targetname, self.symbol, self)
 	end
 	self.itarget = common.createnode{
 		name = 'expr.dummy',

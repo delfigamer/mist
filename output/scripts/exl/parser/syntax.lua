@@ -193,15 +193,15 @@ syntax.expr.element['function'] = function(ts, lead)
 	}
 end
 
-syntax.expr.element['operator'] = function(ts, lead)
+syntax.expr.element['invoke'] = function(ts, lead)
 	local opname = acquiretoken(ts, 'identifier')
 	local token = acquiretoken(ts, '(', false)
 	token = ts:peekt()
 	if token:gettype() == ')' then
 		ts:gett()
 		return createnode{
-			name = 'expr.operator',
-			operator = opname:getcontent(),
+			name = 'expr.invoke',
+			opname = opname:getcontent(),
 			spos = lead:getspos(),
 			epos = token:getepos(),
 			filename = ts.filename,
@@ -220,8 +220,8 @@ syntax.expr.element['operator'] = function(ts, lead)
 		end
 	end
 	return createnode{
-		name = 'expr.operator',
-		operator = opname:getcontent(),
+		name = 'expr.invoke',
+		opname = opname:getcontent(),
 		spos = lead:getspos(),
 		epos = token:getepos(),
 		filename = ts.filename,
@@ -246,7 +246,7 @@ syntax.expr.type['function'] = function(ts, nlead, lead)
 			spos = lead:getspos(),
 			epos = rettype.epos,
 			filename = ts.filename,
-			arglist = arglist,
+			args = arglist,
 			rettype = rettype,
 		}
 	else
@@ -255,7 +255,7 @@ syntax.expr.type['function'] = function(ts, nlead, lead)
 			spos = lead:getspos(),
 			epos = arglist.epos,
 			filename = ts.filename,
-			arglist = arglist,
+			args = arglist,
 		}
 	end
 end
@@ -299,8 +299,8 @@ syntax.expr.unary = function(ts)
 	for i = #prefixes, 1, -1 do
 		local sign = prefixes[i]
 		result = createnode{
-			name = 'expr.operator',
-			operator = unaryname[sign:gettype()],
+			name = 'expr.invoke',
+			opname = unaryname[sign:gettype()],
 			spos = sign:getspos(),
 			epos = result.epos,
 			filename = ts.filename,
@@ -320,8 +320,8 @@ syntax.expr.suffix['('] = function(ts, lead, base)
 	if token:gettype() == ')' then
 		ts:gett()
 		return createnode{
-			name = 'expr.operator',
-			operator = 'call',
+			name = 'expr.invoke',
+			opname = 'call',
 			spos = base.spos,
 			epos = token:getepos(),
 			filename = ts.filename,
@@ -342,8 +342,8 @@ syntax.expr.suffix['('] = function(ts, lead, base)
 		end
 	end
 	return createnode{
-		name = 'expr.operator',
-		operator = 'call',
+		name = 'expr.invoke',
+		opname = 'call',
 		spos = base.spos,
 		epos = token:getepos(),
 		filename = ts.filename,
@@ -386,6 +386,7 @@ syntax.expr.suffix['as'] = function(ts, lead, base)
 		typev = typev,
 		blvalue = lvalue,
 		brvalue = rvalue,
+		bexplicit = true,
 	}
 end
 
@@ -445,8 +446,8 @@ local function binary_gen(first, next, ...)
 			end
 			local rs = acquirenode(ts, next, 'element')
 			result = createnode{
-				name = 'expr.operator',
-				operator = binaryname[sign:gettype()],
+				name = 'expr.invoke',
+				opname = binaryname[sign:gettype()],
 				spos = result.spos,
 				epos = rs.epos,
 				filename = ts.filename,
@@ -479,8 +480,8 @@ local function rbinary_gen(first, next, ...)
 		for i = #elist-1, 1, -1 do
 			local ls = elist[i]
 			result = createnode{
-				name = 'expr.operator',
-				operator = binaryname[slist[i]],
+				name = 'expr.invoke',
+				opname = binaryname[slist[i]],
 				spos = ls.spos,
 				epos = result.epos,
 				filename = ts.filename,

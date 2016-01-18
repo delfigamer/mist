@@ -10,6 +10,7 @@ function ecast:init(pr)
 	self.typev = pr.typev
 	self.blvalue = pr.blvalue
 	self.brvalue = pr.brvalue
+	self.bexplicit = pr.bexplicit
 end
 
 function ecast:dobuild(pc)
@@ -17,57 +18,61 @@ function ecast:dobuild(pc)
 	self.typev:build(pc)
 	local baseft = self.base:getfulltype()
 	local targetti = self.typev:gettivalue()
-	if self.blvalue then
-		if not baseft.lvalue then
-			common.nodeerror(
-				'source expression is not an lvalue',
-				self)
-		end
-		self.lsource = common.createnode{
-			name = 'expr.dummy',
-			spos = self.spos,
-			epos = self.epos,
-			filename = self.filename,
-			fulltype = fulltype:create(targetti, false, true),
-		}
-		self.lassignment = common.createnode{
-			name = 'expr.operator',
-			operator = 'assign',
-			spos = self.spos,
-			epos = self.epos,
-			filename = self.filename,
-			args = {
-				self.base,
-				self.lsource,
-			},
-		}
-		self.lassignment:build(pc)
+	if self.blvalue and not baseft.lvalue then
+		common.nodeerror(
+			'source expression is not an lvalue',
+			self)
 	end
-	if self.brvalue then
-		if not baseft.rvalue then
-			common.nodeerror(
-				'source expression is not an rvalue',
-				self)
+	if self.brvalue and not baseft.rvalue then
+		common.nodeerror(
+			'source expression is not an rvalue',
+			self)
+	end
+	if baseft.ti:iseq(targetti) then
+		self.bsimplecast = true
+	else
+		if self.blvalue then
+			self.lsource = common.createnode{
+				name = 'expr.dummy',
+				spos = self.spos,
+				epos = self.epos,
+				filename = self.filename,
+				fulltype = fulltype:create(targetti, false, true),
+			}
+			self.lassignment = common.createnode{
+				name = 'expr.operator',
+				operator = self.bexplicit and 'assign' or 'cast',
+				spos = self.spos,
+				epos = self.epos,
+				filename = self.filename,
+				args = {
+					self.base,
+					self.lsource,
+				},
+			}
+			self.lassignment:build(pc)
 		end
-		self.rtarget = common.createnode{
-			name = 'expr.dummy',
-			spos = self.spos,
-			epos = self.epos,
-			filename = self.filename,
-			fulltype = fulltype:create(targetti, true, false),
-		}
-		self.rassignment = common.createnode{
-			name = 'expr.operator',
-			operator = 'assign',
-			spos = self.spos,
-			epos = self.epos,
-			filename = self.filename,
-			args = {
-				self.rtarget,
-				self.base,
-			},
-		}
-		self.rassignment:build(pc)
+		if self.brvalue then
+			self.rtarget = common.createnode{
+				name = 'expr.dummy',
+				spos = self.spos,
+				epos = self.epos,
+				filename = self.filename,
+				fulltype = fulltype:create(targetti, true, false),
+			}
+			self.rassignment = common.createnode{
+				name = 'expr.operator',
+				operator = self.bexplicit and 'assign' or 'cast',
+				spos = self.spos,
+				epos = self.epos,
+				filename = self.filename,
+				args = {
+					self.rtarget,
+					self.base,
+				},
+			}
+			self.rassignment:build(pc)
+		end
 	end
 	self.fulltype = fulltype:create(targetti, self.blvalue, self.brvalue)
 end
@@ -95,24 +100,28 @@ function ecast:rcompile(stream)
 end
 
 function ecast:defstring(lp)
-	local am
-	if self.blvalue then
-		if self.brvalue then
-			am = 'inout '
+	if self.bexplicit then
+		local am
+		if self.blvalue then
+			if self.brvalue then
+				am = 'inout '
+			else
+				am = 'out '
+			end
 		else
-			am = 'out '
+			if self.brvalue then
+				am = ''
+			else
+				am = '<error> '
+			end
 		end
+		return string.format('(%s as %s%s)',
+			self.base:defstring(lp .. self.lpindent),
+			am,
+			self.typev:defstring(lp .. self.lpindent))
 	else
-		if self.brvalue then
-			am = ''
-		else
-			am = '<error> '
-		end
+		return self.base:defstring(lp)
 	end
-	return string.format('(%s as %s%s)',
-		self.base:defstring(lp .. self.lpindent),
-		am,
-		self.typev:defstring(lp .. self.lpindent))
 end
 
 common = package.relrequire(modname, 3, 'common')

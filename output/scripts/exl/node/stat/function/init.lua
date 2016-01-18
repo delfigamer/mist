@@ -37,7 +37,7 @@ function sfunction:dobuild(pc)
 			deffile = self.filename,
 			name = pc:getnamespace() .. '.' .. self.targetname,
 		}
-		pc:setsymbol(self.targetname, self.functor)
+		pc:setsymbol(self.targetname, self.functor, self)
 	end
 	self.value:build(pc)
 	self.symbol = symconst:create{

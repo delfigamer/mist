@@ -6,8 +6,8 @@ function classbodycontext:init(parent)
 	context.init(self, parent)
 end
 
-function classbodycontext:setsymbol(name, symbol)
-	self.parent:setsymbol(name, symbol)
+function classbodycontext:setsymbol(name, symbol, node)
+	self.parent:setsymbol(name, symbol, node)
 end
 
 function classbodycontext:getsymbol(name)

@@ -8,10 +8,10 @@ function node:init(pr)
 	self.filename = pr.filename
 end
 
-function node:build(...)
+function node:build(pc, ...)
 	if not self.balreadybuilt then
 		self.balreadybuilt = true
-		self:dobuild(...)
+		self:dobuild(pc, ...)
 	end
 end
 

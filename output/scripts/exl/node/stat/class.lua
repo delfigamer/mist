@@ -28,7 +28,7 @@ function sclass:dobuild(pc)
 		fulltype = fulltype:create(self.value:getfulltype().ti, false, true),
 		constvalue = self.value,
 	}
-	pc:setsymbol(self.classname, self.symbol)
+	pc:setsymbol(self.classname, self.symbol, self)
 	self.body:build(self.value.classinfo:getcontext())
 end
 

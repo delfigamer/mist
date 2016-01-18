@@ -17,9 +17,9 @@ function cmlocal:dobuild(pc)
 	self.typev:build(pc)
 	typeinfo = self.typev:gettivalue()
 	if not typeinfo then
-		pc.env:error(
+		common.nodeerror(
 			'this value does not define a type',
-			self.typev.spos, self.typev.epos)
+			self.typev)
 	end
 	local ft = fulltype:create(typeinfo, true, true)
 	self.symbol = csymlocal:create{
@@ -29,7 +29,7 @@ function cmlocal:dobuild(pc)
 		bpublic = self.bpublic,
 		fulltype = ft,
 	}
-	pc:setsymbol(self.targetname, self.symbol)
+	pc:setsymbol(self.targetname, self.symbol, self)
 end
 
 function cmlocal:compile(stream)

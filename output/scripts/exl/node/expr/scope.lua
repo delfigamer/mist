@@ -35,12 +35,12 @@ function escope:dobuild(pc)
 						-- item.operator.spos, item.operator.epos,
 						-- item.operator)
 				-- end
-				-- pc.env:error(
+				-- common.nodeerror(
 					-- 'error',
 					-- 'ambiguous ' .. protostr .. '\n' ..
 						-- 'possible candidates are:\n' ..
 						-- table.concat(candidates, '\n'),
-					-- self.spos, self.epos)
+					-- self)
 			-- end
 		-- end
 	-- end
@@ -62,9 +62,9 @@ function escope:dobuild(pc)
 		self.constvalue = self.value:getconstvalue()
 		self.fulltype = self.value:getfulltype()
 	else
-		pc.env:error(
+		common.nodeerror(
 			'cannot resolve scope ' .. tostring(self),
-			self.spos, self.epos)
+			self)
 		return
 	end
 end

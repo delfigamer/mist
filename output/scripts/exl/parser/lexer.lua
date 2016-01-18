@@ -33,6 +33,7 @@ lexer.keyword = table.makeset{
 	'function',
 	'in',
 	'inout',
+	'invoke',
 	'local',
 	'nil',
 	'operator',

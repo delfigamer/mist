@@ -5,6 +5,8 @@ local common
 local fulltype
 local literalti
 
+eliteral.bsimplevalue = true
+
 function eliteral:derive(target, modname, tipr)
 	local class = ebase.derive(self, target, modname)
 	local ti = literalti:create(tipr)

@@ -7,5 +7,5 @@ function baseof:init(it)
 	self.deffile = it.deffile
 end
 
-function baseof:createinstance(it)
+function baseof:invoke(it)
 end

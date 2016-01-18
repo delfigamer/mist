@@ -7,18 +7,20 @@ local functionti
 
 function efunctiontypev:init(pr)
 	etypedef.init(self, pr)
-	self.arglist = pr.arglist
+	self.args = pr.args
 	self.rettype = pr.rettype
 end
 
 function efunctiontypev:dobuild(pc)
 	self.context = context:create(pc)
-	self.arglist:build(self.context)
+	for i, arg in ipairs(self.args) do
+		arg:build(self.context)
+	end
 	if self.rettype then
 		self.rettype:build(self.context)
 	end
 	self.typeinfo = functionti:create{
-		arglist = self.arglist,
+		args = self.args,
 		rettype = self.rettype,
 	}
 end

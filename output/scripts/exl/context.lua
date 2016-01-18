@@ -2,7 +2,6 @@ local modname = ...
 local object = package.relrequire(modname, 1, 'object')
 local context = object:module(modname)
 local common
-local opset
 
 function context:init(parent)
 	self.parent = parent
@@ -10,22 +9,22 @@ function context:init(parent)
 	if parent then
 		self.env = parent.env
 		self.depth = parent.depth + 1
-		self.namespace = parent.namespace
+		self.nameprefix = parent.nameprefix
 	else
 		self.depth = 1
-		self.namespace = '_'
+		self.nameprefix = ''
 	end
 	self.lastid = 0
-	self.opcontext = {}
+	self.operators = {}
 end
 
-function context:setsymbol(name, symbol)
+function context:setsymbol(name, symbol, node)
 	local sym = self.symbols[name]
 	if sym then
-		common.exlerror(
+		common.nodeerror(
 			string.format('symbol %s is already defined at %s:%s',
 				common.identstring(name), sym.deffile, sym.defpos),
-			symbol.defpos, nil, symbol.deffile)
+			node)
 		return
 	end
 	self.symbols[name] = symbol
@@ -37,35 +36,17 @@ function context:getsymbol(name)
 		self.parent and self.parent:getsymbol(name)
 end
 
-function context:setop(op, proto, func, node)
-	local set = self.opcontext[op]
-	if not set then
-		set = opset:create()
-		self.opcontext[op] = set
+function context:getoperatorlist(op)
+	local list = self.operators[op]
+	if not list then
+		list = {}
+		self.operators[op] = list
 	end
-	local suc, prev = set:insert(proto, func)
-	if not suc then
-		common.nodeerror(
-			string.format('%s is already defined at %s:%s',
-				prev:defstring(''), prev.deffile, prev.defpos),
-			node)
-	end
+	return list
 end
 
-function context:getop(op, proto)
-	local result
-	local set = self.opcontext[op]
-	if set then
-		result = set:resolve(proto)
-	end
-	if not result and self.parent then
-		result = self.parent:getop(op, proto)
-	end
-	return result
-end
-
-function context:getnamespace()
-	return self.namespace
+function context:getnameprefix()
+	return self.nameprefix
 end
 
 function context:genid()
@@ -83,4 +64,3 @@ function context:defstring(lp)
 end
 
 common = package.relrequire(modname, 1, 'common')
-opset = package.relrequire(modname, 1, 'opset')

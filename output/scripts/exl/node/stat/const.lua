@@ -16,9 +16,9 @@ function sconst:dobuild(pc)
 	self.value:build(pc)
 	local value = self.value:getconstvalue()
 	if not value then
-		pc.error(
+		common.nodeerror(
 			'the value is not constant',
-			self.value.spos, self.value.epos)
+			self.value)
 	end
 	local ft = fulltype:create(value:getfulltype().ti, false, true)
 	self.symbol = symconst:create{
@@ -27,7 +27,7 @@ function sconst:dobuild(pc)
 		fulltype = ft,
 		constvalue = value,
 	}
-	pc:setsymbol(self.targetname, self.symbol)
+	pc:setsymbol(self.targetname, self.symbol, self)
 end
 
 function sconst:compile(stream)
