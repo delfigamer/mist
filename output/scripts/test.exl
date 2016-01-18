@@ -1,2 +1,3 @@
-	1 + 2
+	local number i = 10
+	local number j = 20
 end

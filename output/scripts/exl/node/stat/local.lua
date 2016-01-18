@@ -40,8 +40,8 @@ function slocal:dobuild(pc)
 	if self.value then
 		self.value:build(pc)
 		self.initop = common.createnode{
-			name = 'expr.operator',
-			operator = 'init',
+			name = 'expr.invoke',
+			opname = 'init',
 			spos = self.spos,
 			epos = self.epos,
 			filename = self.filename,
@@ -52,8 +52,8 @@ function slocal:dobuild(pc)
 		}
 	else
 		self.initop = common.createnode{
-			name = 'expr.operator',
-			operator = 'init',
+			name = 'expr.invoke',
+			opname = 'init',
 			spos = self.spos,
 			epos = self.epos,
 			filename = self.filename,

@@ -56,11 +56,34 @@ function context:genid()
 end
 
 function context:defstring(lp)
-	local slines = {}
+	local symbolstr = {}
 	for i, name, sym in table.spairs(self.symbols) do
-		slines[i] = '\n' .. lp .. name .. ' = ' .. sym:defstring(lp)
+		symbolstr[i] = string.format('\n%s%s = %s',
+			lp..self.lpindent, name, sym:defstring(lp))
 	end
-	return table.concat(slines)
+	symbolstr = table.concat(symbolstr)
+	local opstr = {}
+	for i, opname, list in table.spairs(self.operators) do
+		if #list > 0 then
+			local lstr = {}
+			for j, operator in ipairs(list) do
+				lstr[i] = string.format('\n%s%s',
+					lp..self.lpindent..self.lpindent, operator:defstring(lp))
+			end
+			lstr = table.concat(lstr)
+			table.append(opstr, string.format('\n%s%s:%s',
+				lp..self.lpindent, opname, lstr))
+		end
+	end
+	opstr = table.concat(opstr)
+	local parentstr
+	if self.parent then
+		parentstr = string.format('\n%sparent: %s', lp, self.parent.nameprefix)
+	else
+		parentstr = ''
+	end
+	return string.format('%snameprefix: %s%s\n%ssymbols:%s\n%soperators:%s',
+		lp, self.nameprefix, parentstr, lp, symbolstr, lp, opstr)
 end
 
 common = package.relrequire(modname, 1, 'common')

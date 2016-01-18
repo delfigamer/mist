@@ -13,7 +13,12 @@ function invnative:init(it)
 			end
 			cargs[i] = cv
 		end
-		self.constvalue = self.operator.constfunc(cargs)
+		self.constvalue = self.operator.constfunc{
+			spos = it.spos,
+			epos = it.epos,
+			filename = it.filename,
+			args = cargs,
+		}
 	::cfail::
 	end
 end

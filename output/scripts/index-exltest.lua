@@ -25,7 +25,7 @@ local function main()
 	fio:release()
 	print(body, '\n')
 	local ourcontext = context:create(scontext)
-	ourcontext.namespace = 'test'
+	ourcontext.nameprefix = 'test.'
 	body:build(ourcontext)
 	local block = bcblock:create()
 	body:compile(block)

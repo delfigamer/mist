@@ -13,6 +13,7 @@ local symconst = package.relrequire(modname, 2, 'symbol.const')
 local utility = require('base.utility')
 
 scontext.env = env:create()
+scontext.nameprefix = 'system'
 
 scontext:setsymbol('number', symconst:create{
 	context = scontext,
@@ -30,14 +31,27 @@ scontext:setsymbol('string', symconst:create{
 	},
 })
 
-local function binopconstf(name, valf)
-	return function(args)
+local function unopconstf(name, valf)
+	return function(it)
 		local node = common.createnode{
 			name = name,
-			spos = args[1].spos,
-			epos = args[2].epos,
-			filename = args[1].filename,
-			value = valf(args[1].value, args[2].value),
+			spos = it.spos,
+			epos = it.epos,
+			filename = it.filename,
+			value = valf(it.args[1].value),
+		}
+		return node
+	end
+end
+
+local function binopconstf(name, valf)
+	return function(it)
+		local node = common.createnode{
+			name = name,
+			spos = it.spos,
+			epos = it.epos,
+			filename = it.filename,
+			value = valf(it.args[1].value, it.args[2].value),
 		}
 		return node
 	end
@@ -63,38 +77,51 @@ table.append(scontext:getoperatorlist('concat'),
 		opcode = 'concat',
 	})
 
--- scontext:setop(
-	-- 'mul',
-	-- {rvpt(numberti), rvpt(numberti)},
-	-- nativeof:create{
-		-- rettype = rvpt(numberti),
-		-- constfunc = binopconstf('expr.number', utility.operator.mul),
-		-- opcode = 'mul',
-	-- })
+table.append(scontext:getoperatorlist('negate'),
+	nativeof:create{
+		args = {rvpt(numberti)},
+		retfulltype = rvpt(numberti),
+		constfunc = unopconstf('expr.number', utility.operator.unm),
+		opcode = 'negate',
+	})
 
--- scontext:setop(
-	-- 'div',
-	-- {rvpt(numberti), rvpt(numberti)},
-	-- nativeof:create{
-		-- rettype = rvpt(numberti),
-		-- constfunc = binopconstf('expr.number', utility.operator.div),
-		-- opcode = 'div',
-	-- })
+table.append(scontext:getoperatorlist('mul'),
+	nativeof:create{
+		args = {rvpt(numberti), rvpt(numberti)},
+		retfulltype = rvpt(numberti),
+		constfunc = binopconstf('expr.number', utility.operator.mul),
+		opcode = 'mul',
+	})
 
--- scontext:setop(
-	-- 'add',
-	-- {rvpt(numberti), rvpt(numberti)},
-	-- nativeof:create{
-		-- rettype = rvpt(numberti),
-		-- constfunc = binopconstf('expr.number', utility.operator.add),
-		-- opcode = 'add',
-	-- })
+table.append(scontext:getoperatorlist('div'),
+	nativeof:create{
+		args = {rvpt(numberti), rvpt(numberti)},
+		retfulltype = rvpt(numberti),
+		constfunc = binopconstf('expr.number', utility.operator.div),
+		opcode = 'div',
+	})
 
--- scontext:setop(
-	-- 'sub',
-	-- {rvpt(numberti), rvpt(numberti)},
-	-- nativeof:create{
-		-- rettype = rvpt(numberti),
-		-- constfunc = binopconstf('expr.number', utility.operator.sub),
-		-- opcode = 'sub',
-	-- })
+table.append(scontext:getoperatorlist('add'),
+	nativeof:create{
+		args = {rvpt(numberti), rvpt(numberti)},
+		retfulltype = rvpt(numberti),
+		constfunc = binopconstf('expr.number', utility.operator.add),
+		opcode = 'add',
+	})
+
+table.append(scontext:getoperatorlist('sub'),
+	nativeof:create{
+		args = {rvpt(numberti), rvpt(numberti)},
+		retfulltype = rvpt(numberti),
+		constfunc = binopconstf('expr.number', utility.operator.sub),
+		opcode = 'sub',
+	})
+
+table.append(scontext:getoperatorlist('assign'),
+	package.relrequire(modname, 2, 'node.operator.assign.operator'))
+
+table.append(scontext:getoperatorlist('init'),
+	package.relrequire(modname, 2, 'node.operator.init.operator'))
+
+table.append(scontext:getoperatorlist('identity'),
+	package.relrequire(modname, 2, 'node.operator.identity.operator'))

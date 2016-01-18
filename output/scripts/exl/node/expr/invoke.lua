@@ -4,21 +4,19 @@ local einvoke = ebase:module(modname)
 local common
 
 local binary = {
-	concat = '..',
-
-	mul = '*',
-	div = '/',
-
 	add = '+',
-	sub = '-',
-
-	assign = '=',
 	adda = '+=',
+	assign = '=',
+	concat = '..',
+	div = '/',
+	mul = '*',
+	sub = '-',
 	suba = '-=',
 }
 
 local unary = {
 	identity = '+',
+	negate = '-',
 }
 
 function einvoke:init(pr)
@@ -28,37 +26,40 @@ function einvoke:init(pr)
 end
 
 local function tryresolve(self, context, visitedcontexts, protostr)
-	while context do
-		if visitedcontexts[context] then
-			return
+	if not context or visitedcontexts[context] then
+		return
+	end
+	visitedcontexts[context] = true
+	local candidates = {}
+	local oplist = context:getoperatorlist(self.opname)
+	for i, operator in ipairs(oplist) do
+		local impl = operator:invoke(self)
+		if impl then
+			table.append(candidates, impl)
 		end
-		visitedcontexts[context] = true
-		local candidates = {}
-		local oplist = context:getoperatorlist(self.opname)
-		for i, operator in ipairs(oplist) do
-			local impl = operator:invoke(self)
-			if impl then
-				table.append(candidates, impl)
-			end
+	end
+	if #candidates == 1 then
+		return candidates[1]
+	elseif #candidates > 1 then
+		local candstr = {}
+		for i, item in ipairs(candidates) do
+			local operator = item:getoperator()
+			candstr[i] = string.format(
+				'%s:%s\t%s',
+				operator.deffile, operator.defpos,
+				operator:defstring(''))
 		end
-		if #candidates == 1 then
-			return candidates[1]
-		elseif #candidates > 1 then
-			local candstr = {}
-			for i, item in ipairs(candidates) do
-				local operator = item:getoperator()
-				candstr[i] = string.format(
-					'%s:%s\t%s',
-					operator.deffile, operator.defpos,
-					operator:defstring(''))
-			end
-			common.nodeerror(
-				'ambiguous ' .. protostr .. '\n' ..
-					'possible candidates are:\n' ..
-					table.concat(candidates, '\n'),
-				self)
-		end
-		context = context.parent
+		common.nodeerror(
+			'ambiguous ' .. protostr .. '\n' ..
+				'possible candidates are:\n' ..
+				table.concat(candidates, '\n'),
+			self)
+	end
+	local impl = tryresolve(self, context.parent, visitedcontexts, protostr)
+	if impl then
+		return impl
+	else
+		return tryresolve(self, context.outer, visitedcontexts, protostr)
 	end
 end
 
@@ -77,6 +78,7 @@ function einvoke:dobuild(pc)
 	protostr = string.format('operator %s(%s)',
 		self.opname,
 		table.concat(protostr, ', '))
+	self.context = pc
 	local visitedcontexts = {}
 	self.invocation = tryresolve(self, pc, visitedcontexts, protostr)
 	if not self.invocation then
@@ -108,7 +110,6 @@ function einvoke:rcompile(stream)
 		return self.constvalue:rcompile(stream)
 	else
 		local name = self.invocation:rcompile(stream)
-		-- local fts = self.fulltype:getserial()
 		return name
 	end
 end

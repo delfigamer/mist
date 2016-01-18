@@ -1,11 +1,33 @@
-object:
-	function defstring(line_prefix)
+context:
+	< object
+	context? parent
+	context? outer
+	function setsymbol(string name, symbol, node)
+	function getsymbol(string name): symbol?
+	function getoperatorlist(string opname): operator[]
+
+expression:
+	< node
+	function getfulltype(): fulltype
+	function getconstvalue(): expression?
+	function rcompile(bytecodestream): ssa_id
+	function lcompile(bytecodestream, ssa_id source)
+
+fulltype:
+	< object
+	typeinfo ti
+	bool lvalue
+	bool rvalue
+
+invokation:
+	< expression
+	function getoperator(): operator
 
 node:
 	< object
-	spos
-	epos
-	filename
+	filepos spos
+	filepos epos
+	string filename
 	function init{
 		filepos spos,
 		filepos epos,
@@ -13,12 +35,8 @@ node:
 	}
 	function build(context)
 
-expression:
-	< node
-	function getconstvalue(): ?expression
-	function getfulltype(): fulltype
-	function rcompile(bytecodestream): ssa_id
-	function lcompile(bytecodestream, ssa_id source)
+object:
+	function defstring(line_prefix)
 
 operator:
 	function init{defpos, deffile}
@@ -26,22 +44,25 @@ operator:
 		filepos spos,
 		filepos epos,
 		string filename,
+		context,
 		string opname,
 		expression[] args,
-	}: ?invokation
+	}: invokation?
 
-invokation:
-	< expression
-	function getoperator(): operator
+symbol:
+	< object
+	function init{
+		filepos defpos,
+		string filename,
+		fulltype,
+		expression? constvalue,
+	}
+	function getfulltype(): fulltype
+	function getconstvalue(): expression?
 
 typeinfo:
 	< object
 	function iseq(other: typeinfo): bool
 	function getserial(): string
-	function getcontext(): ?context
+	function getcontext(): context?
 
-fulltype:
-	< object
-	typeinfo ti
-	bool lvalue
-	bool rvalue

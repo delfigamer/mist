@@ -1,7 +1,6 @@
 local modname = ...
 local opbase = package.relrequire(modname, 2, 'base.operator')
 local opprototyped = opbase:module(modname)
--- local invprototyped
 
 function opprototyped:init(pr)
 	opbase.init(self, pr)
@@ -33,8 +32,5 @@ function opprototyped:invoke(it)
 		fulltype = self.retfulltype,
 	}
 end
-
--- function opprototyped:defstring(lp)
--- end
 
 opprototyped.invocationclass = package.relrequire(modname, 1, 'invocation')
