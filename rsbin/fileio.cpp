@@ -6,14 +6,19 @@
 #include <thread>
 #include <stdexcept>
 #include <exception>
-#include <unistd.h>
-#include <sys/types.h>
 #if defined( _WIN32 ) || defined( _WIN64 )
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN 1
 #endif
 #include <windows.h>
 #include <unordered_map>
+#elif defined( __ANDROID__ )
+#include <cerrno>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <fcntl.h>
+#include <unistd.h>
 #endif
 
 namespace rsbin
@@ -80,18 +85,53 @@ namespace rsbin
 			0 );
 		throw utils::StrException( "%s", StrBuffer );
 	}
+#elif defined( __ANDROID__ )
+	struct FileParameters
+	{
+		int flags;
+		mode_t createmode;
+	};
+	
+	static FileParameters fp_map[] = {
+		{
+			O_RDONLY,
+			S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH,
+		},
+		{
+			O_RDWR,
+			S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH,
+		},
+		{
+			O_WRONLY | O_CREAT | O_TRUNC,
+			S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH,
+		},
+		{
+			O_RDWR | O_CREAT | O_TRUNC,
+			S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH,
+		},
+		{
+			O_RDWR | O_CREAT,
+			S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH,
+		},
+	};
+
+	static void SysError()
+	{
+		throw utils::StrException( "%s", strerror( errno ) );
+	}
 #endif
 	FileIo::FileIo( char const* path, int mode )
 		: m_handle( 0 )
 		, m_console( utils::Console )
 		, m_fsthread( FsThread )
 	{
-#if defined( _WIN32 ) || defined( _WIN64 )
 		if( mode < 0 || mode >= int( sizeof( fp_map ) / sizeof( fp_map[ 0 ] ) ) )
 		{
 			throw std::runtime_error( "invalid file mode" );
 		}
 		utils::Ref< utils::Path > upath = utils::Path::create( path );
+		FileParameters* fp = &fp_map[ mode ];
+#if defined( _WIN32 ) || defined( _WIN64 )
 		FileParameters* fp = &fp_map[ mode ];
 		m_handle = ( void* )CreateFileW(
 			upath->combine(),
@@ -142,11 +182,40 @@ namespace rsbin
 			m_mapping = 0;
 			m_view = 0;
 		}
-#else
-		m_handle = fopen( path, mode );
-		if( !m_handle )
+#elif defined( __ANDROID__ )
+		m_handle = open( upath->combine(), fp->flags, fp->createmode );
+		if( m_handle == -1 )
 		{
-			perror( path );
+			SysError();
+		}
+		if( mode == FileMode_Read )
+		{
+			struct stat filestat;
+			if( fstat( m_handle, &filestat ) == -1 )
+			{
+				SysError();
+			}
+			m_viewsize = filestat.st_size;
+			if( m_viewsize > MaxViewSize )
+			{
+				m_viewsize = MaxViewSize;
+			}
+		}
+		else
+		{
+			m_viewsize = 0;
+		}
+		if( m_viewsize != 0 )
+		{
+			m_view = ( uint8_t* )mmap( 0, m_viewsize, PROT_READ, 0, m_handle, 0 );
+			if( m_view == ( uint8_t* )-1 )
+			{
+				SysError();
+			}
+		}
+		else
+		{
+			m_view = 0;
 		}
 #endif
 	}
@@ -163,15 +232,18 @@ namespace rsbin
 			CloseHandle( ( HANDLE )m_mapping );
 		}
 		CloseHandle( m_handle );
-#else
-		fclose( m_handle );
+#elif defined( __ANDROID__ )
+		if( m_view )
+		{
+			munmap( m_view, m_viewsize );
+		}
+		close( m_handle );
 #endif
 	}
 
 	FsTask* FileIo::startread( uint64_t offset, int length, void* buffer )
 	{
 		FsTask* task = new FsTask;
-#if defined( _WIN32 ) || defined( _WIN64 )
 		if( length < BlockingReadThreshold && offset + length <= m_viewsize )
 		{
 			memcpy(
@@ -182,7 +254,6 @@ namespace rsbin
 			task->m_finished.store( true, std::memory_order_release );
 			return task;
 		}
-#endif
 		task->m_target = this;
 		task->m_offset = offset;
 		task->m_length = length;
@@ -208,7 +279,6 @@ namespace rsbin
 
 	void FileIo::setsize( uint64_t size )
 	{
-#if defined( _WIN32 ) || defined( _WIN64 )
 		FsTask* task = new FsTask;
 		task->m_target = this;
 		task->m_offset = size;
@@ -222,21 +292,6 @@ namespace rsbin
 			std::this_thread::yield();
 		}
 		task->release();
-#else
-#ifdef __ANDROID__
-		if( size > 0xffffffffULL )
-		{
-			throw std::runtime_error( "Android does not support long truncate" );
-		}
-		if( ftruncate( fileno( m_handle ), size ) != 0 )
-		{
-#else
-		if( ftruncate64( fileno( m_handle ), size ) != 0 )
-		{
-#endif
-			throw std::runtime_error( "ftruncate failed" );
-		}
-#endif
 	}
 
 	FileIo* rsbin_fileio_new( char const* path, int mode ) noexcept

@@ -9,6 +9,10 @@
 #include <cstdarg>
 #include <mutex>
 
+#if defined( getchar )
+#undef getchar
+#endif
+
 namespace utils
 {
 	class ConsoleClass

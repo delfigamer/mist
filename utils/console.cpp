@@ -1,7 +1,5 @@
 #include "console.hpp"
-#if defined( _WIN32 ) || defined( _WIN64 )
 #include "encoding.hpp"
-#endif
 #include <cstring>
 #include <ctime>
 
@@ -78,7 +76,7 @@ namespace utils
 		: m_newline( true )
 	{
 #ifdef __ANDROID__
-		m_file = fopen( "/storage/sdcard0/projects/output/last.log", "w" );
+		m_file = fopen( "/storage/sdcard0/Android/data/me.sheimi.sgit/files/repo/mist/output/last.log", "w" );
 #else
 		m_file = fopen( "last.log", "wb" );
 #endif
@@ -251,6 +249,8 @@ namespace utils
 				winerror();
 			}
 		}
+#else
+		fflush( stdout );
 #endif
 	}
 

@@ -5,7 +5,6 @@
 #include <utils/refobject.hpp>
 #include <utils/string.hpp>
 #include <utils/console.hpp>
-#include <cstdio>
 #include <cinttypes>
 
 namespace rsbin
@@ -25,11 +24,11 @@ namespace rsbin
 #if defined( _WIN32 ) || defined( _WIN64 )
 		void* m_handle;
 		void* m_mapping;
+#elif defined( __ANDROID__ )
+		int m_handle;
+#endif
 		uint8_t* m_view;
 		uint64_t m_viewsize;
-#else
-		FILE* m_handle;
-#endif
 		utils::SingletonRef< utils::ConsoleClass > m_console;
 		utils::SingletonRef< FsThreadClass > m_fsthread;
 

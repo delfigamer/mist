@@ -4,12 +4,18 @@
 #include <utils/cbase.hpp>
 #include <exception>
 #include <cstring>
-#include <cerrno>
 #if defined( _WIN32 ) || defined( _WIN64 )
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN 1
 #endif
 #include <windows.h>
+#elif defined( __ANDROID__ )
+#include <cerrno>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <fcntl.h>
+#include <unistd.h>
 #endif
 
 namespace rsbin
@@ -34,6 +40,11 @@ namespace rsbin
 			0 );
 		throw utils::StrException( "%s", StrBuffer );
 	}
+#elif defined( __ANDROID__ )
+	static void SysError()
+	{
+		throw utils::StrException( "%s", strerror( errno ) );
+	}
 #endif
 	int const BlockSize = 0x1000; // 64K
 	int const MemBlockSize = 0x1000; // 64K
@@ -47,9 +58,8 @@ namespace rsbin
 		}
 		try
 		{
-#if defined( _WIN32 ) || defined( _WIN64 )
 			uint64_t viewsize = task->m_target->m_viewsize;
-			int result;
+			int result = 0;
 			if( task->m_direction == IoActionRead && task->m_offset < viewsize )
 			{
 				int length = task->m_length;
@@ -69,6 +79,7 @@ namespace rsbin
 			}
 			else
 			{
+#if defined( _WIN32 ) || defined( _WIN64 )
 				HANDLE handle = ( HANDLE )task->m_target->m_handle;
 				LARGE_INTEGER lioffset;
 				lioffset.QuadPart = task->m_offset;
@@ -104,43 +115,54 @@ namespace rsbin
 					{
 						WinError();
 					}
-					result = 0;
 					break;
 				}
-			}
-			task->m_result += result;
-			task->m_offset += result;
-			task->m_buffer += result;
-			task->m_length -= result;
-#else
-			FILE* handle = task->m_target->m_handle;
-			fsetpos( handle, ( fpos_t* )&task->m_offset );
-			int result;
-			int length = task->m_length;
-			if( length > BlockSize )
-			{
-				length = BlockSize;
-			}
-			switch( task->m_direction )
-			{
-			case IoActionRead:
-				result = fread( task->m_buffer, 1, length, handle );
-				break;
+#elif defined( __ANDROID__ )
+				if( task->m_offset + task->m_length > 0x7fffffffULL )
+				{
+					throw std::runtime_error( "Android does not support files larger than 2GB" );
+				}
+				int handle = task->m_target->m_handle;
+				if( lseek( handle, task->m_offset, SEEK_SET ) == -1 )
+				{
+					SysError();
+				}
+				int length = task->m_length;
+				if( length > BlockSize )
+				{
+					length = BlockSize;
+				}
+				switch( task->m_direction )
+				{
+				case IoActionRead:
+					result = read( handle, task->m_buffer, length );
+					if( result == -1 )
+					{
+						SysError();
+					}
+					break;
 
-			case IoActionWrite:
-				result = fwrite( task->m_buffer, 1, length, handle );
-				break;
+				case IoActionWrite:
+					result = write( handle, task->m_buffer, length );
+					if( result == -1 )
+					{
+						SysError();
+					}
+					break;
+
+				case IoActionTruncate:
+					if( ftruncate( handle, task->m_offset ) == -1 )
+					{
+						SysError();
+					}
+					break;
+				}
+#endif
 			}
 			task->m_result += result;
 			task->m_offset += result;
 			task->m_buffer += result;
 			task->m_length -= result;
-			if( ferror( handle ) )
-			{
-				throw utils::StrException( "%s", strerror( errno ) );
-				task->m_length = 0;
-			}
-#endif
 			return result == 0 || task->m_length == 0;
 		}
 		catch( std::exception const& error )
