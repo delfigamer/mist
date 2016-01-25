@@ -80,6 +80,12 @@ namespace utils
 #else
 		m_file = fopen( "last.log", "wb" );
 #endif
+		if( !m_file )
+		{
+			fprintf( stderr, "%i\n", __LINE__ );
+			perror( "" );
+			throw std::runtime_error( "cannot open the log file" );
+		}
 #if defined( _WIN32 ) || defined( _WIN64 )
 #if defined( DISABLE_CONSOLE )
 		m_inputhandle = 0;

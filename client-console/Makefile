@@ -41,7 +41,7 @@ ifeq ($(OS),Windows_NT)
 #~ RUNCMD = pushd ../output && $(TARGETNAME) && popd
 RUNCMD = echo "Not supported"
 else
-RUNCMD = run $(TARGET)
+RUNCMD = run_ca $(TARGET)
 endif
 
 $(TARGET): $(OBJS) $(EXLIBS)
