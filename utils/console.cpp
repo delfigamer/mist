@@ -1,7 +1,14 @@
 #include "console.hpp"
+#include "strexception.hpp"
 #include "encoding.hpp"
+#include <osapi.hpp>
+#include <cstdio>
+#include <cerrno>
 #include <cstring>
 #include <ctime>
+#if defined( getchar )
+#undef getchar
+#endif
 
 namespace utils
 {
@@ -30,10 +37,9 @@ namespace utils
 				int trresult = utils::translatestr( &trstruct );
 				DWORD wcresult;
 				if( !WriteConsoleW(
-					m_outputhandle, buffer, trstruct.destresult / 2, &wcresult, 0 ) )
+					( HANDLE )m_outputhandle, buffer, trstruct.destresult / 2, &wcresult, 0 ) )
 				{
-					fprintf( stderr, "%i\n", __LINE__ );
-					winerror();
+					syserror();
 				}
 				str += trstruct.sourceresult;
 				length -= trstruct.sourceresult;
@@ -44,8 +50,7 @@ namespace utils
 					return;
 
 				case translate_dest_unsupported:
-					fprintf( stderr, "%i\n", __LINE__ );
-					winerror();
+					syserror();
 					break;
 
 				case translate_dest_overrun:
@@ -56,10 +61,9 @@ namespace utils
 		else
 		{
 			DWORD result;
-			if( !WriteFile( m_outputhandle, str, length, &result, 0 ) )
+			if( !WriteFile( ( HANDLE )m_outputhandle, str, length, &result, 0 ) )
 			{
-				fprintf( stderr, "%i\n", __LINE__ );
-				winerror();
+				syserror();
 			}
 		}
 #else
@@ -69,22 +73,16 @@ namespace utils
 
 	void ConsoleClass::writefile( char const* str, int length )
 	{
-		fprintf( m_file, "%.*s", length, str );
+		fprintf( ( FILE* )m_file, "%.*s", length, str );
 	}
 
 	ConsoleClass::ConsoleClass()
 		: m_newline( true )
 	{
-#ifdef __ANDROID__
-		m_file = fopen( "/storage/sdcard0/Android/data/me.sheimi.sgit/files/repo/mist/output/last.log", "w" );
-#else
-		m_file = fopen( "last.log", "wb" );
-#endif
+		m_file = fopen( PATH_START "last.log", "wb" );
 		if( !m_file )
 		{
-			fprintf( stderr, "%i\n", __LINE__ );
-			perror( "" );
-			throw std::runtime_error( "cannot open the log file" );
+			throw StrException( "cannot create log file: %s", strerror( errno ) );
 		}
 #if defined( _WIN32 ) || defined( _WIN64 )
 #if defined( DISABLE_CONSOLE )
@@ -92,56 +90,52 @@ namespace utils
 		m_outputhandle = 0;
 #else
 		m_inputhandle = GetStdHandle( STD_INPUT_HANDLE );
-		if( m_inputhandle == INVALID_HANDLE_VALUE )
+		if( ( HANDLE )m_inputhandle == INVALID_HANDLE_VALUE )
 		{
-			fprintf( stderr, "%i\n", __LINE__ );
-			winerror();
+			syserror();
 		}
 		DWORD imode;
 		if( m_inputhandle == 0 )
 		{
 		}
-		else if( GetConsoleMode( m_inputhandle, &imode ) )
+		else if( GetConsoleMode( ( HANDLE )m_inputhandle, &imode ) )
 		{
 			m_inputisconsole = true;
 		}
 		else
 		{
 			BY_HANDLE_FILE_INFORMATION fi;
-			if( GetFileInformationByHandle( m_inputhandle, &fi ) )
+			if( GetFileInformationByHandle( ( HANDLE )m_inputhandle, &fi ) )
 			{
 				m_inputisconsole = false;
 			}
 			else
 			{
-				fprintf( stderr, "%i\n", __LINE__ );
-				winerror();
+				syserror();
 			}
 		}
 		m_outputhandle = GetStdHandle( STD_OUTPUT_HANDLE );
-		if( m_outputhandle == INVALID_HANDLE_VALUE )
+		if( ( HANDLE )m_outputhandle == INVALID_HANDLE_VALUE )
 		{
-			fprintf( stderr, "%i\n", __LINE__ );
-			winerror();
+			syserror();
 		}
 		if( m_outputhandle == 0 )
 		{
 		}
-		else if( GetConsoleMode( m_outputhandle, &imode ) )
+		else if( GetConsoleMode( ( HANDLE )m_outputhandle, &imode ) )
 		{
 			m_outputisconsole = true;
 		}
 		else
 		{
 			BY_HANDLE_FILE_INFORMATION fi;
-			if( GetFileInformationByHandle( m_outputhandle, &fi ) )
+			if( GetFileInformationByHandle( ( HANDLE )m_outputhandle, &fi ) )
 			{
 				m_outputisconsole = false;
 			}
 			else
 			{
-				fprintf( stderr, "%i\n", __LINE__ );
-				winerror();
+				syserror();
 			}
 		}
 #endif
@@ -150,8 +144,11 @@ namespace utils
 
 	ConsoleClass::~ConsoleClass()
 	{
-		writeraw( "\nLog finished\n" );
-		fclose( m_file );
+		// Other static classes may use Console to announce their destruction
+		// So, we want the object to live all the way until program termination
+		// Hence, instead of explicitly managing its lifetime, we rely on the OS to close the file
+		// writeraw( "\nLog finished\n" );
+		// fclose( ( FILE* )m_file );
 	}
 
 	void ConsoleClass::linestart()
@@ -245,14 +242,13 @@ namespace utils
 	void ConsoleClass::flush()
 	{
 		lock_t lock( m_mutex );
-		fflush( m_file );
+		fflush( ( FILE* )m_file );
 #if defined( _WIN32 ) || defined( _WIN64 )
 		if( m_outputhandle != 0 && !m_outputisconsole )
 		{
-			if( !FlushFileBuffers( m_outputhandle ) )
+			if( !FlushFileBuffers( ( HANDLE )m_outputhandle ) )
 			{
-				fprintf( stderr, "%i\n", __LINE__ );
-				winerror();
+				syserror();
 			}
 		}
 #else
@@ -288,10 +284,9 @@ namespace utils
 			while( true )
 			{
 				DWORD result;
-				if( !ReadConsoleW( m_inputhandle, buffer + length, 1, &result, 0 ) )
+				if( !ReadConsoleW( ( HANDLE )m_inputhandle, buffer + length, 1, &result, 0 ) )
 				{
-					fprintf( stderr, "%i\n", __LINE__ );
-					winerror();
+					syserror();
 				}
 				length += 1;
 				size_t pointlength;
@@ -310,10 +305,9 @@ namespace utils
 			while( true )
 			{
 				DWORD result;
-				if( !ReadFile( m_inputhandle, str + length, 1, &result, 0 ) )
+				if( !ReadFile( ( HANDLE )m_inputhandle, str + length, 1, &result, 0 ) )
 				{
-					fprintf( stderr, "%i\n", __LINE__ );
-					winerror();
+					syserror();
 				}
 				length += 1;
 				size_t pointlength;

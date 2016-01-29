@@ -5,7 +5,6 @@
 #include <utils/configset.hpp>
 #include <utils/string.hpp>
 #include <utils/delegate.hpp>
-#include <utils/console.hpp>
 #include <lua/lua.hpp>
 #include <atomic>
 #include <thread>
@@ -31,17 +30,14 @@ namespace window
 		utils::String m_error;
 		std::atomic< uint32_t > m_minupdateperiod;
 		uint64_t m_time;
-		utils::SingletonRef< utils::ConsoleClass > m_console;
 
 		void threadfunc() noexcept;
 
 	public:
 		AsyncLuaState();
-		AsyncLuaState( AsyncLuaState const& ) = delete;
-		AsyncLuaState( AsyncLuaState&& ) = delete;
 		~AsyncLuaState() noexcept;
+		AsyncLuaState( AsyncLuaState const& ) = delete;
 		AsyncLuaState& operator=( AsyncLuaState const& ) = delete;
-		AsyncLuaState& operator=( AsyncLuaState&& ) = delete;
 
 		void applyconfig( utils::ConfigSet const& config );
 		void checkerror();

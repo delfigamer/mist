@@ -1,38 +1,34 @@
 #include "configset.hpp"
+#include "console.hpp"
 
 namespace utils {
 	ConfigSet::ConfigSet( char const* filename, char const* init )
 		: m_lstate( luaL_newstate() )
-		, m_console( Console )
 	{
 		if( init )
 		{
 			if( luaL_loadstring( m_lstate, init ) != 0 )
 			{
-				LOG( m_console,
-					"! failed to load initialization string \"%s\": %s",
+				LOG( "! failed to load initialization string \"%s\": %s",
 					init, lua_tostring( m_lstate, -1 ) );
 				goto fail;
 			}
 			if( lua_pcall( m_lstate, 0, 0, 0 ) != 0 )
 			{
-				LOG( m_console,
-					"! failed to run initialization string \"%s\": %s",
+				LOG( "! failed to run initialization string \"%s\": %s",
 					init, lua_tostring( m_lstate, -1 ) );
 				goto fail;
 			}
 		}
 		if( luaL_loadfile( m_lstate, filename ) != 0 )
 		{
-			LOG( m_console,
-				"! failed to load file \"%s\": %s",
+			LOG( "! failed to load file \"%s\": %s",
 				filename, lua_tostring( m_lstate, -1 ) );
 			goto fail;
 		}
 		if( lua_pcall( m_lstate, 0, 0, 0 ) != 0 )
 		{
-			LOG( m_console,
-				"! failed to run file \"%s\": %s",
+			LOG( "! failed to run file \"%s\": %s",
 				filename, lua_tostring( m_lstate, -1 ) );
 			goto fail;
 		}
@@ -57,8 +53,7 @@ namespace utils {
 	char const* buf = lua_tolstring( m_lstate, -1, &len ); \
 	if( luaL_loadbuffer( m_lstate, buf, len, expr ) != 0 ) \
 	{ \
-		LOG( m_console, \
-			"! failed to access expression \"%s\": %s", \
+		LOG( "! failed to access expression \"%s\": %s", \
 			expr, lua_tostring( m_lstate, -1 ) ); \
 		result = def; \
 	} \
@@ -93,44 +88,18 @@ namespace utils {
 	{
 		ConfigSet_accessor( double, lua_tonumber );
 	}
+	
+	static String toustring( lua_State* L, int index )
+	{
+		size_t len;
+		char const* buf = lua_tolstring( L, index, &len );
+		return String( buf, len );
+	}
 
 	String ConfigSet::string(
-			char const* expr, String const& def ) const
+		char const* expr, String const& def ) const
 	{
-		String result;
-		lua_pushstring( m_lstate, "return " );
-		lua_pushstring( m_lstate, expr );
-		lua_concat( m_lstate, 2 );
-		size_t len;
-		char const* buf = lua_tolstring( m_lstate, -1, &len );
-		if( luaL_loadbuffer( m_lstate, buf, len, expr ) != 0 )
-		{
-			LOG( m_console,
-				"! failed to access expression \"%s\": %s",
-				expr, lua_tostring( m_lstate, -1 ) );
-			result = def;
-		}
-		else
-		{
-			if( lua_pcall( m_lstate, 0, 1, 0 ) == 0 )
-			{
-				if( lua_isnil( m_lstate, -1 ) )
-				{
-					result = def;
-				}
-				else
-				{
-					buf = lua_tolstring( m_lstate, -1, &len );
-					result.setchars( buf, len );
-				}
-			}
-			else
-			{
-				result = def;
-			}
-		}
-		lua_settop( m_lstate, 0 );
-		return result;
+		ConfigSet_accessor( String, toustring );
 	}
 
 	bool ConfigSet::boolean( char const* expr, bool def ) const
@@ -140,21 +109,16 @@ namespace utils {
 
 	void ConfigSet::runcmd( char const* expr )
 	{
-		lua_pushstring( m_lstate, expr );
-		size_t len;
-		char const* buf = lua_tolstring( m_lstate, -1, &len );
-		if( luaL_loadbuffer( m_lstate, buf, len, expr ) != 0 )
+		if( luaL_loadstring( m_lstate, expr ) != 0 )
 		{
-			LOG( m_console,
-				"! failed to load command \"%s\": %s",
+			LOG( "! failed to load command \"%s\": %s",
 				expr, lua_tostring( m_lstate, -1 ) );
 		}
 		else
 		{
 			if( lua_pcall( m_lstate, 0, 1, 0 ) != 0 )
 			{
-				LOG( m_console,
-					"! failed to run command \"%s\": %s",
+				LOG( "! failed to run command \"%s\": %s",
 					expr, lua_tostring( m_lstate, -1 ) );
 			}
 		}

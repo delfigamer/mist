@@ -1,12 +1,10 @@
 #include "cbase.hpp"
 #include "console.hpp"
 #include "string.hpp"
-#include <cstdio>
 #include <thread>
 
 namespace utils
 {
-	static SingletonRef< ConsoleClass > ConsoleRef( Console );
 	static String cbase_error;
 
 	char const* cbase_geterror() noexcept
@@ -30,7 +28,7 @@ namespace utils
 	bool cbase_write( char const* str ) noexcept
 	{
 	CBASE_PROTECT(
-		ConsoleRef->write( "%s", str );
+		Console->write( "%s", str );
 		return 1;
 	)
 	}
@@ -38,7 +36,7 @@ namespace utils
 	bool cbase_getchar( char* str ) noexcept
 	{
 	CBASE_PROTECT(
-		ConsoleRef->getchar( str );
+		Console->getchar( str );
 		return 1;
 	)
 	}

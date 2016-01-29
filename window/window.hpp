@@ -41,7 +41,7 @@ namespace window
 #if defined( CON_TARGET )
 #elif defined( _WIN32 ) || defined( _WIN64 )
 		HINSTANCE hInstance;
-#elif defined(__ANDROID__)
+#elif defined( __ANDROID__ )
 		android_app* app;
 #endif
 		utils::String cmdline;
@@ -72,7 +72,7 @@ namespace window
 		LRESULT WindowProc(
 			UINT uMsg, WPARAM wParam, LPARAM lParam );
 		void pointmove( int point, bool newstate, LPARAM lParam );
-#elif defined(__ANDROID__)
+#elif defined( __ANDROID__ )
 	private:
 		android_app* m_app;
 		ASensorManager* m_sensorManager;
@@ -104,7 +104,7 @@ namespace window
 		clock_t m_fpstime;
 		clock_t m_tpstime;
 		bool m_finished;
-		utils::SingletonRef< utils::ConsoleClass > m_console;
+		
 		void initialize();
 		void finalize();
 		void paint();
@@ -115,7 +115,13 @@ namespace window
 		void notifyevent( char const* event );
 		void initlstate();
 		void closelstate();
-		void ticklstate( lua_State* L, utils::String* error );
+		static void pointaction( void* vedata, lua_State* L, utils::String* error );
+		static void keyaction( void* vedata, lua_State* L, utils::String* error );
+		static void charaction( void* vedata, lua_State* L, utils::String* error );
+		static void notifyaction( void* vedata, lua_State* L, utils::String* error );
+		static void initaction( void* vedata, lua_State* L, utils::String* error );
+		static void closeaction( void* vedata, lua_State* L, utils::String* error );
+		static void defaultaction( void* vedata, lua_State* L, utils::String* error );
 
 	public:
 		Window() = delete;

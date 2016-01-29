@@ -2,50 +2,13 @@
 #include "fileio.hpp"
 #include <utils/strexception.hpp>
 #include <utils/cbase.hpp>
+#include <osapi.hpp>
+#include <stdexcept>
 #include <exception>
 #include <cstring>
-#if defined( _WIN32 ) || defined( _WIN64 )
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN 1
-#endif
-#include <windows.h>
-#elif defined( __ANDROID__ )
-#include <cerrno>
-#include <sys/mman.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <fcntl.h>
-#include <unistd.h>
-#endif
 
 namespace rsbin
 {
-#if defined( _WIN32 ) || defined( _WIN64 )
-	static void WinError()
-	{
-		DWORD LastError = GetLastError();
-		if( !LastError )
-		{
-			throw std::runtime_error( "unknown Win32 error" );
-		}
-		char StrBuffer[ 1024 ];
-		FormatMessage(
-			FORMAT_MESSAGE_FROM_SYSTEM |
-				FORMAT_MESSAGE_MAX_WIDTH_MASK,
-			0,
-			LastError,
-			MAKELANGID( LANG_ENGLISH, SUBLANG_ENGLISH_US ),
-			StrBuffer,
-			sizeof( StrBuffer ) - 1,
-			0 );
-		throw utils::StrException( "%s", StrBuffer );
-	}
-#elif defined( __ANDROID__ )
-	static void SysError()
-	{
-		throw utils::StrException( "%s", strerror( errno ) );
-	}
-#endif
 	int const BlockSize = 0x1000; // 64K
 	int const MemBlockSize = 0x1000; // 64K
 
@@ -85,7 +48,7 @@ namespace rsbin
 				lioffset.QuadPart = task->m_offset;
 				if( !SetFilePointerEx( handle, lioffset, 0, FILE_BEGIN ) )
 				{
-					WinError();
+					syserror();
 				}
 				int length = task->m_length;
 				if( length > BlockSize )
@@ -98,7 +61,7 @@ namespace rsbin
 					if( !ReadFile(
 						handle, task->m_buffer, length, ( LPDWORD )&result, 0 ) )
 					{
-						WinError();
+						syserror();
 					}
 					break;
 
@@ -106,14 +69,14 @@ namespace rsbin
 					if( !WriteFile(
 						handle, task->m_buffer, length, ( LPDWORD )&result, 0 ) )
 					{
-						WinError();
+						syserror();
 					}
 					break;
 
 				case IoActionTruncate:
 					if( !SetEndOfFile( handle ) )
 					{
-						WinError();
+						syserror();
 					}
 					break;
 				}
@@ -125,7 +88,7 @@ namespace rsbin
 				int handle = task->m_target->m_handle;
 				if( lseek( handle, task->m_offset, SEEK_SET ) == -1 )
 				{
-					SysError();
+					syserror();
 				}
 				int length = task->m_length;
 				if( length > BlockSize )
@@ -138,7 +101,7 @@ namespace rsbin
 					result = read( handle, task->m_buffer, length );
 					if( result == -1 )
 					{
-						SysError();
+						syserror();
 					}
 					break;
 
@@ -146,14 +109,14 @@ namespace rsbin
 					result = write( handle, task->m_buffer, length );
 					if( result == -1 )
 					{
-						SysError();
+						syserror();
 					}
 					break;
 
 				case IoActionTruncate:
 					if( ftruncate( handle, task->m_offset ) == -1 )
 					{
-						SysError();
+						syserror();
 					}
 					break;
 				}
@@ -196,6 +159,10 @@ namespace rsbin
 					currenttask = nullptr;
 				}
 			}
+			else
+			{
+				std::this_thread::yield();
+			}
 		}
 	}
 
@@ -222,12 +189,11 @@ namespace rsbin
 	}
 
 	utils::Singleton< FsThreadClass > FsThread;
-	utils::SingletonRef< FsThreadClass > FsThreadRef( FsThread );
 
 	bool rsbin_fstask_promote( FsTask* task ) noexcept
 	{
 	CBASE_PROTECT(
-		FsThreadRef->pushhigh( task );
+		FsThread->pushhigh( task );
 		return 1;
 	)
 	}

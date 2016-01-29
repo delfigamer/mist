@@ -1,14 +1,14 @@
 #ifndef RSBIN_FILEIO_HPP__
 #define RSBIN_FILEIO_HPP__ 1
 
-#include "fsthread.hpp"
 #include <utils/refobject.hpp>
 #include <utils/string.hpp>
-#include <utils/console.hpp>
 #include <cinttypes>
 
 namespace rsbin
 {
+	class FsTask;
+
 	class FileIo: public utils::RefObject
 	{
 	public:
@@ -29,8 +29,6 @@ namespace rsbin
 #endif
 		uint8_t* m_view;
 		uint64_t m_viewsize;
-		utils::SingletonRef< utils::ConsoleClass > m_console;
-		utils::SingletonRef< FsThreadClass > m_fsthread;
 
 	public:
 		FileIo() = delete;
@@ -51,7 +49,7 @@ namespace rsbin
 		FileIo* io, uint64_t offset, int length, void* buffer ) noexcept;
 	FsTask* rsbin_fileio_startwrite(
 		FileIo* io, uint64_t offset, int length, void const* buffer ) noexcept;
-	bool rsbin_fileio_setsize( FileIo* fileio, uint64_t size ) noexcept;
+	bool rsbin_fileio_setsize( FileIo* io, uint64_t size ) noexcept;
 }
 
 #endif

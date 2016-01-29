@@ -46,12 +46,6 @@ namespace graphics {
 		ShapeGroup*( *shapegroup_new )();
 		bool( *shapegroup_insert )( ShapeGroup* shape, Shape* item, int order, ShapeGroup_iterator* it );
 		bool( *shapegroup_remove )( ShapeGroup* shape, ShapeGroup_iterator* it );
-// 		bool( *shapegroup_begin )( ShapeGroup* shape, ShapeGroup_iterator* it );
-// 		bool( *shapegroup_end )( ShapeGroup* shape, ShapeGroup_iterator* it );
-// 		bool( *shapegroup_iterator_inc )( ShapeGroup_iterator* it );
-// 		int( *shapegroup_iterator_eq )( ShapeGroup_iterator* a, ShapeGroup_iterator* b );
-// 		bool( *shapegroup_iterator_deref )( ShapeGroup_iterator* it, Shape** item, int* order );
-// 		bool( *shapegroup_iterator_close )( ShapeGroup_iterator* it );
 		bool( *shapegroup_setactive )( ShapeGroup* shape, bool active );
 		bool( *sprite_setposition )( Sprite* sprite, float x, float y );
 		bool( *sprite_setextent )( Sprite* sprite, float x1, float y1, float x2, float y2 );

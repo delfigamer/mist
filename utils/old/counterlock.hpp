@@ -14,10 +14,8 @@ namespace utils
 	public:
 		CounterLock();
 		~CounterLock();
-		CounterLock( CounterLock const& other ) = delete;
-		CounterLock( CounterLock&& other ) = delete;
-		CounterLock& operator=( CounterLock const& other ) = delete;
-		CounterLock& operator=( CounterLock&& other ) = delete;
+		CounterLock( CounterLock const& ) = delete;
+		CounterLock& operator=( CounterLock const& ) = delete;
 
 		void lock() noexcept;
 		void unlock() noexcept;

@@ -38,8 +38,8 @@ namespace utils
 
 	MPSCQueueBase::MPSCQueueBase( int datasize )
 		: m_datasize( datasize )
+		// , m_allocator( new PoolAllocator( sizeof( Item ) + m_datasize, 1024 ) )
 	{
-		// m_allocator( new PoolAllocator( sizeof( Item ) + m_datasize, 1024 ) ) {
 		Item* dummy = base_new();
 		m_first = dummy;
 		m_last.store( dummy, std::memory_order_relaxed );

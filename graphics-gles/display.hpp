@@ -5,23 +5,26 @@
 #error "Unsupported target platform"
 #endif
 
-//#include "shape.hpp"
+// #include "shape.hpp"
 #include <utils/ref.hpp>
 #include <EGL/egl.h>
 #include <android_native_app_glue.h>
 #include <ctime>
 
-namespace graphics {
+namespace graphics
+{
 	class Shape: public utils::RefObject {};
 
-	struct DisplayInfo {
+	struct DisplayInfo
+	{
 		int width;
 		int height;
 		float texelsoffset;
 		float texeltoffset;
 	};
 	
-	class Display {
+	class Display
+	{
 	private:
 		android_app* m_app;
 		EGLDisplay m_display;
@@ -34,10 +37,8 @@ namespace graphics {
 	public:
 		Display();
 		~Display();
-		Display( Display const& ) = delete;
-		Display( Display&& ) = delete;
-		Display& operator=( Display const& ) = delete;
-		Display& operator=( Display&& ) = delete;
+		Display( Display& ) = delete;
+		Display& operator=( Display& ) = delete;
 		
 		void initialize( android_app* app );
 		void finalize();

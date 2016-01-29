@@ -13,10 +13,8 @@ namespace utils
 	public:
 		FlagLock();
 		~FlagLock();
-		FlagLock( FlagLock const& other ) = delete;
-		FlagLock( FlagLock&& other ) = delete;
-		FlagLock& operator=( FlagLock const& other ) = delete;
-		FlagLock& operator=( FlagLock&& other ) = delete;
+		FlagLock( FlagLock const& ) = delete;
+		FlagLock& operator=( FlagLock const& ) = delete;
 
 		void lock() noexcept;
 		void unlock() noexcept;

@@ -1,7 +1,9 @@
 #include "methodlist.hpp"
 
-namespace graphics {
-	MethodList const* getmethodlist() {
+namespace graphics
+{
+	MethodList const* getmethodlist()
+	{
 		static MethodList const List = {
 			graphics_texture_setminfilter,
 			graphics_texture_setmagfilter,
@@ -31,12 +33,6 @@ namespace graphics {
 			graphics_shapegroup_new,
 			graphics_shapegroup_insert,
 			graphics_shapegroup_remove,
-// 			graphics_shapegroup_begin,
-// 			graphics_shapegroup_end,
-// 			graphics_shapegroup_iterator_inc,
-// 			graphics_shapegroup_iterator_eq,
-// 			graphics_shapegroup_iterator_deref,
-// 			graphics_shapegroup_iterator_close,
 			graphics_shapegroup_setactive,
 			graphics_sprite_setposition,
 			graphics_sprite_setextent,

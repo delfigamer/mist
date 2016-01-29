@@ -34,6 +34,8 @@ namespace rsbin
 
 		inline FsTask() : m_finished( false ) {}
 		virtual ~FsTask() = default;
+		FsTask( FsTask const& ) = delete;
+		FsTask& operator=( FsTask const& ) = delete;
 	};
 
 	class FsThreadClass
@@ -49,10 +51,8 @@ namespace rsbin
 	public:
 		FsThreadClass();
 		~FsThreadClass();
-		FsThreadClass( FsThreadClass const& other ) = delete;
-		FsThreadClass( FsThreadClass&& other ) = delete;
-		FsThreadClass& operator=( FsThreadClass const& other ) = delete;
-		FsThreadClass& operator=( FsThreadClass&& other ) = delete;
+		FsThreadClass( FsThreadClass const& ) = delete;
+		FsThreadClass& operator=( FsThreadClass const& ) = delete;
 
 		void pushmain( FsTask* task );
 		void pushhigh( FsTask* task );

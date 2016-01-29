@@ -58,8 +58,7 @@ static wchar_t const* trimpath( wchar_t const* argstr )
 
 int main( int argc, char const** argv )
 {
-	utils::SingletonRef< utils::ConsoleClass > console( utils::Console );
-	LOG( console, "~ Console application start" );
+	LOG( "~ Console application start" );
 	window::WindowCreationData wcd;
 	try
 	{
@@ -95,16 +94,14 @@ int main( int argc, char const** argv )
 			wcd.cmdline = argv[ 1 ];
 		}
 #endif
-		LOG( console, "Command line: \"%s\"", wcd.cmdline.getchars() );
+		LOG( "Command line: \"%s\"", wcd.cmdline.getchars() );
 		window::Window mainwindow( wcd );
 		mainwindow.mainloop();
 	}
-	catch( const std::exception& e )
+	catch( std::exception const& e )
 	{
-		char buffer[ 1024 ];
-		snprintf( buffer, sizeof( buffer ), "! Critical error: %s\n", e.what() );
-		utils::cbase_write( buffer );
+		utils::Console->writeln( "! Critical error: %s", e.what() );
 	}
-	LOG( console, "~ Application end" );
+	LOG( "~ Application end" );
 	return 0;
 }

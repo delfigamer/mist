@@ -21,7 +21,7 @@ namespace utils
 	// invalid stream - return false, *pointlength <- number of bytes consumed
 	// buffer overrun - return false, *pointlength <- 0
 	// charcode may be 0
-	// is sourcesize == 0, source is assumed to be unbound
+	// if sourcesize == 0, source is assumed to be unbound
 	typedef bool( *decoder_t )(
 		void const* source,
 		uint32_t* charcode,
@@ -69,7 +69,6 @@ namespace utils
 		size_t sourcesize; // if 0, source is null-terminated
 		size_t destsize; // if 0, dest is not written
 		uint32_t defaultchar; // if 0, stops immediately after a error
-			// if invalid, returns immediately
 		size_t sourceresult; // out
 		size_t destresult; // out
 	};

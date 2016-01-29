@@ -1,8 +1,6 @@
 #ifndef UTILS_METHODLIST_HPP__
 #define UTILS_METHODLIST_HPP__ 1
 
-#include <cstdint>
-
 namespace utils
 {
 	class encoding_t;

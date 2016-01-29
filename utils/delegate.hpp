@@ -1,7 +1,8 @@
 #ifndef UTILS_DELEGATE_HPP__
 #define UTILS_DELEGATE_HPP__ 1
 
-#include <atomic>
+#include "flaglock.hpp"
+#include <mutex>
 #include <thread>
 #include <functional>
 
@@ -17,9 +18,13 @@ namespace utils
 	{
 	public:
 		typedef Ret( *code_t )( void* self, Args... args );
+		
+	private:
+		typedef FlagLock mutex_t;
+		typedef std::lock_guard< mutex_t > lock_t;
 
 	private:
-		std::atomic_flag mutable m_aflag;
+		mutex_t mutable m_mutex;
 		code_t m_code;
 		void* m_self;
 
@@ -28,13 +33,11 @@ namespace utils
 			: m_code( code )
 			, m_self( self )
 		{
-			m_aflag.clear( std::memory_order_release );
 		}
 
 		Delegate( Delegate const& other )
 		{
 			other.get( &m_code, &m_self );
-			m_aflag.clear( std::memory_order_release );
 		}
 
 		~Delegate()
@@ -52,22 +55,16 @@ namespace utils
 
 		void get( code_t* code, void** self ) const
 		{
-			while( m_aflag.test_and_set( std::memory_order_acquire ) )
-			{
-			}
+			lock_t lock( m_mutex );
 			*code = m_code;
 			*self = m_self;
-			m_aflag.clear( std::memory_order_release );
 		}
 
 		void set( code_t code, void* self = 0 )
 		{
-			while( m_aflag.test_and_set( std::memory_order_acquire ) )
-			{
-			}
+			lock_t lock( m_mutex );
 			m_code = code;
 			m_self = self;
-			m_aflag.clear( std::memory_order_release );
 		}
 
 		Ret operator()( bool* success, Args... args )
@@ -96,18 +93,6 @@ namespace utils
 		Ret operator()( Args... args )
 		{
 			return this->operator()( 0, std::forward< Args >( args )... );
-		}
-
-		template< Ret( target )( Args... ) >
-		static Ret bind_static( void* self, Args... args )
-		{
-			return target( std::forward< Args >( args )... );
-		}
-
-		template< typename T, Ret( T::*target )( Args... ) >
-		static Ret bind_method( void* self, Args... args )
-		{
-			return ( ( ( T* )self )->*target )( std::forward< Args >( args )... );
 		}
 	};
 }

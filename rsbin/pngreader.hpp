@@ -4,7 +4,6 @@
 #include <utils/string.hpp>
 #include <utils/ref.hpp>
 #include <utils/databuffer.hpp>
-#include <utils/console.hpp>
 #include <png/png.hpp>
 #include <csetjmp>
 
@@ -30,7 +29,6 @@ namespace rsbin
 		png_infop m_info;
 		utils::String m_error;
 		jmp_buf m_jmpbuf;
-		utils::SingletonRef< utils::ConsoleClass > m_console;
 
 		static void error_handler( png_structp png, png_const_charp msg );
 		static void warning_handler( png_structp png, png_const_charp msg );
@@ -46,10 +44,8 @@ namespace rsbin
 		PngReader() = delete;
 		PngReader( int format );
 		~PngReader();
-		PngReader( PngReader const& other ) = delete;
-		PngReader( PngReader&& other ) = delete;
-		PngReader& operator=( PngReader const& other ) = delete;
-		PngReader& operator=( PngReader&& other ) = delete;
+		PngReader( PngReader const& ) = delete;
+		PngReader& operator=( PngReader const& ) = delete;
 
 		void feed( int length, void const* buffer );
 		bool isfinished();

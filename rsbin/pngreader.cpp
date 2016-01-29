@@ -1,6 +1,7 @@
 #include "pngreader.hpp"
 #include <utils/strexception.hpp>
 #include <utils/cbase.hpp>
+#include <utils/console.hpp>
 #include <stdexcept>
 #include <cstring>
 
@@ -71,8 +72,7 @@ namespace rsbin
 
 	void PngReader::warning_handler( png_structp png, png_const_charp msg )
 	{
-		PngReader* reader = ( PngReader* )png_get_error_ptr( png );
-		LOG( reader->m_console, "png warning: %s", msg );
+		LOG( "png warning: %s", msg );
 	}
 
 	void PngReader::info_callback(
@@ -132,7 +132,6 @@ namespace rsbin
 		, m_data( nullptr )
 		, m_png( 0 )
 		, m_info( 0 )
-		, m_console( utils::Console )
 	{
 		if( format < 0 || format >= BitmapFormat_Invalid )
 		{

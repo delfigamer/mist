@@ -42,22 +42,22 @@ namespace utils
 		Ref( std::nullptr_t ) noexcept;
 		Ref( T* ref ) noexcept;
 		Ref( T* ref, int ) noexcept;
-		Ref( Ref const& other ) noexcept;
-		Ref( Ref&& other ) noexcept;
+		Ref( Ref< T > const& other ) noexcept;
+		Ref( Ref< T >&& other ) noexcept;
 		~Ref() noexcept;
 		Ref& operator=( std::nullptr_t ) noexcept;
 		Ref& operator=( T* ref ) noexcept;
-		Ref& operator=( Ref const& other ) noexcept;
-		Ref& operator=( Ref&& other ) noexcept;
+		Ref& operator=( Ref< T > const& other ) noexcept;
+		Ref& operator=( Ref< T >&& other ) noexcept;
 		T& operator*() const;
 		T* operator->() const;
 		operator T*() const noexcept;
 
 		template< typename ...Ts >
-		static Ref create( Ts&& ...args );
+		static Ref< T > create( Ts&& ...args );
 	};
 
-	template<>
+	/*template<>
 	class Ref< RefObject >: public RefBase
 	{
 	public:
@@ -77,7 +77,7 @@ namespace utils
 		RefObject& operator*() const;
 		RefObject* operator->() const;
 		operator RefObject*() const noexcept;
-	};
+	};*/
 
 	template< typename T >
 	Ref< T >::Ref() noexcept
@@ -104,14 +104,14 @@ namespace utils
 	}
 
 	template< typename T >
-	Ref< T >::Ref( Ref const& other ) noexcept
+	Ref< T >::Ref( Ref< T > const& other ) noexcept
 		: RefBase( other )
 	{
 	}
 
 	template< typename T >
-	Ref< T >::Ref( Ref&& other ) noexcept
-		: RefBase( std::move( ( RefBase&& )other ) )
+	Ref< T >::Ref( Ref< T >&& other ) noexcept
+		: RefBase( std::move( std::move( ( RefBase&& )other ) ) )
 	{
 	}
 
@@ -135,14 +135,14 @@ namespace utils
 	}
 
 	template< typename T >
-	Ref< T >& Ref< T >::operator=( Ref const& other ) noexcept
+	Ref< T >& Ref< T >::operator=( Ref< T > const& other ) noexcept
 	{
 		RefBase::assign( other );
 		return *this;
 	}
 
 	template< typename T >
-	Ref< T >& Ref< T >::operator=( Ref&& other ) noexcept
+	Ref< T >& Ref< T >::operator=( Ref< T >&& other ) noexcept
 	{
 		RefBase::assign( std::move( ( RefBase&& )other ) );
 		return *this;
@@ -170,7 +170,7 @@ namespace utils
 	template< typename ...Ts >
 	Ref< T > Ref< T >::create( Ts&& ...args )
 	{
-		return Ref( new T( std::forward< Ts >( args )... ), 0 );
+		return Ref< T >( new T( std::forward< Ts >( args )... ), 0 );
 	}
 }
 

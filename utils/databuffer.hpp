@@ -24,10 +24,8 @@ namespace utils
 		virtual ~DataBuffer() override;
 		virtual void destroy() override;
 		DataBuffer() = delete;
-		DataBuffer( DataBuffer const& other ) = delete;
-		DataBuffer( DataBuffer&& other ) = delete;
-		DataBuffer& operator=( DataBuffer const& other ) = delete;
-		DataBuffer& operator=( DataBuffer&& other ) = delete;
+		DataBuffer( DataBuffer const& ) = delete;
+		DataBuffer& operator=( DataBuffer const& ) = delete;
 	};
 
 	DataBuffer* utils_databuffer_new(

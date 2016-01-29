@@ -5,7 +5,6 @@
 #include <utils/cyclicbuffer.hpp>
 #include <utils/ref.hpp>
 #include <utils/databuffer.hpp>
-#include <utils/console.hpp>
 #include <png/png.hpp>
 #include <csetjmp>
 
@@ -33,7 +32,6 @@ namespace rsbin
 		png_infop m_info;
 		utils::String m_error;
 		jmp_buf m_jmpbuf;
-		utils::SingletonRef< utils::ConsoleClass > m_console;
 
 		static void error_handler(
 			png_structp png, png_const_charp msg );
@@ -53,10 +51,8 @@ namespace rsbin
 			int format, int width, int height,
 			utils::DataBuffer* data );
 		~PngWriter();
-		PngWriter( PngWriter const& other ) = delete;
-		PngWriter( PngWriter&& other ) = delete;
-		PngWriter& operator=( PngWriter const& other ) = delete;
-		PngWriter& operator=( PngWriter&& other ) = delete;
+		PngWriter( PngWriter const& ) = delete;
+		PngWriter& operator=( PngWriter const& ) = delete;
 
 		void grab( int length, void* buffer, int* result );
 		bool isfinished();

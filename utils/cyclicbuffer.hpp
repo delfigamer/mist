@@ -17,6 +17,8 @@ namespace utils
 		CyclicBuffer();
 		CyclicBuffer( int size );
 		~CyclicBuffer();
+		CyclicBuffer( CyclicBuffer const& ) = delete;
+		CyclicBuffer& operator=( CyclicBuffer const& ) = delete;
 
 		void grow( int minsize );
 		int push_fit( int length, void const* buffer );

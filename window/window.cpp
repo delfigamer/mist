@@ -4,6 +4,7 @@
 #include <utils/profile.hpp>
 #include <utils/encoding.hpp>
 #include <utils/cbase.hpp>
+#include <osapi.hpp>
 #include <cstdlib>
 #include <cstdio>
 
@@ -15,14 +16,12 @@ namespace window
 #define marker() /* LOG( m_console, "-" ) */ ( void )( 0 )
 
 #if defined( _WIN32 ) || defined( _WIN64 )
-#define PATH ".\\"
 #define PLATFORM "win"
 #elif defined(__ANDROID__)
-#define PATH "/storage/sdcard0/projects/output/"
 #define PLATFORM "android"
 #endif
-#define MAINCONFIG_PATH PATH "main.lc"
-#define MAINCONFIG_STR "_PLATFORM = '" PLATFORM "'; _PATH = [[" PATH "]]"
+#define MAINCONFIG_PATH PATH_START "main.lc"
+#define MAINCONFIG_STR "_PLATFORM = '" PLATFORM "'; _PATH = [[" PATH_START "]]"
 
 	void CriticalError(
 		char const* file, char const* function, int line,
@@ -73,7 +72,7 @@ namespace window
 		HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 	{
 		Window* window = ( Window* )GetClassLongPtr( hwnd, 0 );
-		if( !Errored && ( !window || (window->m_hwnd != hwnd ) ) )
+		if( !Errored && ( !window || ( window->m_hwnd != hwnd ) ) )
 		{
 			return DefWindowProcW( hwnd, uMsg, wParam, lParam );
 		}
@@ -176,7 +175,6 @@ namespace window
 		, m_cmdline( wcd.cmdline )
 		, m_lstateready( false )
 		, m_finished( false )
-		, m_console( utils::Console )
 	{
 		marker();
 		m_mainconfig.runcmd( m_cmdline );
@@ -409,7 +407,6 @@ namespace window
 		, m_cmdline( wcd.cmdline )
 		, m_lstateready( false )
 		, m_finished( false )
-		, m_console( utils::Console )
 	{
 		marker();
 		m_mainconfig.runcmd( m_cmdline );
@@ -555,6 +552,32 @@ namespace window
 	)
 	}
 
+	struct PointEventData
+	{
+		char const* event;
+		int point;
+		int x;
+		int y;
+	};
+
+	struct KeyEventData
+	{
+		char const* event;
+		int key;
+	};
+
+	struct CharEventData
+	{
+		char const* event;
+		int ch;
+	};
+
+	struct InitEventData
+	{
+		Window* window;
+		utils::String bootscript;
+	};
+
 	void Window::pointevent(
 		char const* event, int point, int x, int y )
 	{
@@ -562,41 +585,8 @@ namespace window
 		{
 			return;
 		}
-		struct Msg
-		{
-			char const* event;
-			int point;
-			int x;
-			int y;
-
-			static void action( void* vself, lua_State* L, utils::String* error )
-			{
-			PROFILE( "pointevent",
-				Msg* self = ( Msg* )vself;
-				lua_pushvalue( L, 1 );
-				lua_pushstring( L, self->event );
-				lua_pushinteger( L, self->point );
-				int callresult;
-				if( self->x >= 0 && self->y >= 0 )
-				{
-					lua_pushinteger( L, self->x );
-					lua_pushinteger( L, self->y );
-					callresult = lua_pcall( L, 4, 0, 0 );
-				}
-				else
-				{
-					callresult = lua_pcall( L, 2, 0, 0 );
-				}
-				if( callresult != 0 )
-				{
-					*error = lua_retrieveerror( L );
-				}
-				delete self;
-			)
-			}
-		};
-		Msg* msg = new Msg{ event, point, x, y };
-		m_lstate.schedule( &Msg::action, msg );
+		PointEventData* edata = new PointEventData{ event, point, x, y };
+		m_lstate.schedule( &Window::pointaction, edata );
 	}
 
 	void Window::keyevent( char const* event, int key )
@@ -605,28 +595,8 @@ namespace window
 		{
 			return;
 		}
-		struct Msg
-		{
-			char const* event;
-			int key;
-
-			static void action( void* vself, lua_State* L, utils::String* error )
-			{
-			PROFILE( "keyevent",
-				Msg* self = ( Msg* )vself;
-				lua_pushvalue( L, 1 );
-				lua_pushstring( L, self->event );
-				lua_pushinteger( L, self->key );
-				if( lua_pcall( L, 2, 0, 0 ) != 0 )
-				{
-					*error = lua_retrieveerror( L );
-				}
-				delete self;
-			)
-			}
-		};
-		Msg* msg = new Msg{ event, key };
-		m_lstate.schedule( &Msg::action, msg );
+		KeyEventData* edata = new KeyEventData{ event, key };
+		m_lstate.schedule( &Window::keyaction, edata );
 	}
 
 	void Window::charevent( char const* event, int ch )
@@ -635,35 +605,8 @@ namespace window
 		{
 			return;
 		}
-		struct Msg
-		{
-			char const* event;
-			int ch;
-
-			static void action( void* vself, lua_State* L, utils::String* error )
-			{
-			PROFILE( "charevent",
-				Msg* self = ( Msg* )vself;
-				char buffer[ 5 ];
-				size_t pointsize;
-				if( utils::encoding::utf8.encode(
-					buffer, self->ch, sizeof( buffer ) - 1, &pointsize ) )
-				{
-					buffer[ pointsize ] = 0;
-					lua_pushvalue( L, 1 );
-					lua_pushstring( L, self->event );
-					lua_pushstring( L, buffer );
-					if( lua_pcall( L, 2, 0, 0 ) != 0 )
-					{
-						*error = lua_retrieveerror( L );
-					}
-				}
-				delete self;
-			)
-			}
-		};
-		Msg* msg = new Msg{ event, ch };
-		m_lstate.schedule( &Msg::action, msg );
+		CharEventData* edata = new CharEventData{ event, ch };
+		m_lstate.schedule( &Window::charaction, edata );
 	}
 
 	void Window::notifyevent( char const* event )
@@ -672,72 +615,28 @@ namespace window
 		{
 			return;
 		}
-		struct Msg
-		{
-			static void action( void* vevent, lua_State* L, utils::String* error )
-			{
-			PROFILE( "notifyevent",
-				lua_pushvalue( L, 1 );
-				lua_pushstring( L, ( char const* )vevent );
-				if( lua_pcall( L, 1, 0, 0 ) != 0 ) {
-					*error = lua_retrieveerror( L );
-				}
-			)
-			}
-		};
-		m_lstate.schedule( &Msg::action, ( void* )event );
+		m_lstate.schedule( &Window::notifyaction, ( void* )event );
 	}
 
 	void Window::initlstate()
 	{
 		utils::String bootscript = m_mainconfig.string(
 			"bootscript" );
-		LOG( m_console, "~ Boot script location: %s", bootscript.getchars() );
+		LOG( "~ Boot script location: %s", bootscript.getchars() );
 		if( bootscript )
 		{
 			m_lstate.applyconfig( m_mainconfig );
-			struct Msg
-			{
-				Window* window;
-				utils::String bootscript;
-				static void action(
-					void* vself, lua_State* L, utils::String* error )
-				{
-					Msg* self = ( Msg* )vself;
-					lua_settop( L, 0 );
-					luaL_openlibs( L );
-					if( luaL_loadfile( L, self->bootscript ) != 0 )
-					{
-						*error = lua_retrieveerror( L );
-						self->window->m_finished = true;
-						delete self;
-						return;
-					}
-					lua_pushlightuserdata( L, self->window );
-					lua_pushlightuserdata( L, gethostmethodlist() );
-					lua_pushstring( L, PATH );
-					lua_pushstring( L, MAINCONFIG_STR );
-					if( lua_pcall( L, 4, 1, 0 ) != 0 )
-					{
-						*error = lua_retrieveerror( L );
-						self->window->m_finished = true;
-					}
-					delete self;
-				}
-			};
-			Msg* msg = new Msg{ this, bootscript };
-			m_lstate.schedule( &Msg::action, msg );
+			InitEventData* edata = new InitEventData{ this, bootscript };
+			m_lstate.schedule( &Window::initaction, edata );
 		}
 		else
 		{
-			CriticalError_m( "bootscript undefined" );
+			CriticalError_m( "boot script is not specified" );
 		}
 		m_lstateready = true;
 		m_timeoffset = clock();
 		m_tpstime = clock() + CLOCKS_PER_SEC;
-		m_lstate.setdefaultaction(
-			&AsyncLuaState::action_t::bind_method< Window, &Window::ticklstate >,
-			this );
+		m_lstate.setdefaultaction( &Window::defaultaction, this );
 	}
 
 	void Window::closelstate()
@@ -746,31 +645,128 @@ namespace window
 		{
 			return;
 		}
-		struct Msg
-		{
-			static void action( void* vself, lua_State* L, utils::String* error )
-			{
-				marker();
-				lua_pushvalue( L, 1 );
-				lua_pushstring( L, "destroy" );
-				if( lua_pcall( L, 1, 0, 0 ) != 0 )
-				{
-					*error = lua_retrieveerror( L );
-				}
-				marker();
-			}
-		};
 		marker();
 		m_lstateready = false;
 		m_lstate.setdefaultaction();
-		m_lstate.schedule( &Msg::action );
+		m_lstate.schedule( &Window::closeaction );
 		m_lstate.join();
 		marker();
 	}
 
-	void Window::ticklstate( lua_State* L, utils::String* error )
+	void Window::pointaction( void* vedata, lua_State* L, utils::String* error )
 	{
-		if( m_lstateready )
+	PROFILE( "pointevent",
+		PointEventData* edata = ( PointEventData* )vedata;
+		lua_pushvalue( L, 1 );
+		lua_pushstring( L, edata->event );
+		lua_pushinteger( L, edata->point );
+		int callresult;
+		if( edata->x >= 0 && edata->y >= 0 )
+		{
+			lua_pushinteger( L, edata->x );
+			lua_pushinteger( L, edata->y );
+			callresult = lua_pcall( L, 4, 0, 0 );
+		}
+		else
+		{
+			callresult = lua_pcall( L, 2, 0, 0 );
+		}
+		if( callresult != 0 )
+		{
+			*error = lua_retrieveerror( L );
+		}
+		delete edata;
+	)
+	}
+
+	void Window::keyaction( void* vedata, lua_State* L, utils::String* error )
+	{
+	PROFILE( "keyevent",
+		KeyEventData* edata = ( KeyEventData* )vedata;
+		lua_pushvalue( L, 1 );
+		lua_pushstring( L, edata->event );
+		lua_pushinteger( L, edata->key );
+		if( lua_pcall( L, 2, 0, 0 ) != 0 )
+		{
+			*error = lua_retrieveerror( L );
+		}
+		delete edata;
+	)
+	}
+
+	void Window::charaction( void* vedata, lua_State* L, utils::String* error )
+	{
+	PROFILE( "charevent",
+		CharEventData* edata = ( CharEventData* )vedata;
+		char buffer[ 5 ];
+		size_t pointsize;
+		if( utils::encoding::utf8.encode(
+			buffer, edata->ch, sizeof( buffer ) - 1, &pointsize ) )
+		{
+			buffer[ pointsize ] = 0;
+			lua_pushvalue( L, 1 );
+			lua_pushstring( L, edata->event );
+			lua_pushstring( L, buffer );
+			if( lua_pcall( L, 2, 0, 0 ) != 0 )
+			{
+				*error = lua_retrieveerror( L );
+			}
+		}
+		delete edata;
+	)
+	}
+
+	void Window::notifyaction( void* vedata, lua_State* L, utils::String* error )
+	{
+	PROFILE( "notifyevent",
+		lua_pushvalue( L, 1 );
+		lua_pushstring( L, ( char const* )vedata );
+		if( lua_pcall( L, 1, 0, 0 ) != 0 ) {
+			*error = lua_retrieveerror( L );
+		}
+	)
+	}
+
+	void Window::initaction( void* vedata, lua_State* L, utils::String* error )
+	{
+		InitEventData* edata = ( InitEventData* )vedata;
+		lua_settop( L, 0 );
+		luaL_openlibs( L );
+		if( luaL_loadfile( L, edata->bootscript ) != 0 )
+		{
+			*error = lua_retrieveerror( L );
+			edata->window->m_finished = true;
+			delete edata;
+			return;
+		}
+		lua_pushlightuserdata( L, edata->window );
+		lua_pushlightuserdata( L, gethostmethodlist() );
+		lua_pushstring( L, PATH_START );
+		lua_pushstring( L, MAINCONFIG_STR );
+		if( lua_pcall( L, 4, 1, 0 ) != 0 )
+		{
+			*error = lua_retrieveerror( L );
+			edata->window->m_finished = true;
+		}
+		delete edata;
+	}
+
+	void Window::closeaction( void* vedata, lua_State* L, utils::String* error )
+	{
+		marker();
+		lua_pushvalue( L, 1 );
+		lua_pushstring( L, "destroy" );
+		if( lua_pcall( L, 1, 0, 0 ) != 0 )
+		{
+			*error = lua_retrieveerror( L );
+		}
+		marker();
+	}
+
+	void Window::defaultaction( void* vedata, lua_State* L, utils::String* error )
+	{
+		Window* self = ( Window* )vedata;
+		if( self->m_lstateready )
 		{
 		// PROFILE( "tick",
 			marker();
@@ -783,19 +779,19 @@ namespace window
 			lua_pushstring( L, "tick" );
 			lua_pushnumber(
 				L,
-				float( time - m_timeoffset ) / CLOCKS_PER_SEC );
+				float( time - self->m_timeoffset ) / CLOCKS_PER_SEC );
 			if( lua_pcall( L, 2, 0, 0 ) != 0 )
 			{
 				*error = lua_retrieveerror( L );
 			}
-			m_timeoffset = time;
-			m_tpscounter += 1;
+			self->m_timeoffset = time;
+			self->m_tpscounter += 1;
 			time = clock();
-			if( time > m_tpstime )
+			if( time > self->m_tpstime )
 			{
-				m_tps = m_tpscounter;
-				m_tpscounter = 0;
-				m_tpstime = time + CLOCKS_PER_SEC;
+				self->m_tps = self->m_tpscounter;
+				self->m_tpscounter = 0;
+				self->m_tpstime = time + CLOCKS_PER_SEC;
 			}
 			marker();
 		// )

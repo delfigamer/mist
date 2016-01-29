@@ -155,8 +155,8 @@ function gmeta:__newindex(key, value)
 		end
 		local info = debug.getinfo(2, 'nSl')
 		local str = string.format(
-			'[%48s:%24s@%4i]\t_G[%s] = %s',
-			info.short_src, info.name or '', info.currentline, kstr, value)
+			'[%73s:%4i]\t_G[%s] = %s',
+			info.short_src, info.currentline, kstr, value)
 		print(str)
 	end
 	rawset(_G, key, value)
@@ -199,8 +199,8 @@ end
 function log(...)
 	local info = debug.getinfo(2, 'nSl')
 	local str = string.format(
-		'[%48s:%24s@%4i]',
-		info.short_src, info.name or '', info.currentline)
+		'[%73s:%4i]',
+		info.short_src, info.currentline)
 	print(str, ...)
 end
 

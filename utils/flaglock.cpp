@@ -5,7 +5,7 @@ namespace utils
 {
 	FlagLock::FlagLock()
 	{
-		m_flag.clear();
+		m_flag.clear( std::memory_order_release );
 	}
 
 	FlagLock::~FlagLock()
@@ -14,14 +14,13 @@ namespace utils
 
 	void FlagLock::lock() noexcept
 	{
-		while( m_flag.test_and_set( std::memory_order_seq_cst ) )
+		while( m_flag.test_and_set( std::memory_order_acquire ) )
 		{
-			std::this_thread::yield();
 		}
 	}
 
 	void FlagLock::unlock() noexcept
 	{
-		m_flag.clear( std::memory_order_seq_cst );
+		m_flag.clear( std::memory_order_release );
 	}
 }

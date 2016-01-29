@@ -28,12 +28,11 @@ namespace utils
 		Path( Path&& other );
 		virtual ~Path();
 		Path& operator=( Path const& other ) = delete;
-		Path& operator=( Path&& other ) = delete;
 
 		char_t const* combine();
 
 	public:
-		static Ref< Path > create( void const* path, Path* base = 0 );
+		static Ref< Path > create( void const* path );
 	};
 }
 

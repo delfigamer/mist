@@ -3,7 +3,8 @@
 #include <cstdio>
 #include <cstdarg>
 
-namespace utils {
+namespace utils
+{
 	StrException::StrException()
 	{
 	}
@@ -22,7 +23,7 @@ namespace utils {
 		m_message.m_payload = buffer;
 	}
 
-	StrException::StrException( utils::String const& message )
+	StrException::StrException( String const& message )
 		: m_message( message )
 	{
 	}

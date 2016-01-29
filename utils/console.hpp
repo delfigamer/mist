@@ -2,13 +2,8 @@
 #define UTILS_CONSOLE_HPP__ 1
 
 #include "singleton.hpp"
-#if defined( _WIN32 ) || defined( _WIN64 )
-#include "winapi.hpp"
-#endif
-#include <cstdio>
 #include <cstdarg>
 #include <mutex>
-
 #if defined( getchar )
 #undef getchar
 #endif
@@ -23,12 +18,12 @@ namespace utils
 
 	private:
 		mutex_t m_mutex;
-		FILE* m_file;
+		void* m_file;
 		bool m_newline;
 #if defined( _WIN32 ) || defined( _WIN64 )
-		HANDLE m_inputhandle;
+		void* m_inputhandle;
 		bool m_inputisconsole;
-		HANDLE m_outputhandle;
+		void* m_outputhandle;
 		bool m_outputisconsole;
 #endif
 
@@ -40,9 +35,7 @@ namespace utils
 		ConsoleClass();
 		~ConsoleClass();
 		ConsoleClass( ConsoleClass const& ) = delete;
-		ConsoleClass( ConsoleClass&& ) = delete;
 		ConsoleClass& operator=( ConsoleClass const& ) = delete;
-		ConsoleClass& operator=( ConsoleClass&& ) = delete;
 
 		void writeraw( char const* str );
 		__attribute__(( __format__( gnu_printf, 2, 0 ) ))
@@ -63,9 +56,9 @@ namespace utils
 	extern utils::Singleton< ConsoleClass > Console;
 }
 
-#define LOG( conref, format, ... ) \
-	conref->writeln( \
-		"[%48s:%24s@%4i]\t" format, \
-		__FILE__, __FUNCTION__, __LINE__, ##__VA_ARGS__ )
+#define LOG( format, ... ) \
+	utils::Console->writeln( \
+		"[%73s:%4i]\t" format, \
+		__FILE__, __LINE__, ##__VA_ARGS__ )
 
 #endif

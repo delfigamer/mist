@@ -5,7 +5,8 @@
 #include <atomic>
 #include <utility>
 
-namespace utils {
+namespace utils
+{
 	// Multiple-producers-single-consumer queue
 	// push operation is atomic
 	// pop and peek operations are not thread-safe
@@ -38,10 +39,8 @@ namespace utils {
 		MPSCQueueBase( int datasize );
 		~MPSCQueueBase();
 		MPSCQueueBase( const MPSCQueueBase& other ) = delete;
-		MPSCQueueBase( MPSCQueueBase&& other ) = delete;
 		MPSCQueueBase& operator=(
-			const MPSCQueueBase& other ) = delete;
-		MPSCQueueBase& operator=( MPSCQueueBase&& other ) = delete;
+			const MPSCQueueBase& ) = delete;
 
 		// bool isempty();
 	};
@@ -53,17 +52,20 @@ namespace utils {
 		typedef T value_type;
 
 	public:
-		MPSCQueue() : MPSCQueueBase( sizeof( value_type ) ) {}
+		MPSCQueue()
+			: MPSCQueueBase( sizeof( value_type ) )
+		{
+		}
+		
 		~MPSCQueue()
 		{
 			while( pop() )
 			{
 			}
 		}
-		MPSCQueue( const MPSCQueue& other ) = delete;
-		MPSCQueue( MPSCQueue&& other ) = delete;
-		MPSCQueue& operator=( const MPSCQueue& other ) = delete;
-		MPSCQueue& operator=( MPSCQueue&& other ) = delete;
+		
+		MPSCQueue( const MPSCQueue& ) = delete;
+		MPSCQueue& operator=( const MPSCQueue& ) = delete;
 
 		template< typename... Ts >
 		void push( Ts&&... args )

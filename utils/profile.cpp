@@ -1,14 +1,15 @@
 #include "profile.hpp"
+#include "console.hpp"
 #include <cstdio>
 
-namespace utils {
+namespace utils
+{
 	Profiler::Profiler( char const* name )
 		: m_time( 0 )
 		, m_min( uint32_t( 0xffffffff ) )
 		, m_max( 0 )
 		, m_count( 0 )
 		, m_name( name )
-		, m_console( Console )
 	{
 		m_aflag.clear();
 	}
@@ -18,7 +19,7 @@ namespace utils {
 		if( m_count > 0 )
 		{
 			int avg = int32_t( ( ( m_time << 1 ) + m_count ) / ( m_count << 1 ) );
-			m_console->writeln(
+			Console->writeln(
 				"[%78s]\tavg: %4i.%.6ims, min: %4i.%.6ims, max: %4i.%.6ims (%i %s)",
 				m_name,
 				avg / 1000000, avg % 1000000,
@@ -28,7 +29,7 @@ namespace utils {
 		}
 		else
 		{
-			m_console->writeln( "[%78s]\tprofile data never sampled", m_name );
+			Console->writeln( "[%78s]\tprofile data never sampled", m_name );
 		}
 	}
 #ifdef __i386__

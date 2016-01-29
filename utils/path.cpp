@@ -2,21 +2,11 @@
 #if defined( _WIN32 ) || defined( _WIN64 )
 #include "encoding.hpp"
 #endif
+#include <osapi.hpp>
 #include <cstring>
-#if defined( _WIN32 ) || defined( _WIN64 )
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN 1
-#endif
-#include <windows.h>
-#endif
 
 namespace utils
 {
-#if defined( _WIN32 ) || defined( _WIN64 )
-#define PATH_SEP '\\'
-#else
-#define PATH_SEP '/'
-#endif
 	Path::Path( DataBuffer* target, Path* base )
 		: m_target( target )
 		, m_base( base )
@@ -97,6 +87,9 @@ namespace utils
 			defaultbase = Ref< Path >::create( db, nullptr );
 			defaultbase->combine();
 #else
+			static char const path[] = PATH_START;
+			Ref< DataBuffer > db = DataBuffer::create( sizeof( path ) - 2, sizeof( path ) - 2, path );
+			defaultbase = Ref< Path >::create( db, nullptr );
 #endif
 		}
 		return defaultbase;
@@ -189,9 +182,9 @@ namespace utils
 		return false;
 	}
 
-	Ref< Path > Path::create( void const* path, Path* base )
+	Ref< Path > Path::create( void const* path )
 	{
-		Ref< Path > current = base ? base : getdefaultbase();
+		Ref< Path > current = getdefaultbase();
 		uint8_t const* pathb = ( uint8_t const* )path;
 #if defined( _WIN32 ) || defined( _WIN64 )
 		if( pathb[ 0 ] == 0xff && pathb[ 1 ] == 0xfe )

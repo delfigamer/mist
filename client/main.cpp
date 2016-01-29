@@ -66,8 +66,7 @@ void android_main( android_app* app )
 #if defined(__ANDROID__)
 	app_dummy();
 #endif
-	utils::SingletonRef< utils::ConsoleClass > console( utils::Console );
-	LOG( console, "~ Application start" );
+	LOG( "~ Application start" );
 	window::WindowCreationData wcd;
 	try
 	{
@@ -101,15 +100,15 @@ void android_main( android_app* app )
 		wcd.app = app;
 		wcd.cmdline = 0;
 #endif
-		LOG( console, "Command line: \"%s\"", wcd.cmdline.getchars() );
+		LOG( "Command line: \"%s\"", wcd.cmdline.getchars() );
 		window::Window mainwindow( wcd );
 		mainwindow.mainloop();
 	}
 	catch( const std::exception& e )
 	{
-		LOG( console, "! Critical error: %s", e.what() );
+		utils::Console->writeln( "! Critical error: %s", e.what() );
 	}
-	LOG( console, "~ Application end" );
+	LOG( "~ Application end" );
 #if defined( _WIN32 ) || defined( _WIN64 )
 	return 0;
 #elif defined(__ANDROID__)

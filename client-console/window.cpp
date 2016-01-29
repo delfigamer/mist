@@ -4,6 +4,8 @@
 #include <utils/profile.hpp>
 #include <utils/encoding.hpp>
 #include <utils/cbase.hpp>
+#include <utils/console.hpp>
+#include <osapi.hpp>
 #include <cstdlib>
 #include <cstdio>
 
@@ -15,14 +17,12 @@ namespace window
 #define marker() /* LOG( m_console, "-" ) */ ( void )( 0 )
 
 #if defined( _WIN32 ) || defined( _WIN64 )
-#define PATH ".\\"
 #define PLATFORM "win"
 #elif defined(__ANDROID__)
-#define PATH "/storage/sdcard0/projects/output/"
 #define PLATFORM "android"
 #endif
-#define MAINCONFIG_PATH PATH "main.lc"
-#define MAINCONFIG_STR "_PLATFORM = '" PLATFORM "'; _CONSOLE = true; _PATH = [[" PATH "]]"
+#define MAINCONFIG_PATH PATH_START "main.lc"
+#define MAINCONFIG_STR "_PLATFORM = '" PLATFORM "'; _CONSOLE = true; _PATH = [[" PATH_START "]]"
 
 	void CriticalError(
 		char const* file, char const* function, int line,
@@ -52,7 +52,6 @@ namespace window
 		: m_mainconfig( MAINCONFIG_PATH, MAINCONFIG_STR )
 		, m_cmdline( wcd.cmdline )
 		, m_lstate( 0 )
-		, m_console( utils::Console )
 	{
 		marker();
 		m_mainconfig.runcmd( m_cmdline );
@@ -92,7 +91,7 @@ namespace window
 	{
 		utils::String bootscript = m_mainconfig.string(
 			"bootscript" );
-		LOG( m_console, "~ Boot script location: %s", bootscript.getchars() );
+		LOG( "~ Boot script location: %s", bootscript.getchars() );
 		if( bootscript )
 		{
 			m_lstate = luaL_newstate();
@@ -104,7 +103,7 @@ namespace window
 			}
 			lua_pushlightuserdata( m_lstate, this );
 			lua_pushlightuserdata( m_lstate, gethostmethodlist() );
-			lua_pushstring( m_lstate, PATH );
+			lua_pushstring( m_lstate, PATH_START );
 			lua_pushstring( m_lstate, MAINCONFIG_STR );
 			if( lua_pcall( m_lstate, 4, 0, 0 ) != 0 )
 			{

@@ -1,6 +1,7 @@
 #include "pngwriter.hpp"
 #include <utils/strexception.hpp>
 #include <utils/cbase.hpp>
+#include <utils/console.hpp>
 #include <stdexcept>
 #include <cinttypes>
 
@@ -38,8 +39,7 @@ namespace rsbin
 	void PngWriter::warning_handler(
 		png_structp png, png_const_charp msg )
 	{
-		PngWriter* writer = ( PngWriter* )png_get_error_ptr( png );
-		LOG( writer->m_console, "png warning: %s", msg );
+		LOG( "png warning: %s", msg );
 	}
 
 	void PngWriter::write_callback(
@@ -127,7 +127,6 @@ namespace rsbin
 		, m_data( data )
 		, m_png( 0 )
 		, m_info( 0 )
-		, m_console( utils::Console )
 	{
 		if( format < 0 || format >= BitmapFormat_Invalid )
 		{

@@ -22,8 +22,7 @@ namespace utils
 	{
 // 		LOG( "((RefObject*) %" PRIPTR ")->RefObject()", uintptr_t( this ) );
 #ifdef COUNT_OBJECTS
-		LOG( Console.get(),
-			"   new refobject %" PRIPTR ", utils::rocount = %i",
+		LOG( "   new refobject %" PRIPTR ", utils::rocount = %i",
 			uintptr_t( this ),
 			rocount.fetch_add( 1, std::memory_order_relaxed ) + 1 );
 #endif
@@ -34,8 +33,7 @@ namespace utils
 	{
 // 		LOG( "((RefObject*) %" PRIPTR ")->RefObject()", uintptr_t( this ) );
 #ifdef COUNT_OBJECTS
-		LOG( Console.get(),
-			"   new refobject %" PRIPTR ", utils::rocount = %i",
+		LOG( "   new refobject %" PRIPTR ", utils::rocount = %i",
 			uintptr_t( this ),
 			rocount.fetch_add( 1, std::memory_order_relaxed ) + 1 );
 #endif
@@ -46,8 +44,7 @@ namespace utils
 	{
 // 		LOG( "((RefObject*) %" PRIPTR ")->RefObject()", uintptr_t( this ) );
 #ifdef COUNT_OBJECTS
-		LOG( Console.get(),
-			"   new refobject %" PRIPTR ", utils::rocount = %i",
+		LOG( "   new refobject %" PRIPTR ", utils::rocount = %i",
 			uintptr_t( this ),
 			rocount.fetch_add( 1, std::memory_order_relaxed ) + 1 );
 #endif
@@ -57,12 +54,9 @@ namespace utils
 	{
 // 		LOG( "((RefObject*) %" PRIPTR ")->~RefObject()", uintptr_t( this ) );
 #ifdef COUNT_OBJECTS
-		LOG( Console.get(),
-			"delete refobject %" PRIPTR ", utils::rocount = %i",
+		LOG( "delete refobject %" PRIPTR ", utils::rocount = %i",
 			uintptr_t( this ),
 			rocount.fetch_sub( 1, std::memory_order_relaxed ) - 1 );
-		Console.release();
-		Console.release();
 #endif
 	}
 

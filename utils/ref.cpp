@@ -153,7 +153,7 @@ namespace utils
 		return !( *this == other );
 	}
 
-	Ref< RefObject >::Ref() noexcept
+	/*Ref< RefObject >::Ref() noexcept
 		: RefBase()
 	{
 	}
@@ -235,5 +235,5 @@ namespace utils
 	Ref< RefObject >::operator RefObject*() const noexcept
 	{
 		return RefBase::get();
-	}
+	}*/
 }

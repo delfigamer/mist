@@ -1,25 +1,12 @@
 #include "fileio.hpp"
-#include <utils/strexception.hpp>
+#include "fsthread.hpp"
 #include <utils/ref.hpp>
 #include <utils/path.hpp>
 #include <utils/cbase.hpp>
+#include <osapi.hpp>
 #include <thread>
 #include <stdexcept>
 #include <exception>
-#if defined( _WIN32 ) || defined( _WIN64 )
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN 1
-#endif
-#include <windows.h>
-#include <unordered_map>
-#elif defined( __ANDROID__ )
-#include <cerrno>
-#include <sys/mman.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <fcntl.h>
-#include <unistd.h>
-#endif
 
 namespace rsbin
 {
@@ -65,26 +52,6 @@ namespace rsbin
 			OPEN_ALWAYS,
 		},
 	};
-
-	static void WinError()
-	{
-		DWORD LastError = GetLastError();
-		if( !LastError )
-		{
-			throw std::runtime_error( "unknown Win32 error" );
-		}
-		char StrBuffer[ 1024 ];
-		FormatMessage(
-			FORMAT_MESSAGE_FROM_SYSTEM |
-				FORMAT_MESSAGE_MAX_WIDTH_MASK,
-			0,
-			LastError,
-			MAKELANGID( LANG_ENGLISH, SUBLANG_ENGLISH_US ),
-			StrBuffer,
-			sizeof( StrBuffer ) - 1,
-			0 );
-		throw utils::StrException( "%s", StrBuffer );
-	}
 #elif defined( __ANDROID__ )
 	struct FileParameters
 	{
@@ -114,16 +81,9 @@ namespace rsbin
 			S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH,
 		},
 	};
-
-	static void SysError()
-	{
-		throw utils::StrException( "%s", strerror( errno ) );
-	}
 #endif
 	FileIo::FileIo( char const* path, int mode )
 		: m_handle( 0 )
-		, m_console( utils::Console )
-		, m_fsthread( FsThread )
 	{
 		if( mode < 0 || mode >= int( sizeof( fp_map ) / sizeof( fp_map[ 0 ] ) ) )
 		{
@@ -132,7 +92,6 @@ namespace rsbin
 		utils::Ref< utils::Path > upath = utils::Path::create( path );
 		FileParameters* fp = &fp_map[ mode ];
 #if defined( _WIN32 ) || defined( _WIN64 )
-		FileParameters* fp = &fp_map[ mode ];
 		m_handle = ( void* )CreateFileW(
 			upath->combine(),
 			fp->desiredaccess,
@@ -143,7 +102,7 @@ namespace rsbin
 			0 );
 		if( ( HANDLE )m_handle == INVALID_HANDLE_VALUE )
 		{
-			WinError();
+			syserror();
 		}
 		if( mode == FileMode_Read )
 		{
@@ -169,7 +128,7 @@ namespace rsbin
 				0 );
 			if( m_mapping == 0 )
 			{
-				WinError();
+				syserror();
 			}
 			m_view = ( uint8_t* )MapViewOfFile(
 				m_mapping,
@@ -186,14 +145,14 @@ namespace rsbin
 		m_handle = open( upath->combine(), fp->flags, fp->createmode );
 		if( m_handle == -1 )
 		{
-			SysError();
+			syserror();
 		}
-		if( mode == FileMode_Read )
+		/*if( mode == FileMode_Read )
 		{
 			struct stat filestat;
 			if( fstat( m_handle, &filestat ) == -1 )
 			{
-				SysError();
+				syserror();
 			}
 			m_viewsize = filestat.st_size;
 			if( m_viewsize > MaxViewSize )
@@ -201,7 +160,8 @@ namespace rsbin
 				m_viewsize = MaxViewSize;
 			}
 		}
-		else
+		else*/
+		// Memory-mapping doesn't seem to work on Android
 		{
 			m_viewsize = 0;
 		}
@@ -210,7 +170,7 @@ namespace rsbin
 			m_view = ( uint8_t* )mmap( 0, m_viewsize, PROT_READ, 0, m_handle, 0 );
 			if( m_view == ( uint8_t* )-1 )
 			{
-				SysError();
+				syserror();
 			}
 		}
 		else
@@ -260,7 +220,7 @@ namespace rsbin
 		task->m_buffer = ( uint8_t* )buffer;
 		task->m_direction = IoActionRead;
 		task->m_result = 0;
-		m_fsthread->pushmain( task );
+		FsThread->pushmain( task );
 		return task;
 	}
 
@@ -273,7 +233,7 @@ namespace rsbin
 		task->m_buffer = ( uint8_t* )buffer;
 		task->m_direction = IoActionWrite;
 		task->m_result = 0;
-		m_fsthread->pushmain( task );
+		FsThread->pushmain( task );
 		return task;
 	}
 
@@ -286,7 +246,7 @@ namespace rsbin
 		task->m_buffer = 0;
 		task->m_direction = IoActionTruncate;
 		task->m_result = 0;
-		m_fsthread->pushhigh( task );
+		FsThread->pushhigh( task );
 		while( !task->m_finished.load( std::memory_order_acquire ) )
 		{
 			std::this_thread::yield();
@@ -317,10 +277,10 @@ namespace rsbin
 	)
 	}
 
-	bool rsbin_fileio_setsize( FileIo* fileio, uint64_t size ) noexcept
+	bool rsbin_fileio_setsize( FileIo* io, uint64_t size ) noexcept
 	{
 	CBASE_PROTECT(
-		fileio->setsize( size );
+		io->setsize( size );
 		return 1;
 	)
 	}

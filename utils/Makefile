@@ -22,7 +22,6 @@ OBJS = \
 	cbase$(TARGET_SUFFIX).o \
 	configset$(TARGET_SUFFIX).o \
 	console$(TARGET_SUFFIX).o \
-	counterlock$(TARGET_SUFFIX).o \
 	cyclicbuffer$(TARGET_SUFFIX).o \
 	databuffer$(TARGET_SUFFIX).o \
 	encoding$(TARGET_SUFFIX).o \
@@ -35,10 +34,6 @@ OBJS = \
 	refobject$(TARGET_SUFFIX).o \
 	strexception$(TARGET_SUFFIX).o \
 	string$(TARGET_SUFFIX).o
-ifeq ($(OS),Windows_NT)
-OBJS += \
-	winapi$(TARGET_SUFFIX).o
-endif
 
 $(TARGET): $(OBJS)
 		$(AR) -rcs $@ $^

@@ -1,7 +1,6 @@
 #ifndef UTILS_PROFILE_HPP__
 #define UTILS_PROFILE_HPP__ 1
 
-#include "console.hpp"
 #include <atomic>
 #include <time.h>
 #include <ctime>
@@ -29,16 +28,13 @@ namespace utils
 		uint32_t m_max;
 		int m_count;
 		char const* m_name;
-		SingletonRef< ConsoleClass > m_console;
 
 	public:
 		Profiler() = delete;
 		Profiler( char const* name );
 		~Profiler();
-		Profiler( Profiler const& other ) = delete;
-		Profiler( Profiler&& other ) = delete;
-		Profiler& operator=( Profiler const& other ) = delete;
-		Profiler& operator=( Profiler&& other ) = delete;
+		Profiler( Profiler const& ) = delete;
+		Profiler& operator=( Profiler const& ) = delete;
 
 		void sample( uint32_t ns );
 	};
@@ -58,10 +54,8 @@ namespace utils
 		ProfileTimer() = delete;
 		ProfileTimer( Profiler* profiler );
 		~ProfileTimer();
-		ProfileTimer( ProfileTimer const& other ) = delete;
-		ProfileTimer( ProfileTimer&& other ) = delete;
-		ProfileTimer operator=( ProfileTimer const& other ) = delete;
-		ProfileTimer operator=( ProfileTimer&& other ) = delete;
+		ProfileTimer( ProfileTimer const& ) = delete;
+		ProfileTimer operator=( ProfileTimer const& ) = delete;
 	};
 
 	inline void Profiler::sample( uint32_t time )

@@ -4,8 +4,6 @@
 
 namespace utils
 {
-#define finally( op ) catch(...) {{op} throw;} {op}
-
 	String::String()
 		: m_payload( nullptr )
 	{
