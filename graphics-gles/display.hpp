@@ -5,15 +5,19 @@
 #error "Unsupported target platform"
 #endif
 
-// #include "shape.hpp"
 #include <utils/ref.hpp>
 #include <EGL/egl.h>
 #include <android_native_app_glue.h>
 #include <ctime>
 
+namespace utils
+{
+	class ConfigSet;
+}
+
 namespace graphics
 {
-	class Shape: public utils::RefObject {};
+	class Shape;
 
 	struct DisplayInfo
 	{
@@ -30,7 +34,7 @@ namespace graphics
 		EGLDisplay m_display;
 		EGLSurface m_surface;
 		EGLContext m_context;
-		utils::Ref< graphics::Shape > m_shape;
+		utils::Ref< Shape > m_shape;
 		DisplayInfo m_info;
 		int m_framecounter;
 		
@@ -40,7 +44,7 @@ namespace graphics
 		Display( Display& ) = delete;
 		Display& operator=( Display& ) = delete;
 		
-		void initialize( android_app* app );
+		void initialize( utils::ConfigSet const& config, android_app* app );
 		void finalize();
 		void paint();
 		Shape* getshape();

@@ -1,51 +1,53 @@
 #include "methodlist.hpp"
+// #include "texture.hpp"
+// #include "statictexture.hpp"
+// #include "rendertarget.hpp"
+// #include "shader.hpp"
+// #include "meshbuffer.hpp"
+// #include "meshdata.hpp"
+// #include "meshshape.hpp"
+// #include "shapegroup.hpp"
+#include "clearshape.hpp"
 
 namespace graphics
 {
 	MethodList const* getmethodlist()
 	{
 		static MethodList const List = {
-			graphics_texture_setminfilter,
-			graphics_texture_setmagfilter,
-			graphics_texture_setwrapmode,
-			graphics_statictexture_new,
-			graphics_statictexture_assign,
-			graphics_rendertarget_new,
-			graphics_rendertarget_setdepthstenciluse,
-			graphics_rendertarget_setshape,
-			graphics_rendertarget_setclearcolor,
-			graphics_rendertarget_setcleardepth,
-			graphics_rendertarget_setclearstencil,
-			graphics_pixelprogram_new,
-			graphics_pixelprogram_setstagetexture,
-			graphics_pixelprogram_setstageconstant,
-			graphics_pixelprogram_setstagecolor,
-			graphics_pixelprogram_setstagealpha,
-			graphics_pixelprogram_setstagetexcoord,
-			graphics_pixelprogram_setstagematrix,
-			graphics_pixelprogram_setmatrix,
-			graphics_coloredshape_getcolor,
-			graphics_coloredshape_setcolor,
+			0, // graphics_texture_setminfilter,
+			0, // graphics_texture_setmagfilter,
+			0, // graphics_texture_setwrapmode,
+			0, // graphics_statictexture_new,
+			0, // graphics_statictexture_assign,
+			0, // graphics_rendertarget_new,
+			0, // graphics_rendertarget_setdepthstenciluse,
+			0, // graphics_rendertarget_setshape,
+			0, // graphics_rendertarget_setclearcolor,
+			0, // graphics_rendertarget_setcleardepth,
+			0, // graphics_rendertarget_setclearstencil,
+			0, // graphics_shader_new,
+			0, // graphics_shader_settexture,
+			0, // graphics_shader_setshadersources,
+			0, // graphics_meshbuffer_getvertexdata,
+			0, // graphics_meshbuffer_setvertexdata,
+			0, // graphics_meshbuffer_getindexdata,
+			0, // graphics_meshbuffer_setindexdata,
+			0, // graphics_meshdata_new,
+			0, // graphics_meshdata_trylock,
+			0, // graphics_meshdata_unlock,
+			0, // graphics_meshshape_new,
+			0, // graphics_meshshape_setmeshdata,
+			0, // graphics_meshshape_setshader,
+			0, // graphics_meshshape_setblendmethod,
+			0, // graphics_meshshape_settexture,
+			0, // graphics_meshshape_setmatrix,
 			graphics_clearshape_new,
-			graphics_lineshape_new,
-			graphics_lineshape_getpos,
-			graphics_lineshape_setpos,
-			graphics_shapegroup_new,
-			graphics_shapegroup_insert,
-			graphics_shapegroup_remove,
-			graphics_shapegroup_setactive,
-			graphics_sprite_setposition,
-			graphics_sprite_setextent,
-			graphics_sprite_settexregion1,
-			graphics_sprite_settexregion2,
-			graphics_sprite_setcolor,
-			graphics_spritefield_new,
-			graphics_spritefield_setpixelprogram,
-			graphics_spritefield_newsprite,
-			graphics_spritefield_removesprite,
-			graphics_spritefield_setblendmethod,
-			graphics_spritefield_settexture,
-			graphics_spritefield_setmatrix,
+			graphics_clearshape_getcolor,
+			graphics_clearshape_setcolor,
+			0, // graphics_shapegroup_new,
+			0, // graphics_shapegroup_insert,
+			0, // graphics_shapegroup_remove,
+			0, // graphics_shapegroup_setactive,
 		};
 		return &List;
 	}

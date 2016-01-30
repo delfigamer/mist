@@ -1,13 +1,14 @@
 #ifndef GRAPHICS_COMMON_HPP__
 #define GRAPHICS_COMMON_HPP__ 1
 
-#include <windows.h>
 #include <cinttypes>
 
-namespace graphics {
-	void checkerror_pos( char const* filename, char const* function, int line, HRESULT hr );
+namespace graphics
+{
+	void checkerror_pos( char const* filename, char const* function, int line );
 	
-	inline uint32_t argb8( float const* f ) {
+	inline uint32_t argb8( float const* f )
+	{
 		float rf = ( f[ 0 ] > 1 ? 1 : f[ 0 ] < 0 ? 0 : f[ 0 ] );
 		float gf = ( f[ 1 ] > 1 ? 1 : f[ 1 ] < 0 ? 0 : f[ 1 ] );
 		float bf = ( f[ 2 ] > 1 ? 1 : f[ 2 ] < 0 ? 0 : f[ 2 ] );
@@ -20,9 +21,8 @@ namespace graphics {
 	}
 }
 
-#define checkerror( hr ) checkerror_pos( __FILE__, __FUNCTION__, __LINE__, hr )
+#define checkerror() checkerror_pos( __FILE__, __FUNCTION__, __LINE__ )
 
-#define RELEASE( ref ) ( void )( ref ? ( ref->Release(), ref = 0 ) : 0 )
 #define RANGE_ASSERT( value, min, max, name ) ( \
 	( value ) >= int( min ) && ( value ) < int( max ) ? \
 		value : throw std::runtime_error( "unknown " name " value" ) )

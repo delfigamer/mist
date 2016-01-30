@@ -19,17 +19,17 @@ all: $(TARGET)
 CCFLAGS = -O2 -Wall -I.. $(NAG_FLAG) -std=c++11 -ffast-math
 
 OBJS = \
-	display$(TARGET_SUFFIX).o
+	clearshape$(TARGET_SUFFIX).o \
+	common$(TARGET_SUFFIX).o \
+	display$(TARGET_SUFFIX).o \
+	methodlist$(TARGET_SUFFIX).o \
+	resource$(TARGET_SUFFIX).o \
+	shape$(TARGET_SUFFIX).o
 	
-	# clearshape$(TARGET_SUFFIX).o \
 	# coloredshape$(TARGET_SUFFIX).o \
-	# common$(TARGET_SUFFIX).o \
 	# lineshape$(TARGET_SUFFIX).o \
-	# methodlist$(TARGET_SUFFIX).o \
 	# pixelprogram$(TARGET_SUFFIX).o \
 	# rendertarget$(TARGET_SUFFIX).o \
-	# resource$(TARGET_SUFFIX).o \
-	# shape$(TARGET_SUFFIX).o \
 	# shapegroup$(TARGET_SUFFIX).o \
 	# sprite$(TARGET_SUFFIX).o \
 	# spritefield$(TARGET_SUFFIX).o \

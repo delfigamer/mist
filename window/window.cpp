@@ -311,21 +311,32 @@ namespace window
 		case AINPUT_EVENT_TYPE_MOTION:
 		{
 			int action = AMotionEvent_getAction( event );
-			int index = action >>
-				AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
+			int index = action >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
 			action &= AMOTION_EVENT_ACTION_MASK;
 			switch( action )
 			{
 			case AMOTION_EVENT_ACTION_DOWN:
-				// pointevent(
-					// "pointdown", index + 1,
-					// AMotionEvent_getX( event, 0 ),
-					// AMotionEvent_getY( event, 0 ) );
+			case AMOTION_EVENT_ACTION_POINTER_DOWN:
+				pointevent(
+					"pointdown",
+					index + 1,
+					AMotionEvent_getX( event, 0 ),
+					AMotionEvent_getY( event, 0 ) );
 				break;
 			case AMOTION_EVENT_ACTION_UP:
 			case AMOTION_EVENT_ACTION_CANCEL:
-				// pointevent(
-					// "pointup", index + 1, -1, -1 );
+				pointevent(
+					"pointup",
+					AMotionEvent_getPointerId( event, 0 ) + 1,
+					-1,
+					-1 );
+				break;
+			case AMOTION_EVENT_ACTION_POINTER_UP:
+				pointevent(
+					"pointup",
+					index + 1,
+					-1,
+					-1 );
 				break;
 			case AMOTION_EVENT_ACTION_MOVE:
 				for(
@@ -333,11 +344,11 @@ namespace window
 					i < int( AMotionEvent_getPointerCount( event ) );
 					++i )
 				{
-				// pointevent(
-					// "pointmove",
-					// AMotionEvent_getPointerId( event, i ) + 1,
-					// AMotionEvent_getX( event, i ),
-					// AMotionEvent_getY( event, i ) );
+				pointevent(
+					"pointmove",
+					AMotionEvent_getPointerId( event, i ) + 1,
+					AMotionEvent_getX( event, i ),
+					AMotionEvent_getY( event, i ) );
 				}
 				break;
 			}
@@ -484,7 +495,7 @@ namespace window
 #if defined( _WIN32 ) || defined( _WIN64 )
 			m_display.initialize( m_mainconfig, m_hwnd );
 #elif defined( __ANDROID__ )
-			// m_display.initialize( m_mainconfig, m_app );
+			m_display.initialize( m_mainconfig, m_app );
 #endif
 			auto dinfo = m_display.displayinfo();
 			m_info.width = dinfo->width;

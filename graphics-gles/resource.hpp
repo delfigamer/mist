@@ -1,16 +1,19 @@
 #ifndef GRAPHICS_RESOURCE_HPP__
 #define GRAPHICS_RESOURCE_HPP__ 1
 
-#include <utils/monitor.hpp>
+#include <utils/refobject.hpp>
+#include <utils/flaglock.hpp>
 #include <mutex>
 #include <stack>
-#include <d3d9.h>
+#include <GLES2/gl2.h>
 
-namespace graphics {
-	class Resource: public utils::Monitor {
+namespace graphics
+{
+	class Resource: public utils::RefObject
+	{
 	private:
 		typedef std::stack< Resource* > resourcestack_t;
-		typedef std::mutex mutex_t;
+		typedef utils::FlagLock mutex_t;
 		typedef std::lock_guard< mutex_t > lock_t;
 		
 	private:
@@ -21,29 +24,19 @@ namespace graphics {
 		int m_lastframe;
 		
 	protected:
-		virtual void doadvance( IDirect3DDevice9* device, int framecount ) = 0;
+		virtual void doadvance( int framecount ) = 0;
 		
 	public:
-		virtual bool query( int id, void** target ) override;
 		Resource();
 		virtual ~Resource() override;
 		virtual void destroy() override;
-		Resource( Resource const& other ) = delete;
-		Resource( Resource&& other ) = delete;
-		Resource& operator=( Resource const& other ) = delete;
-		Resource& operator=( Resource&& other ) = delete;
+		Resource( Resource const& ) = delete;
+		Resource& operator=( Resource const& ) = delete;
 		
-		void advance( IDirect3DDevice9* device, int framecount );
+		void advance( int framecount );
 		
 		static void cleanup();
 	};
-}
-
-DEFINE_REFID( graphics::Resource, utils::Monitor, 0x7cbf0acc );
-
-namespace graphics {
-	extern "C" {
-	}
 }
 
 #endif

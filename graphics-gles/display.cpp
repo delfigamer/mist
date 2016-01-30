@@ -1,6 +1,8 @@
 #include "display.hpp"
-// #include "resource.hpp"
-// #include "common.hpp"
+#include "shape.hpp"
+#include "resource.hpp"
+#include "common.hpp"
+#include <utils/configset.hpp>
 #include <utils/profile.hpp>
 #include <utils/console.hpp>
 #include <GLES2/gl2.h>
@@ -20,10 +22,9 @@ namespace graphics
 
 	Display::~Display()
 	{
-		LOG( "-" );
 	}
 
-	void Display::initialize( android_app* app )
+	void Display::initialize( utils::ConfigSet const& config, android_app* app )
 	{
 		if( m_app )
 		{
@@ -40,18 +41,18 @@ namespace graphics
 		};
 		EGLint format;
 		EGLint numConfigs;
-		EGLConfig config;
+		EGLConfig dconfig;
 		m_display = eglGetDisplay( EGL_DEFAULT_DISPLAY );
 		eglInitialize( m_display, 0, 0 );
 		eglChooseConfig(
-			m_display, attribs, &config, 1, &numConfigs );
+			m_display, attribs, &dconfig, 1, &numConfigs );
 		eglGetConfigAttrib(
-			m_display, config, EGL_NATIVE_VISUAL_ID, &format );
+			m_display, dconfig, EGL_NATIVE_VISUAL_ID, &format );
 		ANativeWindow_setBuffersGeometry(
 			m_app->window, 0, 0, format );
 		m_surface = eglCreateWindowSurface(
-			m_display, config, m_app->window, 0 );
-		m_context = eglCreateContext( m_display, config, 0, 0 );
+			m_display, dconfig, m_app->window, 0 );
+		m_context = eglCreateContext( m_display, dconfig, 0, 0 );
 		if( eglMakeCurrent(
 			m_display, m_surface, m_surface, m_context ) ==
 			EGL_FALSE )
@@ -103,25 +104,26 @@ namespace graphics
 		if( shape )
 		{
 		PROFILE( "paint shape->advance",
-			// shape->advance( m_framecounter );
+			shape->advance( m_framecounter );
 		)
 		PROFILE( "paint shape->paint",
-			// shape->paint();
+			shape->paint();
 		)
 		}
 		else
 		{
 		PROFILE( "paint glClear",
-			float fc = float( m_framecounter % 60 ) / 60.0;
-			glClearColor( 0.3 + fc * 0.2, 0.3, 0.5, 1 );
+			glClearColor( 0.3, 0.3, 0.3, 1 );
+			checkerror();
 			glClear( GL_COLOR_BUFFER_BIT );
+			checkerror();
 		)
 		}
 	PROFILE( "paint eglSwapBuffers",
 		eglSwapBuffers( m_display, m_surface );
 	)
 	PROFILE( "paint graphics::Resource::cleanup",
-		// graphics::Resource::cleanup();
+		graphics::Resource::cleanup();
 	)
 	)
 	}

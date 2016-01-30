@@ -2,59 +2,36 @@
 #include <utils/strexception.hpp>
 #include <utils/console.hpp>
 #include <unordered_map>
-#include <d3d9.h>
+#include <GLES2/gl2.h>
 
-namespace graphics {
+namespace graphics
+{
 #define ENTRY( name ) { name, #name }
-	static std::unordered_map< HRESULT, char const* > const errmap = {
-		ENTRY( D3D_OK ),
-		ENTRY( D3DOK_NOAUTOGEN ),
-		ENTRY( D3DERR_WRONGTEXTUREFORMAT ),
-		ENTRY( D3DERR_UNSUPPORTEDCOLOROPERATION ),
-		ENTRY( D3DERR_UNSUPPORTEDCOLORARG ),
-		ENTRY( D3DERR_UNSUPPORTEDALPHAOPERATION ),
-		ENTRY( D3DERR_UNSUPPORTEDALPHAARG ),
-		ENTRY( D3DERR_TOOMANYOPERATIONS ),
-		ENTRY( D3DERR_CONFLICTINGTEXTUREFILTER ),
-		ENTRY( D3DERR_UNSUPPORTEDFACTORVALUE ),
-		ENTRY( D3DERR_CONFLICTINGRENDERSTATE ),
-		ENTRY( D3DERR_UNSUPPORTEDTEXTUREFILTER ),
-		ENTRY( D3DERR_CONFLICTINGTEXTUREPALETTE ),
-		ENTRY( D3DERR_DRIVERINTERNALERROR ),
-		ENTRY( D3DERR_NOTFOUND ),
-		ENTRY( D3DERR_MOREDATA ),
-		ENTRY( D3DERR_DEVICELOST ),
-		ENTRY( D3DERR_DEVICENOTRESET ),
-		ENTRY( D3DERR_NOTAVAILABLE ),
-		ENTRY( D3DERR_OUTOFVIDEOMEMORY ),
-		ENTRY( D3DERR_INVALIDDEVICE ),
-		ENTRY( D3DERR_INVALIDCALL ),
-		ENTRY( D3DERR_DRIVERINVALIDCALL ),
-		ENTRY( D3DERR_WASSTILLDRAWING ),
-		ENTRY( D3DOK_NOAUTOGEN ),
-		ENTRY( D3DERR_DEVICEREMOVED ),
-		ENTRY( D3DERR_DEVICEHUNG ),
-		ENTRY( S_NOT_RESIDENT ),
-		ENTRY( S_RESIDENT_IN_SHARED_MEMORY ),
-		ENTRY( S_PRESENT_MODE_CHANGED ),
-		ENTRY( S_PRESENT_OCCLUDED ),
-		ENTRY( D3DERR_UNSUPPORTEDOVERLAY ),
-		ENTRY( D3DERR_UNSUPPORTEDOVERLAYFORMAT ),
-		ENTRY( D3DERR_CANNOTPROTECTCONTENT ),
-		ENTRY( D3DERR_UNSUPPORTEDCRYPTO ),
-		ENTRY( D3DERR_PRESENT_STATISTICS_DISJOINT )
+	static std::unordered_map< GLenum, char const* > const errmap = {
+		ENTRY( GL_NO_ERROR ),
+		ENTRY( GL_INVALID_ENUM ),
+		ENTRY( GL_INVALID_FRAMEBUFFER_OPERATION ),
+		ENTRY( GL_INVALID_VALUE ),
+		ENTRY( GL_INVALID_OPERATION ),
+		ENTRY( GL_OUT_OF_MEMORY ),
 	};
 
-	void checkerror_pos( char const* filename, char const* function, int line, HRESULT hr ) {
-		if( hr ) {
+	void checkerror_pos( char const* filename, char const* function, int line )
+	{
+		GLenum err = glGetError();
+		if( err != GL_NO_ERROR )
+		{
 			char buffer[ 1024 ];
-			auto it = errmap.find( hr );
-			if( it != errmap.end() ) {
-				snprintf( buffer, sizeof( buffer ), "Direct3D error: %s", it->second );
-			} else {
-				snprintf( buffer, sizeof( buffer ), "Direct3D error: %#x", uint32_t( hr ) );
+			auto it = errmap.find( err );
+			if( it != errmap.end() )
+			{
+				snprintf( buffer, sizeof( buffer ), "OpenGL ES error: %s", it->second );
 			}
-			utils::MainLogger().writeln(
+			else
+			{
+				snprintf( buffer, sizeof( buffer ), "OpenGL ES error: %#x", uint32_t( err ) );
+			}
+			utils::Console->writeln(
 				"[%48s:%24s@%4i]\t%s", filename, function, line, buffer );
 			throw utils::StrException( buffer );
 		}
