@@ -1,7 +1,7 @@
 local modname = ...
 module(modname, package.seeall)
 local input = require('system.input')
-local page = require('index-test.page')
+local page = package.relrequire(modname, 0, 'page')
 
 function register()
 	currentpage = page:create()

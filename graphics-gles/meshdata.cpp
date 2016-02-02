@@ -6,29 +6,11 @@
 namespace graphics
 {
 #define finally( op ) catch( ... ) { { op } throw; } { op }
-	void MeshData::doadvance( IDirect3DDevice9* device, int framecount )
+	void MeshData::doadvance( int framecount )
 	{
 		if( !m_dirty.exchange( false, std::memory_order_relaxed ) )
 		{
 			return;
-		}
-		if( !m_vertexdeclaration )
-		{
-			static D3DVERTEXELEMENT9 const VDElements[] =
-			{
-				{ 0, offsetof( Vertex, pos_x ), D3DDECLTYPE_FLOAT3,
-					D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
-				{ 0, offsetof( Vertex, tex1_x ), D3DDECLTYPE_FLOAT2,
-					D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0 },
-				{ 0, offsetof( Vertex, tex2_x ), D3DDECLTYPE_FLOAT2,
-					D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 1 },
-				{ 0, offsetof( Vertex, color ), D3DDECLTYPE_UBYTE4N,
-					D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR, 0 },
-				D3DDECL_END(),
-			};
-			checkerror( device->CreateVertexDeclaration(
-				VDElements,
-				&m_vertexdeclaration ) );
 		}
 		MeshBuffer* mb = 0;
 		do
@@ -43,70 +25,72 @@ namespace graphics
 				if( m_vertexbuffersize != mb->m_vertexdata->m_capacity )
 				{
 					m_vertexbuffersize = mb->m_vertexdata->m_capacity;
-					RELEASE( m_vertexbuffer );
-					checkerror( device->CreateVertexBuffer(
+					if( !m_vertexbuffer )
+					{
+						glGenBuffers( 1, &m_vertexbuffer );
+						checkerror();
+					}
+					glBindBuffer( GL_ARRAY_BUFFER, m_vertexbuffer );
+					checkerror();
+					glBufferData(
+						GL_ARRAY_BUFFER,
 						m_vertexbuffersize,
-						D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY,
 						0,
-						D3DPOOL_DEFAULT,
-						&m_vertexbuffer,
-						0 ) );
+						GL_DYNAMIC_DRAW );
+					checkerror();
 				}
 			}
 			else
 			{
-				RELEASE( m_vertexbuffer );
+				glDeleteBuffers( 1, &m_vertexbuffer );
+				checkerror();
+				m_vertexbuffer = 0;
 			}
 			if( mb->m_indexdata )
 			{
 				if( m_indexbuffersize != mb->m_indexdata->m_capacity )
 				{
 					m_indexbuffersize = mb->m_indexdata->m_capacity;
-					RELEASE( m_indexbuffer );
-					checkerror( device->CreateIndexBuffer(
+					if( !m_indexbuffer )
+					{
+						glGenBuffers( 1, &m_indexbuffer );
+						checkerror();
+					}
+					glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, m_indexbuffer );
+					checkerror();
+					glBufferData(
+						GL_ELEMENT_ARRAY_BUFFER,
 						m_indexbuffersize,
-						D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY,
-						D3DFMT_INDEX16,
-						D3DPOOL_DEFAULT,
-						&m_indexbuffer,
-						0 ) );
+						0,
+						GL_DYNAMIC_DRAW );
+					checkerror();
 				}
 			}
 			else
 			{
-				RELEASE( m_indexbuffer );
+				glDeleteBuffers( 1, &m_indexbuffer );
+				checkerror();
+				m_indexbuffer = 0;
 			}
 			if( mb->m_vertexdata->m_length > 0 )
 			{
-				void* vertices;
 				m_vertexcount = mb->m_vertexdata->m_length / sizeof( Vertex );
-				checkerror( m_vertexbuffer->Lock(
-					0, 0, &vertices, D3DLOCK_DISCARD | D3DLOCK_NOSYSLOCK ) );
-				try
-				{
-					memcpy(
-						vertices,
-						mb->m_vertexdata->m_data, mb->m_vertexdata->m_length );
-				}
-				finally(
-					m_vertexbuffer->Unlock();
-				)
+				glBindBuffer( GL_ARRAY_BUFFER, m_vertexbuffer );
+				glBufferSubData(
+					GL_ARRAY_BUFFER,
+					0,
+					mb->m_vertexdata->m_length,
+					mb->m_vertexdata->m_data );
 			}
 			if( mb->m_indexdata->m_length > 0 )
 			{
-				void* indices;
 				m_indexcount = mb->m_indexdata->m_length / sizeof( uint16_t );
-				checkerror( m_indexbuffer->Lock(
-					0, 0, &indices, D3DLOCK_DISCARD | D3DLOCK_NOSYSLOCK ) );
-				try
-				{
-					memcpy(
-						indices,
-						mb->m_indexdata->m_data, mb->m_indexdata->m_length );
-				}
-				finally(
-					m_indexbuffer->Unlock();
-				)
+				glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, m_indexbuffer );
+				glBufferSubData(
+					GL_ELEMENT_ARRAY_BUFFER,
+					0,
+					mb->m_indexdata->m_length,
+					mb->m_indexdata->m_data );
 			}
 		}
 		finally(
@@ -117,7 +101,6 @@ namespace graphics
 	MeshData::MeshData()
 		: m_vertexbuffer( 0 )
 		, m_indexbuffer( 0 )
-		, m_vertexdeclaration( 0 )
 		, m_vertexbuffersize( 0 )
 		, m_indexbuffersize( 0 )
 		, m_vertexcount( 0 )
@@ -130,22 +113,44 @@ namespace graphics
 
 	MeshData::~MeshData()
 	{
-		RELEASE( m_vertexbuffer );
-		RELEASE( m_indexbuffer );
-		RELEASE( m_vertexdeclaration );
+		glDeleteBuffers( 1, &m_vertexbuffer );
+		glDeleteBuffers( 1, &m_indexbuffer );
 	}
 
-	bool MeshData::bind(
-		IDirect3DDevice9* device, int* vertexcount, int* indexcount )
+	bool MeshData::bind( int* vertexcount, int* indexcount )
 	{
-		if( !m_vertexdeclaration || !m_vertexbuffer || !m_indexbuffer )
+		if( !m_vertexbuffer || !m_indexbuffer )
 		{
 			return false;
 		}
-		checkerror( device->SetVertexDeclaration( m_vertexdeclaration ) );
-		checkerror( device->SetStreamSource(
-			0, m_vertexbuffer, 0, sizeof( Vertex ) ) );
-		checkerror( device->SetIndices( m_indexbuffer ) );
+		glBindBuffer( GL_ARRAY_BUFFER, m_vertexbuffer );
+		checkerror();
+		glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, m_indexbuffer );
+		checkerror();
+		glEnableVertexAttribArray( 0 );
+		checkerror();
+		glEnableVertexAttribArray( 1 );
+		checkerror();
+		glEnableVertexAttribArray( 2 );
+		checkerror();
+		glEnableVertexAttribArray( 3 );
+		checkerror();
+		glVertexAttribPointer(
+			0, 3, GL_FLOAT, false, sizeof( Vertex ),
+			( void* )offsetof( Vertex, pos_x ) );
+		checkerror();
+		glVertexAttribPointer(
+			1, 2, GL_FLOAT, false, sizeof( Vertex ),
+			( void* )offsetof( Vertex, tex1_x ) );
+		checkerror();
+		glVertexAttribPointer(
+			2, 2, GL_FLOAT, false, sizeof( Vertex ),
+			( void* )offsetof( Vertex, tex2_x ) );
+		checkerror();
+		glVertexAttribPointer(
+			3, 4, GL_BYTE, true, sizeof( Vertex ),
+			( void* )offsetof( Vertex, color ) );
+		checkerror();
 		*vertexcount = m_vertexcount;
 		*indexcount = m_indexcount;
 		return true;

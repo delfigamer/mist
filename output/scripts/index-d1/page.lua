@@ -9,7 +9,7 @@ local window = require('host.window')
 
 local clearshape = require('host.clearshape')
 local shapegroup = require('host.shapegroup')
-local flarefield = require('index-test.field')
+local flarefield = package.relrequire(modname, 1, 'field')
 
 function page:init()
 	self.shape = shapegroup:create()

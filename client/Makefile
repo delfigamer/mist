@@ -22,7 +22,7 @@ OSLIBS = \
 	-llog \
 	-landroid \
 	-lEGL \
-	-lGLESv1_CM \
+	-lGLESv2 \
 	-lz
 GRAPHICSLIB = graphics-gles
 NAG_FLAG = -I$(CCTOOLSDIR)/sources/native_app_glue

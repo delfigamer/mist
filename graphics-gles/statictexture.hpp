@@ -2,45 +2,41 @@
 #define GRAPHICS_STATICTEXTURE_HPP__ 1
 
 #include "texture.hpp"
-#include <utils/stringinstance.hpp>
-#include <utils/counterlock.hpp>
+#include <utils/databuffer.hpp>
+#include <utils/flaglock.hpp>
 #include <mutex>
 
-namespace graphics {
-	class StaticTexture: public Texture {
+namespace graphics
+{
+	class StaticTexture: public Texture
+	{
 	private:
-		typedef utils::CounterLock mutex_t;
+		typedef utils::FlagLock mutex_t;
 		typedef std::lock_guard< mutex_t > lock_t;
-		
+
 	private:
 		mutex_t m_mutex;
-		utils::Ref< utils::StringInstance > m_data;
+		int m_format;
+		utils::Ref< utils::DataBuffer > m_data;
 		int m_width;
 		int m_height;
-		
+
 	protected:
-		virtual void update( IDirect3DDevice9* device ) override;
-		
+		virtual void update() override;
+
 	public:
-		virtual bool query( int id, void** target ) override;
 		StaticTexture();
-		StaticTexture( StaticTexture const& ) = delete;
-		StaticTexture( StaticTexture&& ) = delete;
 		virtual ~StaticTexture();
+		StaticTexture( StaticTexture const& ) = delete;
 		StaticTexture& operator=( StaticTexture const& ) = delete;
-		StaticTexture& operator=( StaticTexture&& ) = delete;
-		
-		void assign( utils::StringInstance* data, int width, int height );
+
+		void assign( int format, utils::DataBuffer* data, int width, int height );
 	};
-}
 
-DEFINE_REFID( graphics::StaticTexture, graphics::Texture, 0xfc1d0514 )
-
-namespace graphics {
-	extern "C" {
-		StaticTexture* graphics_statictexture_new() noexcept;
-		bool graphics_statictexture_assign( StaticTexture* st, utils::StringInstance* data, int width, int height ) noexcept;
-	}
+	StaticTexture* graphics_statictexture_new() noexcept;
+	bool graphics_statictexture_assign(
+		StaticTexture* st,
+		int format, utils::DataBuffer* data, int width, int height ) noexcept;
 }
 
 #endif

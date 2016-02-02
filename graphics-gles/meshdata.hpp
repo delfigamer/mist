@@ -24,9 +24,8 @@ namespace graphics
 		};
 
 	private:
-		IDirect3DVertexBuffer9* m_vertexbuffer;
-		IDirect3DIndexBuffer9* m_indexbuffer;
-		IDirect3DVertexDeclaration9* m_vertexdeclaration;
+		GLuint m_vertexbuffer;
+		GLuint m_indexbuffer;
 		int m_vertexbuffersize;
 		int m_indexbuffersize;
 		int m_vertexcount;
@@ -38,18 +37,15 @@ namespace graphics
 		MeshBuffer m_buffer2;
 
 	protected:
-		virtual void doadvance(
-			IDirect3DDevice9* device, int framecount ) override;
+		virtual void doadvance( int framecount ) override;
 
 	public:
 		MeshData();
 		virtual ~MeshData() override;
 		MeshData( MeshData const& ) = delete;
-		MeshData( MeshData&& ) = delete;
 		MeshData& operator=( MeshData const& ) = delete;
-		MeshData& operator=( MeshData&& ) = delete;
 
-		bool bind( IDirect3DDevice9* device, int* vertexcount, int* indexcount );
+		bool bind( int* vertexcount, int* indexcount );
 		MeshBuffer* trylockfront();
 		void unlockfront( MeshBuffer* mb );
 		MeshBuffer* trylockback();

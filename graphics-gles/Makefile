@@ -22,19 +22,22 @@ OBJS = \
 	clearshape$(TARGET_SUFFIX).o \
 	common$(TARGET_SUFFIX).o \
 	display$(TARGET_SUFFIX).o \
+	meshbuffer$(TARGET_SUFFIX).o \
+	meshdata$(TARGET_SUFFIX).o \
+	meshshape$(TARGET_SUFFIX).o \
 	methodlist$(TARGET_SUFFIX).o \
+	rendertarget$(TARGET_SUFFIX).o \
 	resource$(TARGET_SUFFIX).o \
-	shape$(TARGET_SUFFIX).o
+	shader$(TARGET_SUFFIX).o \
+	shape$(TARGET_SUFFIX).o \
+	shapegroup$(TARGET_SUFFIX).o \
+	statictexture$(TARGET_SUFFIX).o \
+	texture$(TARGET_SUFFIX).o
 	
 	# coloredshape$(TARGET_SUFFIX).o \
 	# lineshape$(TARGET_SUFFIX).o \
-	# pixelprogram$(TARGET_SUFFIX).o \
-	# rendertarget$(TARGET_SUFFIX).o \
-	# shapegroup$(TARGET_SUFFIX).o \
 	# sprite$(TARGET_SUFFIX).o \
 	# spritefield$(TARGET_SUFFIX).o \
-	# statictexture$(TARGET_SUFFIX).o \
-	# texture$(TARGET_SUFFIX).o
 
 $(TARGET): $(OBJS)
 		$(AR) -rcs $@ $^

@@ -3,7 +3,7 @@ local object = require('base.object')
 local field = object:module(modname)
 local blendmode = require('host.enum.blendmode')
 local ffi = require('ffi')
-local flare = require('index-test.flare')
+local flare = package.relrequire(modname, 1, 'flare')
 local info = require('host.info')
 local mistsh = require('mistsh')
 local set = require('base.set')
@@ -30,7 +30,7 @@ local function getshader()
 	]]
 	local tres = mistsh.translate(source)
 	local sh = shader:create()
-	sh:setshadersources(1, tres.vertex, tres.fragment, tres.texnames)
+	sh:setshadersources(0, tres.vertex, tres.fragment, tres.texnames)
 	return sh
 end
 

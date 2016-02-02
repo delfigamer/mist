@@ -4,7 +4,7 @@ bootscript = _PATH .. 'scripts' .. ds .. 'system' .. ds .. 'boot.lua'
 if _CONSOLE then
 	indexmodule = 'index-cmd'
 else
-	indexmodule = 'index-test'
+	indexmodule = 'index-d1'
 	silent = false
 	if _PLATFORM == 'win' then
 		windowsize={1280, 720}
