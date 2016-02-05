@@ -4,6 +4,8 @@ local functionarg = basearg:module(modname)
 local block
 local scalars = require('rs.scalars')
 
+functionarg.type = 'function'
+
 function functionarg:init(it)
 	basearg.init(self, it)
 	if type(it[2]) ~= 'table' then
@@ -26,12 +28,11 @@ end
 
 function functionarg:read(stream)
 	local argc = scalars.int:read(stream)
-	local args = {}
+	self.args = {}
 	for i = 1, argc do
-		args[i] = scalars.string:read(stream)
+		self.args[i] = scalars.string:read(stream)
 	end
-	local body = block:read(stream)
-	return functionarg:create{'function', args, body}
+	self.body = block:read(stream)
 end
 
 function functionarg:defstring(lp)

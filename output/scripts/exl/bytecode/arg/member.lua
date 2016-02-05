@@ -4,6 +4,8 @@ local memberarg = basearg:module(modname)
 local common
 local scalars = require('rs.scalars')
 
+memberarg.type = 'member'
+
 function memberarg:init(it)
 	basearg.init(self, it)
 	self.base = basearg:createarg(it[2])
@@ -19,10 +21,8 @@ function memberarg:write(stream)
 end
 
 function memberarg:read(stream)
-	local instance = self:new()
-	instance.base = basearg:readarg(stream)
-	instance.index = scalars.string:read(stream)
-	return instance
+	self.base = basearg:readarg(stream)
+	self.index = scalars.string:read(stream)
 end
 
 function memberarg:defstring(lp)

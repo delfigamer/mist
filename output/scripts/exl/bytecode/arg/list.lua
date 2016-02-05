@@ -3,6 +3,8 @@ local basearg = package.relrequire(modname, 1, 'base')
 local listarg = basearg:module(modname)
 local scalars = require('rs.scalars')
 
+listarg.type = 'list'
+
 function listarg:init(it)
 	basearg.init(self, it)
 	self.items = {}
@@ -19,11 +21,10 @@ function listarg:write(stream)
 end
 
 function listarg:read(stream)
-	local instance = self:new()
-	instance.items = {}
+	self.items = {}
 	local itemc = scalars.int:read(stream)
 	for i = 1, itemc do
-		instance.items[i] = argbase:readarg(stream)
+		self.items[i] = basearg:readarg(stream)
 	end
 end
 

@@ -4,6 +4,8 @@ local blockarg = basearg:module(modname)
 local block
 local scalars = require('rs.scalars')
 
+blockarg.type = 'block'
+
 function blockarg:init(it)
 	basearg.init(self, it)
 	if type(it[2]) ~= 'table' or not it[2]['#'..block._NAME] then
@@ -17,8 +19,7 @@ function blockarg:write(stream)
 end
 
 function blockarg:read(stream)
-	local block = block:read(stream)
-	return blockarg:create{'block', block}
+	self.block = block:read(stream)
 end
 
 function blockarg:defstring(lp)

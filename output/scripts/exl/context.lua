@@ -67,7 +67,7 @@ function context:defstring(lp)
 		if #list > 0 then
 			local lstr = {}
 			for j, operator in ipairs(list) do
-				lstr[i] = string.format('\n%s%s',
+				lstr[j] = string.format('\n%s%s',
 					lp..self.lpindent..self.lpindent, operator:defstring(lp))
 			end
 			lstr = table.concat(lstr)

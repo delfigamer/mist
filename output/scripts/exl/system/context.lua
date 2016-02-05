@@ -125,3 +125,6 @@ table.append(scontext:getoperatorlist('init'),
 
 table.append(scontext:getoperatorlist('identity'),
 	package.relrequire(modname, 2, 'node.operator.identity.operator'))
+
+table.append(scontext:getoperatorlist('call'),
+	package.relrequire(modname, 2, 'node.operator.functioncall.operator'))

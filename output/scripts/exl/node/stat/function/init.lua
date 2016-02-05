@@ -2,10 +2,8 @@ local modname = ...
 local node = package.relrequire(modname, 2, 'base')
 local sfunction = node:module(modname)
 local common
--- local efunctionbase
 local fulltype
-local functorcallof
--- local functionti
+local opfunctorcall
 local symconst
 local symfunctor
 
@@ -28,14 +26,16 @@ end
 
 function sfunction:dobuild(pc)
 	self.functor = pc:getsymbol(self.targetname)
-	if self.functor and not self.functor['#'..modname..'.symbol'] then
+	if self.functor and
+		not self.functor['#'..symfunctor._NAME]
+	then
 		common.nodeerror('only function definitions can be overloaded', self)
 	elseif not self.functor then
 		self.functor = symfunctor:create{
 			context = pc,
 			defpos = self.spos,
 			deffile = self.filename,
-			name = pc:getnamespace() .. '.' .. self.targetname,
+			name = pc:getnameprefix() .. self.targetname,
 		}
 		pc:setsymbol(self.targetname, self.functor, self)
 	end
@@ -47,20 +47,28 @@ function sfunction:dobuild(pc)
 		fulltype = fulltype:create(self.value:getfulltype().ti, false, true),
 		constvalue = self.value,
 	}
-	self.opfactory = functorcallof:create{
-		defpos = self.spos,
-		deffile = self.filename,
-		targetname = self.targetname,
-		args = self.args,
-		rettype = self.rettype,
-		symbol = self.symbol,
-	}
 	local proto = {self.functor:getfulltype()}
 	for i, arg in ipairs(self.args) do
 		proto[i+1] = fulltype:create(
 			arg.typev:gettivalue(), arg.blvalue, arg.brvalue)
 	end
-	pc:setop('call', proto, self.opfactory, self)
+	local retfulltype
+	if self.rettype then
+		retfulltype = fulltype:create(self.rettype:gettivalue(), false, true)
+	end
+	self.operator = opfunctorcall:create{
+		defpos = self.spos,
+		deffile = self.filename,
+		opname = 'call',
+		args = proto,
+		retfulltype = retfulltype,
+		targetname = self.targetname,
+		userargs = self.args,
+		symbol = self.symbol,
+	}
+	local functorcontext = self.functor:getfulltype().ti:getcontext()
+	local oplist = functorcontext:getoperatorlist('call')
+	table.append(oplist, self.operator)
 end
 
 function sfunction:compile(stream)
@@ -103,9 +111,7 @@ function sfunction:defstring(lp)
 end
 
 common = package.relrequire(modname, 3, 'common')
--- efunctionbase = package.relrequire(modname, 2, 'expr.function.base')
 fulltype = package.relrequire(modname, 3, 'fulltype')
-functorcallof = package.relrequire(modname, 0, 'callof')
--- functionti = package.relrequire(modname, 2, 'expr.function.ti')
+opfunctorcall = package.relrequire(modname, 0, 'opcall')
 symconst = package.relrequire(modname, 3, 'symbol.const')
 symfunctor = package.relrequire(modname, 0, 'symbol')

@@ -1,7 +1,6 @@
 local modname = ...
 local baseti = package.relrequire(modname, 2, 'base.ti')
 local functionti = baseti:module(modname)
-local functioncallof
 local common
 
 function functionti:init(pr)
@@ -61,14 +60,6 @@ function functionti:iseq(other)
 	return true
 end
 
-function functionti:internalresolve(op, proto)
-	if op == 'call' then
-		return functioncallof
-	else
-		return baseti.internalresolve(self, op, proto)
-	end
-end
-
 function functionti:defstring(lp)
 	local argstr = {}
 	for i, arg in ipairs(self.args) do
@@ -84,5 +75,4 @@ function functionti:defstring(lp)
 	end
 end
 
-functioncallof = package.relrequire(modname, 3, 'operator.functioncall.factory')
 common = package.relrequire(modname, 4, 'common')

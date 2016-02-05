@@ -1,23 +1,23 @@
 local modname = ...
-local baseoi = package.relrequire(modname, 2, 'base.instance')
-local functioncalloi = baseoi:module(modname)
+local invbase = package.relrequire(modname, 2, 'base.invocation')
+local invfunctioncall = invbase:module(modname)
 local fulltype
 
-function functioncalloi:init(pr)
-	baseoi.init(self, pr)
-	self.context = pr.context
-	self.base = pr.base
-	self.outargs = pr.outargs
-	self.inargs = pr.inargs
-	if pr.ti then
-		self.fulltype = fulltype:create(pr.ti, false, true)
+function invfunctioncall:init(it)
+	invbase.init(self, it)
+	-- self.context = it.context
+	self.base = it.base
+	self.outargs = it.outargs
+	self.inargs = it.inargs
+	if it.ti then
+		self.fulltype = fulltype:create(it.ti, false, true)
 	else
-		self.fulltype = fulltype:create(baseoi:getfulltype().ti, false, false)
+		self.fulltype = fulltype:create(invbase:getfulltype().ti, false, false)
 	end
 end
 
-function functioncalloi:rcompile(stream)
-	if self.retname == nil then
+function invfunctioncall:rcompile(stream)
+	if not self.retname then
 		local basename = self.base:rcompile(stream)
 		local args = {}
 		for i, iarg in ipairs(self.inargs) do
@@ -28,7 +28,7 @@ function functioncalloi:rcompile(stream)
 			self.retname = stream:genname()
 			results[1] = self.retname
 		else
-			self.retname = false
+			self.retname = 0
 		end
 		for i, oarg in ipairs(self.outargs) do
 			table.append(results, stream:genname())
@@ -46,7 +46,7 @@ function functioncalloi:rcompile(stream)
 			},
 		}
 		for i, oarg in ipairs(self.outargs) do
-			if self.retname then
+			if self.fulltype.rvalue then
 				oarg:lcompile(stream, results[i+1])
 			else
 				oarg:lcompile(stream, results[i])

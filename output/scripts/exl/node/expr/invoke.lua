@@ -52,7 +52,7 @@ local function tryresolve(self, context, visitedcontexts, protostr)
 		common.nodeerror(
 			'ambiguous ' .. protostr .. '\n' ..
 				'possible candidates are:\n' ..
-				table.concat(candidates, '\n'),
+				table.concat(candstr, '\n'),
 			self)
 	end
 	local impl = tryresolve(self, context.parent, visitedcontexts, protostr)
@@ -84,7 +84,7 @@ function einvoke:dobuild(pc)
 	if not self.invocation then
 		for i, arg in ipairs(proto) do
 			local context = arg.ti:getcontext()
-			self.invocation = tryresolve(self, pc, visitedcontexts, protostr)
+			self.invocation = tryresolve(self, context, visitedcontexts, protostr)
 			if self.invocation then
 				break
 			end

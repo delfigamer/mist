@@ -3,6 +3,8 @@ local basearg = package.relrequire(modname, 1, 'base')
 local numberarg = basearg:module(modname)
 local scalars = require('rs.scalars')
 
+numberarg.type = 'number'
+
 function numberarg:init(it)
 	basearg.init(self, it)
 	if type(it[2]) ~= 'number' then
@@ -16,8 +18,7 @@ function numberarg:write(stream)
 end
 
 function numberarg:read(stream)
-	local value = scalars.double:read(stream)
-	return numberarg:create{'number', value}
+	self.value = scalars.double:read(stream)
 end
 
 function numberarg:defstring(lp)

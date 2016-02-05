@@ -2,13 +2,13 @@ local modname = ...
 local node = package.relrequire(modname, 2, 'base')
 local soperator = node:module(modname)
 local common
-local customof
+local opcustom
 local fulltype
 local symconst
 
 function soperator:init(pr)
 	node.init(self, pr)
-	self.operator = pr.operator
+	self.opname = pr.opname
 	self.args = pr.args
 	self.rettype = pr.rettype
 	self.body = pr.body
@@ -28,23 +28,29 @@ function soperator:dobuild(pc)
 	self.symbol = symconst:create{
 		context = pc,
 		defpos = self.spos,
+		deffile = self.filename,
 		fulltype = fulltype:create(self.value:getfulltype().ti, false, true),
 		constvalue = self.value,
 	}
-	self.opfactory = customof:create{
-		defpos = self.epos,
-		deffile = self.filename,
-		operator = self.operator,
-		args = self.args,
-		rettype = self.rettype,
-		symbol = self.symbol,
-	}
 	local proto = {}
 	for i, arg in ipairs(self.args) do
-		local argti = arg.typev:gettivalue()
-		proto[i] = fulltype:create(argti, arg.blvalue, arg.brvalue)
+		proto[i] = fulltype:create(
+			arg.typev:gettivalue(), arg.blvalue, arg.brvalue)
 	end
-	pc:setop(self.operator, proto, self.opfactory, self)
+	local retfulltype
+	if self.rettype then
+		retfulltype = fulltype:create(self.rettype:gettivalue(), false, true)
+	end
+	self.operator = opcustom:create{
+		defpos = self.epos,
+		deffile = self.filename,
+		opname = self.opname,
+		args = proto,
+		retfulltype = retfulltype,
+		userargs = self.args,
+		symbol = self.symbol,
+	}
+	table.append(pc:getoperatorlist(self.opname), self.operator)
 end
 
 function soperator:compile(stream)
@@ -72,14 +78,14 @@ function soperator:defstring(lp)
 	end
 	if self.rettype then
 		return string.format('operator %s(%s): %s%s\n%send',
-			common.identstring(self.operator),
+			common.identstring(self.opname),
 			table.concat(argstr, ', '),
 			self.rettype:defstring(lp .. self.lpindent),
 			self.body:defstring(lp .. self.lpindent),
 			lp)
 	else
 		return string.format('operator %s(%s)%s\n%send',
-			common.identstring(self.operator),
+			common.identstring(self.opname),
 			table.concat(argstr, ', '),
 			self.body:defstring(lp .. self.lpindent),
 			lp)
@@ -87,6 +93,6 @@ function soperator:defstring(lp)
 end
 
 common = package.relrequire(modname, 3, 'common')
-customof = package.relrequire(modname, 0, 'of')
+opcustom = package.relrequire(modname, 0, 'opcustom')
 fulltype = package.relrequire(modname, 3, 'fulltype')
 symconst = package.relrequire(modname, 3, 'symbol.const')

@@ -38,7 +38,7 @@ function block:write(stream)
 end
 
 function block:read(stream)
-	self.ptype:read(stream)
+	return self.ptype:read(stream)
 end
 
 function block:genname()

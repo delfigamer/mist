@@ -1,3 +1,13 @@
 	local number i = 10
 	local number j = 20
+	function myfunc(number a): number
+		result = a
+	end
+	function myfunc(number a, number b): number
+		result = a + b
+	end
+	operator call(type myfunc, number a): number
+		result = myfunc(a) * 5
+	end
+	i = myfunc(i) + myfunc(i, j)
 end

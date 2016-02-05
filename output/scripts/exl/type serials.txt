@@ -6,7 +6,7 @@ access modes:
 
 typeinfo:
 '_' = invalid
-globalname = class instance
+globalname = class instance, functor
 'c' .. globalname = class definition
 'f' .. list(args) .. ti(rettype) = function (value-returning)
 'f' .. list(args) .. 'N' = function (non-value-returning)

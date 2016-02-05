@@ -21,6 +21,7 @@ function opassign:invoke(it)
 		spos = it.spos,
 		epos = it.epos,
 		filename = it.filename,
+		operator = self,
 		context = it.context,
 		args = it.args,
 		ti = lft.ti,

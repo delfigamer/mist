@@ -4,6 +4,8 @@ local localarg = stringarg:module(modname)
 local common
 local scalars = require('rs.scalars')
 
+localarg.type = 'local'
+
 function localarg:init(it)
 	stringarg.init(self, it)
 end

@@ -3,6 +3,8 @@ local intarg = package.relrequire(modname, 1, 'int')
 local ssaarg = intarg:module(modname)
 local scalars = require('rs.scalars')
 
+ssaarg.type = 'ssa'
+
 function ssaarg:init(it)
 	intarg.init(self, it)
 end

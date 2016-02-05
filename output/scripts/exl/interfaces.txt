@@ -5,6 +5,8 @@ context:
 	function setsymbol(string name, symbol, node)
 	function getsymbol(string name): symbol?
 	function getoperatorlist(string opname): operator[]
+	function getnameprefix(): string
+	function genid(): string
 
 expression:
 	< node
@@ -21,6 +23,12 @@ fulltype:
 
 invokation:
 	< expression
+	function init{
+		filepos spos,
+		filepos epos,
+		string filename,
+		operator,
+	}
 	function getoperator(): operator
 
 node:

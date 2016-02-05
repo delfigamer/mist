@@ -281,6 +281,7 @@ function token:read(stream)
 	for i = 1, argc do
 		instance.args[i] = argbase:readarg(stream)
 	end
+	return instance
 end
 
 function token:defstring(lp)

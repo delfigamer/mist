@@ -15,7 +15,6 @@ end
 
 function basearg:createarg(it)
 	local instance = argclasses[it[1]]:new()
-	instance.type = it[1]
 	instance:init(it)
 	return instance
 end
@@ -31,7 +30,9 @@ function basearg:readarg(stream)
 	if not class then
 		error('invalid stream')
 	end
-	return class:read(stream)
+	local instance = class:new()
+	instance:read(stream)
+	return instance
 end
 
 for i, name in ipairs{

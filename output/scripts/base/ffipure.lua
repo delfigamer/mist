@@ -17,16 +17,21 @@ local function ffipure_new_next(self, ...)
 end
 
 function ffipure:new(...)
-	if not self.metatype then
+	if not rawget(self, 'metatype') then
 		self.new = ffipure_new_next
-		self.metatype = self:buildmetatype()
+		self:buildmetatype()
 	end
 	return self.metatype(...)
 end
 
 function ffipure:buildmetatype()
-	local cdef = string.format('struct{%s}', self.fields)
-	return ffi.metatype(cdef, self.instmeta)
+	if self.cname then
+		ffi.cdef(string.format('typedef struct{%s} %s', self.fields, self.cname))
+		self.metatype = ffi.metatype(self.cname, self.instmeta)
+	else
+		local cdef = string.format('struct{%s}', self.fields)
+		self.metatype = ffi.metatype(cdef, self.instmeta)
+	end
 end
 
 function ffipure.instmeta:__gc()
