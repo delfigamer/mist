@@ -12,7 +12,7 @@ else
 TARGET_ARCH = -march=armv7-a
 TARGET_SUFFIX = -arm7a
 OS_LIBS =
-TARGETNAME = client-console$(TARGET_SUFFIX)
+TARGETNAME = client-console$(TARGET_SUFFIX).out
 endif
 TARGET = ../output/$(TARGETNAME)
 

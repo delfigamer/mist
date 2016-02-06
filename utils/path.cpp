@@ -57,7 +57,7 @@ namespace utils
 		{
 			if( current->m_result )
 			{
-				( ( char_t* )data )[ -1 ] = PATH_SEP;
+				( ( char_t* )data )[ -1 ] = PATH_SEP[ 0 ];
 				data -= current->m_result->m_length;
 				memcpy(
 					data,
@@ -65,7 +65,7 @@ namespace utils
 					current->m_result->m_length - sizeof( char_t ) );
 				break;
 			}
-			( ( char_t* )data )[ -1 ] = PATH_SEP;
+			( ( char_t* )data )[ -1 ] = PATH_SEP[ 0 ];
 			data -= sizeof( char_t ) + current->m_target->m_length;
 			memcpy( data, current->m_target->m_data, current->m_target->m_length );
 			current = current->m_base;
