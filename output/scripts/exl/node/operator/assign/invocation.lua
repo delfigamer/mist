@@ -7,6 +7,7 @@ function invassign:init(it)
 	invbase.init(self, it)
 	self.args = it.args
 	self.fulltype = fulltype:create(it.ti, false, true)
+	self.rank = it.rank
 end
 
 function invassign:rcompile(stream)

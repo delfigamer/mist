@@ -16,4 +16,8 @@ function edummy:rcompile(stream)
 	return self.retname
 end
 
+function edummy:defstring(lp)
+	return string.format('< dummy: %s >', self.fulltype:defstring(lp))
+end
+
 common = require('exl.common')

@@ -4,6 +4,8 @@ local opassign = opbase:create{
 	filename = 'system',
 }
 package.modtable(modname, opassign)
+local ecast
+local fulltype
 local invassign
 
 function opassign:invoke(it)
@@ -14,7 +16,17 @@ function opassign:invoke(it)
 	local rv = it.args[2]
 	local lft = lv:getfulltype()
 	local rft = rv:getfulltype()
-	if not lft.lvalue or not rft.rvalue or not lft.ti:iseq(rft.ti) then
+	local rank
+	rv, rank = ecast:castvalue{
+		context = it.context,
+		spos = it.spos,
+		epos = it.epos,
+		filename = it.filename,
+		base = rv,
+		target = fulltype:create(lft.ti, false, true),
+		binternal = it.binternal,
+	}
+	if not rv then
 		return
 	end
 	return invassign:create{
@@ -23,9 +35,12 @@ function opassign:invoke(it)
 		filename = it.filename,
 		operator = self,
 		context = it.context,
-		args = it.args,
+		args = {lv, rv},
 		ti = lft.ti,
+		rank = rank,
 	}
 end
 
+ecast = package.relrequire(modname, 3, 'expr.cast')
+fulltype = package.relrequire(modname, 4, 'fulltype')
 invassign = package.relrequire(modname, 1, 'invocation')

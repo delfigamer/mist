@@ -4,6 +4,7 @@ local sfunction = node:module(modname)
 local common
 local fulltype
 local opfunctorcall
+local opfunctorcast
 local symconst
 local symfunctor
 
@@ -56,7 +57,7 @@ function sfunction:dobuild(pc)
 	if self.rettype then
 		retfulltype = fulltype:create(self.rettype:gettivalue(), false, true)
 	end
-	self.operator = opfunctorcall:create{
+	self.opcall = opfunctorcall:create{
 		defpos = self.spos,
 		deffile = self.filename,
 		opname = 'call',
@@ -66,9 +67,19 @@ function sfunction:dobuild(pc)
 		userargs = self.args,
 		symbol = self.symbol,
 	}
+	self.opcast = opfunctorcast:create{
+		defpos = self.spos,
+		deffile = self.filename,
+		opname = 'cast',
+		args = {
+			fulltype:create(self.value:getfulltype().ti, true, false),
+			self.functor:getfulltype(),
+		},
+		symbol = self.symbol,
+	}
 	local functorcontext = self.functor:getfulltype().ti:getcontext()
-	local oplist = functorcontext:getoperatorlist('call')
-	table.append(oplist, self.operator)
+	table.append(functorcontext:getoperatorlist('call'), self.opcall)
+	table.append(functorcontext:getoperatorlist('cast'), self.opcast)
 end
 
 function sfunction:compile(stream)
@@ -113,5 +124,6 @@ end
 common = package.relrequire(modname, 3, 'common')
 fulltype = package.relrequire(modname, 3, 'fulltype')
 opfunctorcall = package.relrequire(modname, 0, 'opcall')
+opfunctorcast = package.relrequire(modname, 0, 'opcast')
 symconst = package.relrequire(modname, 3, 'symbol.const')
 symfunctor = package.relrequire(modname, 0, 'symbol')

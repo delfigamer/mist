@@ -23,6 +23,7 @@ function einvoke:init(pr)
 	ebase.init(self, pr)
 	self.opname = pr.opname
 	self.args = pr.args
+	self.binternal = pr.binternal
 end
 
 local function tryresolve(self, context, visitedcontexts, protostr)
@@ -30,17 +31,25 @@ local function tryresolve(self, context, visitedcontexts, protostr)
 		return
 	end
 	visitedcontexts[context] = true
-	local candidates = {}
+	local candidates
+	local rank
 	local oplist = context:getoperatorlist(self.opname)
 	for i, operator in ipairs(oplist) do
 		local impl = operator:invoke(self)
 		if impl then
-			table.append(candidates, impl)
+			local irank = impl:getrank()
+			-- log(self, i, operator, irank)
+			if irank == rank then
+				table.append(candidates, impl)
+			elseif not rank or irank < rank then
+				candidates = {impl}
+				rank = irank
+			end
 		end
 	end
-	if #candidates == 1 then
+	if candidates and #candidates == 1 then
 		return candidates[1]
-	elseif #candidates > 1 then
+	elseif candidates and #candidates > 1 then
 		local candstr = {}
 		for i, item in ipairs(candidates) do
 			local operator = item:getoperator()
@@ -94,10 +103,13 @@ function einvoke:dobuild(pc)
 		self.constvalue = self.invocation:getconstvalue()
 		self.fulltype = self.invocation:getfulltype()
 	else
-		common.nodeerror(
-			'cannot resolve ' .. protostr,
-			self)
-		return
+		if self.binternal then
+			self.bfailed = true
+		else
+			common.nodeerror(
+				'cannot resolve ' .. protostr,
+				self)
+		end
 	end
 end
 

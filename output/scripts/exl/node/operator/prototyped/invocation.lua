@@ -2,10 +2,11 @@ local modname = ...
 local invbase = package.relrequire(modname, 2, 'base.invocation')
 local invprototyped = invbase:module(modname)
 
-function invprototyped:init(pr)
-	invbase.init(self, pr)
-	self.args = pr.args
-	self.fulltype = pr.fulltype
+function invprototyped:init(it)
+	invbase.init(self, it)
+	self.args = it.args
+	self.fulltype = it.fulltype
+	self.rank = it.rank
 end
 
 function invprototyped:rcompile(stream)

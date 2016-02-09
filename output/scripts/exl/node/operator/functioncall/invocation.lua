@@ -14,6 +14,7 @@ function invfunctioncall:init(it)
 	else
 		self.fulltype = fulltype:create(invbase:getfulltype().ti, false, false)
 	end
+	self.rank = it.rank
 end
 
 function invfunctioncall:rcompile(stream)

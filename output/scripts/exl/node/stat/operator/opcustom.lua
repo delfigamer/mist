@@ -4,6 +4,8 @@ local opprototyped = package.relrequire(
 local opcustom = opprototyped:module(modname)
 local common
 
+opcustom.rank = 30
+
 function opcustom:init(it)
 	opprototyped.init(self, it)
 	self.opname = it.opname

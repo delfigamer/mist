@@ -21,7 +21,7 @@ fulltype:
 	bool lvalue
 	bool rvalue
 
-invokation:
+invocation:
 	< expression
 	function init{
 		filepos spos,
@@ -30,6 +30,7 @@ invokation:
 		operator,
 	}
 	function getoperator(): operator
+	function getrank(): int
 
 node:
 	< object
@@ -55,7 +56,8 @@ operator:
 		context,
 		string opname,
 		expression[] args,
-	}: invokation?
+		bool binternal,
+	}: invocation?
 
 symbol:
 	< object

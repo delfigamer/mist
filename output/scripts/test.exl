@@ -1,13 +1,23 @@
 	local number i = 10
 	local number j = 20
+	local string s = 'kl'
+	operator cast(out string s, number n)
+		s = '0'
+	end
+	operator cast(out number n, string s)
+		n = 0
+	end
 	function myfunc(number a): number
 		result = a
 	end
-	function myfunc(number a, number b): number
-		result = a + b
+	function myfunc(inout number a): number
+		result = a
 	end
-	operator call(type myfunc, number a): number
-		result = myfunc(a) * 5
+	function myfunc(string a): number
+		result = a
 	end
-	i = myfunc(i) + myfunc(i, j)
+	function myfunc(inout string a): number
+		result = a
+	end
+	j = myfunc(1) + myfunc(i) + myfunc('12') + myfunc(s)
 end

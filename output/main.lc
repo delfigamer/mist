@@ -2,7 +2,8 @@ local ds = (_PLATFORM == 'win') and '\\' or '/'
 
 bootscript = _PATH .. 'scripts' .. ds .. 'system' .. ds .. 'boot.lua'
 if _CONSOLE then
-	indexmodule = 'index-cmd'
+	-- indexmodule = 'index-cmd'
+	indexmodule = 'index-exltest'
 else
 	indexmodule = 'index-d1'
 	silent = false
