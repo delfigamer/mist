@@ -6,7 +6,7 @@ function invprototyped:init(it)
 	invbase.init(self, it)
 	self.args = it.args
 	self.fulltype = it.fulltype
-	self.rank = it.rank
+	self.maxrank = it.maxrank
 end
 
 function invprototyped:rcompile(stream)

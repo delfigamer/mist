@@ -4,7 +4,7 @@ local invprototyped = package.relrequire(
 local invfunctorcast = invprototyped:module(modname)
 local common
 
-invfunctorcast.rank = 10
+invfunctorcast.castrank = 10
 
 function invfunctorcast:init(it)
 	invprototyped.init(self, it)

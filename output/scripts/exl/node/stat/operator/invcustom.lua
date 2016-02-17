@@ -5,6 +5,8 @@ local invcustom = invprototyped:module(modname)
 local common
 local opfunctioncall
 
+invcustom.castrank = 30
+
 function invcustom:init(it)
 	invprototyped.init(self, it)
 	local ref = common.createnode{

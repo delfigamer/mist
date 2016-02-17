@@ -37,7 +37,7 @@ function ecast:init(it)
 			self.bfailed = true
 			return
 		end
-		local rank = self.lassignment.invocation:getrank()
+		local rank = self.lassignment.invocation:getcastrank()
 		if rank > self.rank then
 			self.rank = rank
 		end
@@ -67,7 +67,7 @@ function ecast:init(it)
 			self.bfailed = true
 			return
 		end
-		local rank = self.rassignment.invocation:getrank()
+		local rank = self.rassignment.invocation:getcastrank()
 		if rank > self.rank then
 			self.rank = rank
 		end
@@ -131,9 +131,9 @@ function ecast:castvalue(it)
 		return
 	end
 	local rlrank
-	if it.binternal then
-		rlrank = 0
-	else
+	-- if it.binternal then
+		-- rlrank = 0
+	-- else
 		if baseft.lvalue and not targetft.lvalue then
 			rlrank = 1
 		elseif baseft.rvalue and not targetft.rvalue then
@@ -141,7 +141,7 @@ function ecast:castvalue(it)
 		else
 			rlrank = 0
 		end
-	end
+	-- end
 	if baseft.ti:iseq(targetft.ti) then
 		-- log(baseft, targetft, rlrank)
 		return it.base, rlrank

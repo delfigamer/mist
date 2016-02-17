@@ -37,7 +37,7 @@ local function tryresolve(self, context, visitedcontexts, protostr)
 	for i, operator in ipairs(oplist) do
 		local impl = operator:invoke(self)
 		if impl then
-			local irank = impl:getrank()
+			local irank = impl:getmaxrank()
 			-- log(self, i, operator, irank)
 			if irank == rank then
 				table.append(candidates, impl)

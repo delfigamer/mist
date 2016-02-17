@@ -2,7 +2,8 @@ local modname = ...
 local ebase = package.relrequire(modname, 3, 'expr.base')
 local invbase = ebase:module(modname)
 
-invbase.rank = 0
+invbase.castrank = 0
+invbase.maxrank = 0
 
 function invbase:init(it)
 	ebase.init(self, it)
@@ -13,6 +14,10 @@ function invbase:getoperator()
 	return self.operator
 end
 
-function invbase:getrank()
-	return self.rank
+function invbase:getcastrank()
+	return self.castrank
+end
+
+function invbase:getmaxrank()
+	return self.maxrank
 end

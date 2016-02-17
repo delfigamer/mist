@@ -19,7 +19,7 @@ function invinit:init(it)
 		self.node:build(it.context)
 		self.fulltype = self.node:getfulltype()
 		self.constvalue = self.node:getconstvalue()
-		self.rank = self.node.invocation:getrank()
+		self.maxrank = self.node.invocation:getmaxrank()
 	end
 end
 

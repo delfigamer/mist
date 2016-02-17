@@ -4,8 +4,6 @@ local opprototyped = opbase:module(modname)
 local ebase
 local ecast
 
-opprototyped.rank = 0
-
 function opprototyped:init(pr)
 	opbase.init(self, pr)
 	self.args = pr.args
@@ -17,7 +15,7 @@ function opprototyped:invoke(it)
 		return
 	end
 	local castargs = {}
-	local rank = 0
+	local maxrank = 0
 	for i, aarg in ipairs(self.args) do
 		local barg = it.args[i]:getfulltype()
 		local arank
@@ -33,8 +31,8 @@ function opprototyped:invoke(it)
 		if not castargs[i] then
 			return
 		end
-		if arank > rank then
-			rank = arank
+		if arank > maxrank then
+			maxrank = arank
 		end
 	end
 	return self.invocationclass:create{
@@ -45,7 +43,7 @@ function opprototyped:invoke(it)
 		operator = self,
 		args = castargs,
 		fulltype = self.retfulltype,
-		rank = self.rank + rank,
+		maxrank = maxrank,
 	}
 end
 
