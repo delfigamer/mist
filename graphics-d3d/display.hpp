@@ -25,27 +25,20 @@ namespace graphics
 	{
 	private:
 		HWND m_hwnd;
-		D3DPRESENT_PARAMETERS m_presentparameters;
-		IDirect3D9* m_direct3d;
-		IDirect3DDevice9* m_device;
 		utils::Ref< graphics::Shape > m_shape;
 		DisplayInfo m_info;
-		int m_framecounter;
 
 	public:
 		Display();
 		~Display();
 		Display( Display const& ) = delete;
-		Display( Display&& ) = delete;
 		Display& operator=( Display const& ) = delete;
-		Display& operator=( Display&& ) = delete;
 
 		void initialize( utils::ConfigSet const& config, HWND hwnd );
 		void finalize();
 		void paint();
-		Shape* getshape();
+		DisplayInfo const* getdisplayinfo();
 		void setshape( Shape* nv );
-		DisplayInfo const* displayinfo();
 	};
 }
 

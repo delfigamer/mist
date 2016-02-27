@@ -1,5 +1,5 @@
 local modname = ...
-local etypedef = package.relrequire(modname, 1, 'typedef')
+local etypedef = require(modname, 1, 'typedef')
 local etypeof = etypedef:module(modname)
 local common
 
@@ -19,4 +19,4 @@ function etypeof:defstring(lp)
 		self.expression:defstring(lp .. self.lpindent))
 end
 
-common = package.relrequire(modname, 3, 'common')
+common = require(modname, 3, 'common')

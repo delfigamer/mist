@@ -1,5 +1,5 @@
 local modname = ...
-local baseoi = package.relrequire(modname, 2, 'base.instance')
+local baseoi = require(modname, 2, 'base.instance')
 local classcalloi = baseoi:module(modname)
 local fulltype
 
@@ -25,4 +25,4 @@ function classcalloi:rcompile(stream)
 	return self.retname
 end
 
-fulltype = package.relrequire(modname, 4, 'fulltype')
+fulltype = require(modname, 4, 'fulltype')

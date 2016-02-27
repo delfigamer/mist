@@ -1,5 +1,5 @@
 local modname = ...
-local node = package.relrequire(modname, 3, 'base')
+local node = require(modname, 3, 'base')
 local cmbase = node:module(modname)
 local common
 
@@ -12,4 +12,4 @@ function cmbase:dobuild(pc)
 	self.bpublic = true
 end
 
-common = package.relrequire(modname, 4, 'common')
+common = require(modname, 4, 'common')

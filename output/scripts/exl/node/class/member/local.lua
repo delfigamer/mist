@@ -1,5 +1,5 @@
 local modname = ...
-local cmbase = package.relrequire(modname, 1, 'base')
+local cmbase = require(modname, 1, 'base')
 local cmlocal = cmbase:module(modname)
 local common
 local fulltype
@@ -41,6 +41,6 @@ function cmlocal:defstring(lp)
 		common.identstring(self.targetname))
 end
 
-common = package.relrequire(modname, 4, 'common')
-fulltype = package.relrequire(modname, 4, 'fulltype')
-csymlocal = package.relrequire(modname, 2, 'symbol.local')
+common = require(modname, 4, 'common')
+fulltype = require(modname, 4, 'fulltype')
+csymlocal = require(modname, 2, 'symbol.local')

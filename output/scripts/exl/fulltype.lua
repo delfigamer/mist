@@ -1,5 +1,5 @@
 local modname = ...
-local object = package.relrequire(modname, 1, 'object')
+local object = require(modname, 1, 'object')
 local fulltype = object:module(modname)
 local common
 
@@ -48,4 +48,4 @@ function fulltype:defstring(lp)
 		self.ti:defstring(lp))
 end
 
-common = package.relrequire(modname, 1, 'common')
+common = require(modname, 1, 'common')

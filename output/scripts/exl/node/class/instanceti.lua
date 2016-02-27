@@ -1,5 +1,5 @@
 local modname = ...
-local baseti = package.relrequire(modname, 2, 'expr.base.ti')
+local baseti = require(modname, 2, 'expr.base.ti')
 local classinstanceti = baseti:module(modname)
 local common
 local einstancemember
@@ -39,5 +39,5 @@ function classinstanceti:defstring(lp)
 	return self.classinfo:getclassname()
 end
 
-common = package.relrequire(modname, 3, 'common')
-einstancemember = package.relrequire(modname, 1, 'expr.instancemember')
+common = require(modname, 3, 'common')
+einstancemember = require(modname, 1, 'expr.instancemember')

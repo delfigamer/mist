@@ -163,6 +163,16 @@ namespace rsbin
 		}
 	}
 
+	PngReader* PngReader::create( int format )
+	{
+		return new PngReader( format );
+	}
+
+	void PngReader::release()
+	{
+		delete this;
+	}
+
 	void PngReader::feed( int length, void const* buffer )
 	{
 		if( setjmp( m_jmpbuf ) )
@@ -171,81 +181,5 @@ namespace rsbin
 		}
 		png_process_data(
 			m_png, m_info, png_bytep( buffer ), length );
-	}
-
-	bool PngReader::isfinished()
-	{
-		return m_finished;
-	}
-
-	int PngReader::getwidth()
-	{
-		return m_width;
-	}
-
-	int PngReader::getheight()
-	{
-		return m_height;
-	}
-
-	utils::Ref< utils::DataBuffer > const&
-		PngReader::getdata()
-	{
-		return m_data;
-	}
-
-	PngReader* rsbin_pngreader_new( int format ) noexcept
-	{
-	CBASE_PROTECT(
-		return new PngReader( format );
-	)
-	}
-
-	bool rsbin_pngreader_delete( PngReader* reader ) noexcept
-	{
-	CBASE_PROTECT(
-		delete reader;
-		return 1;
-	)
-	}
-
-	bool rsbin_pngreader_feed(
-		PngReader* reader,
-		int length, void const* buffer ) noexcept
-	{
-	CBASE_PROTECT(
-		reader->feed( length, buffer );
-		return 1;
-	)
-	}
-
-	int rsbin_pngreader_isfinished(
-		PngReader* reader ) noexcept
-	{
-	CBASE_PROTECT(
-		return reader->isfinished() ? 1 : 2;
-	)
-	}
-
-	int rsbin_pngreader_getwidth( PngReader* reader ) noexcept
-	{
-	CBASE_PROTECT(
-		return reader->getwidth();
-	)
-	}
-
-	int rsbin_pngreader_getheight( PngReader* reader ) noexcept
-	{
-	CBASE_PROTECT(
-		return reader->getheight();
-	)
-	}
-
-	utils::DataBuffer* rsbin_pngreader_getdata(
-		PngReader* reader ) noexcept
-	{
-	CBASE_PROTECT(
-		return reader->getdata();
-	)
 	}
 }

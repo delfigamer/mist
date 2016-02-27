@@ -1,5 +1,5 @@
 local modname = ...
-local intarg = package.relrequire(modname, 1, 'int')
+local intarg = require(modname, 1, 'int')
 local ssaarg = intarg:module(modname)
 local scalars = require('rs.scalars')
 

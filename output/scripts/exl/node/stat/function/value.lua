@@ -1,5 +1,5 @@
 local modname = ...
-local ebase = package.relrequire(modname, 3, 'expr.base')
+local ebase = require(modname, 3, 'expr.base')
 local efunctor = ebase:module(modname)
 local common
 
@@ -13,4 +13,4 @@ function efunctor:rcompile(stream)
 	return 0
 end
 
-common = package.relrequire(modname, 4, 'common')
+common = require(modname, 4, 'common')

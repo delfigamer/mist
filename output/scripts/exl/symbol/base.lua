@@ -1,5 +1,5 @@
 local modname = ...
-local object = package.relrequire(modname, 2, 'object')
+local object = require(modname, 2, 'object')
 local symbase = object:module(modname)
 local fulltype
 
@@ -19,4 +19,4 @@ function symbase:getconstvalue()
 	return self.constvalue
 end
 
-fulltype = package.relrequire(modname, 2, 'node.expr.base').fulltype
+fulltype = require(modname, 2, 'node.expr.base').fulltype

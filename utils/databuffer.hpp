@@ -3,10 +3,12 @@
 
 #include "refobject.hpp"
 #include "ref.hpp"
+#include <common.hpp>
 #include <cinttypes>
 
 namespace utils
 {
+	R_CLASS( name = databuffer )
 	class DataBuffer: public RefObject
 	{
 	public:
@@ -26,14 +28,14 @@ namespace utils
 		DataBuffer() = delete;
 		DataBuffer( DataBuffer const& ) = delete;
 		DataBuffer& operator=( DataBuffer const& ) = delete;
-	};
 
-	DataBuffer* utils_databuffer_new(
-		int length, int capacity, void const* data ) noexcept;
-	void* utils_databuffer_getdata( DataBuffer* db ) noexcept;
-	int utils_databuffer_getlength( DataBuffer* db ) noexcept;
-	bool utils_databuffer_setlength( DataBuffer* db, int length ) noexcept;
-	int utils_databuffer_getcapacity( DataBuffer* db ) noexcept;
+		R_METHOD() static DataBuffer* pcreate(
+			int length, int capacity, void const* data );
+		R_METHOD() void* getdata() noexcept { return m_data; }
+		R_METHOD() int getlength() noexcept { return m_length; }
+		R_METHOD() void setlength( int length ) noexcept { m_length = length; }
+		R_METHOD() int getcapacity() noexcept { return m_capacity; }
+	};
 }
 
 #endif

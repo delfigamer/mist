@@ -88,7 +88,7 @@ namespace utils {
 	{
 		ConfigSet_accessor( double, lua_tonumber );
 	}
-	
+
 	static String toustring( lua_State* L, int index )
 	{
 		size_t len;
@@ -123,5 +123,29 @@ namespace utils {
 			}
 		}
 		lua_settop( m_lstate, 0 );
+	}
+
+	int ConfigSet::lstring(
+		char const* expr, char* buffer, int buflen ) const
+	{
+		String str = string( expr );
+		if( !str )
+		{
+			return 0;
+		}
+		int strlen = str.getlength() - 1;
+		if( buffer )
+		{
+			if( buflen > strlen )
+			{
+				buflen = strlen;
+			}
+			memcpy( buffer, str.getchars(), buflen );
+		}
+		else
+		{
+			buflen = strlen;
+		}
+		return buflen;
 	}
 }

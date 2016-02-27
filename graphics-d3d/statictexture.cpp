@@ -2,126 +2,103 @@
 #include "common.hpp"
 #include <utils/cbase.hpp>
 #include <stdexcept>
-#include <cstdio>
+#include <atomic>
 
 namespace graphics
 {
-	// int log2( uint32_t i ) {
-		// static int const log2_16[] = {
-			// 0, 1, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4 };
-		// int r = -1;
-		// if( i & 0xffff0000 ) {
-			// r += 16;
-			// i >>= 16;
-		// }
-		// if( i & 0xff00 ) {
-			// r += 8;
-			// i >>= 8;
-		// }
-		// if( i & 0xf0 ) {
-			// r += 4;
-			// i >>= 4;
-		// }
-		// r += log2_16[ i ];
-		// return r;
-	// }
+	static int const formattable[] = {
+		D3DFMT_A8B8G8R8,
+		D3DFMT_A16B16G16R16,
+	};
+	static int const texelsizetable[] = {
+		4,
+		8,
+	};
 
-	void StaticTexture::update( IDirect3DDevice9* device )
+	void StaticTexture::advance()
 	{
-		// int format;
-		utils::Ref< utils::DataBuffer > datainst;
-		int width;
-		int height;
-		{
-			lock_t lock( m_mutex );
-			// format = m_format;
-			datainst = m_data;
-			width = m_width;
-			height = m_height;
-			m_data = nullptr;
-		}
-		if( !datainst || width == 0 || height == 0 )
-		{
-			return;
-		}
-		RELEASE( m_texture );
-		uint8_t* data = datainst->m_data;
+		int width = m_width;
+		int height = m_height;
 		checkerror( device->CreateTexture(
 			width, height,
-			0, D3DUSAGE_AUTOGENMIPMAP,
-			D3DFMT_A8R8G8B8, D3DPOOL_MANAGED, &m_texture, 0 ) );
-		D3DLOCKED_RECT rect;
-		checkerror( m_texture->LockRect(
-			0, &rect, 0, D3DLOCK_DISCARD | D3DLOCK_NOSYSLOCK ) );
-		try
+			m_levelcount, 0,
+			formattable[ m_format ], D3DPOOL_MANAGED, &m_texture, 0 ) );
+		for( int i = 0; i < m_levelcount; ++i )
 		{
-			for( int y = 0; y < height; ++y )
+			D3DLOCKED_RECT rect;
+			checkerror( m_texture->LockRect(
+				i, &rect, 0, D3DLOCK_DISCARD | D3DLOCK_NOSYSLOCK ) );
+			try
 			{
-				uint8_t* trow = ( uint8_t* )rect.pBits + rect.Pitch * y;
-				uint8_t* drow = data + y * width * 4;
-				for( int x = 0; x < width; ++x )
+				int rstride = width * texelsizetable[ m_format ];
+				for( int y = 0; y < height; ++y )
 				{
-					uint8_t* tp = trow + ( x * 4 );
-					uint8_t* dp = drow + ( x * 4 );
-					tp[ 0 ] = dp[ 2 ];
-					tp[ 1 ] = dp[ 1 ];
-					tp[ 2 ] = dp[ 0 ];
-					tp[ 3 ] = dp[ 3 ];
+					uint8_t* trow = ( uint8_t* )rect.pBits + rect.Pitch * y;
+					uint8_t* drow = data + y * width;
+					memcpy( trow, drow, rstride );
 				}
 			}
+			catch( ... )
+			{
+				m_texture->UnlockRect( i );
+				throw;
+			}
+			checkerror( m_texture->UnlockRect( i ) );
 		}
-		catch( ... )
-		{
-			m_texture->UnlockRect( 0 );
-		}
-		checkerror( m_texture->UnlockRect( 0 ) );
-		m_texture->GenerateMipSubLevels();
 	}
 
-	StaticTexture::StaticTexture()
-		: m_format( 0 )
-		, m_data( nullptr )
-		, m_width( 0 )
-		, m_height( 0 )
+	StaticTexture::StaticTexture(
+		int format, utils::DataBuffer** levels, int width, int height )
+		: m_format( format )
+		, m_width( width )
+		, m_height( height )
 	{
+		TABLE_ASSERT( formattable, format, "format" );
+		std::atomic_thread_fence( std::memory_order_release );
+		if( !levels || !levels[ 0 ] )
+		{
+			throw std::runtime_error( "bitmap data expected" );
+		}
+		for( int i = 0; i < 16; ++i )
+		{
+			if( !levels[ i ] )
+			{
+				m_levelcount = i - 1;
+				break;
+			}
+			int lsize = texelsizetable[ format ] * width * height;
+			if( levels[ i ]->m_length < lsize )
+			{
+				throw utils::StrException(
+					"mip level %s's buffer is too small", i );
+			}
+			m_levels[ i ] = levels[ i ];
+			width = width == 1 ? 1 : width >> 1;
+			height = height == 1 ? 1 : height >> 1;
+			if( width == 1 && height == 1 )
+			{
+				m_levelcount = i;
+				break;
+			}
+		}
 	}
 
 	StaticTexture::~StaticTexture()
 	{
 	}
 
-	void StaticTexture::assign(
-		int format, utils::DataBuffer* data, int width, int height )
-	{
-		if( ( width & ( width - 1 ) ) != 0 || ( height & ( height - 1 ) ) != 0 )
-		{
-			throw std::runtime_error( "only power-of-two textures are supported" );
-		}
-		if( format != 0 )
-		{
-			throw std::runtime_error( "invalid format" );
-		}
-		lock_t lock( m_mutex );
-		m_format = format;
-		m_data = data;
-		m_width = width;
-		m_height = height;
-	}
-
-	StaticTexture* graphics_statictexture_new() noexcept
+	StaticTexture* graphics_statictexture_new(
+		int format, utils::DataBuffer** levels, int width, int height ) noexcept
 	{
 	CBASE_PROTECT(
-		return new StaticTexture();
+		return new StaticTexture( format, levels, width, height );
 	)
 	}
 
-	bool graphics_statictexture_assign(
-		StaticTexture* st,
-		int format, utils::DataBuffer* data, int width, int height) noexcept
+	int graphics_statictexture_isformatsupported( int format ) noexcept
 	{
 	CBASE_PROTECT(
-		st->assign( format, data, width, height );
-		return 1;
+		return ( format >= 0 && format < StaticTexture::Format_Invalid ) ? 1 : 2;
 	)
 	}
 }

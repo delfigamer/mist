@@ -1,5 +1,5 @@
 local modname = ...
-local opbase = package.relrequire(modname, 2, 'base.operator')
+local opbase = require(modname, 2, 'base.operator')
 local opassign = opbase:create{
 	filename = 'system',
 }
@@ -41,6 +41,6 @@ function opassign:invoke(it)
 	}
 end
 
-ecast = package.relrequire(modname, 3, 'expr.cast')
-fulltype = package.relrequire(modname, 4, 'fulltype')
-invassign = package.relrequire(modname, 1, 'invocation')
+ecast = require(modname, 3, 'expr.cast')
+fulltype = require(modname, 4, 'fulltype')
+invassign = require(modname, 1, 'invocation')

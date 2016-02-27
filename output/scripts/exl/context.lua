@@ -1,5 +1,5 @@
 local modname = ...
-local object = package.relrequire(modname, 1, 'object')
+local object = require(modname, 1, 'object')
 local context = object:module(modname)
 local common
 
@@ -86,4 +86,4 @@ function context:defstring(lp)
 		lp, self.nameprefix, parentstr, lp, symbolstr, lp, opstr)
 end
 
-common = package.relrequire(modname, 1, 'common')
+common = require(modname, 1, 'common')

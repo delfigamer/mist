@@ -1,5 +1,5 @@
 local modname = ...
-local object = package.relrequire(modname, 4, 'object')
+local object = require(modname, 4, 'object')
 local baseof = object:module(modname)
 
 function baseof:init(it)

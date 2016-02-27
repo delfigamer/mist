@@ -1,5 +1,5 @@
 local modname = ...
-local invbase = package.relrequire(modname, 2, 'base.invocation')
+local invbase = require(modname, 2, 'base.invocation')
 local invinit = invbase:module(modname)
 local common
 local fulltype
@@ -35,5 +35,5 @@ function invinit:rcompile(stream)
 	return self.retname
 end
 
-common = package.relrequire(modname, 4, 'common')
-fulltype = package.relrequire(modname, 4, 'fulltype')
+common = require(modname, 4, 'common')
+fulltype = require(modname, 4, 'fulltype')

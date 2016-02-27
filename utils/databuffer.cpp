@@ -42,42 +42,11 @@ namespace utils {
 		operator delete( this );
 	}
 
-	DataBuffer* utils_databuffer_new(
-		int length, int capacity, void const* data ) noexcept
+	DataBuffer* DataBuffer::pcreate(
+		int length, int capacity, void const* data )
 	{
-	CBASE_PROTECT(
-		Ref< DataBuffer > si = DataBuffer::create( length, capacity, data );
-		si->addref();
-		return si;
-	)
-	}
-
-	void* utils_databuffer_getdata( DataBuffer* db ) noexcept
-	{
-	CBASE_PROTECT(
-		return db->m_data;
-	)
-	}
-
-	int utils_databuffer_getlength( DataBuffer* db ) noexcept
-	{
-	CBASE_PROTECT(
-		return db->m_length;
-	)
-	}
-
-	bool utils_databuffer_setlength( DataBuffer* db, int length ) noexcept
-	{
-	CBASE_PROTECT(
-		db->m_length = length;
-		return 1;
-	)
-	}
-
-	int utils_databuffer_getcapacity( DataBuffer* db ) noexcept
-	{
-	CBASE_PROTECT(
-		return db->m_capacity;
-	)
+		Ref< DataBuffer > db = create( length, capacity, data );
+		db->addref();
+		return db;
 	}
 }

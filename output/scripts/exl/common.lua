@@ -6,7 +6,7 @@ local lexer
 local nodeerror
 
 function common.createnode(pr)
-	local class = package.relrequire(modname, 1, 'node.' .. pr.name)
+	local class = require(modname, 1, 'node.' .. pr.name)
 	return class:create(pr)
 end
 
@@ -73,7 +73,7 @@ function common.dtos(d)
 	return str
 end
 
-default = package.relrequire(modname, 1, 'node.default')
-exlerror = package.relrequire(modname, 1, 'exlerror')
-lexer = package.relrequire(modname, 1, 'parser.lexer')
-nodeerror = package.relrequire(modname, 1, 'nodeerror')
+default = require(modname, 1, 'node.default')
+exlerror = require(modname, 1, 'exlerror')
+lexer = require(modname, 1, 'parser.lexer')
+nodeerror = require(modname, 1, 'nodeerror')

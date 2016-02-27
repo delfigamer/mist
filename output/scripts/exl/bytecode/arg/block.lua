@@ -1,5 +1,5 @@
 local modname = ...
-local basearg = package.relrequire(modname, 1, 'base')
+local basearg = require(modname, 1, 'base')
 local blockarg = basearg:module(modname)
 local block
 local scalars = require('rs.scalars')
@@ -27,4 +27,4 @@ function blockarg:defstring(lp)
 		self.block:defstring(lp .. self.lpindent), lp)
 end
 
-block = package.relrequire(modname, 2, 'block')
+block = require(modname, 2, 'block')

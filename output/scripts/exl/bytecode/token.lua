@@ -1,5 +1,5 @@
 local modname = ...
-local object = package.relrequire(modname, 2, 'object')
+local object = require(modname, 2, 'object')
 local token = object:module(modname)
 local argbase
 local crc32 = require('crc32')
@@ -293,4 +293,4 @@ function token:defstring(lp)
 	return string.format('%s %s', self.opinfo.name, argstr)
 end
 
-argbase = package.relrequire(modname, 1, 'arg.base')
+argbase = require(modname, 1, 'arg.base')

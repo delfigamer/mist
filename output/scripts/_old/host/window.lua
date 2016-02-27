@@ -1,8 +1,4 @@
-local modname, windowptr = ...
-if not windowptr then
-	require('host')
-	return
-end
+local modname = ...
 local hostobject = require('host.hostobject')
 local ffi = require('ffi')
 local host = require('host')
@@ -30,4 +26,4 @@ function windowclass:finish()
 	end
 end
 
-package.modtable('host.window', windowclass:new(windowptr))
+package.modtable('host.window', windowclass:new(require('host.windowptr')))

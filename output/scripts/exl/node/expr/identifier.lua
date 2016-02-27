@@ -1,5 +1,5 @@
 local modname = ...
-local esymbolbase = package.relrequire(modname, 1, 'symbolbase')
+local esymbolbase = require(modname, 1, 'symbolbase')
 local eidentifier = esymbolbase:module(modname)
 local common
 
@@ -21,4 +21,4 @@ function eidentifier:defstring(lp)
 	return common.identstring(self.targetname)
 end
 
-common = package.relrequire(modname, 3, 'common')
+common = require(modname, 3, 'common')

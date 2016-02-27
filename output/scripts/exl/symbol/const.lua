@@ -1,5 +1,5 @@
 local modname = ...
-local symlocal = package.relrequire(modname, 1, 'local')
+local symlocal = require(modname, 1, 'local')
 local symconst = symlocal:module(modname)
 local common
 
@@ -17,4 +17,4 @@ function symconst:defstring(lp)
 	end
 end
 
-common = package.relrequire(modname, 2, 'common')
+common = require(modname, 2, 'common')

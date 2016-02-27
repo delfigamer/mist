@@ -4,8 +4,12 @@
 
 namespace graphics
 {
+	void ClearShape::doadvance()
+	{
+	}
+
 	ClearShape::ClearShape()
-		: m_color{ 0, 0, 0, 0 }
+		: m_flags( 0 )
 	{
 	}
 
@@ -13,30 +17,66 @@ namespace graphics
 	{
 	}
 
-	void ClearShape::paint( IDirect3DDevice9* device )
+	void ClearShape::paint()
 	{
-		float color[ 4 ];
-		getcolor( color );
-		checkerror( device->Clear(
-			0, 0, D3DCLEAR_TARGET,
-			argb8( color ), 0, 0 ) );
-	}
-
-	void ClearShape::getcolor( float* color )
-	{
-		lock_t lock( m_colormutex );
-		for( int i = 0; i < 4; i++ )
+		int flags;
+		uint32_t color;
+		float depth;
+		int stencil;
 		{
-			color[ i ] = m_color[ i ];
+			lock_t lock( m_mutex );
+			flags = m_flags;
+			color = m_color;
+			depth = m_depth;
+			stencil = m_stencil;
+		}
+		if( flags )
+		{
+			checkerror( Context::Device->Clear(
+				0, 0, flags,
+				color, depth, stencil ) );
 		}
 	}
 
-	void ClearShape::setcolor( float const* color )
+	void ClearShape::setcolor( bool flag, float const* value )
 	{
-		lock_t lock( m_colormutex );
-		for( int i = 0; i < 4; i++ )
+		lock_t lock( m_mutex );
+		if( flag )
 		{
-			m_color[ i ] = color[ i ];
+			m_flags |= D3DCLEAR_TARGET;
+			m_color = argb8( value );
+		}
+		else
+		{
+			m_flags &= ~D3DCLEAR_TARGET;
+		}
+	}
+
+	void ClearShape::setdepth( bool flag, float value )
+	{
+		lock_t lock( m_mutex );
+		if( flag )
+		{
+			m_flags |= D3DCLEAR_ZBUFFER;
+			m_depth = value;
+		}
+		else
+		{
+			m_flags &= ~D3DCLEAR_ZBUFFER;
+		}
+	}
+
+	void ClearShape::setstencil( bool flag, int value )
+	{
+		lock_t lock( m_mutex );
+		if( flag )
+		{
+			m_flags |= D3DCLEAR_STENCIL;
+			m_stencil = value;
+		}
+		else
+		{
+			m_flags &= ~D3DCLEAR_STENCIL;
 		}
 	}
 
@@ -47,20 +87,29 @@ namespace graphics
 	)
 	}
 
-	bool graphics_clearshape_getcolor(
-		ClearShape* shape, float* color ) noexcept
+	bool graphics_clearshape_setcolor(
+		ClearShape* shape, bool flag, float const* value ) noexcept
 	{
 	CBASE_PROTECT(
-		shape->getcolor( color );
+		shape->setcolor( flag, value );
 		return 1;
 	)
 	}
 
-	bool graphics_clearshape_setcolor(
-		ClearShape* shape, float const* color ) noexcept
+	bool graphics_clearshape_setdepth(
+		ClearShape* shape, bool flag, float value ) noexcept
 	{
 	CBASE_PROTECT(
-		shape->setcolor( color );
+		shape->setdepth( flag, value );
+		return 1;
+	)
+	}
+
+	bool graphics_clearshape_setstencil(
+		ClearShape* shape, bool flag, int value ) noexcept
+	{
+	CBASE_PROTECT(
+		shape->setstencil( flag, value );
 		return 1;
 	)
 	}

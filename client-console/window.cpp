@@ -1,5 +1,5 @@
 #include "window.hpp"
-#include "hostmethodlist.hpp"
+#include "luainit.hpp"
 #include <utils/strexception.hpp>
 #include <utils/profile.hpp>
 #include <utils/encoding.hpp>
@@ -82,75 +82,37 @@ namespace window
 		m_info.acceleratorinput = false;
 		m_info.pointinput = false;
 		m_info.keyboardinput = false;
-		m_info.cmdline = m_cmdline.getchars();
+		m_info.configset = &m_mainconfig;
 		m_info.silent = true;
+		m_info.methodlist = &methodlist;
 		initlstate();
 	}
 
 	void Window::initlstate()
 	{
-		utils::String bootscript = m_mainconfig.string(
-			"bootscript" );
-		LOG( "~ Boot script location: %s", bootscript.getchars() );
-		if( bootscript )
-		{
+		// utils::String bootscript = m_mainconfig.string(
+			// "bootscript" );
+		// LOG( "~ Boot script location: %s", bootscript.getchars() );
+		// if( bootscript )
+		// {
 			m_lstate = luaL_newstate();
-			lua_settop( m_lstate, 0 );
 			luaL_openlibs( m_lstate );
-			if( luaL_loadfile( m_lstate, bootscript ) != 0 )
+			if( luaL_loadbuffer(
+				m_lstate,
+				luainit[ 0 ].data, luainit[ 0 ].length, luainit[ 0 ].name ) != 0 )
 			{
 				lua_throwerror( m_lstate );
 			}
-			lua_pushlightuserdata( m_lstate, this );
-			lua_pushlightuserdata( m_lstate, gethostmethodlist() );
-			lua_pushstring( m_lstate, PATH_START );
-			lua_pushstring( m_lstate, MAINCONFIG_STR );
-			if( lua_pcall( m_lstate, 4, 0, 0 ) != 0 )
+			lua_pushlightuserdata( m_lstate, &luainit[ 1 ] );
+			lua_pushlightuserdata( m_lstate, &m_info );
+			if( lua_pcall( m_lstate, 2, 0, 0 ) != 0 )
 			{
 				lua_throwerror( m_lstate );
 			}
-		}
-		else
-		{
-			CriticalError_m( "bootscript undefined" );
-		}
-	}
-
-	void Window::setshape( graphics::Shape* nv )
-	{
-		throw std::runtime_error( "application is in console mode" );
-	}
-
-	WindowInfo const* Window::windowinfo()
-	{
-		return &m_info;
-	}
-
-	void Window::finish()
-	{
-	}
-
-	bool window_window_setshape(
-		Window* window, graphics::Shape* shape ) noexcept
-	{
-	CBASE_PROTECT(
-		window->setshape( shape );
-		return 1;
-	)
-	}
-
-	WindowInfo const* window_window_getinfo( Window* window ) noexcept
-	{
-	CBASE_PROTECT(
-		return window->windowinfo();
-	)
-	}
-
-	bool window_window_finish( Window* window ) noexcept
-	{
-	CBASE_PROTECT(
-		window->finish();
-		return 1;
-	)
+		// }
+		// else
+		// {
+			// CriticalError_m( "bootscript undefined" );
+		// }
 	}
 }

@@ -1,5 +1,5 @@
 local modname = ...
-local csymbase = package.relrequire(modname, 1, 'base')
+local csymbase = require(modname, 1, 'base')
 local csymlocal = csymbase:module(modname)
 local common
 
@@ -46,4 +46,4 @@ function csymlocal:defstring(lp)
 	end
 end
 
-common = package.relrequire(modname, 4, 'common')
+common = require(modname, 4, 'common')

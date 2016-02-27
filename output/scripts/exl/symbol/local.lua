@@ -1,5 +1,5 @@
 local modname = ...
-local symbase = package.relrequire(modname, 1, 'base')
+local symbase = require(modname, 1, 'base')
 local symlocal = symbase:module(modname)
 local common
 
@@ -40,4 +40,4 @@ function symlocal:defstring(lp)
 	end
 end
 
-common = package.relrequire(modname, 2, 'common')
+common = require(modname, 2, 'common')

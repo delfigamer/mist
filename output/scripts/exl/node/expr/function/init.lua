@@ -1,5 +1,5 @@
 local modname = ...
-local efunctionbase = package.relrequire(modname, 0, 'base')
+local efunctionbase = require(modname, 0, 'base')
 local efunction = efunctionbase:module(modname)
 local common
 
@@ -27,4 +27,4 @@ function efunction:defstring(lp)
 	end
 end
 
-common = package.relrequire(modname, 3, 'common')
+common = require(modname, 3, 'common')

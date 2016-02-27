@@ -1,5 +1,5 @@
 local modname = ...
-local etypedef = package.relrequire(modname, 2, 'expr.typedef')
+local etypedef = require(modname, 2, 'expr.typedef')
 local eclassdef = etypedef:module(modname)
 local common
 local classinfo
@@ -39,6 +39,6 @@ function eclassdef:rcompile(stream)
 	return self.retname
 end
 
-common = package.relrequire(modname, 3, 'common')
-classinfo = package.relrequire(modname, 2, 'class')
-fulltype = package.relrequire(modname, 3, 'fulltype')
+common = require(modname, 3, 'common')
+classinfo = require(modname, 2, 'class')
+fulltype = require(modname, 3, 'fulltype')

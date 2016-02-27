@@ -1,6 +1,6 @@
 local modname = ...
 local object = require('base.object')
-local token = package.relrequire(modname, 1, 'token')
+local token = require(modname, 1, 'token')
 
 local context = object:derive(nil, modname .. ':context')
 

@@ -1,5 +1,5 @@
 local modname = ...
-local ereference = package.relrequire(modname, 3, 'expr.reference')
+local ereference = require(modname, 3, 'expr.reference')
 local einstancemember = ereference:module(modname)
 local common
 
@@ -32,4 +32,4 @@ function einstancemember:defstring(lp)
 		common.identstring(self.index))
 end
 
-common = package.relrequire(modname, 4, 'common')
+common = require(modname, 4, 'common')

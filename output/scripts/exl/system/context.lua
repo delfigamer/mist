@@ -1,15 +1,15 @@
 local modname = ...
-local context = package.relrequire(modname, 2, 'context')
+local context = require(modname, 2, 'context')
 local scontext = context:create()
 package.modtable(modname, scontext)
-local common = package.relrequire(modname, 2, 'common')
-local env = package.relrequire(modname, 2, 'env')
-local etypedef = package.relrequire(modname, 2, 'node.expr.typedef')
-local fulltype = package.relrequire(modname, 2, 'fulltype')
-local nativeof = package.relrequire(modname, 2, 'node.operator.native.operator')
-local numberti = package.relrequire(modname, 2, 'node.expr.number').fulltype.ti
-local stringti = package.relrequire(modname, 2, 'node.expr.string').fulltype.ti
-local symconst = package.relrequire(modname, 2, 'symbol.const')
+local common = require(modname, 2, 'common')
+local env = require(modname, 2, 'env')
+local etypedef = require(modname, 2, 'node.expr.typedef')
+local fulltype = require(modname, 2, 'fulltype')
+local nativeof = require(modname, 2, 'node.operator.native.operator')
+local numberti = require(modname, 2, 'node.expr.number').fulltype.ti
+local stringti = require(modname, 2, 'node.expr.string').fulltype.ti
+local symconst = require(modname, 2, 'symbol.const')
 local utility = require('base.utility')
 
 scontext.env = env:create()
@@ -118,13 +118,13 @@ table.append(scontext:getoperatorlist('sub'),
 	})
 
 table.append(scontext:getoperatorlist('assign'),
-	package.relrequire(modname, 2, 'node.operator.assign.operator'))
+	require(modname, 2, 'node.operator.assign.operator'))
 
 table.append(scontext:getoperatorlist('init'),
-	package.relrequire(modname, 2, 'node.operator.init.operator'))
+	require(modname, 2, 'node.operator.init.operator'))
 
 table.append(scontext:getoperatorlist('identity'),
-	package.relrequire(modname, 2, 'node.operator.identity.operator'))
+	require(modname, 2, 'node.operator.identity.operator'))
 
 table.append(scontext:getoperatorlist('call'),
-	package.relrequire(modname, 2, 'node.operator.functioncall.operator'))
+	require(modname, 2, 'node.operator.functioncall.operator'))

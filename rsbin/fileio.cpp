@@ -58,7 +58,7 @@ namespace rsbin
 		int flags;
 		mode_t createmode;
 	};
-	
+
 	static FileParameters fp_map[] = {
 		{
 			O_RDONLY,
@@ -201,6 +201,11 @@ namespace rsbin
 #endif
 	}
 
+	FileIo* FileIo::create( char const* path, int mode )
+	{
+		return new FileIo( path, mode );
+	}
+
 	FsTask* FileIo::startread( uint64_t offset, int length, void* buffer )
 	{
 		FsTask* task = new FsTask;
@@ -252,36 +257,5 @@ namespace rsbin
 			std::this_thread::yield();
 		}
 		task->release();
-	}
-
-	FileIo* rsbin_fileio_new( char const* path, int mode ) noexcept
-	{
-	CBASE_PROTECT(
-		return new FileIo( path, mode );
-	)
-	}
-
-	FsTask* rsbin_fileio_startread(
-		FileIo* io, uint64_t offset, int length, void* buffer ) noexcept
-	{
-	CBASE_PROTECT(
-		return io->startread( offset, length, buffer );
-	)
-	}
-
-	FsTask* rsbin_fileio_startwrite(
-		FileIo* io, uint64_t offset, int length, void const* buffer ) noexcept
-	{
-	CBASE_PROTECT(
-		return io->startwrite( offset, length, buffer );
-	)
-	}
-
-	bool rsbin_fileio_setsize( FileIo* io, uint64_t size ) noexcept
-	{
-	CBASE_PROTECT(
-		io->setsize( size );
-		return 1;
-	)
 	}
 }

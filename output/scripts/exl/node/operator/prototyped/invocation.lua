@@ -1,5 +1,5 @@
 local modname = ...
-local invbase = package.relrequire(modname, 2, 'base.invocation')
+local invbase = require(modname, 2, 'base.invocation')
 local invprototyped = invbase:module(modname)
 
 function invprototyped:init(it)

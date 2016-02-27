@@ -1,8 +1,10 @@
 #ifndef WINDOW_WINDOW_HPP__
 #define WINDOW_WINDOW_HPP__ 1
 
+#include "methodlist.hpp"
 #include <utils/configset.hpp>
 #include <utils/ref.hpp>
+#include <common.hpp>
 #include <lua/lua.hpp>
 #include <ctime>
 
@@ -13,24 +15,47 @@ namespace graphics
 
 namespace window
 {
+R_EMIT( target = ffi_end )
 	struct WindowInfo
 	{
 		int width;
 		int height;
 		float texelsoffset;
 		float texeltoffset;
-		char const* cmdline;
+R_END()
+/*
+R_EMIT( target = ffi_end )
+		configset const* configset;
+R_END()
+*/
+		utils::ConfigSet const* configset;
+R_EMIT( target = ffi_end )
 		bool acceleratorinput;
 		bool pointinput;
 		bool keyboardinput;
 		bool silent;
+		methodlist_t const* methodlist;
 	};
+R_END()
+/*
+R_EMIT( target = ffi_end )
+	typedef struct WindowInfo windowinfo_t;
+R_END()
+
+R_EMIT( target = lua_beforeclasses )
+local windowinfo = package.loaded['host.info']
+windowinfo = ffi.cast('windowinfo_t const*', windowinfo)
+package.loaded['host.info'] = windowinfo
+local methodlist = windowinfo.methodlist
+R_END()
+*/
 
 	struct WindowCreationData
 	{
 		utils::String cmdline;
 	};
 
+	R_CLASS( name = window )
 	class Window
 	{
 	private:
@@ -49,16 +74,8 @@ namespace window
 		~Window();
 
 		int mainloop();
-		void setshape( graphics::Shape* nv );
-		WindowInfo const* windowinfo();
-		void finish();
+		R_METHOD() static void finish() noexcept { }
 	};
-
-	bool window_window_setshape(
-		Window* window, graphics::Shape* shape ) noexcept;
-	window::WindowInfo const* window_window_getinfo(
-		Window* window ) noexcept;
-	bool window_window_finish( Window* window ) noexcept;
 }
 
 #endif

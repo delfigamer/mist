@@ -1,8 +1,8 @@
 local modname = ...
 local object = require('base.object')
-local cpos = package.relrequire(modname, 1, 'cpos')
+local cpos = require(modname, 1, 'cpos')
 local bufstream = object:module(modname)
-local exlerror = package.relrequire(modname, 2, 'exlerror')
+local exlerror = require(modname, 2, 'exlerror')
 local ffi = require('ffi')
 
 bufstream.tabsize = 3

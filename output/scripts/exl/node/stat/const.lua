@@ -1,5 +1,5 @@
 local modname = ...
-local node = package.relrequire(modname, 2, 'base')
+local node = require(modname, 2, 'base')
 local sconst = node:module(modname)
 local common
 local context
@@ -47,7 +47,7 @@ function sconst:defstring(lp)
 		self.value:defstring(lp .. self.lpindent))
 end
 
-common = package.relrequire(modname, 3, 'common')
-context = package.relrequire(modname, 3, 'context')
-fulltype = package.relrequire(modname, 3, 'fulltype')
-symconst = package.relrequire(modname, 3, 'symbol.const')
+common = require(modname, 3, 'common')
+context = require(modname, 3, 'context')
+fulltype = require(modname, 3, 'fulltype')
+symconst = require(modname, 3, 'symbol.const')

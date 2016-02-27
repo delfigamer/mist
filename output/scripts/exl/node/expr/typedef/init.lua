@@ -1,5 +1,5 @@
 local modname = ...
-local ebase = package.relrequire(modname, 1, 'base')
+local ebase = require(modname, 1, 'base')
 local etypedef = ebase:module(modname)
 local common
 
@@ -21,9 +21,9 @@ end
 	-- return self.typeinfo:defstring(lp)
 -- end
 
-common = package.relrequire(modname, 3, 'common')
+common = require(modname, 3, 'common')
 
-local typedefti = package.relrequire(modname, 0, 'ti')
-local fulltype = package.relrequire(modname, 3, 'fulltype')
+local typedefti = require(modname, 0, 'ti')
+local fulltype = require(modname, 3, 'fulltype')
 
 etypedef.fulltype = fulltype:create(typedefti, false, true)

@@ -14,7 +14,9 @@ end
 
 -- do return function() end end
 
-local host = require('host', window, hostmethodlist)
+package.modtable('host.methodlistptr', hostmethodlist)
+package.modtable('host.windowptr', window)
+local host = require('host')
 window = require('host.window')
 protectglobaltable(true)
 
@@ -37,7 +39,7 @@ end
 if main.trace then
 	require('base.trace').enable()
 end
-local isuc, indexmod = pcall(require, main.indexmodule)
+local isuc, indexmod = pcall(require, main.index)
 local err
 if isuc then
 	isuc, err = pcall(indexmod.register)

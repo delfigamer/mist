@@ -5,11 +5,13 @@
 #include <utils/cyclicbuffer.hpp>
 #include <utils/ref.hpp>
 #include <utils/databuffer.hpp>
+#include <common.hpp>
 #include <png/png.hpp>
 #include <csetjmp>
 
 namespace rsbin
 {
+	R_CLASS( name = pngwriter )
 	class PngWriter
 	{
 	public:
@@ -54,18 +56,13 @@ namespace rsbin
 		PngWriter( PngWriter const& ) = delete;
 		PngWriter& operator=( PngWriter const& ) = delete;
 
-		void grab( int length, void* buffer, int* result );
-		bool isfinished();
+		R_METHOD() static PngWriter* create(
+			int format, int width, int height,
+			utils::DataBuffer* data );
+		R_METHOD( release ) void release();
+		R_METHOD() void grab( int length, void* buffer, int* result );
+		R_METHOD() bool isfinished();
 	};
-
-	PngWriter* rsbin_pngwriter_new(
-		int format, int width, int height,
-		utils::DataBuffer* data ) noexcept;
-	bool rsbin_pngwriter_delete( PngWriter* writer ) noexcept;
-	bool rsbin_pngwriter_grab(
-		PngWriter* writer, int length, void* buffer,
-		int* result ) noexcept;
-	int rsbin_pngwriter_isfinished( PngWriter* writer ) noexcept;
 }
 
 #endif

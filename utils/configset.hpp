@@ -2,10 +2,12 @@
 #define UTILS_CONFIGSET_HPP__ 1
 
 #include "string.hpp"
+#include <common.hpp>
 #include <lua/lua.hpp>
 
 namespace utils
 {
+	R_CLASS( name = configset )
 	class ConfigSet
 	{
 	private:
@@ -24,7 +26,37 @@ namespace utils
 			char const* expr, String const& def = 0 ) const;
 		bool boolean( char const* expr, bool def = false ) const;
 		void runcmd( char const* expr );
+		R_METHOD( name = integer ) int linteger( char const* expr, int def ) const
+		{
+			return integer( expr, def );
+		}
+		R_METHOD( name = number ) double lnumber(
+			char const* expr, double def ) const
+		{
+			return number( expr, def );
+		}
+		R_METHOD( name = lstring ) int lstring(
+			char const* expr, char* buffer, int buflen ) const;
+		R_METHOD( name = boolean ) bool lboolean(
+			char const* expr, bool def ) const
+		{
+			return boolean( expr, def );
+		}
 	};
 }
+
+/*
+R_EMIT( target = lua_beforemetatypes )
+function configset:string(expr, def)
+	local buflen = self:lstring(expr, nil, 0)
+	if buflen == 0 then
+		return def
+	end
+	local buffer = ffi.new('char[?]', buflen)
+	self:lstring(expr, buffer, buflen)
+	return ffi.string(buffer, buflen)
+end
+R_END()
+*/
 
 #endif

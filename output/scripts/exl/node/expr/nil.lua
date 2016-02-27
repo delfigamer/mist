@@ -1,5 +1,5 @@
 local modname = ...
-local eliteral = package.relrequire(modname, 1, 'literal')
+local eliteral = require(modname, 1, 'literal')
 local enil = eliteral:module(modname, {
 	serial = 'v',
 	fullname = 'nil',

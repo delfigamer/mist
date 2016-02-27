@@ -231,4 +231,4 @@ end
 
 package.modtable(modname, translate)
 
-common = package.relrequire(modname, 2, 'common')
+common = require(modname, 2, 'common')

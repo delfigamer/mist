@@ -1,5 +1,5 @@
 local modname = ...
-local opbase = package.relrequire(modname, 2, 'base.operator')
+local opbase = require(modname, 2, 'base.operator')
 local opidentity = opbase:create{
 	filename = 'system',
 }
@@ -26,4 +26,4 @@ function opidentity:invoke(it)
 	}
 end
 
-invidentity = package.relrequire(modname, 1, 'invocation')
+invidentity = require(modname, 1, 'invocation')

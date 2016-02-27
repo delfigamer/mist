@@ -1,5 +1,5 @@
 local modname = ...
-local node = package.relrequire(modname, 2, 'base')
+local node = require(modname, 2, 'base')
 local sfunction = node:module(modname)
 local common
 local fulltype
@@ -121,9 +121,9 @@ function sfunction:defstring(lp)
 	end
 end
 
-common = package.relrequire(modname, 3, 'common')
-fulltype = package.relrequire(modname, 3, 'fulltype')
-opfunctorcall = package.relrequire(modname, 0, 'opcall')
-opfunctorcast = package.relrequire(modname, 0, 'opcast')
-symconst = package.relrequire(modname, 3, 'symbol.const')
-symfunctor = package.relrequire(modname, 0, 'symbol')
+common = require(modname, 3, 'common')
+fulltype = require(modname, 3, 'fulltype')
+opfunctorcall = require(modname, 0, 'opcall')
+opfunctorcast = require(modname, 0, 'opcast')
+symconst = require(modname, 3, 'symbol.const')
+symfunctor = require(modname, 0, 'symbol')

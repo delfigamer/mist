@@ -4,6 +4,7 @@
 // #include "poolallocator.hpp"
 #include <atomic>
 #include <utility>
+#include <new>
 
 namespace utils
 {
@@ -56,14 +57,14 @@ namespace utils
 			: MPSCQueueBase( sizeof( value_type ) )
 		{
 		}
-		
+
 		~MPSCQueue()
 		{
 			while( pop() )
 			{
 			}
 		}
-		
+
 		MPSCQueue( const MPSCQueue& ) = delete;
 		MPSCQueue& operator=( const MPSCQueue& ) = delete;
 

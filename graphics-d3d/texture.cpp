@@ -1,9 +1,7 @@
 #include "texture.hpp"
 #include "common.hpp"
 #include <utils/cbase.hpp>
-#include <stdexcept>
 #include <cmath>
-#include <cstdio>
 
 namespace graphics
 {
@@ -29,21 +27,17 @@ namespace graphics
 	};
 	static int const wrapmodetable[] = {
 		D3DTADDRESS_WRAP,
-		D3DTADDRESS_CLAMP
+		D3DTADDRESS_CLAMP,
+		D3DTADDRESS_MIRROR,
 	};
-
-	void Texture::doadvance( IDirect3DDevice9* device, int framecount )
-	{
-		update( device );
-	}
 
 	Texture::Texture()
 		: m_texture( 0 )
 		, m_minfilter( D3DTEXF_LINEAR )
 		, m_mipfilter( D3DTEXF_LINEAR )
 		, m_magfilter( D3DTEXF_LINEAR )
-		, m_wraps( D3DTADDRESS_WRAP )
-		, m_wrapt( D3DTADDRESS_WRAP )
+		, m_wrapu( D3DTADDRESS_WRAP )
+		, m_wrapv( D3DTADDRESS_WRAP )
 	{
 	}
 
@@ -52,65 +46,49 @@ namespace graphics
 		RELEASE( m_texture );
 	}
 
-	bool Texture::istexture()
-	{
-		return m_texture;
-	}
-
-	void Texture::bind( IDirect3DDevice9* device, int sampler )
+	bool Texture::bind( int sampler )
 	{
 		if( m_texture )
 		{
-			checkerror( device->SetTexture( sampler, m_texture ) );
-			checkerror( device->SetSamplerState(
+			checkerror( Context::Device->SetTexture( sampler, m_texture ) );
+			checkerror( Context::Device->SetSamplerState(
 				sampler, D3DSAMP_ADDRESSU, m_wraps ) );
-			checkerror( device->SetSamplerState(
+			checkerror( Context::Device->SetSamplerState(
 				sampler, D3DSAMP_ADDRESSV, m_wrapt ) );
-			checkerror( device->SetSamplerState(
+			checkerror( Context::Device->SetSamplerState(
 				sampler, D3DSAMP_MAGFILTER, m_magfilter ) );
-			checkerror( device->SetSamplerState(
+			checkerror( Context::Device->SetSamplerState(
 				sampler, D3DSAMP_MINFILTER, m_minfilter ) );
-			checkerror( device->SetSamplerState(
+			checkerror( Context::Device->SetSamplerState(
 				sampler, D3DSAMP_MIPFILTER, m_mipfilter ) );
 		}
 		else
 		{
-			checkerror( device->SetTexture( sampler, 0 ) );
+			checkerror( Context::Device->SetTexture( sampler, 0 ) );
 		}
+		return true;
 	}
-
-	// void Texture::unbind()
-	// {
-	// }
 
 	void Texture::setminfilter( int value )
 	{
-		if( value < 0 || value >= MinFilter_Invalid )
-		{
-			throw std::runtime_error( "unknown min filter value" );
-		}
-		m_minfilter = minfiltertable[ value ];
-		m_mipfilter = mipfiltertable[ value ];
+		m_minfilter = TABLE_ASSERT(
+			minfiltertable, value, "minification filter" );
+		m_mipfilter = TABLE_ASSERT(
+			mipfiltertable, value, "minification filter" );
 	}
 
 	void Texture::setmagfilter( int value )
 	{
-		if( value < 0 || value >= MagFilter_Invalid )
-		{
-			throw std::runtime_error( "unknown mag filter value" );
-		}
-		m_magfilter = magfiltertable[ value ];
+		m_magfilter = TABLE_ASSERT(
+			magfiltertable, value, "magnification filter" );
 	}
 
-	void Texture::setwrapmode( int ws, int wt )
+	void Texture::setwrapmode( int wu, int wv )
 	{
-		if( ws < 0 || ws >= WrapMode_Invalid ||
-			wt < 0 || wt >= WrapMode_Invalid )
-		{
-			throw std::runtime_error( "unknown wrap mode value" );
-		}
-		m_wraps = wrapmodetable[ ws ];
-		m_wrapt = wrapmodetable[ wt ];
+		wu = TABLE_ASSERT( wrapmodetable, wu, "wrap mode" );
+		wv = TABLE_ASSERT( wrapmodetable, wv, "wrap mode" );
+		m_wrapu = wu;
+		m_wrapv = wv;
 	}
 
 	bool graphics_texture_setminfilter( Texture* t, int value ) noexcept
@@ -129,10 +107,10 @@ namespace graphics
 		)
 	}
 
-	bool graphics_texture_setwrapmode( Texture* t, int ws, int wt ) noexcept
+	bool graphics_texture_setwrapmode( Texture* t, int wu, int wv ) noexcept
 	{
 		CBASE_PROTECT(
-			t->setwrapmode( ws, wt );
+			t->setwrapmode( wu, wv );
 			return 1;
 		)
 	}

@@ -1,5 +1,5 @@
 local modname = ...
-local ebase = require('exl.node.expr.base')
+local ebase = require(modname, 1, 'base')
 local edummy = ebase:module(modname)
 local common
 
@@ -20,4 +20,4 @@ function edummy:defstring(lp)
 	return string.format('< dummy: %s >', self.fulltype:defstring(lp))
 end
 
-common = require('exl.common')
+common = require(modname, 3, 'common')

@@ -1,5 +1,5 @@
 local modname = ...
-local block = package.relrequire(modname, 2, 'block')
+local block = require(modname, 2, 'block')
 local classbody = block:module(modname)
 local classbodycontext
 local common
@@ -15,5 +15,5 @@ function classbody:dobuild(pc)
 	end
 end
 
-classbodycontext = package.relrequire(modname, 0, 'context')
-common = package.relrequire(modname, 3, 'common')
+classbodycontext = require(modname, 0, 'context')
+common = require(modname, 3, 'common')

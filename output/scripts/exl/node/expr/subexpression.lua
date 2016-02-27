@@ -1,5 +1,5 @@
 local modname = ...
-local ebase = package.relrequire(modname, 1, 'base')
+local ebase = require(modname, 1, 'base')
 local esubexpression = ebase:module(modname)
 local common
 
@@ -27,4 +27,4 @@ function esubexpression:defstring(lp)
 		self.value:defstring(lp .. self.lpindent))
 end
 
-common = package.relrequire(modname, 3, 'common')
+common = require(modname, 3, 'common')

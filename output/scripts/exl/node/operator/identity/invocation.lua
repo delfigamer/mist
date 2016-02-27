@@ -1,5 +1,5 @@
 local modname = ...
-local invbase = package.relrequire(modname, 2, 'base.invocation')
+local invbase = require(modname, 2, 'base.invocation')
 local invidentity = invbase:module(modname)
 local fulltype
 
@@ -18,4 +18,4 @@ function invidentity:rcompile(stream)
 	return self.retname
 end
 
-fulltype = package.relrequire(modname, 4, 'fulltype')
+fulltype = require(modname, 4, 'fulltype')

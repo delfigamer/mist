@@ -1,5 +1,5 @@
 local modname = ...
-local ebase = package.relrequire(modname, 1, 'base')
+local ebase = require(modname, 1, 'base')
 local eliteral = ebase:module(modname)
 local common
 local fulltype
@@ -19,6 +19,6 @@ function eliteral:init(pr)
 	self.constvalue = self
 end
 
-common = package.relrequire(modname, 3, 'common')
-fulltype = package.relrequire(modname, 3, 'fulltype')
-literalti = package.relrequire(modname, 0, 'ti')
+common = require(modname, 3, 'common')
+fulltype = require(modname, 3, 'fulltype')
+literalti = require(modname, 0, 'ti')

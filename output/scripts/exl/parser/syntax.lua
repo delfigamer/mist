@@ -1,6 +1,6 @@
 local modname = ...
 local syntax = package.modtable(modname)
-local common = package.relrequire(modname, 2, 'common')
+local common = require(modname, 2, 'common')
 
 local createnode = common.createnode
 

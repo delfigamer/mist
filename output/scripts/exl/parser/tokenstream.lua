@@ -1,9 +1,9 @@
 local modname = ...
 local object = require('base.object')
 local tokenstream = object:module(modname)
-local lexer = package.relrequire(modname, 1, 'lexer')
-local bufstream = package.relrequire(modname, 1, 'bufstream')
-local exlerror = package.relrequire(modname, 2, 'exlerror')
+local lexer = require(modname, 1, 'lexer')
+local bufstream = require(modname, 1, 'bufstream')
+local exlerror = require(modname, 2, 'exlerror')
 
 function tokenstream:init(istream, filename)
 	self.istream = istream

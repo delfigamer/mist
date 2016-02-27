@@ -1,5 +1,5 @@
 local modname = ...
-local node = package.relrequire(modname, 3, 'base')
+local node = require(modname, 3, 'base')
 local farg = node:module(modname)
 local common
 local context
@@ -55,7 +55,7 @@ function farg:defstring(lp)
 	end
 end
 
-common = package.relrequire(modname, 4, 'common')
-context = package.relrequire(modname, 4, 'context')
-fulltype = package.relrequire(modname, 4, 'fulltype')
-symlocal = package.relrequire(modname, 4, 'symbol.local')
+common = require(modname, 4, 'common')
+context = require(modname, 4, 'context')
+fulltype = require(modname, 4, 'fulltype')
+symlocal = require(modname, 4, 'symbol.local')

@@ -1,33 +1,28 @@
-#ifndef UTILS_METHODLIST_HPP__
-#define UTILS_METHODLIST_HPP__ 1
 
 namespace utils
 {
-	class encoding_t;
-	class translation_t;
-	class RefObject;
 	class DataBuffer;
-
-	struct MethodList
-	{
-		char const*( *cbase_geterror )();
-		void( *cbase_seterror )( char const* error );
-		bool( *cbase_write )( char const* str );
-		bool( *cbase_getchar )( char* str );
-		void( *cbase_yield )();
-		encoding_t const*( *encoding_getencoding )( int index );
-		int( *encoding_translatestr )( translation_t* translation );
-		int( *refobject_addref )( RefObject* ro );
-		int( *refobject_release )( RefObject* ro );
-		DataBuffer*( *databuffer_new )(
-			int length, int capacity, void const* data );
-		void*( *databuffer_getdata )( DataBuffer* db );
-		int( *databuffer_getlength )( DataBuffer* db );
-		bool( *databuffer_setlength )( DataBuffer* db, int length );
-		int( *databuffer_getcapacity )( DataBuffer* db );
-	};
-
-	MethodList const* getmethodlist();
+	struct encoding_t;
+	struct translation_t;
+	class RefObject;
 }
 
-#endif
+struct utils_methodlist_t
+{
+	bool(*utils_cbase_geterror)(char const** result) noexcept;
+	bool(*utils_cbase_seterror)(char const* error) noexcept;
+	bool(*utils_cbase_yield)() noexcept;
+	bool(*utils_cbase_write)(char const* str) noexcept;
+	bool(*utils_cbase_getchar)(char* str) noexcept;
+	bool(*utils_databuffer_new)(int length, int capacity, void const* data, utils::DataBuffer** result) noexcept;
+	bool(*utils_databuffer_getdata)(utils::DataBuffer* self, void** result) noexcept;
+	bool(*utils_databuffer_getlength)(utils::DataBuffer* self, int* result) noexcept;
+	bool(*utils_databuffer_setlength)(utils::DataBuffer* self, int length) noexcept;
+	bool(*utils_databuffer_getcapacity)(utils::DataBuffer* self, int* result) noexcept;
+	bool(*utils_getencoding)(int index, utils::encoding_t const** result) noexcept;
+	bool(*utils_translatestr)(utils::translation_t* translation, int* result) noexcept;
+	bool(*utils_refobject_addref)(utils::RefObject const* self, int* result) noexcept;
+	bool(*utils_refobject_release)(utils::RefObject const* self, int* result) noexcept;
+};
+
+extern utils_methodlist_t const utils_methodlist;

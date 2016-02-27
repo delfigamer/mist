@@ -1,5 +1,5 @@
 local modname = ...
-local invprototyped = package.relrequire(
+local invprototyped = require(
 	modname, 3, 'operator.prototyped.invocation')
 local invfunctorcast = invprototyped:module(modname)
 local common
@@ -30,4 +30,4 @@ function invfunctorcast:rcompile(stream)
 	return 0
 end
 
-common = package.relrequire(modname, 4, 'common')
+common = require(modname, 4, 'common')

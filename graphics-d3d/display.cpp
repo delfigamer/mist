@@ -1,5 +1,6 @@
 #include "display.hpp"
 #include "resource.hpp"
+#include "context.hpp"
 #include "common.hpp"
 #include <utils/profile.hpp>
 #include <stdexcept>
@@ -9,25 +10,7 @@ namespace graphics
 {
 	Display::Display()
 		: m_hwnd( 0 )
-		, m_presentparameters{
-			0,
-			0,
-			D3DFMT_A8R8G8B8,
-			0,
-			D3DMULTISAMPLE_NONE,
-			0,
-			D3DSWAPEFFECT_DISCARD,
-			0,
-			true,
-			true,
-			D3DFMT_D24S8,
-			0,
-			0,
-			D3DPRESENT_INTERVAL_IMMEDIATE }
-		, m_direct3d( 0 )
-		, m_device( 0 )
 		, m_info{ 0, 0, 0.5, -0.5 }
-		, m_framecounter( 0 )
 	{
 	}
 
@@ -41,90 +24,96 @@ namespace graphics
 		{
 			return;
 		}
-		if( config.boolean( "vsync" ) )
-		{
-			m_presentparameters.PresentationInterval = D3DPRESENT_INTERVAL_ONE;
-		}
+		D3DPRESENT_PARAMETERS presentparameters = {
+			0,
+			0,
+			D3DFMT_A8R8G8B8,
+			0,
+			D3DMULTISAMPLE_NONE,
+			0,
+			D3DSWAPEFFECT_DISCARD,
+			0,
+			true,
+			true,
+			D3DFMT_D24S8,
+			0,
+			0,
+			config.boolean( "vsync" ) ?
+				D3DPRESENT_INTERVAL_ONE :
+				D3DPRESENT_INTERVAL_IMMEDIATE,
+		};
 		m_hwnd = hwnd;
-		m_direct3d = Direct3DCreate9( D3D_SDK_VERSION );
-		if( !m_direct3d )
+		Context::D3D = Direct3DCreate9( D3D_SDK_VERSION );
+		if( !Context::D3D )
 		{
 			throw std::runtime_error( "Direct3DCreate9 failed" );
 		}
-		checkerror( m_direct3d->CreateDevice(
+		checkerror( Context::D3D->CreateDevice(
 			D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, m_hwnd,
 			D3DCREATE_FPU_PRESERVE | D3DCREATE_SOFTWARE_VERTEXPROCESSING,
-			&m_presentparameters, &m_device ) );
-		m_info.width = m_presentparameters.BackBufferWidth;
-		m_info.height = m_presentparameters.BackBufferHeight;
-		checkerror( m_device->SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE ) );
-		checkerror( m_device->SetRenderState( D3DRS_LIGHTING, false ) );
-		checkerror( m_device->SetRenderState(
-			D3DRS_SRCBLEND, D3DBLEND_SRCALPHA ) );
-		checkerror( m_device->SetRenderState(
-			D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA ) );
-		checkerror( m_device->SetRenderState( D3DRS_ALPHABLENDENABLE, true ) );
+			&presentparameters, &Context::Device ) );
+		m_info.width = presentparameters.BackBufferWidth;
+		m_info.height = presentparameters.BackBufferHeight;
+		checkerror( Context::Device->SetRenderState(
+			D3DRS_CULLMODE, D3DCULL_NONE ) );
+		checkerror( Context::Device->SetRenderState( D3DRS_LIGHTING, false ) );
 	}
 
 	void Display::finalize()
 	{
-		RELEASE( m_device );
-		RELEASE( m_direct3d );
+		RELEASE( Context::Device );
+		RELEASE( Context::D3D );
 		m_hwnd = 0;
 	}
 
 	void Display::paint()
 	{
 	PROFILE( "paint",
-		if( !m_device )
+		if( !Context::Device )
 		{
 			return;
 		}
 		utils::Ref< graphics::Shape > shape = m_shape;
 		if( shape )
 		{
-		PROFILE( "paint m_device->BeginScene",
-			checkerror( m_device->BeginScene() );
+			Context::DrawnFrame += 1;
+		PROFILE( "paint Context::Device->BeginScene",
+			checkerror( Context::Device->BeginScene() );
 		)
 		PROFILE( "paint shape->advance",
-			shape->advance( m_device, ++m_framecounter );
+			shape->advance();
 		)
 		PROFILE( "paint shape->paint",
-			shape->paint( m_device );
+			shape->paint();
 		)
-		PROFILE( "paint m_device->EndScene",
-			checkerror( m_device->EndScene() );
+		PROFILE( "paint Context::Device->EndScene",
+			checkerror( Context::Device->EndScene() );
 		)
 		}
 		else
 		{
-		PROFILE( "paint m_device->Clear",
-			checkerror( m_device->Clear(
+		PROFILE( "paint Context::Device->Clear",
+			checkerror( Context::Device->Clear(
 				0, 0, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL,
 				0xff4c4c4c, 0, 0 ) );
 		)
 		}
-	PROFILE( "paint m_device->Present",
-		checkerror( m_device->Present( 0, 0, 0, 0 ) );
+	PROFILE( "paint Context::Device->Present",
+		checkerror( Context::Device->Present( 0, 0, 0, 0 ) );
 	)
-	PROFILE( "paint graphics::Resource::cleanup",
-		graphics::Resource::cleanup();
+	PROFILE( "paint Context::cleanup",
+		Context::cleanup();
 	)
 	)
 	}
 
-	Shape* Display::getshape()
+	DisplayInfo const* Display::getdisplayinfo()
 	{
-		return m_shape;
+		return &m_info;
 	}
 
 	void Display::setshape( Shape* nv )
 	{
 		m_shape = nv;
-	}
-
-	DisplayInfo const* Display::displayinfo()
-	{
-		return &m_info;
 	}
 }

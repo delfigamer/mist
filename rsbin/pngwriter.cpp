@@ -143,6 +143,18 @@ namespace rsbin
 		}
 	}
 
+	PngWriter* PngWriter::create(
+		int format, int width, int height,
+		utils::DataBuffer* data )
+	{
+		return new PngWriter( format, width, height, data );
+	}
+
+	void PngWriter::release()
+	{
+		delete this;
+	}
+
 	void PngWriter::grab( int length, void* buffer, int* result )
 	{
 		*result = 0;
@@ -166,40 +178,5 @@ namespace rsbin
 	bool PngWriter::isfinished()
 	{
 		return m_stage == stage_finished && m_buffer.isempty();
-	}
-
-	PngWriter* rsbin_pngwriter_new(
-		int format, int width, int height,
-		utils::DataBuffer* data ) noexcept
-	{
-	CBASE_PROTECT(
-		return new PngWriter( format, width, height, data );
-	)
-	}
-
-	bool rsbin_pngwriter_delete( PngWriter* writer ) noexcept
-	{
-	CBASE_PROTECT(
-		delete writer;
-		return 1;
-	)
-	}
-
-	bool rsbin_pngwriter_grab(
-		PngWriter* writer, int length, void* buffer,
-		int* result ) noexcept
-	{
-	CBASE_PROTECT(
-		writer->grab( length, buffer, result );
-		return 1;
-	)
-	}
-
-	int rsbin_pngwriter_isfinished(
-		PngWriter* writer ) noexcept
-	{
-	CBASE_PROTECT(
-		return writer->isfinished() ? 1 : 2;
-	)
 	}
 }

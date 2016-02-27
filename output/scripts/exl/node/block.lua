@@ -1,5 +1,5 @@
 local modname = ...
-local node = package.relrequire(modname, 1, 'base')
+local node = require(modname, 1, 'base')
 local block = node:module(modname)
 local common
 local context
@@ -40,5 +40,5 @@ function block:defstring(lp)
 	return table.concat(statlines)
 end
 
-common = package.relrequire(modname, 2, 'common')
-context = package.relrequire(modname, 2, 'context')
+common = require(modname, 2, 'common')
+context = require(modname, 2, 'context')

@@ -1,14 +1,15 @@
-local modname, windowptr, hostmethodlist = ...
-module(modname, package.seeall)
+local modname = ...
+local host = package.modtable(modname)
 local ffi = require('ffi')
 
 ffi.cdef(io.open(_PATH .. 'scripts/host/host.h'):read('*a'))
-local hostmethodlist = ffi.cast('HostMethodList*', hostmethodlist)
+local hostmethodlist = ffi.cast('HostMethodList*',
+	require('host.methodlistptr'))
 
 package.modtable('host.methodlist', hostmethodlist)
-require(modname .. '.window', windowptr)
+require(modname .. '.window')
 
-function geterror()
+function host.geterror()
 	local ptr = hostmethodlist.utils.cbase_geterror()
 	if ptr ~= nil then
 		return ffi.string(ptr)
@@ -17,30 +18,34 @@ function geterror()
 	end
 end
 
-function seterror(msg)
+function host.seterror(msg)
 	hostmethodlist.utils.cbase_seterror(msg)
 	return msg
 end
 
-function checkerror()
-	local err = geterror()
+function host.checkerror()
+	local err = host.geterror()
 	if err then
 		error(err)
 	end
 end
 
-function write(str)
+function host.write(str)
 	if not hostmethodlist.utils.cbase_write(str or '') then
-		checkerror()
+		host.checkerror()
 	end
 end
 
 local getchar_buffer = ffi.new('char[5]')
-function getchar()
+function host.getchar()
 	if not hostmethodlist.utils.cbase_getchar(getchar_buffer) then
-		checkerror()
+		host.checkerror()
 	end
 	return ffi.string(getchar_buffer)
+end
+
+function host.yield()
+	hostmethodlist.utils.cbase_yield()
 end
 
 local function tabconcat(...)
@@ -52,9 +57,5 @@ local function tabconcat(...)
 end
 
 function _G.print(...)
-	write(tabconcat(...) .. '\n')
-end
-
-function yield()
-	hostmethodlist.utils.cbase_yield()
+	host.write(tabconcat(...) .. '\n')
 end

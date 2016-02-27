@@ -1,5 +1,5 @@
 local modname = ...
-local symbase = package.relrequire(modname, 4, 'symbol.base')
+local symbase = require(modname, 4, 'symbol.base')
 local symfunctor = symbase:module(modname)
 local efunctor
 local common
@@ -30,7 +30,7 @@ function symfunctor:defstring(lp)
 	end
 end
 
-efunctor = package.relrequire(modname, 1, 'value')
-common = package.relrequire(modname, 4, 'common')
-fulltype = package.relrequire(modname, 4, 'fulltype')
-functorti = package.relrequire(modname, 1, 'ti')
+efunctor = require(modname, 1, 'value')
+common = require(modname, 4, 'common')
+fulltype = require(modname, 4, 'fulltype')
+functorti = require(modname, 1, 'ti')

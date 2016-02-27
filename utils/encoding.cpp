@@ -464,6 +464,17 @@ namespace utils
 			&utf32xe_encode< 3, 2, 1, 0 >, &utf32xe_decode< 3, 2, 1, 0 > );
 	}
 
+	static encoding_t const* encoding_table[] =
+	{
+		&encoding::utf8,
+		&encoding::utf16,
+		&encoding::utf32,
+		&encoding::utf16le,
+		&encoding::utf16be,
+		&encoding::utf32le,
+		&encoding::utf32be,
+	};
+
 	enum
 	{
 		sourcesize_zterm = size_t( -1 ),
@@ -551,20 +562,8 @@ namespace utils
 		return resultcode;
 	}
 
-	static encoding_t const* encoding_table[] =
+	encoding_t const* Encoding::getencoding( int index )
 	{
-		&encoding::utf8,
-		&encoding::utf16,
-		&encoding::utf32,
-		&encoding::utf16le,
-		&encoding::utf16be,
-		&encoding::utf32le,
-		&encoding::utf32be,
-	};
-
-	encoding_t const* utils_encoding_getencoding( int index ) noexcept
-	{
-	CBASE_PROTECT(
 		if(
 			index < 0
 			|| index >= int(
@@ -573,13 +572,10 @@ namespace utils
 			throw std::runtime_error( "invalid encoding index" );
 		}
 		return encoding_table[ index ];
-	)
 	}
 
-	int utils_encoding_translatestr( translation_t* translation ) noexcept
+	int Encoding::translatestr( translation_t* translation )
 	{
-	CBASE_PROTECT(
-		return translatestr( translation );
-	)
+		return ::utils::translatestr( translation );
 	}
 }

@@ -1,5 +1,5 @@
 local modname = ...
-local typeinfo = package.relrequire(modname, 2, 'base.ti')
+local typeinfo = require(modname, 2, 'base.ti')
 local typedefti = package.modtable(modname, typeinfo:create())
 
 typedefti.serial = 't'

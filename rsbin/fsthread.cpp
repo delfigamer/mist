@@ -12,6 +12,11 @@ namespace rsbin
 	int const BlockSize = 0x1000; // 64K
 	int const MemBlockSize = 0x1000; // 64K
 
+	void FsTask::promote()
+	{
+		FsThread->pushhigh( this );
+	}
+
 	// return true if finished
 	bool iteratetask( FsTask* task )
 	{
@@ -189,33 +194,4 @@ namespace rsbin
 	}
 
 	utils::Singleton< FsThreadClass > FsThread;
-
-	bool rsbin_fstask_promote( FsTask* task ) noexcept
-	{
-	CBASE_PROTECT(
-		FsThread->pushhigh( task );
-		return 1;
-	)
-	}
-
-	int rsbin_fstask_isfinished( FsTask* task ) noexcept
-	{
-	CBASE_PROTECT(
-		return task->m_finished.load( std::memory_order_acquire ) ? 1 : 2;
-	)
-	}
-
-	int rsbin_fstask_getresult( FsTask* task ) noexcept
-	{
-	CBASE_PROTECT(
-		return task->m_result;
-	)
-	}
-
-	char const* rsbin_fstask_geterror( FsTask* task ) noexcept
-	{
-	CBASE_PROTECT(
-		return task->m_error.getchars();
-	)
-	}
 }

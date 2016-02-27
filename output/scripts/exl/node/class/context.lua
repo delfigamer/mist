@@ -1,5 +1,5 @@
 local modname = ...
-local context = package.relrequire(modname, 3, 'context')
+local context = require(modname, 3, 'context')
 local classcontext = context:module(modname)
 
 function classcontext:init(parent, outer)

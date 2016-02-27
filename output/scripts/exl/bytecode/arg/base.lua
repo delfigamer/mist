@@ -1,5 +1,5 @@
 local modname = ...
-local object = package.relrequire(modname, 3, 'object')
+local object = require(modname, 3, 'object')
 local basearg = object:module(modname)
 local crc32 = require('crc32')
 local scalars = require('rs.scalars')
@@ -46,5 +46,5 @@ for i, name in ipairs{
 		'ssa',
 		'string',
 	} do
-	argclasses[name] = package.relrequire(modname, 1, name)
+	argclasses[name] = require(modname, 1, name)
 end

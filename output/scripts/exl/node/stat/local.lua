@@ -1,5 +1,5 @@
 local modname = ...
-local node = package.relrequire(modname, 2, 'base')
+local node = require(modname, 2, 'base')
 local slocal = node:module(modname)
 local common
 local fulltype
@@ -90,6 +90,6 @@ function slocal:defstring(lp)
 	end
 end
 
-common = package.relrequire(modname, 3, 'common')
-fulltype = package.relrequire(modname, 3, 'fulltype')
-symlocal = package.relrequire(modname, 3, 'symbol.local')
+common = require(modname, 3, 'common')
+fulltype = require(modname, 3, 'fulltype')
+symlocal = require(modname, 3, 'symbol.local')

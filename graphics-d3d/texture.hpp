@@ -22,7 +22,8 @@ namespace graphics
 			MagFilter_Invalid = 2,
 			WrapMode_Repeat = 0,
 			WrapMode_Clamp = 1,
-			WrapMode_Invalid = 2
+			WrapMode_Mirror = 2,
+			WrapMode_Invalid = 3,
 		};
 
 	protected:
@@ -32,33 +33,24 @@ namespace graphics
 		int m_minfilter;
 		int m_mipfilter;
 		int m_magfilter;
-		int m_wraps;
-		int m_wrapt;
-
-	protected:
-		virtual void doadvance(
-			IDirect3DDevice9* device, int framecount ) override;
-		virtual void update( IDirect3DDevice9* device ) = 0;
+		int m_wrapu;
+		int m_wrapv;
 
 	public:
 		Texture();
-		Texture( Texture const& ) = delete;
-		Texture( Texture&& ) = delete;
 		virtual ~Texture() override;
+		Texture( Texture const& ) = delete;
 		Texture& operator=( Texture const& ) = delete;
-		Texture& operator=( Texture&& ) = delete;
 
-		bool istexture();
-		void bind( IDirect3DDevice9* device, int sampler );
-		// static void unbind();
+		bool bind( int sampler );
 		void setminfilter( int value );
 		void setmagfilter( int value );
-		void setwrapmode( int ws, int wt );
+		void setwrapmode( int wu, int wv );
 	};
 
 	bool graphics_texture_setminfilter( Texture* t, int value ) noexcept;
 	bool graphics_texture_setmagfilter( Texture* t, int value ) noexcept;
-	bool graphics_texture_setwrapmode( Texture* t, int ws, int wt ) noexcept;
+	bool graphics_texture_setwrapmode( Texture* t, int wu, int wv ) noexcept;
 }
 
 #endif

@@ -1,5 +1,5 @@
 local modname = ...
-local object = package.relrequire(modname, 2, 'object')
+local object = require(modname, 2, 'object')
 local classinfo = object:module(modname)
 local classcontext
 local classdefti
@@ -35,6 +35,6 @@ function classinfo:getinstanceti()
 	return self.instanceti
 end
 
-classcontext = package.relrequire(modname, 0, 'context')
-classdefti = package.relrequire(modname, 0, 'defti')
-classinstanceti = package.relrequire(modname, 0, 'instanceti')
+classcontext = require(modname, 0, 'context')
+classdefti = require(modname, 0, 'defti')
+classinstanceti = require(modname, 0, 'instanceti')

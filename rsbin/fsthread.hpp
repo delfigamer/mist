@@ -6,6 +6,7 @@
 #include <utils/string.hpp>
 #include <utils/refobject.hpp>
 #include <utils/ref.hpp>
+#include <common.hpp>
 #include <thread>
 #include <atomic>
 #include <cstdio>
@@ -21,8 +22,10 @@ namespace rsbin
 		IoActionTruncate = 2,
 	};
 
-	struct FsTask: public utils::RefObject
+	R_CLASS( name = fstask )
+	class FsTask: public utils::RefObject
 	{
+	public:
 		utils::Ref< FileIo > m_target;
 		uint64_t m_offset;
 		int m_length;
@@ -36,6 +39,17 @@ namespace rsbin
 		virtual ~FsTask() = default;
 		FsTask( FsTask const& ) = delete;
 		FsTask& operator=( FsTask const& ) = delete;
+
+		R_METHOD() void promote();
+		R_METHOD() bool isfinished() noexcept
+		{
+			return m_finished.load( std::memory_order_acquire );
+		}
+		R_METHOD() int getresult() noexcept { return m_result; }
+		R_METHOD( stringwrap ) char const* geterror() noexcept
+		{
+			return m_error ? m_error.getchars() : 0;
+		}
 	};
 
 	class FsThreadClass
@@ -59,11 +73,6 @@ namespace rsbin
 	};
 
 	extern utils::Singleton< FsThreadClass > FsThread;
-
-	bool rsbin_fstask_promote( FsTask* task ) noexcept;
-	int rsbin_fstask_isfinished( FsTask* task ) noexcept;
-	int rsbin_fstask_getresult( FsTask* task ) noexcept;
-	char const* rsbin_fstask_geterror( FsTask* task ) noexcept;
 }
 
 #endif

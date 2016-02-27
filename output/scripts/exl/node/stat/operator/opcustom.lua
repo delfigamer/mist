@@ -1,5 +1,5 @@
 local modname = ...
-local opprototyped = package.relrequire(
+local opprototyped = require(
 	modname, 3, 'operator.prototyped.operator')
 local opcustom = opprototyped:module(modname)
 local common
@@ -28,6 +28,6 @@ function opcustom:defstring(lp)
 	end
 end
 
-common = package.relrequire(modname, 4, 'common')
-opcustom.invocationclass = package.relrequire(
+common = require(modname, 4, 'common')
+opcustom.invocationclass = require(
 	modname, 1, 'invcustom')

@@ -1,5 +1,5 @@
 local modname = ...
-local baseof = package.relrequire(modname, 2, 'base.factory')
+local baseof = require(modname, 2, 'base.factory')
 local classcallof = baseof:module(modname)
 local classcalloi
 
@@ -25,4 +25,4 @@ function classcallof:createinstance(it)
 	}
 end
 
-classcalloi = package.relrequire(modname, 1, 'instance')
+classcalloi = require(modname, 1, 'instance')

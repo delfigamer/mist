@@ -1,5 +1,5 @@
 local modname = ...
-local etypedef = package.relrequire(modname, 2, 'typedef')
+local etypedef = require(modname, 2, 'typedef')
 local efunctiontypev = etypedef:module(modname)
 local common
 local context
@@ -29,6 +29,6 @@ function efunctiontypev:defstring(lp)
 	return functionti.defstring(self, lp)
 end
 
-common = package.relrequire(modname, 4, 'common')
-context = package.relrequire(modname, 4, 'context')
-functionti = package.relrequire(modname, 1, 'ti')
+common = require(modname, 4, 'common')
+context = require(modname, 4, 'context')
+functionti = require(modname, 1, 'ti')

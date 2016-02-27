@@ -1,5 +1,5 @@
 local modname = ...
-local node = package.relrequire(modname, 2, 'base')
+local node = require(modname, 2, 'base')
 local ebase = node:module(modname)
 local common
 
@@ -27,9 +27,9 @@ function ebase:gettivalue()
 	end
 end
 
-common = package.relrequire(modname, 3, 'common')
+common = require(modname, 3, 'common')
 
-local default = package.relrequire(modname, 0, 'ti')
-local fulltype = package.relrequire(modname, 3, 'fulltype')
+local default = require(modname, 0, 'ti')
+local fulltype = require(modname, 3, 'fulltype')
 
 ebase.fulltype = fulltype:create(default, false, false)

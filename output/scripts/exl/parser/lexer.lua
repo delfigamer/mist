@@ -1,7 +1,7 @@
 local modname = ...
 local lexer = package.modtable(modname)
 local object = require('base.object')
-local token = package.relrequire(modname, 1, 'token')
+local token = require(modname, 1, 'token')
 local utf8 = require('utf8')
 
 -- input stream interface:

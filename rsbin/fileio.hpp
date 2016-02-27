@@ -3,12 +3,14 @@
 
 #include <utils/refobject.hpp>
 #include <utils/string.hpp>
+#include <common.hpp>
 #include <cinttypes>
 
 namespace rsbin
 {
 	class FsTask;
 
+	R_CLASS( name = fileio )
 	class FileIo: public utils::RefObject
 	{
 	public:
@@ -39,17 +41,13 @@ namespace rsbin
 		FileIo& operator=( FileIo const& other ) = delete;
 		FileIo& operator=( FileIo&& other ) = delete;
 
-		FsTask* startread( uint64_t offset, int length, void* buffer );
-		FsTask* startwrite( uint64_t offset, int length, void const* buffer );
-		void setsize( uint64_t size );
+		R_METHOD() static FileIo* create( char const* path, int mode );
+		R_METHOD() FsTask* startread(
+			uint64_t offset, int length, void* buffer );
+		R_METHOD() FsTask* startwrite(
+			uint64_t offset, int length, void const* buffer );
+		R_METHOD() void setsize( uint64_t size );
 	};
-
-	FileIo* rsbin_fileio_new( char const* path, int mode ) noexcept;
-	FsTask* rsbin_fileio_startread(
-		FileIo* io, uint64_t offset, int length, void* buffer ) noexcept;
-	FsTask* rsbin_fileio_startwrite(
-		FileIo* io, uint64_t offset, int length, void const* buffer ) noexcept;
-	bool rsbin_fileio_setsize( FileIo* io, uint64_t size ) noexcept;
 }
 
 #endif

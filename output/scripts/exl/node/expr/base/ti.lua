@@ -1,5 +1,5 @@
 local modname = ...
-local object = package.relrequire(modname, 4, 'object')
+local object = require(modname, 4, 'object')
 local typeinfo = object:module(modname)
 local common
 
@@ -24,4 +24,4 @@ function typeinfo:defstring(lp)
 	return self:getserial()
 end
 
-common = package.relrequire(modname, 4, 'common')
+common = require(modname, 4, 'common')

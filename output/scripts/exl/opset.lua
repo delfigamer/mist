@@ -1,5 +1,5 @@
 local modname = ...
-local object = package.relrequire(modname, 1, 'object')
+local object = require(modname, 1, 'object')
 local opset = object:module(modname)
 local common
 
@@ -114,12 +114,12 @@ function opset:defstring(lp)
 	return 'opset'
 end
 
-common = package.relrequire(modname, 1, 'common')
+common = require(modname, 1, 'common')
 
 --
 
 local function pcomp_prefer_test()
-	local ft = package.relrequire(modname, 1, 'common')
+	local ft = require(modname, 1, 'common')
 -- when possible, [inout] variants are preferred
 	print(pcomp_prefer(
 		{ft:create(nil, true, true)},

@@ -1,5 +1,5 @@
 local modname = ...
-local opprototyped = package.relrequire(modname, 2, 'prototyped.operator')
+local opprototyped = require(modname, 2, 'prototyped.operator')
 local opnative = opprototyped:module(modname)
 
 function opnative:init(pr)
@@ -8,4 +8,4 @@ function opnative:init(pr)
 	self.opcode = pr.opcode
 end
 
-opnative.invocationclass = package.relrequire(modname, 1, 'invocation')
+opnative.invocationclass = require(modname, 1, 'invocation')

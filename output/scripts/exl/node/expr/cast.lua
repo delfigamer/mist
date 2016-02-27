@@ -1,5 +1,5 @@
 local modname = ...
-local ebase = package.relrequire(modname, 1, 'base')
+local ebase = require(modname, 1, 'base')
 local ecast = ebase:module(modname)
 local common
 local fulltype
@@ -155,5 +155,5 @@ function ecast:castvalue(it)
 	end
 end
 
-common = package.relrequire(modname, 3, 'common')
-fulltype = package.relrequire(modname, 3, 'fulltype')
+common = require(modname, 3, 'common')
+fulltype = require(modname, 3, 'fulltype')

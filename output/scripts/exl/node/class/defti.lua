@@ -1,5 +1,5 @@
 local modname = ...
-local baseti = package.relrequire(modname, 2, 'expr.base.ti')
+local baseti = require(modname, 2, 'expr.base.ti')
 local classdefti = baseti:module(modname)
 local classdefcallof
 local common
@@ -29,5 +29,5 @@ function classdefti:defstring(lp)
 	return string.format('type %s', self.classinfo:getclassname())
 end
 
-classdefcallof = package.relrequire(modname, 2, 'operator.classdefcall.factory')
-common = package.relrequire(modname, 3, 'common')
+classdefcallof = require(modname, 2, 'operator.classdefcall.factory')
+common = require(modname, 3, 'common')

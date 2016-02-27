@@ -1,5 +1,5 @@
 local modname = ...
-local baseti = package.relrequire(modname, 2, 'base.ti')
+local baseti = require(modname, 2, 'base.ti')
 local literalti = baseti:module(modname)
 
 function literalti:init(pr)

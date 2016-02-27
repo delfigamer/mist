@@ -1,5 +1,5 @@
 local modname = ...
-local eliteral = package.relrequire(modname, 1, 'literal')
+local eliteral = require(modname, 1, 'literal')
 local enumber = eliteral:module(modname, {
 	serial = 'n',
 	fullname = 'number',
@@ -27,4 +27,4 @@ function enumber:defstring(lp)
 	return common.dtos(self.value)
 end
 
-common = package.relrequire(modname, 3, 'common')
+common = require(modname, 3, 'common')

@@ -5,19 +5,16 @@
 
 namespace graphics
 {
-	void ShapeGroup::doadvance( IDirect3DDevice9* device, int framecount )
+	void ShapeGroup::doadvance()
 	{
-		if( !m_active.load( std::memory_order_relaxed ) )
+		if( !m_active.load( std::memory_order_acquire ) )
 		{
 			return;
 		}
 		lock_t lock( m_mutex );
-		items_t::const_iterator it = m_items.begin();
-		items_t::const_iterator end = m_items.end();
-		while( it != end )
+		for( auto it: m_items )
 		{
-			it->second->advance( device, framecount );
-			++it;
+			it.second->advance();
 		}
 	}
 
@@ -30,19 +27,16 @@ namespace graphics
 	{
 	}
 
-	void ShapeGroup::paint( IDirect3DDevice9* device )
+	void ShapeGroup::paint()
 	{
-		if( !m_active.load( std::memory_order_relaxed ) )
+		if( !m_active.load( std::memory_order_acquire ) )
 		{
 			return;
 		}
 		lock_t lock( m_mutex );
-		items_t::const_iterator it = m_items.begin();
-		items_t::const_iterator end = m_items.end();
-		while( it != end )
+		for( auto it: m_items )
 		{
-			it->second->paint( device );
-			++it;
+			it.second->paint( device );
 		}
 	}
 
@@ -62,7 +56,7 @@ namespace graphics
 
 	void ShapeGroup::setactive( bool active )
 	{
-		m_active.store( active, std::memory_order_relaxed );
+		m_active.store( active, std::memory_order_release );
 	}
 
 	ShapeGroup* graphics_shapegroup_new() noexcept

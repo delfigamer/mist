@@ -1,5 +1,5 @@
 local modname = ...
-local node = package.relrequire(modname, 1, 'base')
+local node = require(modname, 1, 'base')
 local defaultnode = node:module(modname)
 
 function defaultnode:init(pr)

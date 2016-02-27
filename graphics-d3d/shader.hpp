@@ -1,13 +1,11 @@
 #ifndef GRAPHICS_SHADER_HPP__
 #define GRAPHICS_SHADER_HPP__ 1
 
-#include "texture.hpp"
 #include "resource.hpp"
+#include <utils/string.hpp>
 #include <utils/databuffer.hpp>
 #include <utils/ref.hpp>
-#include <utils/counterlock.hpp>
 #include <d3dx9shader.h>
-#include <mutex>
 
 namespace graphics
 {
@@ -19,50 +17,43 @@ namespace graphics
 			ShaderFormat_GLSL_100 = 0,
 			ShaderFormat_HLSL_3_0_Source = 1,
 			ShaderFormat_HLSL_3_0_Bytecode = 2,
+			ShaderFormat_Invalid = 3,
+			ShaderStage_Vertex = 0,
+			ShaderStage_Fragment = 1,
+			ShaderStage_Invalid = 2,
 		};
 
 	private:
-		typedef utils::CounterLock mutex_t;
-		typedef std::lock_guard< mutex_t > lock_t;
-
-	private:
-		mutex_t m_mutex;
-		utils::Ref< Texture > m_textures[ 8 ];
-		int m_samplerindex[ 8 ];
-		IDirect3DVertexShader9* m_vertexshader;
-		IDirect3DPixelShader9* m_pixelshader;
-		ID3DXBuffer* m_vertexshaderdata;
-		ID3DXConstantTable* m_vertexshaderconstants;
-		ID3DXBuffer* m_pixelshaderdata;
-		ID3DXConstantTable* m_pixelshaderconstants;
+		int m_stage;
+		union
+		{
+			IUnknown* m_shader;
+			IDirect3DVertexShader9* m_vertexshader;
+			IDirect3DPixelShader9* m_pixelshader;
+		};
+		utils::Ref< utils::DataBuffer > m_source;
+		utils::String m_log;
+		ID3DXConstantTable* m_constants;
 
 	protected:
-		virtual void doadvance(
-			IDirect3DDevice9* device, int framecount ) override;
+		virtual void doadvance() override;
 
 	public:
-		Shader();
+		Shader( int format, int stage, utils::DataBuffer* source );
 		virtual ~Shader() override;
 		Shader( Shader const& ) = delete;
-		Shader( Shader&& ) = delete;
 		Shader& operator=( Shader const& ) = delete;
-		Shader& operator=( Shader&& ) = delete;
 
-		void bind(
-			IDirect3DDevice9* device, utils::Ref< Texture > const* textures );
-		// static void unbind();
-		void settexture( int stage, Texture* texture );
-		void setshadersources(
-			int format, char const* vert, char const* frag, char const* texnames );
+		void getstate( bool* ready, bool* valid, char const** log );
+		int getstage();
+		bool bind( ID3DXConstantTable** ct );
 	};
 
-	Shader* graphics_shader_new() noexcept;
-	bool graphics_shader_settexture(
-		Shader* sh, int stage, Texture* texture ) noexcept;
-	bool graphics_shader_setshadersources(
-		Shader* sh,
-		int format,
-		char const* vert, char const* frag, char const* texnames ) noexcept;
+	Shader* graphics_shader_new(
+		int format, int stage, utils::DataBuffer* source ) noexcept;
+	bool graphics_shader_getstate( Shader* shader,
+		bool* ready, bool* valid, char const** log ) noexcept;
+	int graphics_shader_isformatsupported( int format ) noexcept;
 }
 
 #endif

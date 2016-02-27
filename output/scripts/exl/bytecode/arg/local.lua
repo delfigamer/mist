@@ -1,5 +1,5 @@
 local modname = ...
-local stringarg = package.relrequire(modname, 1, 'string')
+local stringarg = require(modname, 1, 'string')
 local localarg = stringarg:module(modname)
 local common
 local scalars = require('rs.scalars')
@@ -14,4 +14,4 @@ function localarg:defstring(lp)
 	return common.identstring(self.value)
 end
 
-common = package.relrequire(modname, 3, 'common')
+common = require(modname, 3, 'common')

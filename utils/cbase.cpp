@@ -7,7 +7,7 @@ namespace utils
 {
 	static String cbase_error;
 
-	char const* cbase_geterror() noexcept
+	char const* cbase::geterror() noexcept
 	{
 		DataBuffer* db = cbase_error.m_payload;
 		if( db )
@@ -20,29 +20,24 @@ namespace utils
 		}
 	}
 
-	void cbase_seterror( char const* error ) noexcept
+	void cbase::seterror( char const* error ) noexcept
 	{
 		cbase_error.setchars( error );
 	}
 
-	bool cbase_write( char const* str ) noexcept
-	{
-	CBASE_PROTECT(
-		Console->write( "%s", str );
-		return 1;
-	)
-	}
-
-	bool cbase_getchar( char* str ) noexcept
-	{
-	CBASE_PROTECT(
-		Console->getchar( str );
-		return 1;
-	)
-	}
-
-	void cbase_yield() noexcept
+	void cbase::yield() noexcept
 	{
 		std::this_thread::yield();
 	}
+
+	void cbase::write( char const* str )
+	{
+		Console->write( "%s", str );
+	}
+
+	void cbase::getchar( char* str )
+	{
+		Console->getchar( str );
+	}
+
 }

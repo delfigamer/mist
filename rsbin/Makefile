@@ -20,7 +20,6 @@ OBJS = \
 	common$(TARGET_SUFFIX).o \
 	fileio$(TARGET_SUFFIX).o \
 	fsthread$(TARGET_SUFFIX).o \
-	methodlist$(TARGET_SUFFIX).o \
 	pngreader$(TARGET_SUFFIX).o \
 	pngwriter$(TARGET_SUFFIX).o
 

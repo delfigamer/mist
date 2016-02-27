@@ -1,10 +1,10 @@
 local modname = ...
 local object = require('base.object')
 local iostream = object:module(modname)
-local dword = require('host.types').dword
 local ffi = require('ffi')
 local host = require('host')
 local uint64 = require('rs.scalars').uint64
+local dword = ffi.typeof('dword_t')
 
 local function align8(pos)
 	local dw = dword(pos)

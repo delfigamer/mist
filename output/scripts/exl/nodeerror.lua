@@ -1,5 +1,5 @@
 local modname = ...
-local exlerror = package.relrequire(modname, 1, 'exlerror')
+local exlerror = require(modname, 1, 'exlerror')
 local nodeerror = exlerror:module(modname)
 
 function nodeerror:init(message, node)

@@ -1,9 +1,9 @@
 local modname = ...
 local utf8 = package.modtable(modname)
 local ffi = require('ffi')
-local ml = require('host.methodlist').utils
+local encoding = require('host.encoding')
 
-local utf8encoding = ml.encoding_getencoding(0)
+local utf8encoding = encoding:getencoding(0)
 local defaultchar = 0xfffd -- REPLACEMENT CHARACTER �
 local chars_t = ffi.typeof('char[?]')
 

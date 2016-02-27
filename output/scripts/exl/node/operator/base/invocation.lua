@@ -1,5 +1,5 @@
 local modname = ...
-local ebase = package.relrequire(modname, 3, 'expr.base')
+local ebase = require(modname, 3, 'expr.base')
 local invbase = ebase:module(modname)
 
 invbase.castrank = 0

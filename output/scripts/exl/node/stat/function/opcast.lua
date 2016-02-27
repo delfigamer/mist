@@ -1,5 +1,5 @@
 local modname = ...
-local opprototyped = package.relrequire(modname, 3,
+local opprototyped = require(modname, 3,
 	'operator.prototyped.operator')
 local opfunctorcast = opprototyped:module(modname)
 local common
@@ -16,5 +16,5 @@ function opfunctorcast:defstring(lp)
 		self.args[2].ti:defstring(lp .. self.lpindent))
 end
 
-common = package.relrequire(modname, 4, 'common')
-opfunctorcast.invocationclass = package.relrequire(modname, 1, 'invcast')
+common = require(modname, 4, 'common')
+opfunctorcast.invocationclass = require(modname, 1, 'invcast')

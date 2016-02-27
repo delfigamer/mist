@@ -1,5 +1,5 @@
 local modname = ...
-local node = package.relrequire(modname, 2, 'base')
+local node = require(modname, 2, 'base')
 local sexpression = node:module(modname)
 local common
 
@@ -20,4 +20,4 @@ function sexpression:defstring(lp)
 	return self.value:defstring(lp .. self.lpindent)
 end
 
-common = package.relrequire(modname, 3, 'common')
+common = require(modname, 3, 'common')

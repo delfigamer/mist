@@ -497,7 +497,7 @@ namespace window
 #elif defined( __ANDROID__ )
 			m_display.initialize( m_mainconfig, m_app );
 #endif
-			auto dinfo = m_display.displayinfo();
+			auto dinfo = m_display.getdisplayinfo();
 			m_info.width = dinfo->width;
 			m_info.height = dinfo->height;
 			m_info.texelsoffset = dinfo->texelsoffset;
@@ -814,7 +814,7 @@ namespace window
 		m_display.setshape( nv );
 	}
 
-	WindowInfo const* Window::windowinfo()
+	WindowInfo const* Window::getwindowinfo()
 	{
 		return &m_info;
 	}
@@ -836,7 +836,7 @@ namespace window
 	WindowInfo const* window_window_getinfo( Window* window ) noexcept
 	{
 	CBASE_PROTECT(
-		return window->windowinfo();
+		return window->getwindowinfo();
 	)
 	}
 

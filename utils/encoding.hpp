@@ -1,6 +1,7 @@
 #ifndef UTILS_ENCODING_HPP__
 #define UTILS_ENCODING_HPP__ 1
 
+#include <common.hpp>
 #include <cinttypes>
 
 namespace utils
@@ -11,27 +12,34 @@ namespace utils
 	// dest may be 0
 	// if destsize == 0 && dest == 0, always succeeds
 	// if destsize == 0 && dest != 0, always fails
+R_EMIT( target = ffi_start )
 	typedef bool( *encoder_t )(
 		void* dest,
 		uint32_t charcode,
 		size_t destsize,
 		size_t* pointlength );
+R_END()
 
 	// on success - return true, *pointlength <- number of bytes consumed
 	// invalid stream - return false, *pointlength <- number of bytes consumed
 	// buffer overrun - return false, *pointlength <- 0
 	// charcode may be 0
 	// if sourcesize == 0, source is assumed to be unbound
+R_EMIT( target = ffi_start )
 	typedef bool( *decoder_t )(
 		void const* source,
 		uint32_t* charcode,
 		size_t sourcesize,
 		size_t* pointlength );
+R_END()
 
+	R_CLASS()
 	struct encoding_t
 	{
+	R_STRUCT()
 		encoder_t encode;
 		decoder_t decode;
+	R_END()
 		encoding_t( encoder_t _encode, decoder_t _decode )
 			: encode( _encode )
 			, decode( _decode )
@@ -60,8 +68,10 @@ namespace utils
 		};
 	}
 
+	R_CLASS()
 	struct translation_t
 	{
+	R_STRUCT()
 		encoding_t const* senc;
 		encoding_t const* denc;
 		void const* source;
@@ -71,9 +81,8 @@ namespace utils
 		uint32_t defaultchar; // if 0, stops immediately after a error
 		size_t sourceresult; // out
 		size_t destresult; // out
+	R_END()
 	};
-
-	int translatestr( translation_t* translation );
 
 	enum
 	{
@@ -84,8 +93,14 @@ namespace utils
 		translate_dest_overrun = 5,
 	};
 
-	encoding_t const* utils_encoding_getencoding( int index ) noexcept;
-	int utils_encoding_translatestr( translation_t* translation ) noexcept;
+	int translatestr( translation_t* translation );
+
+	R_CLASS( name = encoding )
+	struct Encoding
+	{
+		R_METHOD() static encoding_t const* getencoding( int index );
+		R_METHOD() static int translatestr( translation_t* translation );
+	};
 }
 
 #endif

@@ -1,5 +1,5 @@
 local modname = ...
-local opbase = package.relrequire(modname, 2, 'base.operator')
+local opbase = require(modname, 2, 'base.operator')
 local opprototyped = opbase:module(modname)
 local ebase
 local ecast
@@ -47,6 +47,6 @@ function opprototyped:invoke(it)
 	}
 end
 
-opprototyped.invocationclass = package.relrequire(modname, 1, 'invocation')
-ebase = package.relrequire(modname, 3, 'expr.base')
-ecast = package.relrequire(modname, 3, 'expr.cast')
+opprototyped.invocationclass = require(modname, 1, 'invocation')
+ebase = require(modname, 3, 'expr.base')
+ecast = require(modname, 3, 'expr.cast')

@@ -5,39 +5,37 @@
 
 namespace graphics
 {
-	void RenderTarget::update( IDirect3DDevice9* device )
+	static int const texformattable[] = {
+		D3DFMT_A8R8G8B8,
+		D3DFMT_A8R8G8B8,
+	};
+	static int const dsformattable[] = {
+		-1,
+		D3DFMT_D24S8,
+	};
+
+	void RenderTarget::advance()
 	{
 		if( !m_texture )
 		{
 			checkerror( device->CreateTexture(
-				m_width, m_height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8,
+				m_width, m_height, 1, D3DUSAGE_RENDERTARGET, m_texformat,
 				D3DPOOL_DEFAULT, &m_texture, 0 ) );
-		}
-		if( m_dsuse )
-		{
-			if( !m_dssurface )
+			if( m_dsformat != -1 )
 			{
 				checkerror( device->CreateDepthStencilSurface(
-					m_width, m_height, D3DFMT_D24S8, D3DMULTISAMPLE_NONE,
+					m_width, m_height, m_dsformat, D3DMULTISAMPLE_NONE,
 					0, true, &m_dssurface, 0 ) );
-			}
-		}
-		else
-		{
-			if( m_dssurface )
-			{
-				RELEASE( m_dssurface );
 			}
 		}
 		Shape* shape = m_shape;
 		if( shape )
 		{
-			shape->advance( device, m_lastframe );
+			shape->advance();
 			IDirect3DSurface9* targetsurface;
 			IDirect3DSurface9* colorsurface;
 			IDirect3DSurface9* dssurface;
-			checkerror( m_texture->GetSurfaceLevel(
-				0, &targetsurface ) );
+			checkerror( m_texture->GetSurfaceLevel( 0, &targetsurface ) );
 			checkerror( device->GetRenderTarget( 0, &colorsurface ) );
 			checkerror( device->SetRenderTarget( 0, targetsurface ) );
 			try
@@ -46,13 +44,7 @@ namespace graphics
 				checkerror( device->SetDepthStencilSurface( m_dssurface ) );
 				try
 				{
-					if( m_clearflags )
-					{
-						checkerror( device->Clear(
-							0, 0, m_clearflags,
-							m_clearcolor, m_cleardepth, m_clearstencil ) );
-					}
-					shape->paint( device );
+					shape->paint();
 				}
 				catch( ... )
 				{
@@ -70,11 +62,11 @@ namespace graphics
 
 	RenderTarget::RenderTarget( int format, int width, int height )
 		: m_dssurface( 0 )
-		, m_format( format )
 		, m_width( width )
 		, m_height( height )
-		, m_clearflags( 0 )
 	{
+		m_texformat = TABLE_ASSERT( texformattable, format, "format" );
+		m_dsformat = TABLE_ASSERT( dsformattable, format, "format" );
 	}
 
 	RenderTarget::~RenderTarget()
@@ -82,53 +74,9 @@ namespace graphics
 		RELEASE( m_dssurface );
 	}
 
-	void RenderTarget::setdepthstenciluse( bool use )
-	{
-		m_dsuse = use;
-	}
-
 	void RenderTarget::setshape( Shape* shape )
 	{
 		m_shape = shape;
-	}
-
-	void RenderTarget::setclearcolor( bool flag, float const* value )
-	{
-		if( flag )
-		{
-			m_clearflags |= D3DCLEAR_TARGET;
-			m_clearcolor = argb8( value );
-		}
-		else
-		{
-			m_clearflags &= ~D3DCLEAR_TARGET;
-		}
-	}
-
-	void RenderTarget::setcleardepth( bool flag, float value )
-	{
-		if( flag )
-		{
-			m_clearflags |= D3DCLEAR_ZBUFFER;
-			m_cleardepth = value;
-		}
-		else
-		{
-			m_clearflags &= ~D3DCLEAR_ZBUFFER;
-		}
-	}
-
-	void RenderTarget::setclearstencil( bool flag, int value )
-	{
-		if( flag )
-		{
-			m_clearflags |= D3DCLEAR_STENCIL;
-			m_clearstencil = value;
-		}
-		else
-		{
-			m_clearflags &= ~D3DCLEAR_STENCIL;
-		}
 	}
 
 	RenderTarget* graphics_rendertarget_new(
@@ -139,47 +87,11 @@ namespace graphics
 	)
 	}
 
-	bool graphics_rendertarget_setdepthstenciluse(
-		RenderTarget* rt, bool use ) noexcept
-	{
-	CBASE_PROTECT(
-		rt->setdepthstenciluse( use );
-		return 1;
-	)
-	}
-
 	bool graphics_rendertarget_setshape(
 		RenderTarget* rt, Shape* shape ) noexcept
 	{
 	CBASE_PROTECT(
 		rt->setshape( shape );
-		return 1;
-	)
-	}
-
-	bool graphics_rendertarget_setclearcolor(
-		RenderTarget* rt, bool flag, float const* value ) noexcept
-	{
-	CBASE_PROTECT(
-		rt->setclearcolor( flag, value );
-		return 1;
-	)
-	}
-
-	bool graphics_rendertarget_setcleardepth(
-		RenderTarget* rt, bool flag, float value ) noexcept
-	{
-	CBASE_PROTECT(
-		rt->setcleardepth( flag, value );
-		return 1;
-	)
-	}
-
-	bool graphics_rendertarget_setclearstencil(
-		RenderTarget* rt, bool flag, int value ) noexcept
-	{
-	CBASE_PROTECT(
-		rt->setclearstencil( flag, value );
 		return 1;
 	)
 	}

@@ -1,10 +1,10 @@
 local modname = ...
-local object = package.relrequire(modname, 2, 'object')
+local object = require(modname, 2, 'object')
 local block = object:module(modname)
-local compact = package.relrequire(modname, 1, 'compact')
+local compact = require(modname, 1, 'compact')
 local crc32 = require('crc32')
 local scalars = require('rs.scalars')
-local token = package.relrequire(modname, 1, 'token')
+local token = require(modname, 1, 'token')
 
 block.ptype = {}
 

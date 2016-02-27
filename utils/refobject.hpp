@@ -1,11 +1,13 @@
 #ifndef UTILS_REFOBJECT_HPP__
-#define UTILS_REFOBJECT_HPP__
+#define UTILS_REFOBJECT_HPP__ 1
 
+#include <common.hpp>
 #include <cstdio>
 #include <atomic>
 
 namespace utils
 {
+	R_CLASS( name = refobject )
 	class RefObject
 	{
 	protected:
@@ -15,6 +17,14 @@ namespace utils
 		int addref() const noexcept;
 		int release() const noexcept;
 		int refcount() const noexcept;
+		R_METHOD( name = addref, noluamethod ) void vaddref() const noexcept
+		{
+			addref();
+		}
+		R_METHOD( name = release, release ) void vrelease() const noexcept
+		{
+			release();
+		}
 		RefObject() noexcept;
 		RefObject( RefObject const& other ) noexcept;
 		RefObject( RefObject&& other ) noexcept;
@@ -36,6 +46,10 @@ namespace utils
 
 	inline int RefObject::release() const noexcept
 	{
+		if( !this )
+		{
+			return -1;
+		}
 		int rc = m_refcount.fetch_sub( 1, std::memory_order_relaxed ) - 1;
 // 		LOG( "((RefObject*) %#10x)->release() - %i", uint32_t( this ), rc );
 		if( rc == 0 )
@@ -49,10 +63,14 @@ namespace utils
 	{
 		return m_refcount.load( std::memory_order_relaxed );
 	}
-
-	int utils_refobject_addref( RefObject* ro ) noexcept;
-	int utils_refobject_release( RefObject* ro ) noexcept;
 }
 
+/*
+R_EMIT( target = lua_beforemethods )
+local function reference_add(self)
+	return methodlist.utils_refobject_addref(self)
+end
+R_END()
+*/
 
 #endif

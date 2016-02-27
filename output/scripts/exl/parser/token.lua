@@ -1,5 +1,5 @@
 local modname = ...
-local object = package.relrequire(modname, 2, 'object')
+local object = require(modname, 2, 'object')
 local token = object:module(modname)
 
 function token:init(type, content, spos, epos)

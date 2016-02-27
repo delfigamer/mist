@@ -1,6 +1,5 @@
 local modname = ...
 local scalars = package.modtable(modname)
-local dword = require('host.types').dword
 local ffi = require('ffi')
 
 -- types:
@@ -21,6 +20,7 @@ local ffi = require('ffi')
 -- uint8
 -- when using these, you have to align larger types by 4 bytes yourself
 
+local dword = ffi.typeof('dword_t')
 local i32_t = ffi.typeof('uint8_t[4]')
 local int8_t = ffi.typeof('int8_t')
 local int16_t = ffi.typeof('int16_t')

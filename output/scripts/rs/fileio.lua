@@ -3,8 +3,16 @@ local object = require('base.object')
 local fileio = object:module(modname)
 local hostfileio = require('host.fileio')
 
+local modetable = {
+	['r'] = 0,
+	['r+'] = 1,
+	['w'] = 2,
+	['w+'] = 3,
+	['p+'] = 4,
+}
+
 function fileio:init(path, mode)
-	self.hostfileio = hostfileio:create(path, mode)
+	self.hostfileio = hostfileio:create(path, modetable[mode] or mode)
 end
 
 function fileio:release()

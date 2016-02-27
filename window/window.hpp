@@ -104,7 +104,7 @@ namespace window
 		clock_t m_fpstime;
 		clock_t m_tpstime;
 		bool m_finished;
-		
+
 		void initialize();
 		void finalize();
 		void paint();
@@ -138,8 +138,7 @@ namespace window
 
 	bool window_window_setshape(
 		Window* window, graphics::Shape* shape ) noexcept;
-	window::WindowInfo const* window_window_getinfo(
-		Window* window ) noexcept;
+	window::WindowInfo const* window_window_getinfo( Window* window ) noexcept;
 	bool window_window_finish( Window* window ) noexcept;
 }
 

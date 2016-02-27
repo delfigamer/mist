@@ -1,5 +1,5 @@
 local modname = ...
-local ebase = package.relrequire(modname, 2, 'base')
+local ebase = require(modname, 2, 'base')
 local efunctionbase = ebase:module(modname)
 local bcblock
 local common
@@ -98,8 +98,8 @@ function efunctionbase:rcompile(stream)
 	return self.retname
 end
 
-bcblock = package.relrequire(modname, 4, 'bytecode.block')
-common = package.relrequire(modname, 4, 'common')
-context = package.relrequire(modname, 4, 'context')
-fulltype = package.relrequire(modname, 4, 'fulltype')
-functionti = package.relrequire(modname, 1, 'ti')
+bcblock = require(modname, 4, 'bytecode.block')
+common = require(modname, 4, 'common')
+context = require(modname, 4, 'context')
+fulltype = require(modname, 4, 'fulltype')
+functionti = require(modname, 1, 'ti')

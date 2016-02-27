@@ -14,23 +14,27 @@ TARGET = ../libgraphics-d3d$(TARGET_SUFFIX).a
 
 all: $(TARGET)
 
-CCFLAGS = -O2 -Wall -I.. -std=c++11 -ffast-math
+CCFLAGS = -O2 -Wall -Werror -I.. -std=c++11 -ffast-math
 
 OBJS = \
 	clearshape$(TARGET_SUFFIX).o \
 	common$(TARGET_SUFFIX).o \
+	context$(TARGET_SUFFIX).o \
 	display$(TARGET_SUFFIX).o \
-	meshbuffer$(TARGET_SUFFIX).o \
-	meshdata$(TARGET_SUFFIX).o \
-	meshshape$(TARGET_SUFFIX).o \
+	indexbuffer$(TARGET_SUFFIX).o \
 	methodlist$(TARGET_SUFFIX).o \
+	primitiveshape$(TARGET_SUFFIX).o \
+	program$(TARGET_SUFFIX).o \
 	rendertarget$(TARGET_SUFFIX).o \
 	resource$(TARGET_SUFFIX).o \
 	shader$(TARGET_SUFFIX).o \
 	shape$(TARGET_SUFFIX).o \
 	shapegroup$(TARGET_SUFFIX).o \
+	staticindexbuffer$(TARGET_SUFFIX).o \
 	statictexture$(TARGET_SUFFIX).o \
-	texture$(TARGET_SUFFIX).o
+	staticvertexbuffer$(TARGET_SUFFIX).o \
+	texture$(TARGET_SUFFIX).o \
+	vertexbuffer$(TARGET_SUFFIX).o
 
 $(TARGET): $(OBJS)
 		$(AR) -rcs $@ $^

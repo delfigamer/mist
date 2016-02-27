@@ -1,5 +1,5 @@
 local modname = ...
-local node = package.relrequire(modname, 2, 'base')
+local node = require(modname, 2, 'base')
 local sclass = node:module(modname)
 local common
 local eclasstypev
@@ -59,7 +59,7 @@ function sclass:defstring(lp)
 	end
 end
 
-common = package.relrequire(modname, 3, 'common')
-eclasstypev = package.relrequire(modname, 2, 'class.typev')
-fulltype = package.relrequire(modname, 3, 'fulltype')
-symconst = package.relrequire(modname, 3, 'symbol.const')
+common = require(modname, 3, 'common')
+eclasstypev = require(modname, 2, 'class.typev')
+fulltype = require(modname, 3, 'fulltype')
+symconst = require(modname, 3, 'symbol.const')

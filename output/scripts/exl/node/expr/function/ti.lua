@@ -1,5 +1,5 @@
 local modname = ...
-local baseti = package.relrequire(modname, 2, 'base.ti')
+local baseti = require(modname, 2, 'base.ti')
 local functionti = baseti:module(modname)
 local common
 
@@ -75,4 +75,4 @@ function functionti:defstring(lp)
 	end
 end
 
-common = package.relrequire(modname, 4, 'common')
+common = require(modname, 4, 'common')

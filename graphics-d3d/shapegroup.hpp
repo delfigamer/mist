@@ -25,8 +25,7 @@ namespace graphics
 		std::atomic< bool > m_active;
 
 	protected:
-		virtual void doadvance(
-			IDirect3DDevice9* device, int framecount ) override;
+		virtual void doadvance() override;
 
 	public:
 		class iterator: public items_t::iterator
@@ -36,13 +35,11 @@ namespace graphics
 
 	public:
 		ShapeGroup();
-		ShapeGroup( Shape const& ) = delete;
-		ShapeGroup( Shape&& ) = delete;
 		virtual ~ShapeGroup() override;
+		ShapeGroup( Shape const& ) = delete;
 		ShapeGroup& operator=( Shape const& ) = delete;
-		ShapeGroup& operator=( Shape&& ) = delete;
 
-		virtual void paint( IDirect3DDevice9* device ) override;
+		virtual void paint() override;
 		void insert( Shape* item, int order, iterator* it );
 		void remove( iterator* it );
 		void setactive( bool active );

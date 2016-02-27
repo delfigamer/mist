@@ -1,5 +1,5 @@
 local modname = ...
-local node = package.relrequire(modname, 2, 'base')
+local node = require(modname, 2, 'base')
 local soperator = node:module(modname)
 local common
 local opcustom
@@ -92,7 +92,7 @@ function soperator:defstring(lp)
 	end
 end
 
-common = package.relrequire(modname, 3, 'common')
-opcustom = package.relrequire(modname, 0, 'opcustom')
-fulltype = package.relrequire(modname, 3, 'fulltype')
-symconst = package.relrequire(modname, 3, 'symbol.const')
+common = require(modname, 3, 'common')
+opcustom = require(modname, 0, 'opcustom')
+fulltype = require(modname, 3, 'fulltype')
+symconst = require(modname, 3, 'symbol.const')

@@ -74,32 +74,4 @@ namespace utils
 	{
 		return *this;
 	}
-
-	int utils_refobject_addref( RefObject* ro ) noexcept
-	{
-	CBASE_PROTECT(
-		if( ro )
-		{
-			return ro->addref();
-		}
-		else
-		{
-			return -1;
-		}
-	)
-	}
-
-	int utils_refobject_release( RefObject* ro ) noexcept
-	{
-	CBASE_PROTECT(
-		if( ro )
-		{
-			return ro->release();
-		}
-		else
-		{
-			return -1;
-		}
-	)
-	}
 }
