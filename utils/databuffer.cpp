@@ -1,5 +1,6 @@
 #include "databuffer.hpp"
 #include "cbase.hpp"
+#include "console.hpp"
 #include <cstring>
 
 namespace utils {
@@ -8,7 +9,7 @@ namespace utils {
 	{
 		DataBuffer* e;
 		e = ( DataBuffer* )operator new(
-			sizeof( DataBuffer ) - sizeof( uint8_t ) + capacity );
+			sizeof( DataBuffer ) + capacity );
 		try
 		{
 			new( e )DataBuffer( length, capacity, data );

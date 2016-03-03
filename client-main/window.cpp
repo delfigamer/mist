@@ -88,8 +88,8 @@ namespace window
 		switch( uMsg )
 		{
 		case WM_DESTROY:
-			finalize();
-			m_terminated = true;
+			pushevent( Event::Close );
+			m_finishrequired = true;
 			// PostQuitMessage( 0 );
 			return 0;
 		case WM_PAINT:
@@ -165,6 +165,7 @@ namespace window
 		, m_pointstate{ 0 }
 		, m_terminated( false )
 		, m_mainconfig( MAINCONFIG_PATH, MAINCONFIG_STR )
+		, m_finishrequired( false )
 		, m_finished( false )
 	{
 		marker();
@@ -255,12 +256,10 @@ namespace window
 
 	Window::~Window()
 	{
-		marker();
 	}
 
 	int Window::mainloop()
 	{
-		marker();
 		MSG message = { 0, 0, 0, 0 };
 		while( !m_terminated )
 		{
@@ -273,7 +272,8 @@ namespace window
 					DispatchMessageW( &message );
 				}
 			}
-			if( m_silent || m_finished.load( std::memory_order_relaxed ) )
+			if( m_silent  || m_finishrequired
+				|| m_finished.load( std::memory_order_relaxed ) )
 			{
 				finalize();
 				m_terminated = true;
@@ -407,6 +407,7 @@ namespace window
 		: m_app( wcd.app )
 		, m_mainconfig( MAINCONFIG_PATH, MAINCONFIG_STR )
 		, m_lstateready( false )
+		, m_finishrequired( false )
 		, m_finished( false )
 	{
 		marker();
@@ -523,7 +524,6 @@ namespace window
 
 	void Window::finalize()
 	{
-		marker();
 		closelstate();
 		if( !m_silent )
 		{
@@ -569,25 +569,36 @@ namespace window
 	void Window::luathreadfunc()
 	{
 		LOG( "~ Lua thread started" );
-		lua_State* L = luaL_newstate();
-		luaL_openlibs( L );
-		if( luaL_loadbuffer(
-			L,
-			luainit[ 0 ].data, luainit[ 0 ].length, luainit[ 0 ].name ) != 0 )
+		try
 		{
-			utils::String error = lua_retrieveerror( L );
-			LOG( "%s", error.getchars() );
-			goto end;
+			lua_State* L = luaL_newstate();
+			luaL_openlibs( L );
+			if( luaL_loadbuffer(
+				L,
+				luainit[ 0 ].data, luainit[ 0 ].length, luainit[ 0 ].name ) != 0 )
+			{
+				utils::String error = lua_retrieveerror( L );
+				LOG( "%s", error.getchars() );
+				goto end;
+			}
+			lua_pushlightuserdata( L, &luainit[ 1 ] );
+			lua_pushlightuserdata( L, &m_info );
+			if( lua_pcall( L, 2, 1, 0 ) != 0 )
+			{
+				utils::String error = lua_retrieveerror( L );
+				LOG( "%s", error.getchars() );
+			}
+		end:
+			lua_close( L );
 		}
-		lua_pushlightuserdata( L, &luainit[ 1 ] );
-		lua_pushlightuserdata( L, &m_info );
-		if( lua_pcall( L, 2, 1, 0 ) != 0 )
+		catch( std::exception const& e )
 		{
-			utils::String error = lua_retrieveerror( L );
-			LOG( "%s", error.getchars() );
+			LOG( "! %s", e.what() );
 		}
-	end:
-		lua_close( L );
+		catch( ... )
+		{
+			LOG( "!" );
+		}
 		m_finished.store( true, std::memory_order_relaxed );
 		LOG( "~ Lua thread finished" );
 	}
@@ -601,14 +612,14 @@ namespace window
 
 	void Window::closelstate()
 	{
-		pushevent( Event::Close );
 		clock_t time = clock() + CLOCKS_PER_SEC * 5;
 		while( !m_finished.load( std::memory_order_relaxed ) )
 		{
 			if( clock() > time )
 			{
-				throw std::runtime_error(
-					"lua thread takes too long to finish" );
+				LOG( "Lua thread takes too long to finish, "
+					"terminating immediately" );
+				std::exit( 0 );
 			}
 		}
 		m_luathread.join();

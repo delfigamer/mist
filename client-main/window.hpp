@@ -144,6 +144,7 @@ R_END()
 		clock_t m_timeoffset;
 		clock_t m_fpstime;
 		clock_t m_tpstime;
+		bool m_finishrequired;
 		std::atomic< bool > m_finished;
 
 		void initialize();

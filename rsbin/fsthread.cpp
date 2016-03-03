@@ -2,6 +2,7 @@
 #include "fileio.hpp"
 #include <utils/strexception.hpp>
 #include <utils/cbase.hpp>
+#include <utils/console.hpp>
 #include <osapi.hpp>
 #include <stdexcept>
 #include <exception>
@@ -143,32 +144,46 @@ namespace rsbin
 
 	void FsThreadClass::threadfunc()
 	{
-		utils::Ref< FsTask > currenttask;
-		while( !m_terminate.load( std::memory_order_relaxed ) )
+		try
 		{
-			if( m_highqueue.peek( &currenttask ) )
+			utils::Ref< FsTask > currenttask;
+			while( !m_terminate.load( std::memory_order_relaxed ) )
 			{
-				if( iteratetask( currenttask ) )
+				if( m_highqueue.peek( &currenttask ) )
 				{
-					m_highqueue.pop();
-					currenttask->m_finished.store( true, std::memory_order_release );
-					currenttask = nullptr;
+					if( iteratetask( currenttask ) )
+					{
+						m_highqueue.pop();
+						currenttask->m_finished.store( true,
+							std::memory_order_release );
+						currenttask = nullptr;
+					}
 				}
-			}
-			else if( m_mainqueue.peek( &currenttask ) )
-			{
-				if( iteratetask( currenttask ) )
+				else if( m_mainqueue.peek( &currenttask ) )
 				{
-					m_mainqueue.pop();
-					currenttask->m_finished.store( true, std::memory_order_release );
-					currenttask = nullptr;
+					if( iteratetask( currenttask ) )
+					{
+						m_mainqueue.pop();
+						currenttask->m_finished.store( true,
+							std::memory_order_release );
+						currenttask = nullptr;
+					}
 				}
-			}
-			else
-			{
-				std::this_thread::yield();
+				else
+				{
+					std::this_thread::yield();
+				}
 			}
 		}
+		catch( std::exception const& e )
+		{
+			LOG( "! %s", e.what() );
+		}
+		catch( ... )
+		{
+			LOG( "!" );
+		}
+
 	}
 
 	FsThreadClass::FsThreadClass()
