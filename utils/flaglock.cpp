@@ -12,14 +12,14 @@ namespace utils
 	{
 	}
 
-	void FlagLock::lock() noexcept
+	void FlagLock::lock() NOEXCEPT
 	{
 		while( m_flag.test_and_set( std::memory_order_acquire ) )
 		{
 		}
 	}
 
-	void FlagLock::unlock() noexcept
+	void FlagLock::unlock() NOEXCEPT
 	{
 		m_flag.clear( std::memory_order_release );
 	}

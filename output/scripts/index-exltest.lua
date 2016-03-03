@@ -1,7 +1,6 @@
 local modname = ...
 local index = package.modtable(modname)
 local window = require('host.window')
--- local mainconf = require('main')
 local invoke = require('base.invoke')
 
 local function main()
@@ -38,13 +37,4 @@ local function action()
 	invoke(function() assert(pcall(main)) end)
 end
 
-function index.register()
-	local suc, err = pcall(action)
-	if not suc then
-		print(err)
-	end
-	window:finish()
-end
-
-function index.unregister()
-end
+assert(pcall(action))

@@ -1,7 +1,7 @@
 #ifndef WINDOW_WINDOW_HPP__
 #define WINDOW_WINDOW_HPP__ 1
 
-#include "methodlist.hpp"
+#include <client-console/methodlist.hpp>
 #include <utils/configset.hpp>
 #include <utils/ref.hpp>
 #include <common.hpp>
@@ -74,7 +74,6 @@ R_END()
 		~Window();
 
 		int mainloop();
-		R_METHOD() static void finish() noexcept { }
 	};
 }
 

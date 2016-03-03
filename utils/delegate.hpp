@@ -2,6 +2,7 @@
 #define UTILS_DELEGATE_HPP__ 1
 
 #include "flaglock.hpp"
+#include <common.hpp>
 #include <mutex>
 #include <thread>
 #include <functional>

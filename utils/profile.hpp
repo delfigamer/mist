@@ -1,6 +1,7 @@
 #ifndef UTILS_PROFILE_HPP__
 #define UTILS_PROFILE_HPP__ 1
 
+#include <common.hpp>
 #include <atomic>
 #include <time.h>
 #include <ctime>
@@ -43,7 +44,7 @@ namespace utils
 	{
 	private:
 		Profiler* m_profiler;
-#if defined( __i386__ ) || defined( __x86_64__ )
+#if defined( __i386__ ) || defined( __x86_64__ ) || defined( __MACHINEX86 )
 		// On x86 and x86-64 CPUs we use RDTSC
 		uint64_t m_start;
 #else
@@ -76,12 +77,16 @@ namespace utils
 		m_aflag.clear();
 	}
 
-#if defined( __i386__ ) || defined( __x86_64__ )
+#if defined( __i386__ ) || defined( __x86_64__ ) || defined( __MACHINEX86 )
 	inline uint64_t RDTSC()
 	{
+#if defined( _MSC_VER )
+		return __rdtsc();
+#else
 		uint32_t hi, lo;
 		__asm__ volatile( "rdtsc" : "=a"( lo ), "=d"( hi ) );
 		return ( uint64_t( hi ) << 32 ) | lo;
+#endif
 	}
 
 	inline uint64_t current_time()
@@ -94,7 +99,7 @@ namespace utils
 			while( clock() < cv ) {
 			}
 			uint64_t ticks_per_s = RDTSC() - base;
-			factor = ( 1000000000LL << 16 ) / ticks_per_s;
+			factor = uint32_t( ( 1000000000LL << 16 ) / ticks_per_s );
 		}
 		return ( RDTSC() * factor ) >> 16;
 	}
@@ -107,7 +112,7 @@ namespace utils
 
 	inline ProfileTimer::~ProfileTimer()
 	{
-		m_profiler->sample( current_time() - m_start );
+		m_profiler->sample( uint32_t( current_time() - m_start ) );
 	}
 #else
 	inline ProfileTimer::ProfileTimer( Profiler* profiler )

@@ -41,12 +41,12 @@ namespace rsbin
 		FsTask& operator=( FsTask const& ) = delete;
 
 		R_METHOD() void promote();
-		R_METHOD() bool isfinished() noexcept
+		R_METHOD() bool isfinished() NOEXCEPT
 		{
 			return m_finished.load( std::memory_order_acquire );
 		}
-		R_METHOD() int getresult() noexcept { return m_result; }
-		R_METHOD( stringwrap ) char const* geterror() noexcept
+		R_METHOD() int getresult() NOEXCEPT { return m_result; }
+		R_METHOD( stringwrap ) char const* geterror() NOEXCEPT
 		{
 			return m_error ? m_error.getchars() : 0;
 		}

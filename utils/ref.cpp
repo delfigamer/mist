@@ -10,14 +10,14 @@
 
 namespace utils
 {
-	RefBase::RefBase() noexcept
+	RefBase::RefBase() NOEXCEPT
 		: m_ref( ( RefObject* )0 )
 	{
 		LOG( "< Ref: %#10x : %#10x >\tRef()",
 			uint32_t( this ), 0 );
 	}
 
-	RefBase::RefBase( RefObject* ref ) noexcept
+	RefBase::RefBase( RefObject* ref ) NOEXCEPT
 		: m_ref( ( RefObject* )0 )
 	{
 		LOG( "< Ref: %#10x : %#10x >\tRef( %#10x )",
@@ -25,14 +25,14 @@ namespace utils
 		assign_silent( ref );
 	}
 
-	RefBase::RefBase( RefObject* ref, int ) noexcept
+	RefBase::RefBase( RefObject* ref, int ) NOEXCEPT
 		: m_ref( ref )
 	{
 		LOG( "< Ref: %#10x : %#10x >\tRef( %#10x, int() )",
 			uint32_t( this ), 0, uint32_t( ref ) );
 	}
 
-	RefBase::RefBase( RefBase&& other ) noexcept
+	RefBase::RefBase( RefBase&& other ) NOEXCEPT
 		: m_ref( ( RefObject* )0 )
 	{
 		RefObject* ref = other.m_ref.exchange( 0, std::memory_order_relaxed );
@@ -41,7 +41,7 @@ namespace utils
 			uint32_t( this ), 0, uint32_t( &other ), uint32_t( ref ) );
 	}
 
-	RefBase::RefBase( RefBase const& other ) noexcept
+	RefBase::RefBase( RefBase const& other ) NOEXCEPT
 		: m_ref( ( RefObject* )0 )
 	{
 		RefObject* ref = other.m_ref.load( std::memory_order_relaxed );
@@ -50,7 +50,7 @@ namespace utils
 		assign_silent( ref );
 	}
 
-	RefBase::~RefBase() noexcept
+	RefBase::~RefBase() NOEXCEPT
 	{
 		RefObject* oldref = m_ref.exchange( 0, std::memory_order_relaxed );
 		if( oldref )
@@ -61,7 +61,7 @@ namespace utils
 			uint32_t( this ), uint32_t( oldref ) );
 	}
 
-	RefObject* RefBase::possess_silent( RefObject* ref ) noexcept
+	RefObject* RefBase::possess_silent( RefObject* ref ) NOEXCEPT
 	{
 		RefObject* oldref;
 		oldref = m_ref.exchange( ref, std::memory_order_relaxed );
@@ -72,7 +72,7 @@ namespace utils
 		return oldref;
 	}
 
-	RefObject* RefBase::assign_silent( RefObject* ref ) noexcept
+	RefObject* RefBase::assign_silent( RefObject* ref ) NOEXCEPT
 	{
 		if( ref )
 		{
@@ -86,7 +86,7 @@ namespace utils
 		return oldref;
 	}
 
-	RefObject* RefBase::possess( RefObject* ref ) noexcept
+	RefObject* RefBase::possess( RefObject* ref ) NOEXCEPT
 	{
 		RefObject* oldref = possess_silent( ref );
 		LOG( "< Ref: %#10x : %#10x >\tpossess( %#10x )",
@@ -94,7 +94,7 @@ namespace utils
 		return oldref;
 	}
 
-	RefObject* RefBase::assign( RefObject* ref ) noexcept
+	RefObject* RefBase::assign( RefObject* ref ) NOEXCEPT
 	{
 		RefObject* oldref = assign_silent( ref );
 		LOG( "< Ref: %#10x : %#10x >\tassign( %#10x )",
@@ -102,7 +102,7 @@ namespace utils
 		return oldref;
 	}
 
-	RefBase& RefBase::assign( RefBase&& other ) noexcept
+	RefBase& RefBase::assign( RefBase&& other ) NOEXCEPT
 	{
 		RefObject* ref = other.m_ref.exchange( 0, std::memory_order_relaxed );
 		RefObject* oldref = possess_silent( ref );
@@ -112,7 +112,7 @@ namespace utils
 		return *this;
 	}
 
-	RefBase& RefBase::assign( RefBase const& other ) noexcept
+	RefBase& RefBase::assign( RefBase const& other ) NOEXCEPT
 	{
 		RefObject* ref = other.m_ref.load( std::memory_order_relaxed );
 		RefObject* oldref = assign_silent( ref );
@@ -122,7 +122,7 @@ namespace utils
 		return *this;
 	}
 
-	RefObject* RefBase::get() const noexcept
+	RefObject* RefBase::get() const NOEXCEPT
 	{
 		RefObject* ref = m_ref.load( std::memory_order_relaxed );
 		LOG( "< Ref: %#10x : %#10x >\tget()", uint32_t( this ), uint32_t( ref ) );
@@ -153,70 +153,70 @@ namespace utils
 		return !( *this == other );
 	}
 
-	/*Ref< RefObject >::Ref() noexcept
+	/*Ref< RefObject >::Ref() NOEXCEPT
 		: RefBase()
 	{
 	}
 
-	Ref< RefObject >::Ref( RefObject* ref ) noexcept
+	Ref< RefObject >::Ref( RefObject* ref ) NOEXCEPT
 		: RefBase( ref )
 	{
 	}
 
-	Ref< RefObject >::Ref( RefObject* ref, int ) noexcept
+	Ref< RefObject >::Ref( RefObject* ref, int ) NOEXCEPT
 		: RefBase( ref, 0 )
 	{
 	}
 
-	Ref< RefObject >::Ref( Ref< RefObject > const& other ) noexcept
+	Ref< RefObject >::Ref( Ref< RefObject > const& other ) NOEXCEPT
 		: RefBase( other )
 	{
 	}
 
-	Ref< RefObject >::Ref( RefBase const& other ) noexcept
+	Ref< RefObject >::Ref( RefBase const& other ) NOEXCEPT
 		: RefBase( other )
 	{
 	}
 
-	Ref< RefObject >::Ref( Ref< RefObject >&& other ) noexcept
+	Ref< RefObject >::Ref( Ref< RefObject >&& other ) NOEXCEPT
 		: RefBase( std::move( other ) )
 	{
 	}
 
-	Ref< RefObject >::Ref( RefBase&& other ) noexcept
+	Ref< RefObject >::Ref( RefBase&& other ) NOEXCEPT
 		: RefBase( std::move( other ) )
 	{
 	}
 
-	Ref< RefObject >::~Ref() noexcept
+	Ref< RefObject >::~Ref() NOEXCEPT
 	{
 	}
 
-	Ref< RefObject >& Ref< RefObject >::operator=( RefObject* ref ) noexcept
+	Ref< RefObject >& Ref< RefObject >::operator=( RefObject* ref ) NOEXCEPT
 	{
 		RefBase::assign( ref );
 		return *this;
 	}
 
-	Ref< RefObject >& Ref< RefObject >::operator=( Ref< RefObject > const& other ) noexcept
+	Ref< RefObject >& Ref< RefObject >::operator=( Ref< RefObject > const& other ) NOEXCEPT
 	{
 		RefBase::assign( other );
 		return *this;
 	}
 
-	Ref< RefObject >& Ref< RefObject >::operator=( RefBase const& other ) noexcept
+	Ref< RefObject >& Ref< RefObject >::operator=( RefBase const& other ) NOEXCEPT
 	{
 		RefBase::assign( other );
 		return *this;
 	}
 
-	Ref< RefObject >& Ref< RefObject >::operator=( Ref< RefObject >&& other ) noexcept
+	Ref< RefObject >& Ref< RefObject >::operator=( Ref< RefObject >&& other ) NOEXCEPT
 	{
 		RefBase::assign( std::move( other ) );
 		return *this;
 	}
 
-	Ref< RefObject >& Ref< RefObject >::operator=( RefBase&& other ) noexcept
+	Ref< RefObject >& Ref< RefObject >::operator=( RefBase&& other ) NOEXCEPT
 	{
 		RefBase::assign( std::move( other ) );
 		return *this;
@@ -232,7 +232,7 @@ namespace utils
 		return &RefBase::deref();
 	}
 
-	Ref< RefObject >::operator RefObject*() const noexcept
+	Ref< RefObject >::operator RefObject*() const NOEXCEPT
 	{
 		return RefBase::get();
 	}*/

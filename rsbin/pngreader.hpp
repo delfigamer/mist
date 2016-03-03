@@ -52,10 +52,11 @@ namespace rsbin
 		R_METHOD() static PngReader* create( int format );
 		R_METHOD( release ) void release();
 		R_METHOD() void feed( int length, void const* buffer );
-		R_METHOD() bool isfinished() noexcept { return m_finished; }
-		R_METHOD() int getwidth() noexcept { return m_width; }
-		R_METHOD() int getheight() noexcept { return m_height; }
-		R_METHOD( addref = result[0] ) utils::DataBuffer* getdata() noexcept {
+		R_METHOD() bool isfinished() NOEXCEPT { return m_finished; }
+		R_METHOD() int getwidth() NOEXCEPT { return m_width; }
+		R_METHOD() int getheight() NOEXCEPT { return m_height; }
+		R_METHOD( addref = result[0] ) utils::DataBuffer* getdata() NOEXCEPT
+		{
 			return m_data;
 		}
 	};

@@ -1,5 +1,5 @@
 #include "window.hpp"
-#include "luainit.hpp"
+#include <client-console/luainit.hpp>
 #include <utils/strexception.hpp>
 #include <utils/profile.hpp>
 #include <utils/encoding.hpp>
@@ -11,6 +11,18 @@
 
 #undef PROFILE
 #define PROFILE( name, op ) { op }
+
+#if defined( _MSC_VER )
+#include <cstdarg>
+static int snprintf( char* buffer, int buflen, char const* format, ... )
+{
+	va_list arg;
+	va_start( arg, format );
+	int result = vsnprintf_s( buffer, buflen, buflen, format, arg );
+	va_end( arg );
+	return result;
+}
+#endif
 
 namespace window
 {

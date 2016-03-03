@@ -124,7 +124,7 @@ namespace rsbin
 				( HANDLE )m_handle,
 				0,
 				PAGE_READONLY,
-				m_viewsize >> 32, m_viewsize,
+				DWORD( m_viewsize >> 32 ), DWORD( m_viewsize ),
 				0 );
 			if( m_mapping == 0 )
 			{

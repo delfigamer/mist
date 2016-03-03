@@ -2,6 +2,7 @@
 #define UTILS_CONSOLE_HPP__ 1
 
 #include "singleton.hpp"
+#include <common.hpp>
 #include <cstdarg>
 #include <mutex>
 #if defined( getchar )
@@ -38,13 +39,13 @@ namespace utils
 		ConsoleClass& operator=( ConsoleClass const& ) = delete;
 
 		void writeraw( char const* str );
-		__attribute__(( __format__( gnu_printf, 2, 0 ) ))
+		ATTRIBUTE(( __format__( gnu_printf, 2, 0 ) ))
 			void vwrite( char const* format, va_list args );
-		__attribute__(( __format__( gnu_printf, 2, 3 ) ))
+		ATTRIBUTE(( __format__( gnu_printf, 2, 3 ) ))
 			void write( char const* format, ... );
-		__attribute__(( __format__( gnu_printf, 2, 0 ) ))
+		ATTRIBUTE(( __format__( gnu_printf, 2, 0 ) ))
 			void vwriteln( char const* format, va_list args );
-		__attribute__(( __format__( gnu_printf, 2, 3 ) ))
+		ATTRIBUTE(( __format__( gnu_printf, 2, 3 ) ))
 			void writeln( char const* format, ... );
 		void writeln();
 		void flush();

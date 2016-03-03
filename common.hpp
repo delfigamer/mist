@@ -7,4 +7,13 @@
 #define R_EMIT( ... )
 #define R_END( ... )
 
+#if defined( _MSC_VER )
+#define NOEXCEPT
+#define ATTRIBUTE( ... )
+#define _CRT_SECURE_NO_WARNINGS
+#else
+#define NOEXCEPT noexcept
+#define ATTRIBUTE __attribute__
+#endif
+
 #endif

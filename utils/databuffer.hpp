@@ -14,7 +14,7 @@ namespace utils
 	public:
 		int m_length;
 		int const m_capacity;
-		uint8_t m_data[];
+		uint8_t m_data[ 1 ];
 
 		static Ref< DataBuffer > create(
 			int length, int capacity, void const* data );
@@ -31,10 +31,10 @@ namespace utils
 
 		R_METHOD() static DataBuffer* pcreate(
 			int length, int capacity, void const* data );
-		R_METHOD() void* getdata() noexcept { return m_data; }
-		R_METHOD() int getlength() noexcept { return m_length; }
-		R_METHOD() void setlength( int length ) noexcept { m_length = length; }
-		R_METHOD() int getcapacity() noexcept { return m_capacity; }
+		R_METHOD() void* getdata() NOEXCEPT { return m_data; }
+		R_METHOD() int getlength() NOEXCEPT { return m_length; }
+		R_METHOD() void setlength( int length ) NOEXCEPT { m_length = length; }
+		R_METHOD() int getcapacity() NOEXCEPT { return m_capacity; }
 	};
 }
 

@@ -24,13 +24,13 @@ local function strtob(s)
 	end
 end
 
-local extraclasses = _G.extraclasses or ''
-local extraheaders = _G.extraheaders or ''
-local structname = _G.structname or error('global "structname" must be set')
-local packageprefix = _G.packageprefix or ''
-local defaultlparent = _G.defaultlparent or
-	error('global "defaultlparent" must be set')
-local compactffi = strtob(_G.compactffi or '')
+local extraclasses
+local extraheaders
+local structname
+local fileprefix
+local packageprefix
+local defaultlparent
+local compactffi
 
 local filelist = {...}
 
@@ -123,7 +123,7 @@ end
 local function parse_attrstr(input)
 	local result = {}
 	for item in string.gmatch(input, '(%S+)') do
-		result[item] = true
+		result[string.lower(item)] = true
 	end
 	return result
 end
@@ -419,7 +419,7 @@ local function build_method(method)
 		releasestr = ''
 	end
 	method.cmethod = 'static bool ' .. method.flname .. '\z
-			(' .. cdefargstr .. ') noexcept\n\z
+			(' .. cdefargstr .. ') NOEXCEPT\n\z
 		{\n\z
 		' .. try_block_c .. '\z
 		\t{\n\z
@@ -430,7 +430,7 @@ local function build_method(method)
 		}\n\z
 		\n'
 	method.clistfield = 'bool(*' .. method.flname .. ')\z
-		(' .. cdefargstr .. ') noexcept;'
+		(' .. cdefargstr .. ') NOEXCEPT;'
 	method.ffilistfield = 'bool(*' .. method.flname .. ')\z
 		(' .. ffidefargstr .. ');'
 	if method.meta.noluamethod then
@@ -504,7 +504,7 @@ local function emit_direct(f, target)
 end
 
 local function emit_hpp()
-	local mlhpp = assert(io.open('methodlist.hpp', 'w'))
+	local mlhpp = assert(io.open(fileprefix .. '.hpp', 'w'))
 	emit_direct(mlhpp, 'hpp_start')
 	mlhpp:write('#pragma once\n\n')
 	emit_direct(mlhpp, 'hpp_beforeincludes')
@@ -541,9 +541,11 @@ local function emit_hpp()
 end
 
 local function emit_cpp()
-	local mlcpp = assert(io.open('methodlist.cpp', 'w'))
+	local mlcpp = assert(io.open(fileprefix .. '.cpp', 'w'))
 	emit_direct(mlcpp, 'cpp_start')
-	mlcpp:write('#include "methodlist.hpp"\n')
+	mlcpp:write('#include "')
+	mlcpp:write(string.match(fileprefix, '[^\\/]*$'))
+	mlcpp:write('.hpp"\n')
 	for i, header in ipairs(header_list) do
 		mlcpp:write(string.format('#include "%s"\n', header))
 	end
@@ -596,7 +598,7 @@ local function build_ffi()
 end
 
 local function emit_lua()
-	local mllua = assert(io.open('methodlist.lua', 'w'))
+	local mllua = assert(io.open(fileprefix .. '.lua', 'w'))
 	emit_direct(mllua, 'lua_start')
 	mllua:write('local ffi = require(\'ffi\')\nffi.cdef[[')
 	mllua:write(build_ffi())
@@ -621,6 +623,14 @@ local function emit_lua()
 end
 
 local function main()
+	extraclasses = _G.extraclasses or ''
+	extraheaders = _G.extraheaders or ''
+	structname = _G.structname or error('global "structname" must be set')
+	fileprefix = _G.fileprefix or error('global "fileprefix" must be set')
+	packageprefix = _G.packageprefix or ''
+	defaultlparent = _G.defaultlparent or
+		error('global "defaultlparent" must be set')
+	compactffi = strtob(_G.compactffi or '')
 	for i, filename in ipairs(filelist) do
 		local modulename = assert(string.match(filename, '(.*)%..*'))
 		local source = assert(io.open(filename, 'r')):read('*a')
@@ -643,4 +653,5 @@ end
 local suc, err = xpcall(main, debug.traceback)
 if not suc then
 	print(err)
+	os.exit(-1)
 end

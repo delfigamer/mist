@@ -31,21 +31,7 @@ if #indexmodule == 0 then
 	error('index module required')
 end
 
-local isuc, indexmod = pcall(require, indexmodule)
-local err
-if isuc then
-	isuc, err = pcall(indexmod.register)
-else
-	err = indexmod
-end
+local isuc, err = pcall(require, indexmodule)
 if not isuc then
 	print(err)
-	require('host.window'):finish()
 end
-if info.configset:boolean('silent', false) then
-	require('host.window'):finish()
-end
-
-local input = require('system.input')
-
-return input.dispatch

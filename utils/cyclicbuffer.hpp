@@ -1,6 +1,7 @@
 #ifndef UTILS_CYCLICBUFFER_HPP__
 #define UTILS_CYCLICBUFFER_HPP__ 1
 
+#include <common.hpp>
 #include <cinttypes>
 
 namespace utils

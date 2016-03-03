@@ -15,12 +15,12 @@ namespace utils
 		setchars( newchars, length );
 	}
 
-	String::String( const String& other ) noexcept
+	String::String( const String& other ) NOEXCEPT
 		: m_payload( other.m_payload )
 	{
 	}
 
-	String::String( String&& other ) noexcept
+	String::String( String&& other ) NOEXCEPT
 		: m_payload( std::move( other.m_payload ) )
 	{
 	}
@@ -35,39 +35,39 @@ namespace utils
 	{
 	}
 
-	String::~String() noexcept
+	String::~String() NOEXCEPT
 	{
 	}
 
-	String& String::operator=( const String& other ) noexcept
+	String& String::operator=( const String& other ) NOEXCEPT
 	{
 		m_payload = other.m_payload;
 		return *this;
 	}
 
-	String& String::operator=( String&& other ) noexcept
+	String& String::operator=( String&& other ) NOEXCEPT
 	{
 		m_payload = std::move( other.m_payload );
 		return *this;
 	}
 
-	String::operator bool() const noexcept
+	String::operator bool() const NOEXCEPT
 	{
-		return m_payload;
+		return m_payload != 0;
 	}
 
-	String::operator char const*() const noexcept
+	String::operator char const*() const NOEXCEPT
 	{
 		return getchars();
 	}
 
-	int String::getlength() const noexcept
+	int String::getlength() const NOEXCEPT
 	{
 		DataBuffer* e = m_payload;
 		return ( e ? e->m_length : 0 );
 	}
 
-	const char* String::getchars() const noexcept
+	const char* String::getchars() const NOEXCEPT
 	{
 		DataBuffer* e = m_payload;
 		return ( e ? ( char const* )e->m_data : "" );

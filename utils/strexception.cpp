@@ -50,7 +50,7 @@ namespace utils
 		return *this;
 	}
 
-	char const* StrException::what() const noexcept
+	char const* StrException::what() const NOEXCEPT
 	{
 		return m_message;
 	}

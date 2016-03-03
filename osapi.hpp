@@ -15,13 +15,14 @@
 #include <fcntl.h>
 #include <unistd.h>
 #endif
+#include <common.hpp>
 #include <utils/strexception.hpp>
 #include <utils/databuffer.hpp>
 #include <utils/ref.hpp>
 
 namespace
 {
-	void syserror( char const* file, int line ) __attribute__(( noreturn ));
+	void syserror( char const* file, int line ) ATTRIBUTE(( noreturn ));
 
 	void syserror( char const* file, int line )
 	{

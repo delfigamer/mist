@@ -353,12 +353,12 @@ namespace utils
 			if( success )
 			{
 				uint8_t* destw = ( uint8_t* )dest;
-				destw[ bl ] = buffer[ 0 ];
-				destw[ bh ] = buffer[ 0 ] >> 8;
+				destw[ bl ] = uint8_t( buffer[ 0 ] );
+				destw[ bh ] = uint8_t( buffer[ 0 ] >> 8 );
 				if( length == 4 )
 				{
-					destw[ 2 + bl ] = buffer[ 1 ];
-					destw[ 2 + bh ] = buffer[ 1 ] >> 8;
+					destw[ 2 + bl ] = uint8_t( buffer[ 1 ] );
+					destw[ 2 + bh ] = uint8_t( buffer[ 1 ] >> 8 );
 				}
 			}
 			*pointlength = length;

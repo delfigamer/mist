@@ -43,68 +43,93 @@ namespace utils {
 		lua_close( m_lstate );
 	}
 
-#define ConfigSet_accessor( type, method ) \
-{\
-	type result = def; \
-	lua_pushstring( m_lstate, "return " ); \
-	lua_pushstring( m_lstate, expr ); \
-	lua_concat( m_lstate, 2 ); \
-	size_t len; \
-	char const* buf = lua_tolstring( m_lstate, -1, &len ); \
-	if( luaL_loadbuffer( m_lstate, buf, len, expr ) != 0 ) \
-	{ \
-		LOG( "! failed to access expression \"%s\": %s", \
-			expr, lua_tostring( m_lstate, -1 ) ); \
-		result = def; \
-	} \
-	else \
-	{ \
-		if( lua_pcall( m_lstate, 0, 1, 0 ) == 0 ) \
-		{ \
-			if( lua_isnil( m_lstate, -1 ) ) \
-			{ \
-				result = def; \
-			} \
-			else \
-			{ \
-				result = ( method )( m_lstate, -1 ); \
-			} \
-		} \
-		else \
-		{ \
-			result = def; \
-		} \
-	} \
-	lua_settop( m_lstate, 0 ); \
-	return result; \
-}
+	namespace
+	{
+		template< typename T >
+		T lua_get( lua_State* L, int index );
+
+		template<>
+		int lua_get< int >( lua_State* L, int index )
+		{
+			return lua_tointeger( L, index );
+		}
+
+		template<>
+		double lua_get< double >( lua_State* L, int index )
+		{
+			return lua_tonumber( L, index );
+		}
+
+		template<>
+		String lua_get< String >( lua_State* L, int index )
+		{
+			size_t len;
+			char const* buf = lua_tolstring( L, index, &len );
+			return String( buf, len );
+		}
+
+		template<>
+		bool lua_get< bool >( lua_State* L, int index )
+		{
+			return lua_toboolean( L, index ) != 0;
+		}
+
+		template< typename T >
+		T accessor( lua_State* L, char const* expr, T const& def )
+		{
+			T result = def;
+			lua_pushstring( L, "return " );
+			lua_pushstring( L, expr );
+			lua_concat( L, 2 );
+			size_t len;
+			char const* buf = lua_tolstring( L, -1, &len );
+			if( luaL_loadbuffer( L, buf, len, expr ) != 0 )
+			{
+				LOG( "! failed to access expression \"%s\": %s",
+					expr, lua_tostring( L, -1 ) );
+			}
+			else
+			{
+				if( lua_pcall( L, 0, 1, 0 ) == 0 )
+				{
+					if( lua_isnil( L, -1 ) )
+					{
+						result = def;
+					}
+					else
+					{
+						result = lua_get< T >( L, -1 );
+					}
+				}
+				else
+				{
+					result = def;
+				}
+			}
+			lua_settop( L, 0 );
+			return result;
+		}
+	}
 
 	int ConfigSet::integer( char const* expr, int def ) const
 	{
-		ConfigSet_accessor( int, lua_tointeger );
+		return accessor< int >( m_lstate, expr, def );
 	}
 
 	double ConfigSet::number( char const* expr, double def ) const
 	{
-		ConfigSet_accessor( double, lua_tonumber );
-	}
-
-	static String toustring( lua_State* L, int index )
-	{
-		size_t len;
-		char const* buf = lua_tolstring( L, index, &len );
-		return String( buf, len );
+		return accessor< double >( m_lstate, expr, def );
 	}
 
 	String ConfigSet::string(
 		char const* expr, String const& def ) const
 	{
-		ConfigSet_accessor( String, toustring );
+		return accessor< String >( m_lstate, expr, def );
 	}
 
 	bool ConfigSet::boolean( char const* expr, bool def ) const
 	{
-		ConfigSet_accessor( bool, lua_toboolean );
+		return accessor< bool >( m_lstate, expr, def );
 	}
 
 	void ConfigSet::runcmd( char const* expr )

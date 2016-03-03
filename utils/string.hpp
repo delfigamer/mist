@@ -3,6 +3,7 @@
 
 #include "databuffer.hpp"
 #include "ref.hpp"
+#include <common.hpp>
 
 namespace utils
 {
@@ -14,18 +15,18 @@ namespace utils
 	public:
 		String();
 		String( const char* newchars, int length = 0 );
-		String( const String& other ) noexcept;
-		String( String&& other ) noexcept;
+		String( const String& other ) NOEXCEPT;
+		String( String&& other ) NOEXCEPT;
 		String( Ref< DataBuffer > const& db );
 		String( Ref< DataBuffer >&& db );
-		~String() noexcept;
-		String& operator=( const String& other ) noexcept;
-		String& operator=( String&& other ) noexcept;
+		~String() NOEXCEPT;
+		String& operator=( const String& other ) NOEXCEPT;
+		String& operator=( String&& other ) NOEXCEPT;
 
-		operator bool() const noexcept;
-		operator char const*() const noexcept;
-		int getlength() const noexcept;
-		const char* getchars() const noexcept;
+		operator bool() const NOEXCEPT;
+		operator char const*() const NOEXCEPT;
+		int getlength() const NOEXCEPT;
+		const char* getchars() const NOEXCEPT;
 		void setchars( const char* newchars, int length = 0 );
 	};
 }

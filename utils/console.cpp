@@ -10,6 +10,18 @@
 #undef getchar
 #endif
 
+#if defined( _MSC_VER )
+#include <cstdarg>
+static int snprintf( char* buffer, int buflen, char const* format, ... )
+{
+	va_list arg;
+	va_start( arg, format );
+	int result = vsnprintf( buffer, buflen, format, arg );
+	va_end( arg );
+	return result;
+}
+#endif
+
 namespace utils
 {
 	void ConsoleClass::writeconsole( char const* str, int length )

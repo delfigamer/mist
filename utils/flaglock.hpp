@@ -1,6 +1,7 @@
 #ifndef UTILS_FLAGLOCK_HPP__
 #define UTILS_FLAGLOCK_HPP__ 1
 
+#include <common.hpp>
 #include <atomic>
 
 namespace utils
@@ -16,8 +17,8 @@ namespace utils
 		FlagLock( FlagLock const& ) = delete;
 		FlagLock& operator=( FlagLock const& ) = delete;
 
-		void lock() noexcept;
-		void unlock() noexcept;
+		void lock() NOEXCEPT;
+		void unlock() NOEXCEPT;
 	};
 }
 

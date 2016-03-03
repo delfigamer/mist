@@ -14,27 +14,27 @@ namespace utils
 		mutable std::atomic< int > m_refcount;
 
 	public:
-		int addref() const noexcept;
-		int release() const noexcept;
-		int refcount() const noexcept;
-		R_METHOD( name = addref, noluamethod ) void vaddref() const noexcept
+		int addref() const NOEXCEPT;
+		int release() const NOEXCEPT;
+		int refcount() const NOEXCEPT;
+		R_METHOD( name = addref, noluamethod ) void vaddref() const NOEXCEPT
 		{
 			addref();
 		}
-		R_METHOD( name = release, release ) void vrelease() const noexcept
+		R_METHOD( name = release, release ) void vrelease() const NOEXCEPT
 		{
 			release();
 		}
-		RefObject() noexcept;
-		RefObject( RefObject const& other ) noexcept;
-		RefObject( RefObject&& other ) noexcept;
-		virtual ~RefObject() noexcept;
+		RefObject() NOEXCEPT;
+		RefObject( RefObject const& other ) NOEXCEPT;
+		RefObject( RefObject&& other ) NOEXCEPT;
+		virtual ~RefObject() NOEXCEPT;
 		virtual void destroy();
-		RefObject& operator=( RefObject const& other ) noexcept;
-		RefObject& operator=( RefObject&& other ) noexcept;
+		RefObject& operator=( RefObject const& other ) NOEXCEPT;
+		RefObject& operator=( RefObject&& other ) NOEXCEPT;
 	};
 
-	inline int RefObject::addref() const noexcept
+	inline int RefObject::addref() const NOEXCEPT
 	{
 		int rc = m_refcount.fetch_add( 1, std::memory_order_relaxed ) + 1;
 // 		LOG( "((RefObject*) %#10x)->addref()  - %i", uint32_t( this ), rc );
@@ -44,7 +44,7 @@ namespace utils
 		return rc;
 	}
 
-	inline int RefObject::release() const noexcept
+	inline int RefObject::release() const NOEXCEPT
 	{
 		if( !this )
 		{
@@ -59,7 +59,7 @@ namespace utils
 		return rc;
 	}
 
-	inline int RefObject::refcount() const noexcept
+	inline int RefObject::refcount() const NOEXCEPT
 	{
 		return m_refcount.load( std::memory_order_relaxed );
 	}

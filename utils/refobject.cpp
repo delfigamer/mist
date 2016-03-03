@@ -17,7 +17,7 @@ namespace utils
 	std::atomic< int > rocount( 0 );
 #endif
 
-	RefObject::RefObject() noexcept
+	RefObject::RefObject() NOEXCEPT
 		: m_refcount( 1 )
 	{
 // 		LOG( "((RefObject*) %" PRIPTR ")->RefObject()", uintptr_t( this ) );
@@ -28,7 +28,7 @@ namespace utils
 #endif
 	}
 
-	RefObject::RefObject( RefObject const& other ) noexcept
+	RefObject::RefObject( RefObject const& other ) NOEXCEPT
 		: m_refcount( 1 )
 	{
 // 		LOG( "((RefObject*) %" PRIPTR ")->RefObject()", uintptr_t( this ) );
@@ -39,7 +39,7 @@ namespace utils
 #endif
 	}
 
-	RefObject::RefObject( RefObject&& other ) noexcept
+	RefObject::RefObject( RefObject&& other ) NOEXCEPT
 		: m_refcount( 1 )
 	{
 // 		LOG( "((RefObject*) %" PRIPTR ")->RefObject()", uintptr_t( this ) );
@@ -50,7 +50,7 @@ namespace utils
 #endif
 	}
 
-	RefObject::~RefObject() noexcept
+	RefObject::~RefObject() NOEXCEPT
 	{
 // 		LOG( "((RefObject*) %" PRIPTR ")->~RefObject()", uintptr_t( this ) );
 #ifdef COUNT_OBJECTS
@@ -65,12 +65,12 @@ namespace utils
 		delete this;
 	}
 
-	RefObject& RefObject::operator=( RefObject const& other ) noexcept
+	RefObject& RefObject::operator=( RefObject const& other ) NOEXCEPT
 	{
 		return *this;
 	}
 
-	RefObject& RefObject::operator=( RefObject&& other ) noexcept
+	RefObject& RefObject::operator=( RefObject&& other ) NOEXCEPT
 	{
 		return *this;
 	}

@@ -2,6 +2,7 @@
 #define UTILS_REF_HPP__ 1
 
 #include "refobject.hpp"
+#include <common.hpp>
 #include <atomic>
 #include <stdexcept>
 #include <exception>
@@ -14,21 +15,21 @@ namespace utils
 	{
 	private:
 		std::atomic< RefObject* > m_ref;
-		RefObject* possess_silent( RefObject* ref ) noexcept;
-		RefObject* assign_silent( RefObject* ref ) noexcept;
+		RefObject* possess_silent( RefObject* ref ) NOEXCEPT;
+		RefObject* assign_silent( RefObject* ref ) NOEXCEPT;
 
 	public:
-		RefBase() noexcept;
-		RefBase( RefObject* ref, int ) noexcept;
-		RefBase( RefObject* ref ) noexcept;
-		RefBase( RefBase&& other ) noexcept;
-		RefBase( RefBase const& other ) noexcept;
-		~RefBase() noexcept;
-		RefObject* possess( RefObject* ref ) noexcept;
-		RefObject* assign( RefObject* ref ) noexcept;
-		RefBase& assign( RefBase&& other ) noexcept;
-		RefBase& assign( RefBase const& other ) noexcept;
-		RefObject* get() const noexcept;
+		RefBase() NOEXCEPT;
+		RefBase( RefObject* ref, int ) NOEXCEPT;
+		RefBase( RefObject* ref ) NOEXCEPT;
+		RefBase( RefBase&& other ) NOEXCEPT;
+		RefBase( RefBase const& other ) NOEXCEPT;
+		~RefBase() NOEXCEPT;
+		RefObject* possess( RefObject* ref ) NOEXCEPT;
+		RefObject* assign( RefObject* ref ) NOEXCEPT;
+		RefBase& assign( RefBase&& other ) NOEXCEPT;
+		RefBase& assign( RefBase const& other ) NOEXCEPT;
+		RefObject* get() const NOEXCEPT;
 		RefObject& deref() const;
 		bool operator==( RefBase const& other );
 		bool operator!=( RefBase const& other );
@@ -38,20 +39,20 @@ namespace utils
 	class Ref: public RefBase
 	{
 	public:
-		Ref() noexcept;
-		Ref( std::nullptr_t ) noexcept;
-		Ref( T* ref ) noexcept;
-		Ref( T* ref, int ) noexcept;
-		Ref( Ref< T > const& other ) noexcept;
-		Ref( Ref< T >&& other ) noexcept;
-		~Ref() noexcept;
-		Ref& operator=( std::nullptr_t ) noexcept;
-		Ref& operator=( T* ref ) noexcept;
-		Ref& operator=( Ref< T > const& other ) noexcept;
-		Ref& operator=( Ref< T >&& other ) noexcept;
+		Ref() NOEXCEPT;
+		Ref( std::nullptr_t ) NOEXCEPT;
+		Ref( T* ref ) NOEXCEPT;
+		Ref( T* ref, int ) NOEXCEPT;
+		Ref( Ref< T > const& other ) NOEXCEPT;
+		Ref( Ref< T >&& other ) NOEXCEPT;
+		~Ref() NOEXCEPT;
+		Ref& operator=( std::nullptr_t ) NOEXCEPT;
+		Ref& operator=( T* ref ) NOEXCEPT;
+		Ref& operator=( Ref< T > const& other ) NOEXCEPT;
+		Ref& operator=( Ref< T >&& other ) NOEXCEPT;
 		T& operator*() const;
 		T* operator->() const;
-		operator T*() const noexcept;
+		operator T*() const NOEXCEPT;
 
 		template< typename ...Ts >
 		static Ref< T > create( Ts&& ...args );
@@ -61,88 +62,88 @@ namespace utils
 	class Ref< RefObject >: public RefBase
 	{
 	public:
-		Ref() noexcept;
-		Ref( RefObject* ref ) noexcept;
-		Ref( RefObject* ref, int ) noexcept;
-		Ref( Ref const& other ) noexcept;
-		Ref( RefBase const& other ) noexcept;
-		Ref( Ref&& other ) noexcept;
-		Ref( RefBase&& other ) noexcept;
-		~Ref() noexcept;
-		Ref& operator=( RefObject* ref ) noexcept;
-		Ref& operator=( Ref const& other ) noexcept;
-		Ref& operator=( RefBase const& other ) noexcept;
-		Ref& operator=( Ref&& other ) noexcept;
-		Ref& operator=( RefBase&& other ) noexcept;
+		Ref() NOEXCEPT;
+		Ref( RefObject* ref ) NOEXCEPT;
+		Ref( RefObject* ref, int ) NOEXCEPT;
+		Ref( Ref const& other ) NOEXCEPT;
+		Ref( RefBase const& other ) NOEXCEPT;
+		Ref( Ref&& other ) NOEXCEPT;
+		Ref( RefBase&& other ) NOEXCEPT;
+		~Ref() NOEXCEPT;
+		Ref& operator=( RefObject* ref ) NOEXCEPT;
+		Ref& operator=( Ref const& other ) NOEXCEPT;
+		Ref& operator=( RefBase const& other ) NOEXCEPT;
+		Ref& operator=( Ref&& other ) NOEXCEPT;
+		Ref& operator=( RefBase&& other ) NOEXCEPT;
 		RefObject& operator*() const;
 		RefObject* operator->() const;
-		operator RefObject*() const noexcept;
+		operator RefObject*() const NOEXCEPT;
 	};*/
 
 	template< typename T >
-	Ref< T >::Ref() noexcept
+	Ref< T >::Ref() NOEXCEPT
 		: RefBase()
 	{
 	}
 
 	template< typename T >
-	Ref< T >::Ref( std::nullptr_t ) noexcept
+	Ref< T >::Ref( std::nullptr_t ) NOEXCEPT
 		: RefBase( ( RefObject* )0 )
 	{
 	}
 
 	template< typename T >
-	Ref< T >::Ref( T* ref ) noexcept
+	Ref< T >::Ref( T* ref ) NOEXCEPT
 		: RefBase( ( RefObject* )ref )
 	{
 	}
 
 	template< typename T >
-	Ref< T >::Ref( T* ref, int ) noexcept
+	Ref< T >::Ref( T* ref, int ) NOEXCEPT
 		: RefBase( ( RefObject* )ref, 0 )
 	{
 	}
 
 	template< typename T >
-	Ref< T >::Ref( Ref< T > const& other ) noexcept
+	Ref< T >::Ref( Ref< T > const& other ) NOEXCEPT
 		: RefBase( other )
 	{
 	}
 
 	template< typename T >
-	Ref< T >::Ref( Ref< T >&& other ) noexcept
+	Ref< T >::Ref( Ref< T >&& other ) NOEXCEPT
 		: RefBase( std::move( std::move( ( RefBase&& )other ) ) )
 	{
 	}
 
 	template< typename T >
-	Ref< T >::~Ref() noexcept
+	Ref< T >::~Ref() NOEXCEPT
 	{
 	}
 
 	template< typename T >
-	Ref< T >& Ref< T >::operator=( std::nullptr_t ) noexcept
+	Ref< T >& Ref< T >::operator=( std::nullptr_t ) NOEXCEPT
 	{
 		RefBase::assign( ( RefObject* )0 );
 		return *this;
 	}
 
 	template< typename T >
-	Ref< T >& Ref< T >::operator=( T* ref ) noexcept
+	Ref< T >& Ref< T >::operator=( T* ref ) NOEXCEPT
 	{
 		RefBase::assign( ( RefObject* )ref );
 		return *this;
 	}
 
 	template< typename T >
-	Ref< T >& Ref< T >::operator=( Ref< T > const& other ) noexcept
+	Ref< T >& Ref< T >::operator=( Ref< T > const& other ) NOEXCEPT
 	{
 		RefBase::assign( other );
 		return *this;
 	}
 
 	template< typename T >
-	Ref< T >& Ref< T >::operator=( Ref< T >&& other ) noexcept
+	Ref< T >& Ref< T >::operator=( Ref< T >&& other ) NOEXCEPT
 	{
 		RefBase::assign( std::move( ( RefBase&& )other ) );
 		return *this;
@@ -161,7 +162,7 @@ namespace utils
 	}
 
 	template< typename T >
-	Ref< T >::operator T*() const noexcept
+	Ref< T >::operator T*() const NOEXCEPT
 	{
 		return ( T* )RefBase::get();
 	}

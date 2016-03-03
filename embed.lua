@@ -11,6 +11,7 @@ end
 
 local files = {...}
 local structname = _G.structname or error('structname expected')
+local fileprefix = _G.fileprefix or error('fileprefix expected')
 
 function table.append(arr, item)
 	local pos = #arr + 1
@@ -19,7 +20,7 @@ function table.append(arr, item)
 end
 
 local function emit_hpp()
-	local f = assert(io.open(structname .. '.hpp', 'w'))
+	local f = assert(io.open(fileprefix .. '.hpp', 'w'))
 	f:write('#pragma once\n\nstruct ')
 	f:write(structname)
 	f:write('_t\n{\n\z
@@ -36,9 +37,9 @@ local function emit_hpp()
 end
 
 local function emit_cpp()
-	local f = assert(io.open(structname .. '.cpp', 'w'))
+	local f = assert(io.open(fileprefix .. '.cpp', 'w'))
 	f:write('#include "')
-	f:write(structname)
+	f:write(string.match(fileprefix, '[^\\/]*$'))
 	f:write('.hpp"\n\n')
 	f:write(structname)
 	f:write('_t const ')
@@ -50,19 +51,19 @@ local function emit_cpp()
 		local input = assert(io.open(file, 'rb'))
 		f:write('\t{\n\t\t"')
 		f:write(name)
-		f:write('",\n\t\t( const char* )( unsigned char const[] ){\n')
+		f:write('",\n')
 		while true do
 			local str = input:read(8)
 			if not str then
 				break
 			end
-			f:write('\t\t\t')
+			f:write('\t\t\t"')
 			for i = 1, #str do
-				f:write(string.format('0x%.2x,', string.byte(str, i, i)))
+				f:write(string.format('\\x%.2x', string.byte(str, i, i)))
 			end
-			f:write('\n')
+			f:write('"\n')
 		end
-		f:write('\t\t},\n\t\t')
+		f:write('\t\t,\n\t\t')
 		f:write(tostring(input:seek()))
 		f:write(',\n\t},\n')
 	end

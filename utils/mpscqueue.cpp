@@ -7,7 +7,7 @@ namespace utils
 	MPSCQueueBase::Item* MPSCQueueBase::base_new()
 	{
 		// Item* item = ( Item* )m_allocator->alloc();
-		Item* item = ( Item* )operator new( sizeof( Item ) + m_datasize );
+		Item* item = ( Item* )operator new( sizeof( Item ) - sizeof( uint8_t ) + m_datasize );
 		return new( item )Item;
 	}
 

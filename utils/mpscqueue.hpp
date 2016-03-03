@@ -2,6 +2,7 @@
 #define UTILS_MPSCQUEUE_HPP__ 1
 
 // #include "poolallocator.hpp"
+#include <common.hpp>
 #include <atomic>
 #include <utility>
 #include <new>
@@ -17,7 +18,7 @@ namespace utils
 		struct Item
 		{
 			std::atomic< Item* > m_next;
-			uint8_t m_data[];
+			uint8_t m_data[ 1 ];
 
 			inline Item() : m_next( nullptr ) {}
 		};

@@ -2,6 +2,7 @@
 #define UTILS_STREXCEPTION_HPP__ 1
 
 #include "string.hpp"
+#include <common.hpp>
 #include <exception>
 
 namespace utils
@@ -19,7 +20,7 @@ namespace utils
 		StrException( StrException&& other );
 		StrException& operator=( StrException const& other );
 		StrException& operator=( StrException&& other );
-		virtual char const* what() const noexcept override;
+		virtual char const* what() const NOEXCEPT override;
 	};
 }
 

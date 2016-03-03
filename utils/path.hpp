@@ -4,6 +4,7 @@
 #include "databuffer.hpp"
 #include "ref.hpp"
 #include "refobject.hpp"
+#include <common.hpp>
 
 namespace utils
 {

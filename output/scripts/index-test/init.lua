@@ -1,13 +1,14 @@
 local modname = ...
-module(modname, package.seeall)
-local page = package.relrequire(modname, 0, 'page')
+local index = package.modtable(modname)
+local ffi = require('ffi')
+local window = require('host.window')
 
-function register()
-	currentpage = page:create()
-	currentpage:register()
-end
-
-function unregister()
-	currentpage:unregister()
-	currentpage = nil
+local event = ffi.new('event')
+while true do
+	if window:popevent(event) then
+		print(event.name, event.arg[0], event.arg[1], event.arg[2], event.arg[3])
+		if event.name == 0 then
+			break
+		end
+	end
 end

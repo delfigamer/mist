@@ -8,7 +8,7 @@ namespace utils {
 	{
 		DataBuffer* e;
 		e = ( DataBuffer* )operator new(
-			sizeof( DataBuffer ) + capacity );
+			sizeof( DataBuffer ) - sizeof( uint8_t ) + capacity );
 		try
 		{
 			new( e )DataBuffer( length, capacity, data );

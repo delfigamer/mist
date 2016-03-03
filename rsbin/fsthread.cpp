@@ -37,7 +37,7 @@ namespace rsbin
 				}
 				if( task->m_offset + length > viewsize )
 				{
-					length = viewsize - task->m_offset;
+					length = int( viewsize - task->m_offset );
 				}
 				memcpy(
 					task->m_buffer,

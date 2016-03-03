@@ -7,7 +7,7 @@ namespace utils
 {
 	static String cbase_error;
 
-	char const* cbase::geterror() noexcept
+	char const* cbase::geterror() NOEXCEPT
 	{
 		DataBuffer* db = cbase_error.m_payload;
 		if( db )
@@ -20,12 +20,12 @@ namespace utils
 		}
 	}
 
-	void cbase::seterror( char const* error ) noexcept
+	void cbase::seterror( char const* error ) NOEXCEPT
 	{
 		cbase_error.setchars( error );
 	}
 
-	void cbase::yield() noexcept
+	void cbase::yield() NOEXCEPT
 	{
 		std::this_thread::yield();
 	}

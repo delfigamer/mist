@@ -1,17 +1,17 @@
 ifeq ($(OS),Windows_NT)
 ifeq ($(PROCESSOR_ARCHITECTURE),AMD64)
-TARGET_SUFFIX = -win64
+PLATFORM = win64
 else
 CCFLAGS = -march=i686
-TARGET_SUFFIX = -win32
+PLATFORM = win32
 endif
 OS_LIBS =
-TARGETNAME = client-console$(TARGET_SUFFIX).exe
+TARGETNAME = client-console-$(PLATFORM).exe
 else
 CCFLAGS = -march=i686
-TARGET_SUFFIX = -arm7a
+PLATFORM = arm7a
 OS_LIBS =
-TARGETNAME = client-console$(TARGET_SUFFIX).out
+TARGETNAME = client-console-$(PLATFORM).out
 endif
 TARGET = ../output/$(TARGETNAME)
 
@@ -20,10 +20,8 @@ all: $(TARGET)
 CCFLAGS += -O2 -Wall -I.. -std=c++11
 LDFLAGS = \
 	-L.. \
-	-lrsbin$(TARGET_SUFFIX) \
-	-lutils$(TARGET_SUFFIX) \
-	-lluajit$(TARGET_SUFFIX) \
-	-lpng$(TARGET_SUFFIX) \
+	-lluajit-$(PLATFORM) \
+	-lpng-$(PLATFORM) \
 	-lz \
 	$(OS_LIBS)
 BINDFLAGS = \
@@ -36,19 +34,38 @@ BINDFLAGS = \
 LUACFLAGS =
 
 OBJS = \
-	luainit$(TARGET_SUFFIX).o \
-	main$(TARGET_SUFFIX).o \
-	methodlist$(TARGET_SUFFIX).o \
-	window$(TARGET_SUFFIX).o
+	build/$(PLATFORM)/client-console/luainit.o \
+	build/$(PLATFORM)/client-console/main.o \
+	build/$(PLATFORM)/client-console/methodlist.o \
+	build/$(PLATFORM)/client-console/window.o \
+	build/$(PLATFORM)/utils/cbase.o \
+	build/$(PLATFORM)/utils/configset.o \
+	build/$(PLATFORM)/utils/console.o \
+	build/$(PLATFORM)/utils/cyclicbuffer.o \
+	build/$(PLATFORM)/utils/databuffer.o \
+	build/$(PLATFORM)/utils/encoding.o \
+	build/$(PLATFORM)/utils/flaglock.o \
+	build/$(PLATFORM)/utils/mpscqueue.o \
+	build/$(PLATFORM)/utils/path.o \
+	build/$(PLATFORM)/utils/profile.o \
+	build/$(PLATFORM)/utils/ref.o \
+	build/$(PLATFORM)/utils/refobject.o \
+	build/$(PLATFORM)/utils/strexception.o \
+	build/$(PLATFORM)/utils/string.o \
+	build/$(PLATFORM)/rsbin/common.o \
+	build/$(PLATFORM)/rsbin/fileio.o \
+	build/$(PLATFORM)/rsbin/fsthread.o \
+	build/$(PLATFORM)/rsbin/pngreader.o \
+	build/$(PLATFORM)/rsbin/pngwriter.o
 LUABINS = \
-	main.lb \
-	baselib.lb \
-	object.lb \
-	ffipure.lb \
-	methodlist.lb \
-	hostlib.lb \
-	defer.lb \
-	input.lb
+	build/main.lb \
+	build/baselib.lb \
+	build/object.lb \
+	build/ffipure.lb \
+	build/methodlist.lb \
+	build/hostlib.lb \
+	build/defer.lb \
+	build/input.lb
 BIND_HEADERS = \
 	../utils/cbase.hpp \
 	../utils/configset.hpp \
@@ -61,24 +78,18 @@ BIND_HEADERS = \
 	../rsbin/pngreader.hpp \
 	../rsbin/pngwriter.hpp \
 	window.hpp
-EXLIBS = \
-	../librsbin$(TARGET_SUFFIX).a \
-	../libutils$(TARGET_SUFFIX).a
 
 ifeq ($(OS),Windows_NT)
-#~ RUNCMD = pushd ../output && $(TARGETNAME) && popd
+# RUNCMD = pushd ../output && $(TARGETNAME) && popd
 RUNCMD = echo "Not supported"
 else
 RUNCMD = run_ca $(TARGET)
 endif
 
-$(TARGET): $(OBJS) $(EXLIBS)
+$(TARGET): $(OBJS)
 		$(CXX) -o $@ $(OBJS) $(LDFLAGS)
 
-main$(TARGET_SUFFIX).o: main.cpp
-	 	$(CXX) -c -o $@ $< $(CCFLAGS)
-
-%$(TARGET_SUFFIX).o: %.cpp %.hpp
+build/$(PLATFORM)/%.o: %.cpp %.hpp
 	 	$(CXX) -c -o $@ $< $(CCFLAGS)
 
 luainit$(TARGET_SUFFIX).o: luainit.cpp
@@ -100,7 +111,7 @@ luainit.cpp: $(LUABINS)
 	 	$(MAKE) -C ../$*
 
 clean:
-		rm $(OBJS) methodlist$(TARGET_SUFFIX).o methodlist.cpp methodlist.hpp \
+		rm $(OBJS) methodlist.cpp methodlist.hpp \
 			methodlist.lua luainit.cpp luainit.hpp $(LUABINS) \
 			$(TARGET)
 
