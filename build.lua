@@ -42,15 +42,110 @@ local builddir = 'build/' .. platform
 local luacpath = builddir .. '/luac.exe'
 
 local function execute(str)
-	-- print(str)
-	-- if os.execute(str) ~= 0 then
-		-- error('build failed')
-	-- end
+	print(str)
+	if os.execute(str) ~= 0 then
+		error('build failed')
+	end
 end
 
 local function execute_noerr(str)
-	-- print(str)
-	-- os.execute(str)
+	print(str)
+	os.execute(str)
+end
+
+ffi.cdef[[
+typedef struct
+{
+	uint16_t wYear;
+	uint16_t wMonth;
+	uint16_t wDayOfWeek;
+	uint16_t wDay;
+	uint16_t wHour;
+	uint16_t wMinute;
+	uint16_t wSecond;
+	uint16_t wMilliseconds;
+} systemtime_t;
+void __stdcall GetSystemTime(
+	systemtime_t* lpSystemTime
+);
+bool __stdcall SystemTimeToFileTime(
+	systemtime_t const* lpSystemTime,
+	uint64_t* lpFileTime
+);
+bool __stdcall CloseHandle(
+	void const* hObject
+);
+void const* __stdcall CreateFileA(
+	char const* lpFileName,
+	uint32_t dwDesiredAccess,
+	uint32_t dwShareMode,
+	void const* lpSecurityAttributes,
+	uint32_t dwCreationDisposition,
+	uint32_t dwFlagsAndAttributes,
+	void const* hTemplateFile
+);
+bool __stdcall GetFileTime(
+	void const* hFile,
+	uint64_t* lpCreationTime,
+	uint64_t* lpLastAccessTime,
+	uint64_t* lpLastWriteTime
+);
+bool __stdcall SetFileTime(
+	void const* hFile,
+	uint64_t const* lpCreationTime,
+	uint64_t const* lpLastAccessTime,
+	uint64_t const* lpLastWriteTime
+);
+]]
+
+local function getcurrenttime()
+	local cst = ffi.new('systemtime_t[1]')
+	ffi.C.GetSystemTime(cst)
+	local lwt = ffi.new('uint64_t[1]')
+	if ffi.C.SystemTimeToFileTime(cst, lwt) then
+		return lwt[0]
+	else
+		error('cannot get current time')
+	end
+end
+
+local function entry_filltime(entry)
+	local handle = ffi.C.CreateFileA(
+		path(entry.target),
+		0x80000000, -- GENERIC_READ
+		7, -- FILE_SHARE_READ || FILE_SHARE_WRITE || FILE_SHARE_DELETE
+		nil,
+		3, -- OPEN_EXISTING
+		0x80, -- FILE_ATTRIBUTE_NORMAL
+		nil)
+	if handle ~= nil then
+		local lwt = ffi.new('uint64_t[1]')
+		if ffi.C.GetFileTime(handle, nil, nil, lwt) then
+			entry.time = lwt[0]
+		end
+		ffi.C.CloseHandle(handle)
+	end
+end
+
+local function build_touch(entry)
+	print('touch ' .. path(entry.target))
+	local handle = ffi.C.CreateFileA(
+		path(entry.target),
+		0x40000000, -- GENERIC_WRITE
+		7, -- FILE_SHARE_READ || FILE_SHARE_WRITE || FILE_SHARE_DELETE
+		nil,
+		3, -- OPEN_EXISTING
+		0x80, -- FILE_ATTRIBUTE_NORMAL
+		nil)
+	if handle ~= nil then
+		local cst = ffi.new('systemtime_t[1]')
+		ffi.C.GetSystemTime(cst)
+		local lwt = ffi.new('uint64_t[1]')
+		if ffi.C.SystemTimeToFileTime(cst, lwt) then
+			ffi.C.SetFileTime(handle, nil, nil, lwt)
+		end
+		ffi.C.CloseHandle(handle)
+	end
 end
 
 local function build_clean(entry)
@@ -66,21 +161,6 @@ local function build_clean(entry)
 	end
 end
 
-local function build_dirlist(entry)
-	for i, dep in ipairs(entry.directories) do
-		execute_noerr(string.format(
-			'md "%s"',
-			path(dep)))
-	end
-end
-
-local function build_touch(entry)
-	local tpath = path(entry.target)
-	execute(string.format(
-		'copy /b "%s"+,, "%s"',
-		tpath, tpath))
-end
-
 local build_lua_format = path(luacpath) .. ' "%s" "%s"'
 local function build_lua(entry)
 	execute(string.format(
@@ -90,8 +170,8 @@ end
 
 local function build_methodlist(entry)
 	local depstr = {}
-	for i = 2, #entry.dependencies do
-		depstr[i-1] = '"' .. path(entry.dependencies[i]) .. '"'
+	for i, dep in ipairs(entry.dependencies) do
+		depstr[i] = '"' .. path(dep) .. '"'
 	end
 	execute(string.format(
 		'lua \z
@@ -108,8 +188,8 @@ end
 
 local function build_luainit(entry)
 	local depstr = {}
-	for i = 2, #entry.dependencies do
-		depstr[i-1] = '"' .. path(entry.dependencies[i]) .. '"'
+	for i, dep in ipairs(entry.dependencies) do
+		depstr[i] = '"' .. path(dep) .. '"'
 	end
 	execute(string.format(
 		'lua \z
@@ -153,66 +233,9 @@ local function build_exe(entry)
 		path(entry.target), table.concat(depstr, ' '), table.concat(libstr, ' ')))
 end
 
-ffi.cdef[[
-bool __stdcall CloseHandle(
-	void const* hObject
-);
-void const* __stdcall CreateFileA(
-	char const* lpFileName,
-	uint32_t dwDesiredAccess,
-	uint32_t dwShareMode,
-	void const* lpSecurityAttributes,
-	uint32_t dwCreationDisposition,
-	uint32_t dwFlagsAndAttributes,
-	void const* hTemplateFile
-);
-bool __stdcall GetFileTime(
-	void const* hFile,
-	uint64_t* lpCreationTime,
-	uint64_t* lpLastAccessTime,
-	uint64_t* lpLastWriteTime
-);
-]]
-
-local function entry_filltime(entry)
-	local handle = ffi.C.CreateFileA(
-		path(entry.target),
-		0x80000000, -- GENERIC_READ
-		7, -- FILE_SHARE_READ || FILE_SHARE_WRITE || FILE_SHARE_DELETE
-		nil,
-		3, -- OPEN_EXISTING
-		0x80, -- FILE_ATTRIBUTE_NORMAL
-		nil)
-	if handle ~= nil then
-		local lwt = ffi.new('uint64_t[1]')
-		if ffi.C.GetFileTime(handle, nil, nil, lwt) then
-			entry.time = lwt[0]
-		end
-		ffi.C.CloseHandle(handle)
-	end
-end
-
 local targets = {}
 
 table.append(targets, {
-	build = build_dirlist,
-	target = builddir,
-	dependencies = {},
-	directories = {
-		builddir,
-		builddir .. '/utils',
-		builddir .. '/rsbin',
-		builddir .. '/graphics',
-		builddir .. '/luainit',
-		builddir .. '/client-console',
-		builddir .. '/client-main',
-	},
-	time = 0xffffffffffffffffULL,
-	forcebuild = true,
-})
-
-table.append(targets, {
-	build = build_touch,
 	target = 'offline utility/luac.cpp',
 	dependencies = {},
 	autodep = true,
@@ -222,7 +245,6 @@ table.append(targets, {
 	target = builddir .. '/luac.o',
 	dependencies = {
 		'offline utility/luac.cpp',
-		builddir,
 	},
 })
 table.append(targets, {
@@ -237,7 +259,6 @@ table.append(targets, {
 })
 
 table.append(targets, {
-	build = build_touch,
 	target = 'client-console/main.cpp',
 	dependencies = {},
 	autodep = true,
@@ -247,7 +268,6 @@ table.append(targets, {
 	target = builddir .. '/client-console/main.o',
 	dependencies = {
 		'client-console/main.cpp',
-		builddir,
 	},
 })
 
@@ -274,13 +294,11 @@ for i, unit in ipairs{
 	'rsbin/pngwriter',
 } do
 	table.append(targets, {
-		build = build_touch,
 		target = unit .. '.cpp',
 		dependencies = {},
 		autodep = true,
 	})
 	table.append(targets, {
-		build = build_touch,
 		target = unit .. '.hpp',
 		dependencies = {},
 		autodep = true,
@@ -290,7 +308,6 @@ for i, unit in ipairs{
 		target = builddir .. '/' .. unit .. '.o',
 		dependencies = {
 			unit .. '.cpp',
-			builddir,
 		},
 	})
 end
@@ -299,7 +316,6 @@ table.append(targets, {
 	build = build_methodlist,
 	target = builddir .. '/client-console/methodlist',
 	dependencies = {
-		builddir,
 		'utils/cbase.hpp',
 		'utils/configset.hpp',
 		'utils/databuffer.hpp',
@@ -317,14 +333,12 @@ table.append(targets, {
 	target = builddir .. '/client-console/methodlist.cpp',
 	dependencies = {
 		builddir .. '/client-console/methodlist',
-		builddir,
 	},
 })
 table.append(targets, {
 	target = builddir .. '/client-console/methodlist.hpp',
 	dependencies = {
 		builddir .. '/client-console/methodlist',
-		builddir,
 	},
 })
 table.append(targets, {
@@ -344,14 +358,12 @@ table.append(targets, {
 	target = builddir .. '/client-console/methodlist.o',
 	dependencies = {
 		builddir .. '/client-console/methodlist.cpp',
-		builddir,
 	},
 })
 table.append(targets, {
 	target = builddir .. '/client-console/methodlist.lua',
 	dependencies = {
 		builddir .. '/client-console/methodlist',
-		builddir,
 	},
 })
 
@@ -372,7 +384,6 @@ for i, unit in ipairs{
 		dependencies = {
 			unit .. '.lua',
 			luacpath,
-			builddir,
 		},
 	})
 end
@@ -383,7 +394,6 @@ table.append(targets, {
 	dependencies = {
 		builddir .. '/client-console/methodlist.lua',
 		luacpath,
-		builddir,
 	},
 })
 
@@ -391,7 +401,6 @@ table.append(targets, {
 	build = build_luainit,
 	target = builddir .. '/client-console/luainit',
 	dependencies = {
-		builddir,
 		builddir .. '/luainit/main.lb',
 		builddir .. '/luainit/baselib.lb',
 		builddir .. '/luainit/object.lb',
@@ -404,14 +413,12 @@ table.append(targets, {
 	target = builddir .. '/client-console/luainit.cpp',
 	dependencies = {
 		builddir .. '/client-console/luainit',
-		builddir,
 	},
 })
 table.append(targets, {
 	target = builddir .. '/client-console/luainit.hpp',
 	dependencies = {
 		builddir .. '/client-console/luainit',
-		builddir,
 	},
 })
 table.append(targets, {
@@ -431,7 +438,6 @@ table.append(targets, {
 	target = builddir .. '/client-console/luainit.o',
 	dependencies = {
 		builddir .. '/client-console/luainit.cpp',
-		builddir,
 	},
 })
 
@@ -564,20 +570,60 @@ for i, entry in ipairs(targets) do
 	targets[entry.target] = entry
 end
 
+for i, dep in ipairs{
+	builddir,
+	builddir .. '/utils',
+	builddir .. '/rsbin',
+	builddir .. '/graphics',
+	builddir .. '/luainit',
+	builddir .. '/client-console',
+	builddir .. '/client-main',
+} do
+	execute_noerr(string.format(
+		'md "%s"',
+		path(dep)))
+end
+
+local timemap
+do
+	local f = loadfile(path(builddir .. '/timemap.lua'), 't', '', {})
+	local suc, ret = pcall(f)
+	if ret and type(ret) == 'table' then
+		timemap = ret
+	end
+end
+timemap = timemap or {}
+
+local function savetimemap()
+	local f = assert(io.open(path(builddir .. '/timemap.lua'), 'w'))
+	f:write('return {\n')
+	for k, v in pairs(timemap) do
+		f:write(string.format('[%q] = %s,\n',
+			k, v))
+	end
+	f:write('}')
+	f:close()
+end
+
 for i, entry in ipairs(targets) do
 	entry_filltime(entry)
+	if entry.time and
+		(not timemap[entry.target] or entry.time > timemap[entry.target])
+	then
+		print('', entry.target)
+		entry.changed = true
+	end
 	for j, dep in ipairs(entry.dependencies) do
 		local depentry = targets[dep]
-		if
-			depentry.update or
-			(entry.time and depentry.time and depentry.time > entry.time)
-		then
-			print(entry.target, entry.time, depentry.target, depentry.time)
+		if depentry.changed or depentry.update then
 			entry.update = true
+			break
 		end
 	end
-	if entry.build and (entry.update or entry.forcebuild) then
-		print(entry.target)
+	if entry.update and entry.build then
 		entry:build()
+		entry_filltime(entry)
 	end
+	timemap[entry.target] = entry.time
+	savetimemap()
 end
