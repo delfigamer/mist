@@ -1,5 +1,5 @@
-#include "texture.hpp"
-#include "common.hpp"
+#include <graphics/texture.hpp>
+#include <graphics/common.hpp>
 #include <utils/cbase.hpp>
 #include <cmath>
 

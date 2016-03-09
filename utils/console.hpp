@@ -1,7 +1,7 @@
 #ifndef UTILS_CONSOLE_HPP__
 #define UTILS_CONSOLE_HPP__ 1
 
-#include "singleton.hpp"
+#include <utils/singleton.hpp>
 #include <common.hpp>
 #include <cstdarg>
 #include <mutex>

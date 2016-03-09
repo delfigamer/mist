@@ -1,7 +1,7 @@
-#include "display.hpp"
-#include "resource.hpp"
-#include "context.hpp"
-#include "common.hpp"
+#include <graphics/display.hpp>
+#include <graphics/resource.hpp>
+#include <graphics/context.hpp>
+#include <graphics/common.hpp>
 #include <utils/profile.hpp>
 #include <stdexcept>
 #include <ctime>

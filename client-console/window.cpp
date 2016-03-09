@@ -1,5 +1,6 @@
-#include "window.hpp"
+#include <client-console/window.hpp>
 #include <client-console/luainit.hpp>
+#include <client-console/methodlist.hpp>
 #include <utils/strexception.hpp>
 #include <utils/profile.hpp>
 #include <utils/encoding.hpp>

@@ -1,8 +1,8 @@
 // #define COUNT_OBJECTS
 
-#include "refobject.hpp"
-#include "console.hpp"
-#include "cbase.hpp"
+#include <utils/refobject.hpp>
+#include <utils/console.hpp>
+#include <utils/cbase.hpp>
 #include <cinttypes>
 
 #if defined( _WIN64 )

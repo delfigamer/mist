@@ -1,5 +1,5 @@
-#include "resource.hpp"
-#include "context.hpp"
+#include <graphics/resource.hpp>
+#include <graphics/context.hpp>
 
 namespace graphics
 {

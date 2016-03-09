@@ -1,7 +1,7 @@
 #ifndef UTILS_DELEGATE_HPP__
 #define UTILS_DELEGATE_HPP__ 1
 
-#include "flaglock.hpp"
+#include <rsbin/flaglock.hpp>
 #include <common.hpp>
 #include <mutex>
 #include <thread>
@@ -19,7 +19,7 @@ namespace utils
 	{
 	public:
 		typedef Ret( *code_t )( void* self, Args... args );
-		
+
 	private:
 		typedef FlagLock mutex_t;
 		typedef std::lock_guard< mutex_t > lock_t;

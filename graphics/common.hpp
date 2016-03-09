@@ -1,7 +1,7 @@
 #ifndef GRAPHICS_COMMON_HPP__
 #define GRAPHICS_COMMON_HPP__ 1
 
-#include "context.hpp"
+#include <graphics/context.hpp>
 #include <utils/strexception.hpp>
 #include <windows.h>
 #include <cmath>

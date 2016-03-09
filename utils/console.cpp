@@ -1,6 +1,6 @@
-#include "console.hpp"
-#include "strexception.hpp"
-#include "encoding.hpp"
+#include <utils/console.hpp>
+#include <utils/strexception.hpp>
+#include <utils/encoding.hpp>
 #include <osapi.hpp>
 #include <cstdio>
 #include <cerrno>

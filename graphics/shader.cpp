@@ -1,5 +1,5 @@
-#include "shader.hpp"
-#include "common.hpp"
+#include <graphics/shader.hpp>
+#include <graphics/common.hpp>
 #include <utils/cbase.hpp>
 #include <utils/console.hpp>
 #include <stdexcept>

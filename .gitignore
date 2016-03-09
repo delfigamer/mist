@@ -1,3 +1,6 @@
+# Build directory
+/build/
+
 # Object files
 *.o
 *.os

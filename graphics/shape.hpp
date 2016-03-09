@@ -1,7 +1,7 @@
 #ifndef GRAPHICS_SHAPE_HPP__
 #define GRAPHICS_SHAPE_HPP__ 1
 
-#include "resource.hpp"
+#include <graphics/resource.hpp>
 #include <common.hpp>
 
 namespace graphics

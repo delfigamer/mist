@@ -1,15 +1,15 @@
-#include "methodlist.hpp"
-#include "utils/cbase.hpp"
-#include "utils/configset.hpp"
-#include "utils/databuffer.hpp"
-#include "utils/encoding.hpp"
-#include "utils/refobject.hpp"
-#include "rsbin/common.hpp"
-#include "rsbin/fsthread.hpp"
-#include "rsbin/fileio.hpp"
-#include "rsbin/pngreader.hpp"
-#include "rsbin/pngwriter.hpp"
-#include "client-console/window.hpp"
+#include <build\win64\client-console\methodlist.hpp>
+#include <utils\cbase.hpp>
+#include <utils\configset.hpp>
+#include <utils\databuffer.hpp>
+#include <utils\encoding.hpp>
+#include <utils\refobject.hpp>
+#include <rsbin\common.hpp>
+#include <rsbin\fsthread.hpp>
+#include <rsbin\fileio.hpp>
+#include <rsbin\pngreader.hpp>
+#include <rsbin\pngwriter.hpp>
+#include <client-console\window.hpp>
 #include <utils/cbase.hpp>
 #include <exception>
 

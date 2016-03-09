@@ -12,8 +12,9 @@ OSLIBS-MAIN = \
 	-ld3d9 \
 	-ld3dx9 \
 	-lz
-TARGETNAME-CONSOLE = client-console-$(PLATFORM).exe
-TARGETNAME-MAIN = client-main-$(PLATFORM).exe
+BINARY-EXT = .exe
+TARGETNAME-CONSOLE = client-console-$(PLATFORM)$(BINARY-EXT)
+TARGETNAME-MAIN = client-main-$(PLATFORM)$(BINARY-EXT)
 else
 CCFLAGS = -march=i686
 PLATFORM = arm7a
@@ -31,7 +32,8 @@ LDFLAGS-MAIN = \
 	-shared \
 	-Wl,--no-undefined \
 	-Wl,-z,noexecstack
-TARGETNAME-CONSOLE = client-console-$(PLATFORM).out
+BINARY-EXT = .out
+TARGETNAME-CONSOLE = client-console-$(PLATFORM)$(BINARY-EXT)
 TARGETNAME-MAIN = libclient-main-$(PLATFORM).so
 endif
 TARGET-CONSOLE = output/$(TARGETNAME-CONSOLE)
@@ -47,6 +49,7 @@ LDFLAGS =  -pipe \
 	-lz
 LDFLAGS-CONSOLE = $(LDFLAGS) $(OSLIBS-CONSOLE)
 LDFLAGS-MAIN = $(LDFLAGS) $(OSLIBS-MAIN)
+CCFLAGS-LUAC = $(CCFLAGS) -L. -lluajit-$(PLATFORM)
 BINDFLAGS = \
 	-g extraclasses "" \
 	-g extraheaders "common.hpp cinttypes" \
@@ -68,6 +71,7 @@ EMBEDFLAGS-CONSOLE = \
 EMBEDFLAGS-MAIN = \
 	$(EMBEDFLAGS) \
 	-g fileprefix "$(BUILDDIR)/client-main/luainit"
+LUAC = $(BUILDDIR)/luac$(BINARY-EXT)
 LUACFLAGS =
 
 OBJS = \
@@ -192,16 +196,19 @@ $(BUILDDIR):
 		"md" $(BUILDDIR)/client-console
 		"md" $(BUILDDIR)/client-main
 
+$(LUAC): "offline utility/luac.cpp" $(BUILDDIR)
+		$(CXX) -o $@ "offline utility/luac.cpp" $(CCFLAGS-LUAC)
+
 $(BUILDDIR)/client-console/methodlist.cpp: $(BINDHEADERS-CONSOLE) $(BUILDDIR)
 		lua $(BINDFLAGS-CONSOLE) bind.lua $(BINDHEADERS-CONSOLE)
 
 $(BUILDDIR)/client-console/methodlist.lua: $(BUILDDIR)/client-console/methodlist.cpp
 
 $(BUILDDIR)/luainit/%.lb: luainit/%.lua $(BUILDDIR)
-		lua $(LUACFLAGS) luac.lua $@ $<
+		$(LUAC) $@ $< $(LUACFLAGS)
 
 $(BUILDDIR)/client-console/methodlist.lb: $(BUILDDIR)/client-console/methodlist.lua $(BUILDDIR)
-		lua $(LUACFLAGS) luac.lua $@ $<
+		$(LUAC) $@ $< $(LUACFLAGS)
 
 $(BUILDDIR)/client-console/luainit.cpp: $(LUABINS-CONSOLE) $(BUILDDIR)
 		lua $(EMBEDFLAGS-CONSOLE) embed.lua $(LUABINS-CONSOLE)
@@ -224,7 +231,7 @@ $(BUILDDIR)/client-main/methodlist.cpp: $(BINDHEADERS-MAIN) $(BUILDDIR)
 $(BUILDDIR)/client-main/methodlist.lua: $(BUILDDIR)/client-main/methodlist.cpp
 
 $(BUILDDIR)/client-main/methodlist.lb: $(BUILDDIR)/client-main/methodlist.lua $(BUILDDIR)
-		lua $(LUACFLAGS) luac.lua $@ $<
+		$(LUAC) $@ $< $(LUACFLAGS)
 
 $(BUILDDIR)/client-main/luainit.cpp: $(LUABINS-MAIN) $(BUILDDIR)
 		lua $(EMBEDFLAGS-MAIN) embed.lua $(LUABINS-MAIN)

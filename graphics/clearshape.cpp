@@ -1,5 +1,5 @@
-#include "clearshape.hpp"
-#include "common.hpp"
+#include <graphics/clearshape.hpp>
+#include <graphics/common.hpp>
 #include <utils/cbase.hpp>
 
 namespace graphics

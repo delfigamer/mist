@@ -1,6 +1,6 @@
-#include "staticindexbuffer.hpp"
-#include "context.hpp"
-#include "common.hpp"
+#include <graphics/staticindexbuffer.hpp>
+#include <graphics/context.hpp>
+#include <graphics/common.hpp>
 #include <utils/cbase.hpp>
 #include <cstring>
 

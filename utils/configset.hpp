@@ -1,7 +1,7 @@
 #ifndef UTILS_CONFIGSET_HPP__
 #define UTILS_CONFIGSET_HPP__ 1
 
-#include "string.hpp"
+#include <utils/string.hpp>
 #include <common.hpp>
 #include <lua/lua.hpp>
 

@@ -1,6 +1,6 @@
-#include "primitiveshape.hpp"
-#include "context.hpp"
-#include "common.hpp"
+#include <graphics/primitiveshape.hpp>
+#include <graphics/context.hpp>
+#include <graphics/common.hpp>
 #include <utils/cbase.hpp>
 
 namespace graphics

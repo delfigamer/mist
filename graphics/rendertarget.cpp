@@ -1,6 +1,6 @@
-#include "rendertarget.hpp"
-#include "common.hpp"
-#include "context.hpp"
+#include <graphics/rendertarget.hpp>
+#include <graphics/common.hpp>
+#include <graphics/context.hpp>
 #include <utils/cbase.hpp>
 #include <stdexcept>
 

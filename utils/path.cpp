@@ -1,6 +1,6 @@
-#include "path.hpp"
+#include <utils/path.hpp>
 #if defined( _WIN32 ) || defined( _WIN64 )
-#include "encoding.hpp"
+#include <utils/encoding.hpp>
 #endif
 #include <osapi.hpp>
 #include <cstring>

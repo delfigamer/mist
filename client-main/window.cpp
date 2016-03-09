@@ -1,4 +1,4 @@
-#include "window.hpp"
+#include <client-main/window.hpp>
 #include <client-console/luainit.hpp>
 #include <utils/strexception.hpp>
 #include <utils/profile.hpp>

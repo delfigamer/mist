@@ -1,7 +1,7 @@
 #ifndef UTILS_STREXCEPTION_HPP__
 #define UTILS_STREXCEPTION_HPP__ 1
 
-#include "string.hpp"
+#include <utils/string.hpp>
 #include <common.hpp>
 #include <exception>
 

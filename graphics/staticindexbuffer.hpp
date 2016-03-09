@@ -1,7 +1,7 @@
 #ifndef GRAPHICS_STATICINDEXBUFFER_HPP__
 #define GRAPHICS_STATICINDEXBUFFER_HPP__ 1
 
-#include "indexbuffer.hpp"
+#include <graphics/indexbuffer.hpp>
 #include <utils/databuffer.hpp>
 #include <utils/ref.hpp>
 #include <common.hpp>

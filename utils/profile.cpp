@@ -1,5 +1,5 @@
-#include "profile.hpp"
-#include "console.hpp"
+#include <utils/profile.hpp>
+#include <utils/console.hpp>
 #include <cstdio>
 
 namespace utils

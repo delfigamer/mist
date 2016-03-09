@@ -5,7 +5,7 @@
 #error "Unsupported target platform"
 #endif
 
-#include "shape.hpp"
+#include <graphics/shape.hpp>
 #include <utils/configset.hpp>
 #include <utils/ref.hpp>
 #include <d3d9.h>

@@ -2,22 +2,19 @@ local modname = ...
 local input = package.modtable(modname)
 local defer = require('base.defer')
 local ffi = require('ffi')
-local info = require('host.info')
+-- local info = require('host.info')
+local window = require('host.window')
 
-local basehandler = {}
-
-handlers = {
-	[1] = basehandler}
-
-function basehandler:handle(message, ...)
-	local hf = self['on' .. message]
-	if hf then
-		hf(self, message, ...)
-	else
-		log('-> ' .. message .. '(unknown)', ...)
-		return true
-	end
-end
+-- local event_handlers = {
+	-- [0] = 'onclose',
+	-- [1] = 'onpointdown',
+	-- [2] = 'onpointup',
+	-- [3] = 'onpointmove',
+	-- [4] = 'onkeydown',
+	-- [5] = 'onkeyup',
+	-- [6] = 'onchar',
+	-- [7] = 'onfocus',
+-- }
 
 function basehandler:ondestroy(message)
 	log('-> destroy')
@@ -160,8 +157,22 @@ local function dispatch_a(message, ...)
 end
 
 function input.dispatch(message, ...)
-	local suc, err = pcall(dispatch_a, message, ...)
-	if not suc then
-		log('! Error while handling "' .. tostring(message) .. '":', err)
+end
+
+function input.maincycle(target)
+	local event = ffi.new('event')
+	while true do
+		if window:popevent(event) then
+			local bh = basehandler[event.name]
+			if bh then
+				local suc, err = pcall(bh, event)
+				if not suc then
+					print('! Error while handling ' .. tostring(message) .. ':', err)
+				end
+			end
+			if event.name == 0 then
+				break
+			end
+		end
 	end
 end

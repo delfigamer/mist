@@ -1,5 +1,5 @@
-#include "vertexbuffer.hpp"
-#include "common.hpp"
+#include <graphics/vertexbuffer.hpp>
+#include <graphics/common.hpp>
 #include <utils/cbase.hpp>
 
 namespace graphics

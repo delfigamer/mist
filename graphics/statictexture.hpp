@@ -1,7 +1,7 @@
 #ifndef GRAPHICS_STATICTEXTURE_HPP__
 #define GRAPHICS_STATICTEXTURE_HPP__ 1
 
-#include "texture.hpp"
+#include <graphics/texture.hpp>
 #include <utils/databuffer.hpp>
 #include <utils/ref.hpp>
 #include <common.hpp>

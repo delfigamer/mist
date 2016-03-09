@@ -1,4 +1,4 @@
-#include "window.hpp"
+#include <client-main/window.hpp>
 #include <utils/console.hpp>
 #if defined( CON_TARGET )
 #elif defined( _WIN32 ) || defined( _WIN64 )

@@ -38,9 +38,9 @@ end
 
 local function emit_cpp()
 	local f = assert(io.open(fileprefix .. '.cpp', 'w'))
-	f:write('#include "')
-	f:write(string.match(fileprefix, '[^\\/]*$'))
-	f:write('.hpp"\n\n')
+	f:write('#include <')
+	f:write(fileprefix)
+	f:write('.hpp>\n\n')
 	f:write(structname)
 	f:write('_t const ')
 	f:write(structname)

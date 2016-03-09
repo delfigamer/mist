@@ -1,4 +1,4 @@
-#include "shape.hpp"
+#include <graphics/shape.hpp>
 #include <utils/cbase.hpp>
 
 namespace graphics

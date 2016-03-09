@@ -1,6 +1,6 @@
-#include "cbase.hpp"
-#include "console.hpp"
-#include "string.hpp"
+#include <utils/cbase.hpp>
+#include <utils/console.hpp>
+#include <utils/string.hpp>
 #include <thread>
 
 namespace utils

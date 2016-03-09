@@ -1,4 +1,4 @@
-#include "pngreader.hpp"
+#include <rsbin/pngreader.hpp>
 #include <utils/strexception.hpp>
 #include <utils/cbase.hpp>
 #include <utils/console.hpp>

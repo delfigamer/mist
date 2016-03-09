@@ -1,12 +1,13 @@
 #ifndef WINDOW_WINDOW_HPP__
 #define WINDOW_WINDOW_HPP__ 1
 
-#include <client-console/methodlist.hpp>
 #include <utils/configset.hpp>
 #include <utils/ref.hpp>
 #include <common.hpp>
 #include <lua/lua.hpp>
 #include <ctime>
+
+struct methodlist_t;
 
 namespace graphics
 {

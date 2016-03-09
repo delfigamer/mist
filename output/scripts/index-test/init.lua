@@ -6,7 +6,7 @@ local window = require('host.window')
 local event = ffi.new('event')
 while true do
 	if window:popevent(event) then
-		print(event.name, event.arg[0], event.arg[1], event.arg[2], event.arg[3])
+		print(event)
 		if event.name == 0 then
 			break
 		end

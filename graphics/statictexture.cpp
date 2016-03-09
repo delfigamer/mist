@@ -1,6 +1,6 @@
-#include "statictexture.hpp"
-#include "context.hpp"
-#include "common.hpp"
+#include <graphics/statictexture.hpp>
+#include <graphics/context.hpp>
+#include <graphics/common.hpp>
 #include <utils/cbase.hpp>
 #include <stdexcept>
 #include <atomic>

@@ -1,7 +1,7 @@
 #ifndef GRAPHICS_CLEARSHAPE_HPP__
 #define GRAPHICS_CLEARSHAPE_HPP__ 1
 
-#include "shape.hpp"
+#include <graphics/shape.hpp>
 #include <utils/flaglock.hpp>
 #include <common.hpp>
 #include <mutex>

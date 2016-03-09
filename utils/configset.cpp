@@ -1,5 +1,5 @@
-#include "configset.hpp"
-#include "console.hpp"
+#include <utils/configset.hpp>
+#include <utils/console.hpp>
 
 namespace utils {
 	ConfigSet::ConfigSet( char const* filename, char const* init )

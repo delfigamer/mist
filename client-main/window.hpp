@@ -1,7 +1,7 @@
 #ifndef WINDOW_WINDOW_HPP__
 #define WINDOW_WINDOW_HPP__ 1
 
-#include "event.hpp"
+#include <client-main/event.hpp>
 #include <client-main/methodlist.hpp>
 #include <utils/mpscqueue.hpp>
 #include <utils/configset.hpp>

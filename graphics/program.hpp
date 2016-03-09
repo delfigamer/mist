@@ -1,7 +1,7 @@
 #ifndef GRAPHICS_PROGRAM_HPP__
 #define GRAPHICS_PROGRAM_HPP__ 1
 
-#include "shader.hpp"
+#include <graphics/shader.hpp>
 #include <utils/ref.hpp>
 #include <common.hpp>
 

@@ -1,7 +1,7 @@
 #ifndef UTILS_SINGLETON_HPP__
 #define UTILS_SINGLETON_HPP__ 1
 
-#include "flaglock.hpp"
+#include <utils/flaglock.hpp>
 #include <common.hpp>
 #include <mutex>
 
@@ -17,7 +17,7 @@ namespace utils
 	private:
 		mutex_t m_mutex;
 		std::atomic< T* > m_ptr;
-		
+
 		T* get();
 
 	public:

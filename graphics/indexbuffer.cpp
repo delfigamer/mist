@@ -1,5 +1,5 @@
-#include "indexbuffer.hpp"
-#include "common.hpp"
+#include <graphics/indexbuffer.hpp>
+#include <graphics/common.hpp>
 #include <utils/cbase.hpp>
 
 namespace graphics

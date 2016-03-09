@@ -1,7 +1,7 @@
 #ifndef GRAPHICS_VERTEXBUFFER_HPP__
 #define GRAPHICS_VERTEXBUFFER_HPP__ 1
 
-#include "resource.hpp"
+#include <graphics/resource.hpp>
 #include <common.hpp>
 
 namespace graphics

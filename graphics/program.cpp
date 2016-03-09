@@ -1,5 +1,5 @@
-#include "program.hpp"
-#include "common.hpp"
+#include <graphics/program.hpp>
+#include <graphics/common.hpp>
 #include <utils/console.hpp>
 #include <stdexcept>
 #include <cstring>

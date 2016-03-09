@@ -543,11 +543,11 @@ end
 local function emit_cpp()
 	local mlcpp = assert(io.open(fileprefix .. '.cpp', 'w'))
 	emit_direct(mlcpp, 'cpp_start')
-	mlcpp:write('#include "')
-	mlcpp:write(string.match(fileprefix, '[^\\/]*$'))
-	mlcpp:write('.hpp"\n')
+	mlcpp:write('#include <')
+	mlcpp:write(fileprefix)
+	mlcpp:write('.hpp>\n')
 	for i, header in ipairs(header_list) do
-		mlcpp:write(string.format('#include "%s"\n', header))
+		mlcpp:write(string.format('#include <%s>\n', header))
 	end
 	mlcpp:write('#include <utils/cbase.hpp>\n#include <exception>\n\n')
 	emit_direct(mlcpp, 'cpp_beforemethods')

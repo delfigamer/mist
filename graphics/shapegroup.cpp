@@ -1,4 +1,4 @@
-#include "shapegroup.hpp"
+#include <graphics/shapegroup.hpp>
 #include <utils/cbase.hpp>
 #include <utility>
 #include <cstdio>

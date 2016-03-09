@@ -1,7 +1,7 @@
 #ifndef GRAPHICS_STATICVERTEXBUFFER_HPP__
 #define GRAPHICS_STATICVERTEXBUFFER_HPP__ 1
 
-#include "vertexbuffer.hpp"
+#include <graphics/vertexbuffer.hpp>
 #include <utils/databuffer.hpp>
 #include <utils/ref.hpp>
 #include <common.hpp>

@@ -1,5 +1,5 @@
-#include "staticvertexbuffer.hpp"
-#include "common.hpp"
+#include <graphics/staticvertexbuffer.hpp>
+#include <graphics/common.hpp>
 #include <utils/cbase.hpp>
 #include <atomic>
 #include <cstring>

@@ -1,8 +1,8 @@
 #ifndef GRAPHICS_RENDERTARGET_HPP__
 #define GRAPHICS_RENDERTARGET_HPP__ 1
 
-#include "texture.hpp"
-#include "shape.hpp"
+#include <graphics/texture.hpp>
+#include <graphics/shape.hpp>
 #include <utils/ref.hpp>
 #include <common.hpp>
 

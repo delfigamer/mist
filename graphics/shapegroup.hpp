@@ -1,7 +1,7 @@
 #ifndef GRAPHICS_SHAPEGROUP_HPP__
 #define GRAPHICS_SHAPEGROUP_HPP__ 1
 
-#include "shape.hpp"
+#include <graphics/shape.hpp>
 #include <utils/flaglock.hpp>
 #include <utils/ref.hpp>
 #include <utils/refobject.hpp>

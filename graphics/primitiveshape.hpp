@@ -1,11 +1,11 @@
 #ifndef GRAPHICS_PRIMITIVESHAPE_HPP__
 #define GRAPHICS_PRIMITIVESHAPE_HPP__ 1
 
-#include "shape.hpp"
-#include "vertexbuffer.hpp"
-#include "indexbuffer.hpp"
-#include "program.hpp"
-#include "texture.hpp"
+#include <graphics/shape.hpp>
+#include <graphics/vertexbuffer.hpp>
+#include <graphics/indexbuffer.hpp>
+#include <graphics/program.hpp>
+#include <graphics/texture.hpp>
 #include <utils/ref.hpp>
 #include <utils/flaglock.hpp>
 #include <common.hpp>
