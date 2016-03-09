@@ -38,18 +38,19 @@ local platform = _G.platform or ({
 	['Windows-x64'] = 'win64',
 })[ffi.os .. '-' .. ffi.arch] or error('unknown platform')
 
-local builddir = 'build/' .. platform .. '/'
+local builddir = 'build/' .. platform
+local luacpath = builddir .. '/luac.exe'
 
 local function execute(str)
-	print(str)
-	if os.execute(str) ~= 0 then
-		error('build failed')
-	end
+	-- print(str)
+	-- if os.execute(str) ~= 0 then
+		-- error('build failed')
+	-- end
 end
 
 local function execute_noerr(str)
-	print(str)
-	os.execute(str)
+	-- print(str)
+	-- os.execute(str)
 end
 
 local function build_clean(entry)
@@ -73,9 +74,17 @@ local function build_dirlist(entry)
 	end
 end
 
+local function build_touch(entry)
+	local tpath = path(entry.target)
+	execute(string.format(
+		'copy /b "%s"+,, "%s"',
+		tpath, tpath))
+end
+
+local build_lua_format = path(luacpath) .. ' "%s" "%s"'
 local function build_lua(entry)
 	execute(string.format(
-		'lua luac.lua "%s" "%s"',
+		build_lua_format,
 		path(entry.target), path(entry.dependencies[1])))
 end
 
@@ -116,9 +125,9 @@ local build_cpp_format =
 		"%s" \z
 		-c \z
 		-O2 \z
-		-Wall \z
+		-Wall -Werror \z
 		-I. \z
-		-I' .. path(builddir) .. ' \z
+		"-I' .. path(builddir) .. '" \z
 		-std=c++11 \z
 		-pipe'
 local function build_cpp(entry)
@@ -191,23 +200,51 @@ table.append(targets, {
 	dependencies = {},
 	directories = {
 		builddir,
-		builddir .. 'utils/',
-		builddir .. 'rsbin/',
-		builddir .. 'graphics/',
-		builddir .. 'luainit/',
-		builddir .. 'client-console/',
-		builddir .. 'client-main/',
+		builddir .. '/utils',
+		builddir .. '/rsbin',
+		builddir .. '/graphics',
+		builddir .. '/luainit',
+		builddir .. '/client-console',
+		builddir .. '/client-main',
+	},
+	time = 0xffffffffffffffffULL,
+	forcebuild = true,
+})
+
+table.append(targets, {
+	build = build_touch,
+	target = 'offline utility/luac.cpp',
+	dependencies = {},
+	autodep = true,
+})
+table.append(targets, {
+	build = build_cpp,
+	target = builddir .. '/luac.o',
+	dependencies = {
+		'offline utility/luac.cpp',
+		builddir,
+	},
+})
+table.append(targets, {
+	build = build_exe,
+	target = luacpath,
+	dependencies = {
+		builddir .. '/luac.o',
+	},
+	libraries = {
+		'luajit-' .. platform,
 	},
 })
 
 table.append(targets, {
+	build = build_touch,
 	target = 'client-console/main.cpp',
 	dependencies = {},
 	autodep = true,
 })
 table.append(targets, {
 	build = build_cpp,
-	target = builddir .. 'client-console/main.o',
+	target = builddir .. '/client-console/main.o',
 	dependencies = {
 		'client-console/main.cpp',
 		builddir,
@@ -237,18 +274,20 @@ for i, unit in ipairs{
 	'rsbin/pngwriter',
 } do
 	table.append(targets, {
+		build = build_touch,
 		target = unit .. '.cpp',
 		dependencies = {},
 		autodep = true,
 	})
 	table.append(targets, {
+		build = build_touch,
 		target = unit .. '.hpp',
 		dependencies = {},
 		autodep = true,
 	})
 	table.append(targets, {
 		build = build_cpp,
-		target = builddir .. unit .. '.o',
+		target = builddir .. '/' .. unit .. '.o',
 		dependencies = {
 			unit .. '.cpp',
 			builddir,
@@ -258,7 +297,7 @@ end
 
 table.append(targets, {
 	build = build_methodlist,
-	target = builddir .. 'client-console/methodlist',
+	target = builddir .. '/client-console/methodlist',
 	dependencies = {
 		builddir,
 		'utils/cbase.hpp',
@@ -275,43 +314,43 @@ table.append(targets, {
 	},
 })
 table.append(targets, {
-	target = builddir .. 'client-console/methodlist.cpp',
+	target = builddir .. '/client-console/methodlist.cpp',
 	dependencies = {
-		builddir .. 'client-console/methodlist',
+		builddir .. '/client-console/methodlist',
 		builddir,
 	},
 })
 table.append(targets, {
-	target = builddir .. 'client-console/methodlist.hpp',
+	target = builddir .. '/client-console/methodlist.hpp',
 	dependencies = {
-		builddir .. 'client-console/methodlist',
+		builddir .. '/client-console/methodlist',
 		builddir,
 	},
 })
 table.append(targets, {
 	target = 'client-console/methodlist.cpp',
 	dependencies = {
-		builddir .. 'client-console/methodlist.cpp',
+		builddir .. '/client-console/methodlist.cpp',
 	},
 })
 table.append(targets, {
 	target = 'client-console/methodlist.hpp',
 	dependencies = {
-		builddir .. 'client-console/methodlist.hpp',
+		builddir .. '/client-console/methodlist.hpp',
 	},
 })
 table.append(targets, {
 	build = build_cpp,
-	target = builddir .. 'client-console/methodlist.o',
+	target = builddir .. '/client-console/methodlist.o',
 	dependencies = {
-		builddir .. 'client-console/methodlist.cpp',
+		builddir .. '/client-console/methodlist.cpp',
 		builddir,
 	},
 })
 table.append(targets, {
-	target = builddir .. 'client-console/methodlist.lua',
+	target = builddir .. '/client-console/methodlist.lua',
 	dependencies = {
-		builddir .. 'client-console/methodlist',
+		builddir .. '/client-console/methodlist',
 		builddir,
 	},
 })
@@ -329,9 +368,10 @@ for i, unit in ipairs{
 	})
 	table.append(targets, {
 		build = build_lua,
-		target = builddir .. unit .. '.lb',
+		target = builddir .. '/' .. unit .. '.lb',
 		dependencies = {
 			unit .. '.lua',
+			luacpath,
 			builddir,
 		},
 	})
@@ -339,57 +379,58 @@ end
 
 table.append(targets, {
 	build = build_lua,
-	target = builddir .. 'client-console/methodlist.lb',
+	target = builddir .. '/client-console/methodlist.lb',
 	dependencies = {
-		builddir .. 'client-console/methodlist.lua',
+		builddir .. '/client-console/methodlist.lua',
+		luacpath,
 		builddir,
 	},
 })
 
 table.append(targets, {
 	build = build_luainit,
-	target = builddir .. 'client-console/luainit',
+	target = builddir .. '/client-console/luainit',
 	dependencies = {
 		builddir,
-		builddir .. 'luainit/main.lb',
-		builddir .. 'luainit/baselib.lb',
-		builddir .. 'luainit/object.lb',
-		builddir .. 'luainit/ffipure.lb',
-		builddir .. 'client-console/methodlist.lb',
-		builddir .. 'luainit/hostlib.lb',
+		builddir .. '/luainit/main.lb',
+		builddir .. '/luainit/baselib.lb',
+		builddir .. '/luainit/object.lb',
+		builddir .. '/luainit/ffipure.lb',
+		builddir .. '/client-console/methodlist.lb',
+		builddir .. '/luainit/hostlib.lb',
 	},
 })
 table.append(targets, {
-	target = builddir .. 'client-console/luainit.cpp',
+	target = builddir .. '/client-console/luainit.cpp',
 	dependencies = {
-		builddir .. 'client-console/luainit',
+		builddir .. '/client-console/luainit',
 		builddir,
 	},
 })
 table.append(targets, {
-	target = builddir .. 'client-console/luainit.hpp',
+	target = builddir .. '/client-console/luainit.hpp',
 	dependencies = {
-		builddir .. 'client-console/luainit',
+		builddir .. '/client-console/luainit',
 		builddir,
 	},
 })
 table.append(targets, {
 	target = 'client-console/luainit.cpp',
 	dependencies = {
-		builddir .. 'client-console/luainit.cpp',
+		builddir .. '/client-console/luainit.cpp',
 	},
 })
 table.append(targets, {
 	target = 'client-console/luainit.hpp',
 	dependencies = {
-		builddir .. 'client-console/luainit.hpp',
+		builddir .. '/client-console/luainit.hpp',
 	},
 })
 table.append(targets, {
 	build = build_cpp,
-	target = builddir .. 'client-console/luainit.o',
+	target = builddir .. '/client-console/luainit.o',
 	dependencies = {
-		builddir .. 'client-console/luainit.cpp',
+		builddir .. '/client-console/luainit.cpp',
 		builddir,
 	},
 })
@@ -398,29 +439,29 @@ table.append(targets, {
 	build = build_exe,
 	target = 'output/client-console-' .. platform .. '.exe',
 	dependencies = {
-		builddir .. 'utils/cbase.o',
-		builddir .. 'utils/configset.o',
-		builddir .. 'utils/console.o',
-		builddir .. 'utils/cyclicbuffer.o',
-		builddir .. 'utils/databuffer.o',
-		builddir .. 'utils/encoding.o',
-		builddir .. 'utils/flaglock.o',
-		builddir .. 'utils/mpscqueue.o',
-		builddir .. 'utils/path.o',
-		builddir .. 'utils/profile.o',
-		builddir .. 'utils/ref.o',
-		builddir .. 'utils/refobject.o',
-		builddir .. 'utils/strexception.o',
-		builddir .. 'utils/string.o',
-		builddir .. 'rsbin/common.o',
-		builddir .. 'rsbin/fileio.o',
-		builddir .. 'rsbin/fsthread.o',
-		builddir .. 'rsbin/pngreader.o',
-		builddir .. 'rsbin/pngwriter.o',
-		builddir .. 'client-console/luainit.o',
-		builddir .. 'client-console/main.o',
-		builddir .. 'client-console/methodlist.o',
-		builddir .. 'client-console/window.o',
+		builddir .. '/utils/cbase.o',
+		builddir .. '/utils/configset.o',
+		builddir .. '/utils/console.o',
+		builddir .. '/utils/cyclicbuffer.o',
+		builddir .. '/utils/databuffer.o',
+		builddir .. '/utils/encoding.o',
+		builddir .. '/utils/flaglock.o',
+		builddir .. '/utils/mpscqueue.o',
+		builddir .. '/utils/path.o',
+		builddir .. '/utils/profile.o',
+		builddir .. '/utils/ref.o',
+		builddir .. '/utils/refobject.o',
+		builddir .. '/utils/strexception.o',
+		builddir .. '/utils/string.o',
+		builddir .. '/rsbin/common.o',
+		builddir .. '/rsbin/fileio.o',
+		builddir .. '/rsbin/fsthread.o',
+		builddir .. '/rsbin/pngreader.o',
+		builddir .. '/rsbin/pngwriter.o',
+		builddir .. '/client-console/luainit.o',
+		builddir .. '/client-console/main.o',
+		builddir .. '/client-console/methodlist.o',
+		builddir .. '/client-console/window.o',
 	},
 	libraries = {
 		'luajit-' .. platform,
@@ -440,6 +481,7 @@ table.append(targets, {
 	build = build_clean,
 	target = 'clean',
 	dependencies = {},
+	forcebuild = true,
 	directories = {
 		builddir,
 	},
@@ -476,6 +518,9 @@ local function add_target(list, set, tname)
 		return list
 	end
 	local entry = targets[tname]
+	if not entry then
+		error('cannot find target ' .. tname)
+	end
 	table.append(list, entry)
 	set[tname] = true
 	for i, dep in ipairs(entry.dependencies) do
@@ -520,7 +565,19 @@ for i, entry in ipairs(targets) do
 end
 
 for i, entry in ipairs(targets) do
-	if entry.build then
+	entry_filltime(entry)
+	for j, dep in ipairs(entry.dependencies) do
+		local depentry = targets[dep]
+		if
+			depentry.update or
+			(entry.time and depentry.time and depentry.time > entry.time)
+		then
+			print(entry.target, entry.time, depentry.target, depentry.time)
+			entry.update = true
+		end
+	end
+	if entry.build and (entry.update or entry.forcebuild) then
+		print(entry.target)
 		entry:build()
 	end
 end

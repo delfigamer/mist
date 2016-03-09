@@ -1,5 +1,6 @@
 #include <lua/lua.hpp>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 
 int main( int argc, char const** argv )
@@ -9,7 +10,7 @@ int main( int argc, char const** argv )
 		fprintf( stderr, "Syntax: luac <target> <source> [<flags>]\n" );
 		fprintf( stderr, "Possible flags:\n" );
 		fprintf( stderr, "\td  remove debug information\n" );
-		return EXIT_ERROR;
+		return EXIT_FAILURE;
 	}
 	bool nodebug = false;
 	if( argc >= 4 )
@@ -22,7 +23,7 @@ int main( int argc, char const** argv )
 	{
 		fprintf( stderr,
 			"Failed to load source file: %s\n", lua_tostring( L, -1 ) );
-		return EXIT_ERROR;
+		return EXIT_FAILURE;
 	}
 	// chunk
 	lua_getglobal( L, "string" );
@@ -36,21 +37,21 @@ int main( int argc, char const** argv )
 	if( lua_pcall( L, 2, 1, 0 ) != 0 )
 	{
 		fprintf( stderr, "Failed to compile: %s\n", lua_tostring( L, -1 ) );
-		return EXIT_ERROR;
+		return EXIT_FAILURE;
 	}
 	// chunk, string, bytecode
-	int length;
-	char* data = lua_tolstring( L, -1, &length );
+	size_t length;
+	char const* data = lua_tolstring( L, -1, &length );
 	FILE* output = fopen( argv[ 1 ], "wb" );
 	if( !output )
 	{
 		perror( "Failed to open target file" );
-		return EXIT_ERROR;
+		return EXIT_FAILURE;
 	}
 	if( fwrite( data, 1, length, output ) != length )
 	{
 		perror( "Failed to write target file" );
-		return EXIT_ERROR;
+		return EXIT_FAILURE;
 	}
 	fclose( output );
 	return EXIT_SUCCESS;
