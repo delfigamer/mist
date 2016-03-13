@@ -2,7 +2,6 @@
 #define WINDOW_WINDOW_HPP__ 1
 
 #include <client-main/event.hpp>
-#include <client-main/methodlist.hpp>
 #include <utils/mpscqueue.hpp>
 #include <utils/configset.hpp>
 #include <utils/ref.hpp>
@@ -25,6 +24,8 @@
 #include <thread>
 #include <atomic>
 #include <ctime>
+
+struct methodlist_t;
 
 namespace window
 {

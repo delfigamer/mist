@@ -21,14 +21,8 @@ Once ready, the .a files should be places in the `mist/` directory (along with `
 For example, under 32-bit versions of Windows, the build system will search for `libluajit-win32.a` and `libpng-win32.a`.
 
 ## Building
-The main method is to use gcc Makefiles. When in the `mist/` directory,
-```
-make -C client
-```
-will produce the main binaries, while
-```
-make -C client-console
-```
-will make the console version of the engine.
+The engine uses a custom LuaJIT script for building. If supported, it may be run by the system's default Lua interpreter. Otherwise, it's possible to build and use the "luaclient" program included there.
 
-Once built, only the contents of `output` folder are required and used by the engine.
+When ready, run the "build.lua" script in the project's root directory.
+
+Once built, only the contents of `output` folder are required and used by the engine. The `build` folder contains intermediate files.
