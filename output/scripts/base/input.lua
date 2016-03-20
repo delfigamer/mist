@@ -1,88 +1,76 @@
 local modname = ...
 local input = package.modtable(modname)
 local defer = require('base.defer')
+local enum = require('base.enum')
 local ffi = require('ffi')
 -- local info = require('host.info')
+local queue = require('base.queue')
+local set = require('base.set')
 local window = require('host.window')
 
--- local event_handlers = {
-	-- [0] = 'onclose',
-	-- [1] = 'onpointdown',
-	-- [2] = 'onpointup',
-	-- [3] = 'onpointmove',
-	-- [4] = 'onkeydown',
-	-- [5] = 'onkeyup',
-	-- [6] = 'onchar',
-	-- [7] = 'onfocus',
--- }
+input.events = enum{
+	close = 0,
+	pointdown = 1,
+	pointup = 2,
+	pointmove = 3,
+	keydown = 4,
+	keyup = 5,
+	char = 6,
+	focus = 7,
+}
 
-function basehandler:ondestroy(message)
-	log('-> destroy')
-end
+-- if info.acceleratorinput then
+	-- log('accelerator input enabled')
 
-function basehandler:ontick(message, dt)
-	defer.run()
-end
+	-- input.accelerator = ffi.new('struct {float x; float y; float z;}', 0, 0, 0)
 
-if info.acceleratorinput then
-	log('accelerator input enabled')
+	-- function basehandler:onacceleration(message, x, y, z)
+		-- accelerator.x, accelerator.y, accelerator.z = x, y, z
+	-- end
+-- end
 
-	input.accelerator = ffi.new('struct {float x; float y; float z;}', 0, 0, 0)
+-- if info.pointinput then
+	-- log('point input enabled')
 
-	function basehandler:onacceleration(message, x, y, z)
-		accelerator.x, accelerator.y, accelerator.z = x, y, z
-	end
-end
+	-- input.pointtype = ffi.typeof('struct {int x; int y;}')
+	-- input.points = {}
 
-if info.pointinput then
-	log('point input enabled')
+	-- local function base_pointdown(message, point, x, y)
+		-- points[point] = pointtype(x, y)
+	-- end
 
-	input.pointtype = ffi.typeof('struct {int x; int y;}')
-	input.points = {}
+	-- local function base_pointup(message, point)
+		-- points[point] = nil
+	-- end
 
-	function basehandler:onpointdown(message, point, x, y)
-		points[point] = pointtype(x, y)
-	end
-
-	function basehandler:onpointup(message, point)
-		points[point] = nil
-	end
-
-	function basehandler:onpointmove(message, point, x, y)
-		local point = points[point]
-		point.x, point.y = x, y
-	end
-end
+	-- local function base_pointmove(message, point, x, y)
+		-- local point = points[point]
+		-- point.x, point.y = x, y
+	-- end
+-- end
 
 input.mb = {
 	left = 1,
 	right = 2,
-	shift = 3,
-	control = 4,
-	middle = 5}
+	middle = 3,
+}
 
-if info.keyboardinput then
-	log('keyboard input enabled')
+-- if info.keyboardinput then
+	-- log('keyboard input enabled')
 
-	input.keystates = ffi.new('bool[256]', 0)
+	-- input.keystates = ffi.new('bool[256]', 0)
 
-	function basehandler:onkeydown(message, key)
-		-- if not keystates[key] then
-			-- print('keydown', kname[key])
-		-- end
-		keystates[key] = true
-	end
+	-- function base_keydown(message, key)
+		-- keystates[key] = true
+	-- end
 
-	function basehandler:onkeyup(message, key)
-		-- if keystates[key] then
-			-- print('keyup', kname[key])
-		-- end
-		keystates[key] = false
-	end
+	-- function basehandler:onkeyup(message, key)
+		-- keystates[key] = false
+	-- end
 
-	function basehandler:onchar(message, char)
-	end
-end
+	-- function basehandler:onchar(message, char)
+	-- end
+-- end
 
 input.k = {
 	bksp = 8,
@@ -119,7 +107,8 @@ input.k = {
 	lbrace = 219,
 	bkslash = 220,
 	rbrace = 221,
-	quote = 222}
+	quote = 222,
+}
 for i = string.byte('a'), string.byte('z') do
 	input.k[string.char(i)] = i-32
 end
@@ -138,41 +127,77 @@ for k, v in pairs(input.k) do
 	input.kname[v] = k
 end
 
-function basehandler:onfocusgained(message)
+-- function basehandler:onfocusgained(message)
+-- end
+
+-- function basehandler:onfocuslost(message)
+-- end
+
+-- function basehandler:onwm(message, index, lparam, wparam)
+	-- log(string.format('-> 0x%.4x\t%.8x\t%.8x', index, lparam, wparam))
+-- end
+
+-- local function dispatch_a(message, ...)
+	-- for i, handler in ipairs(handlers) do
+		-- if handler:handle(message, ...) then
+			-- break
+		-- end
+	-- end
+-- end
+
+input.handlers = {}
+
+function input.register(name, handler)
+	local hs = input.handlers[name]
+	if not hs then
+		hs = set:create()
+		input.handlers[name] = hs
+	end
+	hs:insert(handler)
 end
 
-function basehandler:onfocuslost(message)
+function input.unregister(name, handler)
+	local hs = input.handlers[name]
+	if not hs then
+		return
+	end
+	hs:remove(handler)
 end
 
-function basehandler:onwm(message, index, lparam, wparam)
-	log(string.format('-> 0x%.4x\t%.8x\t%.8x', index, lparam, wparam))
-end
-
-local function dispatch_a(message, ...)
-	for i, handler in ipairs(handlers) do
-		if handler:handle(message, ...) then
-			break
+function input.dispatch(event)
+	local hs = input.handlers[event.name]
+	if not hs then
+		return
+	end
+	for i, handler in hs:pairs() do
+		local suc, ret = pcall(handler, event)
+		if not suc then
+			print(ret)
 		end
 	end
 end
 
-function input.dispatch(message, ...)
+input.eventqueue = queue:create()
+
+function input.pushevent(event)
+	input.eventqueue:push(event)
 end
 
 function input.maincycle(target)
-	local event = ffi.new('event')
+	local wevent = ffi.new('event')
 	while true do
-		if window:popevent(event) then
-			local bh = basehandler[event.name]
-			if bh then
-				local suc, err = pcall(bh, event)
-				if not suc then
-					print('! Error while handling ' .. tostring(message) .. ':', err)
-				end
-			end
+		local event
+		if window:popevent(wevent) then
+			event = wevent
+		else
+			event = input.eventqueue:pop()
+		end
+		if event then
+			input.dispatch(event)
 			if event.name == 0 then
 				break
 			end
 		end
+		defer.run()
 	end
 end

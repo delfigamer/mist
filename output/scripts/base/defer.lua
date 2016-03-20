@@ -1,29 +1,22 @@
-local modname = modname
+local modname = ...
 local defer = package.modtable(modname)
 
 defer.list = {}
 
-local function pack(...)
-	local argc, argv = select('#', ...), {...}
-	return function(a, b)
-		return unpack(argv, a or 1, b or argc)
-	end
+function defer.push(...)
+	list[#list + 1] = table.pack(...)
 end
 
-function push(...)
-	list[#list + 1] = pack(...)
-end
-
-function run()
+function defer.run()
 	local i = 1
-	local op = list[i]
+	local op = defer.list[i]
 	while op do
-		local suc, result = pcall(op())
+		local suc, result = pcall(table.unpack(op))
 		if not suc then
 			log('! error occured while running a deferred function:', result)
 		end
 		if not suc or result then
-			local length = #list
+			local length = #defer.list
 			if i < length then
 				list[i] = table.pop(list)
 			else
@@ -32,7 +25,7 @@ function run()
 			end
 		else
 			i = i + 1
-			op = list[i]
+			op = defer.list[i]
 		end
 	end
 end

@@ -304,6 +304,7 @@ for i, unit in ipairs{
 	'rsbin/pngreader',
 	'rsbin/pngwriter',
 	'client-console/window',
+	'graphics/clearshape',
 	'graphics/common',
 	'graphics/context',
 	'graphics/display',
@@ -363,6 +364,7 @@ table.append(targets, {
 		'rsbin/fileio.hpp',
 		'rsbin/pngreader.hpp',
 		'rsbin/pngwriter.hpp',
+		'graphics/clearshape.hpp',
 		'graphics/resource.hpp',
 		'graphics/shape.hpp',
 		'client-main/event.hpp',
@@ -550,6 +552,7 @@ table.append(targets, {
 		builddir .. '/rsbin/fsthread.o',
 		builddir .. '/rsbin/pngreader.o',
 		builddir .. '/rsbin/pngwriter.o',
+		builddir .. '/graphics/clearshape.o',
 		builddir .. '/graphics/common.o',
 		builddir .. '/graphics/context.o',
 		builddir .. '/graphics/display.o',
@@ -706,7 +709,8 @@ end
 for i, entry in ipairs(targets) do
 	entry_filltime(entry)
 	if entry.time and
-		(not timemap[entry.target] or entry.time > timemap[entry.target])
+		(not timemap[entry.target] or entry.time > timemap[entry.target]) or
+		timemap[entry.target] == 0
 	then
 		print('', entry.target)
 		entry.changed = true

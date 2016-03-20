@@ -182,25 +182,6 @@ function _G.log(...)
 	print(str, ...)
 end
 
-function string.split(text, delim, plain)
-	local result = {}
-	local i = 0
-	local spos = 1
-	repeat
-		i = i + 1
-		local dspos, depos = text:find(delim, spos, plain)
-		if not dspos then
-			break
-		end
-		result[i] = text:sub(spos, dspos - 1)
-		spos = depos + 1
-	until false
-	if spos <= #text then
-		result[i] = text:sub(spos)
-	end
-	return result
-end
-
 function table.spairs_next(list, i)
 	i = i + 1
 	if i <= #list then
@@ -221,29 +202,6 @@ function table.spairs(target, comparer)
 	end
 	table.sort(list, comparer or table.spairs_comparer)
 	return table.spairs_next, list, 0
-end
-
-function table.deepget(t, k, k2, ...)
-	if k2 then
-		if t[k] ~= nil then
-			return table.deepget(t[k], k2, ...)
-		else
-			return nil
-		end
-	else
-		return t[k]
-	end
-end
-
-function table.deepset(t, nv, k, k2, ...)
-	if k2 then
-		if t[k] == nil then
-			t[k] = {}
-		end
-		return table.deepset(t[k], nv, k2, ...)
-	else
-		t[k] = nv
-	end
 end
 
 function table.provide(t, k)
@@ -276,5 +234,21 @@ function table.makeset(list)
 	return r
 end
 
+function table.pack(...)
+	return {
+		count = select('#', ...),
+		...
+	}
+end
+
+local native_unpack = unpack
+
+function table.unpack(t, a, b)
+	a = a or 1
+	b = b or t.count or #t
+	return native_unpack(t, a, b)
+end
+
+_G.unpack = nil
 _G.io = nil
 package.loaded['io'] = nil
