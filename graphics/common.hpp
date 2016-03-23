@@ -9,18 +9,6 @@
 
 namespace graphics
 {
-	struct Vertex
-	{
-		float pos_x;
-		float pos_y;
-		float pos_z;
-		float tex1_x;
-		float tex1_y;
-		float tex2_x;
-		float tex2_y;
-		uint8_t color[ 4 ];
-	};
-
 	void checkerror_pos(
 		char const* filename, char const* function, int line, HRESULT hr );
 

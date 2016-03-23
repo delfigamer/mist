@@ -2,9 +2,8 @@
 #define GRAPHICS_CLEARSHAPE_HPP__ 1
 
 #include <graphics/shape.hpp>
-#include <utils/flaglock.hpp>
 #include <common.hpp>
-#include <mutex>
+#include <atomic>
 
 namespace graphics
 {
@@ -12,34 +11,30 @@ namespace graphics
 	class ClearShape: public Shape
 	{
 	private:
-		typedef utils::FlagLock mutex_t;
-		typedef std::lock_guard< mutex_t > lock_t;
-
-	private:
-		mutex_t m_mutex;
-		int m_flags;
-		uint32_t m_color;
-		float m_depth;
-		int m_stencil;
+		std::atomic< int > m_flags;
+		std::atomic< uint32_t > m_color;
+		std::atomic< float > m_depth;
+		std::atomic< int > m_stencil;
 
 	protected:
 		virtual void doadvance() override;
 
 	public:
-		ClearShape();
+		ClearShape( bool ccolor, bool cdepth, bool cstencil );
 		virtual ~ClearShape() override;
 		ClearShape( ClearShape const& ) = delete;
 		ClearShape& operator=( ClearShape const& ) = delete;
 
 		virtual void paint() override;
 
-		R_METHOD() static ClearShape* create()
+		R_METHOD() static ClearShape* create(
+			bool ccolor, bool cdepth, bool cstencil )
 		{
-			return new ClearShape();
+			return new ClearShape( ccolor, cdepth, cstencil );
 		}
-		R_METHOD() void setcolor( bool flag, float const* value );
-		R_METHOD() void setdepth( bool flag, float value );
-		R_METHOD() void setstencil( bool flag, int value );
+		R_METHOD() void setcolor( float const* value );
+		R_METHOD() void setdepth( float value );
+		R_METHOD() void setstencil( int value );
 	};
 }
 

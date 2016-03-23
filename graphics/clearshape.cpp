@@ -8,8 +8,12 @@ namespace graphics
 	{
 	}
 
-	ClearShape::ClearShape()
-		: m_flags( 0 )
+	ClearShape::ClearShape( bool ccolor, bool cdepth, bool cstencil )
+		: m_flags(
+			( ccolor ? D3DCLEAR_TARGET : 0 ) |
+			( cdepth ? D3DCLEAR_ZBUFFER : 0 ) |
+			( cstencil ? D3DCLEAR_STENCIL : 0 )
+		)
 	{
 	}
 
@@ -19,17 +23,10 @@ namespace graphics
 
 	void ClearShape::paint()
 	{
-		int flags;
-		uint32_t color;
-		float depth;
-		int stencil;
-		{
-			lock_t lock( m_mutex );
-			flags = m_flags;
-			color = m_color;
-			depth = m_depth;
-			stencil = m_stencil;
-		}
+		int flags = m_flags.load( std::memory_order_relaxed );
+		uint32_t color = m_color.load( std::memory_order_relaxed );
+		float depth = m_depth.load( std::memory_order_relaxed );
+		int stencil = m_stencil.load( std::memory_order_relaxed );
 		if( flags )
 		{
 			checkerror( Context::Device->Clear(
@@ -38,45 +35,18 @@ namespace graphics
 		}
 	}
 
-	void ClearShape::setcolor( bool flag, float const* value )
+	void ClearShape::setcolor( float const* value )
 	{
-		lock_t lock( m_mutex );
-		if( flag )
-		{
-			m_flags |= D3DCLEAR_TARGET;
-			m_color = argb8( value );
-		}
-		else
-		{
-			m_flags &= ~D3DCLEAR_TARGET;
-		}
+		m_color.store( argb8( value ), std::memory_order_relaxed );
 	}
 
-	void ClearShape::setdepth( bool flag, float value )
+	void ClearShape::setdepth( float value )
 	{
-		lock_t lock( m_mutex );
-		if( flag )
-		{
-			m_flags |= D3DCLEAR_ZBUFFER;
-			m_depth = value;
-		}
-		else
-		{
-			m_flags &= ~D3DCLEAR_ZBUFFER;
-		}
+		m_depth.store( value, std::memory_order_relaxed );
 	}
 
-	void ClearShape::setstencil( bool flag, int value )
+	void ClearShape::setstencil( int value )
 	{
-		lock_t lock( m_mutex );
-		if( flag )
-		{
-			m_flags |= D3DCLEAR_STENCIL;
-			m_stencil = value;
-		}
-		else
-		{
-			m_flags &= ~D3DCLEAR_STENCIL;
-		}
+		m_stencil.store( value, std::memory_order_relaxed );
 	}
 }

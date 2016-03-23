@@ -14,6 +14,8 @@ namespace graphics
 		IDirect3DVertexBuffer9* m_buffer;
 		int m_vertexcount;
 
+		virtual void doadvance() override;
+
 	public:
 		VertexBuffer();
 		virtual ~VertexBuffer() override;
@@ -21,6 +23,11 @@ namespace graphics
 		VertexBuffer& operator=( VertexBuffer const& ) = delete;
 
 		bool bind( int* vertexcount );
+
+		R_METHOD() static VertexBuffer* create()
+		{
+			return new VertexBuffer();
+		}
 	};
 }
 

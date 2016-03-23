@@ -3,9 +3,9 @@
 
 #include <graphics/shape.hpp>
 #include <graphics/vertexbuffer.hpp>
-#include <graphics/indexbuffer.hpp>
-#include <graphics/program.hpp>
-#include <graphics/texture.hpp>
+// #include <graphics/indexbuffer.hpp>
+// #include <graphics/program.hpp>
+// #include <graphics/texture.hpp>
 #include <utils/ref.hpp>
 #include <utils/flaglock.hpp>
 #include <common.hpp>
@@ -49,37 +49,37 @@ namespace graphics
 
 	private:
 		utils::Ref< VertexBuffer > m_vertexbuffer;
-		utils::Ref< IndexBuffer > m_indexbuffer;
-		utils::Ref< Program > m_program;
-		utils::Ref< Texture > m_textures[ 8 ];
-		mutex_t m_mutex;
-		int m_type;
+		// utils::Ref< IndexBuffer > m_indexbuffer;
+		// utils::Ref< Program > m_program;
+		// utils::Ref< Texture > m_textures[ 8 ];
+		std::atomic< int > m_type;
 		int m_blendsf;
 		int m_blenddf;
 		int m_blendop;
+		mutex_t m_mutex;
 		D3DMATRIX m_matrix;
 
 	protected:
 		virtual void doadvance() override;
 
 	public:
-		PrimitiveShape();
+		PrimitiveShape(
+			int type, int sourceblend, int destblend, int blendmethod );
 		virtual ~PrimitiveShape() override;
 		PrimitiveShape( PrimitiveShape const& ) = delete;
 		PrimitiveShape& operator=( PrimitiveShape const& ) = delete;
 
 		virtual void paint() override;
 
-		R_METHOD() static PrimitiveShape* create()
+		R_METHOD() static PrimitiveShape* create(
+			int type, int sourceblend, int destblend, int blendmethod )
 		{
-			return new PrimitiveShape();
+			return new PrimitiveShape( type, sourceblend, destblend, blendmethod );
 		}
 		R_METHOD() void setvertexbuffer( VertexBuffer* value );
-		R_METHOD() void setindexbuffer( IndexBuffer* value );
-		R_METHOD() void setprogram( Program* value );
+		// R _METHOD() void setindexbuffer( IndexBuffer* value );
+		// R _METHOD() void setprogram( Program* value );
 		// R _METHOD() void settexture( int index, Texture* texture );
-		R_METHOD() void settype( int value );
-		R_METHOD() void setblend( int sfactor, int dfactor, int method );
 		R_METHOD() void setmatrix( float const* value );
 	};
 }

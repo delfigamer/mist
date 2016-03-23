@@ -1,6 +1,7 @@
 #include <graphics/primitiveshape.hpp>
 #include <graphics/context.hpp>
 #include <graphics/common.hpp>
+#include <utils/console.hpp>
 #include <utils/cbase.hpp>
 
 namespace graphics
@@ -33,39 +34,60 @@ namespace graphics
 		D3DPT_TRIANGLEFAN,
 		D3DPT_TRIANGLELIST,
 	};
+	static int const pfactortable[] =
+	{
+		0,
+		1,
+		2,
+		1,
+		1,
+		3,
+	};
+	static int const poffsettable[] =
+	{
+		0,
+		1,
+		0,
+		2,
+		2,
+		0,
+	};
 
 	void PrimitiveShape::doadvance()
 	{
-		VertexBuffer* vd = m_vertexbuffer;
-		if( vd )
+		VertexBuffer* vb = m_vertexbuffer;
+		if( vb )
 		{
-			vd->advance();
+			vb->advance();
 		}
-		IndexBuffer* id = m_indexbuffer;
-		if( id )
-		{
-			id->advance();
-		}
-		Program* pr = m_program;
-		if( pr )
-		{
-			pr->advance();
-		}
-		for( int i = 0; i < 8; ++i )
-		{
-			Texture* t = m_textures[ i ];
-			if( t )
-			{
-				t->advance();
-			}
-		}
+		// IndexBuffer* ib = m_indexbuffer;
+		// if( ib )
+		// {
+			// ib->advance();
+		// }
+		// Program* pr = m_program;
+		// if( pr )
+		// {
+			// pr->advance();
+		// }
+		// for( int i = 0; i < 8; ++i )
+		// {
+			// Texture* t = m_textures[ i ];
+			// if( t )
+			// {
+				// t->advance();
+			// }
+		// }
 	}
 
-	PrimitiveShape::PrimitiveShape()
-		: m_type( D3DPT_POINTLIST )
-		, m_blendsf( D3DBLEND_ONE )
-		, m_blenddf( D3DBLEND_ZERO )
-		, m_blendop( D3DBLENDOP_ADD )
+	PrimitiveShape::PrimitiveShape(
+		int type, int sourceblend, int destblend, int blendmethod )
+		: m_blendsf( TABLE_ASSERT(
+			blendftable, sourceblend, "source blend factor" ) )
+		, m_blenddf( TABLE_ASSERT(
+			blendftable, destblend, "destination blend factor" ) )
+		, m_blendop( TABLE_ASSERT(
+			blendoptable, blendmethod, "blend method" ) )
 		, m_matrix{
 			1, 0, 0, 0,
 			0, 1, 0, 0,
@@ -73,6 +95,9 @@ namespace graphics
 			0, 0, 0, 1,
 		}
 	{
+		m_type.store( RANGE_ASSERT(
+				type, 0, Primitive_Invalid, "primitive type" ),
+			std::memory_order_release );
 	}
 
 	PrimitiveShape::~PrimitiveShape()
@@ -82,9 +107,9 @@ namespace graphics
 	void PrimitiveShape::paint()
 	{
 		VertexBuffer* vb = m_vertexbuffer;
-		IndexBuffer* ib = m_indexbuffer;
-		Program* pr = m_program;
-		if( !vb || !pr )
+		// IndexBuffer* ib = m_indexbuffer;
+		// Program* pr = m_program;
+		if( !vb )
 		{
 			return;
 		}
@@ -93,37 +118,50 @@ namespace graphics
 		{
 			return;
 		}
-		int indexcount;
-		if( ib )
-		{
-			if( !ib->bind( &indexcount ) )
-			{
-				return;
-			}
-		}
-		int worldmatrixpos;
-		if( !pr->bind( &worldmatrixpos ) )
-		{
-			return;
-		}
+		// int indexcount;
+		// if( ib )
+		// {
+			// if( !ib->bind( &indexcount ) )
+			// {
+				// return;
+			// }
+		// }
+		// int worldmatrixpos;
+		// if( !pr->bind( &worldmatrixpos ) )
+		// {
+			// return;
+		// }
+		int ptype = m_type.load( std::memory_order_acquire );
+		checkerror( Context::Device->SetRenderState(
+			D3DRS_BLENDOP, m_blendop ) );
+		checkerror( Context::Device->SetRenderState(
+			D3DRS_SRCBLEND, m_blendsf ) );
+		checkerror( Context::Device->SetRenderState(
+			D3DRS_DESTBLEND, m_blenddf ) );
 		{
 			lock_t lock( m_mutex );
-			checkerror( Context::Device->SetRenderState(
-				D3DRS_BLENDOP, m_blendop ) );
-			checkerror( Context::Device->SetRenderState(
-				D3DRS_SRCBLEND, m_blendsf ) );
-			checkerror( Context::Device->SetRenderState(
-				D3DRS_DESTBLEND, m_blenddf ) );
-			checkerror( Context::Device->SetVertexShaderConstantF(
-				worldmatrixpos, m_matrix.m[ 0 ], 4 ) );
+			checkerror( Context::Device->SetTransform(
+				D3DTS_WORLD, &m_matrix ) );
+			// checkerror( Context::Device->SetVertexShaderConstantF(
+				// worldmatrixpos, m_matrix.m[ 0 ], 4 ) );
 		}
-		checkerror( Context::Device->DrawIndexedPrimitive(
-			D3DPRIMITIVETYPE( m_type ),
+		checkerror( Context::Device->SetTextureStageState(
+			0, D3DTSS_COLOROP, D3DTOP_SELECTARG1 ) );
+		checkerror( Context::Device->SetTextureStageState(
+			0, D3DTSS_COLORARG1, D3DTA_CONSTANT ) );
+		checkerror( Context::Device->SetTextureStageState(
+			0, D3DTSS_CONSTANT, 0xff0000ff ) );
+		// checkerror( Context::Device->DrawIndexedPrimitive(
+			// D3DPRIMITIVETYPE( m_type ),
+			// 0,
+			// 0,
+			// vertexcount,
+			// 0,
+			// indexcount / 3 ) );
+		checkerror( Context::Device->DrawPrimitive(
+			D3DPRIMITIVETYPE( typetable[ ptype ] ),
 			0,
-			0,
-			vertexcount,
-			0,
-			indexcount / 3 ) );
+			( vertexcount - poffsettable[ ptype ] ) / pfactortable[ ptype ] ) );
 	}
 
 	void PrimitiveShape::setvertexbuffer( VertexBuffer* value )
@@ -131,15 +169,15 @@ namespace graphics
 		m_vertexbuffer = value;
 	}
 
-	void PrimitiveShape::setindexbuffer( IndexBuffer* value )
-	{
-		m_indexbuffer = value;
-	}
+	// void PrimitiveShape::setindexbuffer( IndexBuffer* value )
+	// {
+		// m_indexbuffer = value;
+	// }
 
-	void PrimitiveShape::setprogram( Program* value )
-	{
-		m_program = value;
-	}
+	// void PrimitiveShape::setprogram( Program* value )
+	// {
+		// m_program = value;
+	// }
 
 	// void PrimitiveShape::settexture( int index, Texture* texture )
 	// {
@@ -149,23 +187,6 @@ namespace graphics
 		// }
 		// m_textures[ index ] = texture;
 	// }
-
-	void PrimitiveShape::settype( int value )
-	{
-		lock_t lock( m_mutex );
-		m_type = TABLE_ASSERT( typetable, value, "primitive type" );
-	}
-
-	void PrimitiveShape::setblend( int sfactor, int dfactor, int method )
-	{
-		lock_t lock( m_mutex );
-		sfactor = TABLE_ASSERT( blendftable, sfactor, "blend factor" );
-		dfactor = TABLE_ASSERT( blendftable, dfactor, "blend factor" );
-		method = TABLE_ASSERT( blendoptable, method, "blend method" );
-		m_blendsf = sfactor;
-		m_blenddf = dfactor;
-		m_blendop = method;
-	}
 
 	void PrimitiveShape::setmatrix( float const* value )
 	{

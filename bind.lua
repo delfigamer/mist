@@ -9,6 +9,40 @@ do
 	setfenv(1, gt)
 end
 
+-- R_CLASS()
+--   name = "..."
+--   R_METHOD()
+--     name = "..."
+--     stringwrap
+--     addref
+--     release
+--     noluamethod
+--   R_STRUCT() ... R_END()
+-- R_EMIT() ... R_END()
+--   target =
+--     hpp_start
+--     hpp_beforeincludes
+--     hpp_beforeclasses
+--     hpp_beforemldecl
+--     hpp_mldeclstart
+--     hpp_mldeclend
+--     hpp_beforemldef
+--     hpp_end
+--     cpp_start
+--     cpp_beforemethods
+--     cpp_beforemldef
+--     cpp_end
+--     ffi_start
+--     ffi_beforemldecl
+--     ffi_mldeclstart
+--     ffi_mldeclend
+--     ffi_end
+--     lua_start
+--     lua_beforeclasses
+--     lua_beforemethods
+--     lua_beforemetatypes
+--     lua_end
+
 local function strtob(s)
 	local n = tonumber(s)
 	if n then

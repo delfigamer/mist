@@ -2,32 +2,29 @@
 #define GRAPHICS_SHAPEGROUP_HPP__ 1
 
 #include <graphics/shape.hpp>
-#include <utils/flaglock.hpp>
+#include <utils/mpsclist.hpp>
 #include <utils/ref.hpp>
 #include <utils/refobject.hpp>
 #include <common.hpp>
 #include <mutex>
 #include <atomic>
-#include <map>
 
 namespace graphics
 {
 	class ShapeGroupEntry;
 
+	R_CLASS( name = shapegroup )
 	class ShapeGroup: public Shape
 	{
 	public:
 		friend class ShapeGroupEntry;
 
 	private:
-		typedef utils::FlagLock mutex_t;
-		typedef std::lock_guard< mutex_t > lock_t;
-		typedef std::multimap< int, utils::Ref< Shape > > items_t;
+		typedef utils::MPSCList< utils::Ref< Shape > > ShapeList;
 
 	private:
-		mutex_t m_mutex;
-		items_t m_items;
 		std::atomic< bool > m_active;
+		ShapeList m_shapes;
 
 	protected:
 		virtual void doadvance() override;
@@ -44,8 +41,11 @@ namespace graphics
 		{
 			return new ShapeGroup();
 		}
-		R_METHOD() ShapeGroupEntry* insert( Shape* item, int order );
-		R_METHOD() void setactive( bool active );
+		R_METHOD() ShapeGroupEntry* insert( Shape* item );
+		R_METHOD() void setactive( bool active ) NOEXCEPT
+		{
+			m_active.store( active, std::memory_order_relaxed );
+		}
 	};
 
 	R_CLASS( name = shapegroupentry )
@@ -53,11 +53,10 @@ namespace graphics
 	{
 	private:
 		utils::Ref< ShapeGroup > m_shapegroup;
-		ShapeGroup::items_t::iterator m_iter;
+		ShapeGroup::ShapeList::Iterator m_iter;
 
 	public:
-		ShapeGroupEntry(
-			ShapeGroup* sg, ShapeGroup::items_t::iterator const& iter );
+		ShapeGroupEntry( ShapeGroup::ShapeList::Iterator const& iter );
 		~ShapeGroupEntry();
 		ShapeGroupEntry( const ShapeGroupEntry& ) = delete;
 		ShapeGroupEntry& operator=( const ShapeGroupEntry& ) = delete;
