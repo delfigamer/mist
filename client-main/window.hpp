@@ -41,7 +41,7 @@ R_EMIT( target = ffi_end )
 R_END()
 /*
 R_EMIT( target = ffi_end )
-		configset const* configset;
+		configset* configset;
 R_END()
 */
 		utils::ConfigSet const* configset;
@@ -74,7 +74,7 @@ local methodlist = windowinfo.methodlist
 R_END()
 
 R_EMIT( target = lua_end )
-package.loaded['host.window'] = windowinfo.window
+package.loaded['host.window'] = window:new(windowinfo.window)
 R_END()
 */
 

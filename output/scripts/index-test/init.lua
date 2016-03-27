@@ -1,23 +1,65 @@
 local modname = ...
 local index = package.modtable(modname)
 local clearshape = require('host.clearshape')
+local databuffer = require('host.databuffer')
 local ffi = require('ffi')
 local info = require('host.info')
 local input = require('base.input')
 local primitiveshape = require('host.primitiveshape')
 local shapegroup = require('host.shapegroup')
-local vertexbuffer = require('host.vertexbuffer')
+local staticvertexbuffer = require('host.staticvertexbuffer')
+local vertexdeclaration = require('host.vertexdeclaration')
 local window = require('host.window')
 
-index.shape = shapegroup:create()
-index.cshape = clearshape:create(true, false, false)
-index.cshape:setcolor(ffi.new('float[4]', 0, 0, 0, 1))
-index.pshape = primitiveshape:create(1, 1, 0, 0)
-index.vbuf = vertexbuffer:create()
-index.pshape:setvertexbuffer(index.vbuf)
-index.cshapeentry = index.shape:insert(ffi.cast('shape*', index.cshape))
-index.pshapeentry = index.shape:insert(ffi.cast('shape*', index.pshape))
-window:setshape(ffi.cast('shape*', index.shape))
+ffi.cdef[[
+	typedef struct
+	{
+		float pos[ 2 ];
+		uint8_t color[ 4 ];
+	} Vertex;
+]]
+
+do
+	local vdata = databuffer:create(
+		ffi.sizeof('Vertex') * 6, ffi.sizeof('Vertex') * 7, nil)
+	local vertices = ffi.cast('Vertex*', vdata:getdata())
+	vertices[0] = {{-0.5, -0.5}, {0xff,    0,    0, 0xff}}
+	vertices[1] = {{-0.5,  0.5}, {0xff, 0xff,    0, 0xff}}
+	vertices[2] = {{ 0.0, -0.5}, {   0, 0xff,    0, 0xff}}
+	vertices[3] = {{ 0.0,  0.5}, {   0, 0xff, 0xff, 0xff}}
+	vertices[4] = {{ 0.5, -0.5}, {   0,    0, 0xff, 0xff}}
+	vertices[5] = {{ 0.5,  0.5}, {0xff,    0, 0xff, 0xff}}
+	vertices[6] = {{-0.5, -0.5}, {0xff,    0,    0, 0xff}}
+
+	local vdecldata = databuffer:create(
+		ffi.sizeof('vertexdeclelement') * 2,
+		ffi.sizeof('vertexdeclelement') * 2,
+		nil)
+	local vdeclelems = ffi.cast('vertexdeclelement*', vdecldata:getdata())
+	vdeclelems[0] = {
+		attribute = 0,
+		offset = ffi.offsetof('Vertex', 'pos'),
+		format = 1, -- VertexElementFormat_Float2
+	}
+	vdeclelems[1] = {
+		attribute = 1,
+		offset = ffi.offsetof('Vertex', 'color'),
+		format = 7, -- VertexElementFormat_UByte4N
+	}
+	local vdecl = vertexdeclaration:create(vdecldata, ffi.sizeof('Vertex'))
+
+	index.shape = shapegroup:create()
+	index.cshape = clearshape:create(true, false, false)
+	index.cshape:setcolor(ffi.new('float[4]', 0, 0, 0, 1))
+	index.pshape = primitiveshape:create(3, 1, 0, 0)
+	index.vbuf = staticvertexbuffer:create(vdecl)
+	index.vbuf:assign(vdata)
+	index.pshape:setvertexbuffer(index.vbuf)
+	index.cshapeentry = index.shape:insert(index.cshape)
+	index.pshapeentry = index.shape:insert(index.pshape)
+	window:setshape(index.shape)
+end
+collectgarbage()
 
 local function updatepos(event)
 	if event.arg[0] == 1 then

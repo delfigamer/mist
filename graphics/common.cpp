@@ -69,4 +69,15 @@ namespace graphics
 				"[%48s:%24s@%4i]\t%s", filename, function, line, buffer );
 		}
 	}
+
+	int const AttributeUsageTable[ Limits::AttributeCount ][ 2 ] = {
+		{ D3DDECLUSAGE_POSITION, 0 },
+		{ D3DDECLUSAGE_COLOR, 0 },
+		{ D3DDECLUSAGE_TEXCOORD, 2 },
+		{ D3DDECLUSAGE_TEXCOORD, 3 },
+		{ D3DDECLUSAGE_TEXCOORD, 4 },
+		{ D3DDECLUSAGE_TEXCOORD, 5 },
+		{ D3DDECLUSAGE_TEXCOORD, 6 },
+		{ D3DDECLUSAGE_TEXCOORD, 7 },
+	};
 }

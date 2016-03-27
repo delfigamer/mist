@@ -1,6 +1,7 @@
 #ifndef UTILS_PROFILE_HPP__
 #define UTILS_PROFILE_HPP__ 1
 
+#include <utils/console.hpp>
 #include <common.hpp>
 #include <atomic>
 #include <time.h>
@@ -31,7 +32,6 @@ namespace utils
 		char const* m_name;
 
 	public:
-		Profiler() = delete;
 		Profiler( char const* name );
 		~Profiler();
 		Profiler( Profiler const& ) = delete;
@@ -58,6 +58,35 @@ namespace utils
 		ProfileTimer( ProfileTimer const& ) = delete;
 		ProfileTimer operator=( ProfileTimer const& ) = delete;
 	};
+
+	inline Profiler::Profiler( char const* name )
+		: m_time( 0 )
+		, m_min( uint32_t( 0xffffffff ) )
+		, m_max( 0 )
+		, m_count( 0 )
+		, m_name( name )
+	{
+		m_aflag.clear();
+	}
+
+	inline Profiler::~Profiler()
+	{
+		if( m_count > 0 )
+		{
+			int avg = int32_t( ( ( m_time << 1 ) + m_count ) / ( m_count << 1 ) );
+			Console->writeln(
+				"[%78s]\tavg: %4i.%.6ims, min: %4i.%.6ims, max: %4i.%.6ims (%i %s)",
+				m_name,
+				avg / 1000000, avg % 1000000,
+				m_min / 1000000, m_min % 1000000,
+				m_max / 1000000, m_min % 1000000,
+				m_count, ( m_count == 1 ? "sample" : "samples" ) );
+		}
+		else
+		{
+			Console->writeln( "[%78s]\tprofile data never sampled", m_name );
+		}
+	}
 
 	inline void Profiler::sample( uint32_t time )
 	{

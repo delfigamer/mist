@@ -26,7 +26,8 @@ setfenv(1, _G)
 protectglobaltable(true)
 
 local info = require('host.info')
-local indexmodule = info.configset:string('index', '')
+local configset = require('host.configset'):new(info.configset)
+local indexmodule = configset:string('index', '')
 if #indexmodule == 0 then
 	error('index module required')
 end

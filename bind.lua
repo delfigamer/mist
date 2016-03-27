@@ -14,10 +14,13 @@ end
 --   R_METHOD()
 --     name = "..."
 --     stringwrap
+--     refwrap
 --     addref
 --     release
 --     noluamethod
 --   R_STRUCT() ... R_END()
+-- R_ENUM() -- NYI
+--   name = "..."
 -- R_EMIT() ... R_END()
 --   target =
 --     hpp_start
@@ -231,6 +234,7 @@ local function parse_class(ns, metastr, keyword, cname, parentstr, body)
 		namespace = ns,
 		fields = {},
 	}
+	class.needsbox = keyword == 'class' or meta.needsbox
 	class_map[class.fcname] = class
 	table.append(class_list, class)
 	body = string.gsub(
@@ -297,10 +301,17 @@ local function build_type(ns, typestr)
 	if base then
 		local class = class_lookup(ns, base)
 		if class then
-			return class.fcname .. rest, class.lname .. rest
+			if class.needsbox and
+				(string.match(rest, '^%s*%*%s*$') or
+				string.match(rest, '^%s*const%s*%*%s*$'))
+			then
+				return class.lname, class.fcname .. rest, class.lname .. rest
+			else
+				return nil, class.fcname .. rest, class.lname .. rest
+			end
 		end
 	end
-	return typestr, typestr
+	return nil, typestr, typestr
 end
 
 local function sort_class_list()
@@ -343,17 +354,28 @@ local function build_class(class)
 				default_base:module(\z
 				\'' .. packageprefix .. class.lname .. '\')\n'
 	end
-	local fieldstr = {}
-	for i, field in ipairs(class.fields) do
-		local ctype, ffitype = build_type(class.namespace, field)
-		table.append(fieldstr, '\t' .. ffitype .. ';\n')
+	if not class.needsbox or #class.fields > 0 then
+		local fieldstr = {}
+		for i, field in ipairs(class.fields) do
+			local classbox, ctype, ffitype = build_type(class.namespace, field)
+			table.append(fieldstr, '\t' .. ffitype .. ';\n')
+		end
+		fieldstr = table.concat(fieldstr)
+		class.ffidef = 'typedef struct {\n' .. fieldstr .. '}\z
+			' .. class.lname .. ';\n'
+	else
+		class.ffidef = 'typedef void* \z
+			' .. class.lname .. ';\n'
 	end
-	fieldstr = table.concat(fieldstr)
-	class.ffidef = 'typedef struct {\n' .. fieldstr .. '}\z
-		' .. class.lname .. ';\n'
-	class.luametabuild = class.lname .. '.typedef = \z
-		\'' .. class.lname .. '\'\n\z
-		' .. class.lname .. ':buildmetatype()\n'
+	if class.needsbox then
+		class.luametabuild = class.lname .. '.typedef = \z
+			\'struct{' .. class.lname .. '*ptr;}\'\n\z
+			' .. class.lname .. ':buildmetatype()\n'
+	else
+		class.luametabuild = class.lname .. '.typedef = \z
+			\'' .. class.lname .. '\'\n\z
+			' .. class.lname .. ':buildmetatype()\n'
+	end
 end
 
 local function build_method(method)
@@ -374,32 +396,41 @@ local function build_method(method)
 		end
 		cdefargstr[1] = method.class.fcname .. cv .. '* self'
 		ffidefargstr[1] = method.class.lname .. cv .. '* self'
-		luacallargstr[1] = 'self'
+		luacallargstr[1] = 'self.ptr'
 		cfuncstr = 'self->' .. method.cname
 	end
 	for i, arg in ipairs(method.arglist) do
-		local ctype, ffitype = build_type(method.namespace, arg.type)
+		local classbox, ctype, ffitype = build_type(method.namespace, arg.type)
 		table.append(cdefargstr, ctype .. ' ' .. arg.name)
 		table.append(ccallargstr, arg.name)
 		table.append(ffidefargstr, ffitype .. ' ' .. arg.name)
 		table.append(luadefargstr, arg.name)
-		table.append(luacallargstr, arg.name)
+		if classbox then
+			table.append(luacallargstr, arg.name .. ' and ' .. arg.name .. '.ptr')
+		else
+			table.append(luacallargstr, arg.name)
+		end
 	end
 	local resultstr
 	local luaresultinit
 	local luareturnstr
 	if method.rettype then
-		local ctype, ffitype = build_type(method.namespace, method.rettype)
+		local classbox, ctype, ffitype =
+			build_type(method.namespace, method.rettype)
 		table.append(cdefargstr, ctype .. '* result')
 		table.append(ffidefargstr, ffitype .. '* result')
-		table.append(luadefargstr, 'result')
 		table.append(luacallargstr, 'result')
 		resultstr = '*result = '
 		luaresultinit = '\tlocal result = ffi.new(\'' .. ffitype .. '[1]\')\n'
-		if method.meta.stringwrap then
-			luareturnstr = ' result[0] ~= nil and result[0]'
+		if classbox then
+			luareturnstr = ' result[0] ~= nil and ' .. classbox ..
+				':new(result[0])'
 		else
-			luareturnstr = ' result[0]'
+			if method.meta.stringwrap then
+				luareturnstr = ' result[0] ~= nil and ffi.string(result[0])'
+			else
+				luareturnstr = ' result[0]'
+			end
 		end
 	else
 		resultstr = ''

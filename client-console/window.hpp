@@ -26,7 +26,7 @@ R_EMIT( target = ffi_end )
 R_END()
 /*
 R_EMIT( target = ffi_end )
-		configset const* configset;
+		configset* configset;
 R_END()
 */
 		utils::ConfigSet const* configset;

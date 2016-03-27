@@ -61,6 +61,10 @@ function require(base, uplevel, suffix)
 		local lres = loader(modname)
 		if type(lres) == 'string' then
 			table.append(errstr, lres)
+		elseif type(lres) == 'table' then
+			lres.message = string.format('cannot load module %s:\n%s',
+				modname, lres.message)
+			error(lres, 2)
 		elseif type(lres) == 'function' then
 			local success, mres = pcall(lres, modname)
 			if success then

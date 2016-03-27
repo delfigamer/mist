@@ -1,7 +1,7 @@
 #ifndef GRAPHICS_DISPLAY_HPP__
 #define GRAPHICS_DISPLAY_HPP__ 1
 
-#if !defined( _WIN32 ) || !defined( _WIN64 )
+#if !defined( _WIN32 ) && !defined( _WIN64 )
 #error "Unsupported target platform"
 #endif
 

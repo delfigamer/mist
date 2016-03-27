@@ -77,8 +77,11 @@ package.loaders[2] = function(modname)
 	if not path then
 		return perr
 	end
-	local io = fileio:create(path, 0)
-	local chunk, err = load(file_loader(io), path, 'bt', env)
+	local iosuc, ioret = pcall(fileio.create, fileio, path, 0)
+	if not iosuc then
+		return ioret
+	end
+	local chunk, err = load(file_loader(ioret), path, 'bt', env)
 	if chunk then
 		return chunk
 	else

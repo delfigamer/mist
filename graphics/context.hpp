@@ -15,6 +15,8 @@ namespace graphics
 		extern IDirect3D9* D3D;
 		extern IDirect3DDevice9* Device;
 		extern utils::MPSCQueue< Resource* > Dead;
+		extern void* CurrentVertexDeclaration;
+		extern void* CurrentVertexBuffer;
 
 		void markdead( Resource* res );
 		void cleanup();

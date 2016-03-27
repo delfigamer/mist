@@ -4,13 +4,14 @@
 #include <common.hpp>
 #include <cstdio>
 #include <atomic>
+#include <utils/console.hpp>
 
 namespace utils
 {
 	R_CLASS( name = refobject )
 	class RefObject
 	{
-	protected:
+	private:
 		mutable std::atomic< int > m_refcount;
 
 	public:
@@ -21,7 +22,7 @@ namespace utils
 		{
 			addref();
 		}
-		R_METHOD( name = release, release ) void vrelease() const NOEXCEPT
+		R_METHOD( name = release, noluamethod ) void vrelease() const NOEXCEPT
 		{
 			release();
 		}
@@ -37,10 +38,6 @@ namespace utils
 	inline int RefObject::addref() const NOEXCEPT
 	{
 		int rc = m_refcount.fetch_add( 1, std::memory_order_relaxed ) + 1;
-// 		LOG( "((RefObject*) %#10x)->addref()  - %i", uint32_t( this ), rc );
-// 		if( rc == 1 ) {
-// 			LOG( "RefObject is brought undead! 0x%x", uint32_t( this ) );
-// 		}
 		return rc;
 	}
 
@@ -51,7 +48,6 @@ namespace utils
 			return -1;
 		}
 		int rc = m_refcount.fetch_sub( 1, std::memory_order_relaxed ) - 1;
-// 		LOG( "((RefObject*) %#10x)->release() - %i", uint32_t( this ), rc );
 		if( rc == 0 )
 		{
 			const_cast< RefObject* >( this )->destroy();
@@ -63,12 +59,61 @@ namespace utils
 	{
 		return m_refcount.load( std::memory_order_relaxed );
 	}
+
+	template< int i >
+	struct rocount
+	{
+		static std::atomic< int > d;
+	};
+
+	template< int i >
+	std::atomic< int > rocount< i >::d( 0 );
+
+	inline RefObject::RefObject() NOEXCEPT
+		: m_refcount( 1 )
+	{
+	}
+
+	inline RefObject::RefObject( RefObject const& other ) NOEXCEPT
+		: m_refcount( 1 )
+	{
+	}
+
+	inline RefObject::RefObject( RefObject&& other ) NOEXCEPT
+		: m_refcount( 1 )
+	{
+	}
+
+	inline RefObject::~RefObject() NOEXCEPT
+	{
+	}
+
+	inline void RefObject::destroy()
+	{
+		delete this;
+	}
+
+	inline RefObject& RefObject::operator=( RefObject const& other ) NOEXCEPT
+	{
+		return *this;
+	}
+
+	inline RefObject& RefObject::operator=( RefObject&& other ) NOEXCEPT
+	{
+		return *this;
+	}
 }
 
 /*
 R_EMIT( target = lua_beforemethods )
 local function reference_add(self)
-	return methodlist.utils_refobject_addref(self)
+	return methodlist.utils_refobject_addref(self.ptr)
+end
+
+function refobject:release()
+	methodlist.utils_refobject_release(self.ptr)
+	self.ptr = nil
+	return
 end
 R_END()
 */

@@ -11,33 +11,12 @@
 
 namespace utils
 {
-	class RefBase
+	template< typename T >
+	class Ref
 	{
 	private:
-		std::atomic< RefObject* > m_ref;
-		RefObject* possess_silent( RefObject* ref ) NOEXCEPT;
-		RefObject* assign_silent( RefObject* ref ) NOEXCEPT;
+		std::atomic< T* > m_ref;
 
-	public:
-		RefBase() NOEXCEPT;
-		RefBase( RefObject* ref, int ) NOEXCEPT;
-		RefBase( RefObject* ref ) NOEXCEPT;
-		RefBase( RefBase&& other ) NOEXCEPT;
-		RefBase( RefBase const& other ) NOEXCEPT;
-		~RefBase() NOEXCEPT;
-		RefObject* possess( RefObject* ref ) NOEXCEPT;
-		RefObject* assign( RefObject* ref ) NOEXCEPT;
-		RefBase& assign( RefBase&& other ) NOEXCEPT;
-		RefBase& assign( RefBase const& other ) NOEXCEPT;
-		RefObject* get() const NOEXCEPT;
-		RefObject& deref() const;
-		bool operator==( RefBase const& other );
-		bool operator!=( RefBase const& other );
-	};
-
-	template< typename T >
-	class Ref: public RefBase
-	{
 	public:
 		Ref() NOEXCEPT;
 		Ref( std::nullptr_t ) NOEXCEPT;
@@ -46,6 +25,8 @@ namespace utils
 		Ref( Ref< T > const& other ) NOEXCEPT;
 		Ref( Ref< T >&& other ) NOEXCEPT;
 		~Ref() NOEXCEPT;
+		T* possess( T* ref ) NOEXCEPT;
+		T* assign( T* ref ) NOEXCEPT;
 		Ref& operator=( std::nullptr_t ) NOEXCEPT;
 		Ref& operator=( T* ref ) NOEXCEPT;
 		Ref& operator=( Ref< T > const& other ) NOEXCEPT;
@@ -53,118 +34,196 @@ namespace utils
 		T& operator*() const;
 		T* operator->() const;
 		operator T*() const NOEXCEPT;
+		operator bool() const NOEXCEPT;
+		bool operator==( Ref< T > const& other ) const NOEXCEPT;
+		bool operator!=( Ref< T > const& other ) const NOEXCEPT;
+		bool operator<( Ref< T > const& other ) const NOEXCEPT;
+		bool operator<=( Ref< T > const& other ) const NOEXCEPT;
+		bool operator>( Ref< T > const& other ) const NOEXCEPT;
+		bool operator>=( Ref< T > const& other ) const NOEXCEPT;
 
 		template< typename ...Ts >
 		static Ref< T > create( Ts&& ...args );
 	};
 
-	/*template<>
-	class Ref< RefObject >: public RefBase
-	{
-	public:
-		Ref() NOEXCEPT;
-		Ref( RefObject* ref ) NOEXCEPT;
-		Ref( RefObject* ref, int ) NOEXCEPT;
-		Ref( Ref const& other ) NOEXCEPT;
-		Ref( RefBase const& other ) NOEXCEPT;
-		Ref( Ref&& other ) NOEXCEPT;
-		Ref( RefBase&& other ) NOEXCEPT;
-		~Ref() NOEXCEPT;
-		Ref& operator=( RefObject* ref ) NOEXCEPT;
-		Ref& operator=( Ref const& other ) NOEXCEPT;
-		Ref& operator=( RefBase const& other ) NOEXCEPT;
-		Ref& operator=( Ref&& other ) NOEXCEPT;
-		Ref& operator=( RefBase&& other ) NOEXCEPT;
-		RefObject& operator*() const;
-		RefObject* operator->() const;
-		operator RefObject*() const NOEXCEPT;
-	};*/
-
 	template< typename T >
 	Ref< T >::Ref() NOEXCEPT
-		: RefBase()
+		: m_ref( nullptr )
 	{
 	}
 
 	template< typename T >
 	Ref< T >::Ref( std::nullptr_t ) NOEXCEPT
-		: RefBase( ( RefObject* )0 )
+		: m_ref( nullptr )
 	{
 	}
 
 	template< typename T >
 	Ref< T >::Ref( T* ref ) NOEXCEPT
-		: RefBase( ( RefObject* )ref )
+		: m_ref( nullptr )
 	{
+		assign( ref );
 	}
 
 	template< typename T >
 	Ref< T >::Ref( T* ref, int ) NOEXCEPT
-		: RefBase( ( RefObject* )ref, 0 )
+		: m_ref( ref )
 	{
 	}
 
 	template< typename T >
 	Ref< T >::Ref( Ref< T > const& other ) NOEXCEPT
-		: RefBase( other )
+		: m_ref( nullptr )
 	{
+		T* ref = other.m_ref.load( std::memory_order_relaxed );
+		assign( ref );
 	}
 
 	template< typename T >
 	Ref< T >::Ref( Ref< T >&& other ) NOEXCEPT
-		: RefBase( std::move( std::move( ( RefBase&& )other ) ) )
+		: m_ref( nullptr )
 	{
+		T* ref = other.m_ref.exchange( nullptr, std::memory_order_relaxed );
+		possess( ref );
 	}
 
 	template< typename T >
 	Ref< T >::~Ref() NOEXCEPT
 	{
+		T* oldref = m_ref.exchange( nullptr, std::memory_order_relaxed );
+		if( oldref )
+		{
+			oldref->release();
+		}
+	}
+
+	template< typename T >
+	T* Ref< T >::possess( T* ref ) NOEXCEPT
+	{
+		T* oldref;
+		oldref = m_ref.exchange( ref, std::memory_order_relaxed );
+		if( oldref )
+		{
+			oldref->release();
+		}
+		return oldref;
+	}
+
+	template< typename T >
+	T* Ref< T >::assign( T* ref ) NOEXCEPT
+	{
+		if( ref )
+		{
+			ref->addref();
+		}
+		T* oldref = m_ref.exchange( ref, std::memory_order_relaxed );
+		if( oldref )
+		{
+			oldref->release();
+		}
+		return oldref;
 	}
 
 	template< typename T >
 	Ref< T >& Ref< T >::operator=( std::nullptr_t ) NOEXCEPT
 	{
-		RefBase::assign( ( RefObject* )0 );
+		assign( nullptr );
 		return *this;
 	}
 
 	template< typename T >
 	Ref< T >& Ref< T >::operator=( T* ref ) NOEXCEPT
 	{
-		RefBase::assign( ( RefObject* )ref );
+		assign( ref );
 		return *this;
 	}
 
 	template< typename T >
 	Ref< T >& Ref< T >::operator=( Ref< T > const& other ) NOEXCEPT
 	{
-		RefBase::assign( other );
+		T* ref = other.m_ref.load( std::memory_order_relaxed );
+		assign( ref );
 		return *this;
 	}
 
 	template< typename T >
 	Ref< T >& Ref< T >::operator=( Ref< T >&& other ) NOEXCEPT
 	{
-		RefBase::assign( std::move( ( RefBase&& )other ) );
+		T* ref = other.m_ref.exchange( nullptr, std::memory_order_relaxed );
+		possess( ref );
 		return *this;
 	}
 
 	template< typename T >
 	T& Ref< T >::operator*() const
 	{
-		return ( T& )RefBase::deref();
+		T* ref = m_ref.load( std::memory_order_relaxed );
+		if( ref )
+		{
+			return *ref;
+		}
+		else
+		{
+			throw std::runtime_error( "dereferencing an empty Ref" );
+		}
 	}
 
 	template< typename T >
 	T* Ref< T >::operator->() const
 	{
-		return ( T* )&RefBase::deref();
+		return &( operator*() );
 	}
 
 	template< typename T >
 	Ref< T >::operator T*() const NOEXCEPT
 	{
-		return ( T* )RefBase::get();
+		T* ref = m_ref.load( std::memory_order_relaxed );
+		return ref;
+	}
+
+	template< typename T >
+	Ref< T >::operator bool() const NOEXCEPT
+	{
+		T* ref = m_ref.load( std::memory_order_relaxed );
+		return ref != nullptr;
+	}
+
+	template< typename T >
+	bool Ref< T >::operator==( Ref< T > const& other ) const NOEXCEPT
+	{
+		return m_ref.load( std::memory_order_relaxed ) ==
+			other.m_ref.load( std::memory_order_relaxed );
+	}
+
+	template< typename T >
+	bool Ref< T >::operator!=( Ref< T > const& other ) const NOEXCEPT
+	{
+		return !( *this == other );
+	}
+
+	template< typename T >
+	bool Ref< T >::operator<( Ref< T > const& other ) const NOEXCEPT
+	{
+		return m_ref.load( std::memory_order_relaxed ) <
+			other.m_ref.load( std::memory_order_relaxed );
+	}
+
+	template< typename T >
+	bool Ref< T >::operator<=( Ref< T > const& other ) const NOEXCEPT
+	{
+		return !( other < *this );
+	}
+
+	template< typename T >
+	bool Ref< T >::operator>( Ref< T > const& other ) const NOEXCEPT
+	{
+		return other < *this;
+	}
+
+	template< typename T >
+	bool Ref< T >::operator>=( Ref< T > const& other ) const NOEXCEPT
+	{
+		return !( *this < other );
 	}
 
 	template< typename T >

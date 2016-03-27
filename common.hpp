@@ -5,6 +5,7 @@
 #define R_STRUCT( ... )
 #define R_METHOD( ... )
 #define R_EMIT( ... )
+#define R_ENUM( ... )
 #define R_END( ... )
 
 #if defined( _MSC_VER )

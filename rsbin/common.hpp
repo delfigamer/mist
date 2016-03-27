@@ -6,7 +6,7 @@
 namespace rsbin
 {
 	R_CLASS( name = rsbin )
-	class Common
+	struct Common
 	{
 	public:
 		R_METHOD() static bool isfileavailable( char const* path );

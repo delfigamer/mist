@@ -61,6 +61,8 @@ namespace graphics
 
 	void Display::finalize()
 	{
+		m_shape = nullptr;
+		Context::cleanup();
 		RELEASE( Context::Device );
 		RELEASE( Context::D3D );
 		m_hwnd = 0;

@@ -36,7 +36,7 @@ namespace graphics
 	};
 	static int const pfactortable[] =
 	{
-		0,
+		1,
 		1,
 		2,
 		1,
@@ -114,7 +114,8 @@ namespace graphics
 			return;
 		}
 		int vertexcount;
-		if( !vb->bind( &vertexcount ) )
+		VertexDeclaration* vdecl;
+		if( !vb->bind( &vertexcount, &vdecl ) )
 		{
 			return;
 		}
@@ -148,9 +149,7 @@ namespace graphics
 		checkerror( Context::Device->SetTextureStageState(
 			0, D3DTSS_COLOROP, D3DTOP_SELECTARG1 ) );
 		checkerror( Context::Device->SetTextureStageState(
-			0, D3DTSS_COLORARG1, D3DTA_CONSTANT ) );
-		checkerror( Context::Device->SetTextureStageState(
-			0, D3DTSS_CONSTANT, 0xff0000ff ) );
+			0, D3DTSS_COLORARG1, D3DTA_DIFFUSE ) );
 		// checkerror( Context::Device->DrawIndexedPrimitive(
 			// D3DPRIMITIVETYPE( m_type ),
 			// 0,

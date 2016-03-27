@@ -9,6 +9,8 @@ namespace graphics
 		IDirect3D9* D3D = 0;
 		IDirect3DDevice9* Device = 0;
 		utils::MPSCQueue< Resource* > Dead;
+		void* CurrentVertexDeclaration;
+		void* CurrentVertexBuffer;
 
 		void markdead( Resource* res )
 		{

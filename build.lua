@@ -179,7 +179,7 @@ local function build_methodlist(entry)
 			-g extraheaders "common.hpp cinttypes" \z
 			-g structname "methodlist" \z
 			-g packageprefix "host." \z
-			-g compactffi "true" \z
+			-g compactffi "false" \z
 			-g defaultlparent "base.ffipure" \z
 			-g fileprefix "%s" \z
 			bind.lua %s',
@@ -239,6 +239,7 @@ table.append(targets, {
 	target = 'offline utility/luac.cpp',
 	dependencies = {},
 	autodep = true,
+	issource = true,
 })
 table.append(targets, {
 	build = build_cpp,
@@ -262,6 +263,7 @@ table.append(targets, {
 	target = 'client-console/main.cpp',
 	dependencies = {},
 	autodep = true,
+	issource = true,
 })
 table.append(targets, {
 	build = build_cpp,
@@ -274,6 +276,7 @@ table.append(targets, {
 	target = 'client-main/main.cpp',
 	dependencies = {},
 	autodep = true,
+	issource = true,
 })
 table.append(targets, {
 	build = build_cpp,
@@ -288,17 +291,8 @@ for i, unit in ipairs{
 	'utils/configset',
 	'utils/console',
 	'utils/cyclicbuffer',
-	'utils/databuffer',
 	'utils/encoding',
-	'utils/flaglock',
-	'utils/mpsclist',
-	'utils/mpscqueue',
 	'utils/path',
-	'utils/profile',
-	'utils/ref',
-	'utils/refobject',
-	'utils/strexception',
-	'utils/string',
 	'rsbin/common',
 	'rsbin/fileio',
 	'rsbin/fsthread',
@@ -313,7 +307,9 @@ for i, unit in ipairs{
 	'graphics/resource',
 	'graphics/shape',
 	'graphics/shapegroup',
+	'graphics/staticvertexbuffer',
 	'graphics/vertexbuffer',
+	'graphics/vertexdeclaration',
 	'client-main/event',
 	'client-main/window',
 } do
@@ -321,11 +317,13 @@ for i, unit in ipairs{
 		target = unit .. '.cpp',
 		dependencies = {},
 		autodep = true,
+		issource = true,
 	})
 	table.append(targets, {
 		target = unit .. '.hpp',
 		dependencies = {},
 		autodep = true,
+		issource = true,
 	})
 	table.append(targets, {
 		build = build_cpp,
@@ -333,6 +331,29 @@ for i, unit in ipairs{
 		dependencies = {
 			unit .. '.cpp',
 		},
+	})
+end
+
+
+for i, unit in ipairs{
+	'common',
+	'osapi',
+	'utils/databuffer',
+	'utils/flaglock',
+	'utils/mpsclist',
+	'utils/mpscqueue',
+	'utils/profile',
+	'utils/ref',
+	'utils/refobject',
+	'utils/singleton',
+	'utils/strexception',
+	'utils/string',
+} do
+	table.append(targets, {
+		target = unit .. '.hpp',
+		dependencies = {},
+		autodep = true,
+		issource = true,
 	})
 end
 
@@ -373,7 +394,9 @@ table.append(targets, {
 		'graphics/resource.hpp',
 		'graphics/shape.hpp',
 		'graphics/shapegroup.hpp',
+		'graphics/staticvertexbuffer.hpp',
 		'graphics/vertexbuffer.hpp',
+		'graphics/vertexdeclaration.hpp',
 		'client-main/event.hpp',
 		'client-main/window.hpp',
 	},
@@ -432,6 +455,7 @@ for i, unit in ipairs{
 	table.append(targets, {
 		target = unit .. '.lua',
 		dependencies = {},
+		issource = true,
 	})
 	table.append(targets, {
 		build = build_lua,
@@ -503,22 +527,14 @@ end
 
 table.append(targets, {
 	build = build_exe,
-	target = 'output/client-console-' .. platform .. '.exe',
+	target = 'output/bin-' .. platform .. '/client-console.exe',
 	dependencies = {
 		builddir .. '/utils/cbase.o',
 		builddir .. '/utils/configset.o',
 		builddir .. '/utils/console.o',
 		builddir .. '/utils/cyclicbuffer.o',
-		builddir .. '/utils/databuffer.o',
 		builddir .. '/utils/encoding.o',
-		builddir .. '/utils/flaglock.o',
-		builddir .. '/utils/mpscqueue.o',
 		builddir .. '/utils/path.o',
-		builddir .. '/utils/profile.o',
-		builddir .. '/utils/ref.o',
-		builddir .. '/utils/refobject.o',
-		builddir .. '/utils/strexception.o',
-		builddir .. '/utils/string.o',
 		builddir .. '/rsbin/common.o',
 		builddir .. '/rsbin/fileio.o',
 		builddir .. '/rsbin/fsthread.o',
@@ -538,22 +554,14 @@ table.append(targets, {
 
 table.append(targets, {
 	build = build_exe,
-	target = 'output/client-main-' .. platform .. '.exe',
+	target = 'output/bin-' .. platform .. '/client-main.exe',
 	dependencies = {
 		builddir .. '/utils/cbase.o',
 		builddir .. '/utils/configset.o',
 		builddir .. '/utils/console.o',
 		builddir .. '/utils/cyclicbuffer.o',
-		builddir .. '/utils/databuffer.o',
 		builddir .. '/utils/encoding.o',
-		builddir .. '/utils/flaglock.o',
-		builddir .. '/utils/mpscqueue.o',
 		builddir .. '/utils/path.o',
-		builddir .. '/utils/profile.o',
-		builddir .. '/utils/ref.o',
-		builddir .. '/utils/refobject.o',
-		builddir .. '/utils/strexception.o',
-		builddir .. '/utils/string.o',
 		builddir .. '/rsbin/common.o',
 		builddir .. '/rsbin/fileio.o',
 		builddir .. '/rsbin/fsthread.o',
@@ -567,7 +575,9 @@ table.append(targets, {
 		builddir .. '/graphics/resource.o',
 		builddir .. '/graphics/shape.o',
 		builddir .. '/graphics/shapegroup.o',
+		builddir .. '/graphics/staticvertexbuffer.o',
 		builddir .. '/graphics/vertexbuffer.o',
+		builddir .. '/graphics/vertexdeclaration.o',
 		builddir .. '/client-main/luainit.o',
 		builddir .. '/client-main/main.o',
 		builddir .. '/client-main/methodlist.o',
@@ -586,8 +596,8 @@ table.append(targets, {
 table.append(targets, {
 	target = 'all',
 	dependencies = {
-		'output/client-console-' .. platform .. '.exe',
-		'output/client-main-' .. platform .. '.exe',
+		'output/bin-' .. platform .. '/client-console.exe',
+		'output/bin-' .. platform .. '/client-main.exe',
 	},
 })
 
@@ -627,6 +637,18 @@ for i, entry in ipairs(targets) do
 	end
 end
 
+-- add backward links to the dependency graph
+-- do
+	-- for i, entry in ipairs(targets) do
+		-- entry.follows = {}
+	-- end
+	-- for i, entry in ipairs(targets) do
+		-- for i, dep in ipairs(entry.dependencies) do
+			-- table.append(targets[dep].follows, entry.target)
+		-- end
+	-- end
+-- end
+
 local function add_target(list, set, tname)
 	if set[tname] then
 		return list
@@ -643,6 +665,7 @@ local function add_target(list, set, tname)
 	return list
 end
 
+-- sort targets according to dependencies
 do
 	local result = {}
 	local ready = {}
@@ -686,58 +709,89 @@ for i, dep in ipairs{
 	builddir .. '/luainit',
 	builddir .. '/client-console',
 	builddir .. '/client-main',
+	'output/bin-' .. platform
 } do
 	execute_noerr(string.format(
 		'md "%s"',
 		path(dep)))
 end
 
-local timemap
+-- load the state of previous build
+local buildstate
 do
-	local f = loadfile(path(builddir .. '/timemap.lua'), 't', '', {})
+	local f = loadfile(path(builddir .. '/buildstate.lua'), 't', '', {})
 	local suc, ret = pcall(f)
-	if ret and type(ret) == 'table' then
-		timemap = ret
+	if type(ret) == 'table' and
+		type(ret.timemap) == 'table' and
+		type(ret.updatemap) == 'table'
+	then
+		buildstate = ret
 	end
 end
-timemap = timemap or {}
+buildstate = buildstate or {
+	timemap = {},
+	updatemap = {},
+}
 
-local function savetimemap()
-	local f = io.open(path(builddir .. '/timemap.lua'), 'w')
+local function savebuildstate()
+	local f = io.open(path(builddir .. '/buildstate.lua'), 'w')
 	if not f then
 		return
 	end
-	f:write('return {\n')
-	for k, v in pairs(timemap) do
-		f:write(string.format('[%q] = %s,\n',
+	f:write('return {\n\ttimemap = {\n')
+	for k, v in pairs(buildstate.timemap) do
+		f:write(string.format('\t\t[%q] = %s,\n',
 			k, v))
 	end
-	f:write('}')
+	f:write('\t},\n\tupdatemap = {\n')
+	for k, v in pairs(buildstate.updatemap) do
+		f:write(string.format('\t\t[%q] = %s,\n',
+			k, v))
+	end
+	f:write('\t},\n}\n')
 	f:close()
 end
 
+-- detect changes and propagate them through the graph
 for i, entry in ipairs(targets) do
 	entry_filltime(entry)
-	if entry.time and
-		(not timemap[entry.target] or entry.time > timemap[entry.target]) or
-		timemap[entry.target] == 0
+	if entry.time and entry.issource and
+		(not buildstate.timemap[entry.target] or
+			entry.time > buildstate.timemap[entry.target]) or
+		entry.target == currenttarget
 	then
 		print('', entry.target)
-		entry.changed = true
-	end
-	for j, dep in ipairs(entry.dependencies) do
-		local depentry = targets[dep]
-		if depentry.changed or depentry.update then
-			entry.update = true
-			break
+		buildstate.updatemap[entry.target] = true
+	else
+		for j, dep in ipairs(entry.dependencies) do
+			local depentry = targets[dep]
+			if buildstate.updatemap[dep] then
+				buildstate.updatemap[entry.target] = true
+				break
+			end
 		end
 	end
-	if (entry.update or entry.alwaysbuild) and entry.build then
-		timemap[entry.target] = 0
-		savetimemap()
-		entry:build()
-		entry_filltime(entry)
+end
+
+savebuildstate()
+
+local function buildtargets()
+	for i, entry in ipairs(targets) do
+		if (buildstate.updatemap[entry.target] or entry.alwaysbuild) and
+			entry.build
+		then
+			entry:build()
+			entry_filltime(entry)
+		end
+		buildstate.timemap[entry.target] = entry.time
+		buildstate.updatemap[entry.target] = nil
 	end
-	timemap[entry.target] = entry.time
-	savetimemap()
+end
+
+do
+	local suc, ret = pcall(buildtargets)
+	savebuildstate()
+	if not suc then
+		error(ret)
+	end
 end

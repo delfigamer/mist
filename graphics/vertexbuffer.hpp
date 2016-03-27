@@ -2,6 +2,9 @@
 #define GRAPHICS_VERTEXBUFFER_HPP__ 1
 
 #include <graphics/resource.hpp>
+#include <graphics/vertexdeclaration.hpp>
+#include <utils/databuffer.hpp>
+#include <utils/ref.hpp>
 #include <common.hpp>
 
 namespace graphics
@@ -10,9 +13,10 @@ namespace graphics
 	class VertexBuffer: public Resource
 	{
 	protected:
-		IDirect3DVertexDeclaration9* m_vertexdeclaration;
-		IDirect3DVertexBuffer9* m_buffer;
-		int m_vertexcount;
+		utils::Ref< VertexDeclaration > m_vertexdeclaration;
+		IDirect3DVertexBuffer9* m_vertexbuffer;
+		int m_buffercapacity;
+		int m_buffersize;
 
 		virtual void doadvance() override;
 
@@ -22,12 +26,7 @@ namespace graphics
 		VertexBuffer( VertexBuffer const& ) = delete;
 		VertexBuffer& operator=( VertexBuffer const& ) = delete;
 
-		bool bind( int* vertexcount );
-
-		R_METHOD() static VertexBuffer* create()
-		{
-			return new VertexBuffer();
-		}
+		bool bind( int* vertexcount, VertexDeclaration** pvd );
 	};
 }
 

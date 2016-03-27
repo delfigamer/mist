@@ -79,16 +79,26 @@ namespace utils
 		if( !defaultbase )
 		{
 #if defined( _WIN32 ) || defined( _WIN64 )
-			int cwdlength = GetCurrentDirectoryW( 0, 0 ) - 1;
-			int buflen = cwdlength * 2 + 8;
-			Ref< DataBuffer > db = DataBuffer::create( buflen, buflen, 0 );
+			int cwdlength = GetFullPathNameW( PATH_START_W, 0, 0, 0 );
+			Ref< DataBuffer > db = DataBuffer::create( 0, cwdlength * 2 + 8, 0 );
 			memcpy( db->m_data, L"\\\\\?\\", 8 );
-			GetCurrentDirectoryW( cwdlength + 1, ( LPWSTR )( db->m_data + 8 ) );
+			cwdlength = GetFullPathNameW( PATH_START_W, cwdlength + 1,
+				LPWSTR( db->m_data + 8 ), 0 );
+			wchar_t* buf = ( wchar_t* )db->m_data;
+			if( buf[ cwdlength + 3 ] == '\\' )
+			{
+				db->m_length = cwdlength * 2 + 6;
+			}
+			else
+			{
+				db->m_length = cwdlength * 2 + 8;
+			}
 			defaultbase = Ref< Path >::create( db, nullptr );
 			defaultbase->combine();
 #else
 			static char const path[] = PATH_START;
-			Ref< DataBuffer > db = DataBuffer::create( sizeof( path ) - 2, sizeof( path ) - 2, path );
+			Ref< DataBuffer > db = DataBuffer::create(
+				sizeof( path ) - 2, sizeof( path ) - 2, path );
 			defaultbase = Ref< Path >::create( db, nullptr );
 #endif
 		}

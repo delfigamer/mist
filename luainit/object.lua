@@ -17,7 +17,7 @@ end
 
 function object:derive(target, modname)
 	assert(modname)
-	local new = object.copy(self, target)
+	local new = setmetatable(target or {}, {__index = self})
 	new.instmeta = object.copy(self.instmeta)
 	new.instmeta.__index = new
 	new._NAME = modname
