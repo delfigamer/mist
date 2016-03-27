@@ -396,7 +396,11 @@ local function build_method(method)
 		end
 		cdefargstr[1] = method.class.fcname .. cv .. '* self'
 		ffidefargstr[1] = method.class.lname .. cv .. '* self'
-		luacallargstr[1] = 'self.ptr'
+		if method.class.needsbox then
+			luacallargstr[1] = 'self.ptr'
+		else
+			luacallargstr[1] = 'self'
+		end
 		cfuncstr = 'self->' .. method.cname
 	end
 	for i, arg in ipairs(method.arglist) do
