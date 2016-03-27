@@ -23,6 +23,8 @@ For example, under 32-bit versions of Windows, the build system will search for 
 ## Building
 The engine uses a custom LuaJIT script for building. If supported, it may be run by the system's default Lua interpreter. Otherwise, it's possible to build and use the "luaclient" program included there.
 
+The intended compiler is MinGW. The engine uses `std::thread`, which is currently only supported by `threads-posix` branch. You can find it [here](https://sourceforge.net/projects/mingwbuilds/files/host-windows/releases/).
+
 When ready, run the "build.lua" script in the project's root directory.
 
 Once built, only the contents of `output` folder are required and used by the engine. The `build` folder contains intermediate files.
