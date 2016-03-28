@@ -1,8 +1,7 @@
 local modname = ...
-module(modname, package.seeall)
+local index = package.modtable(modname)
 -- local ffi = require('ffi')
 local host = require('host')
-local window = require('host.window')
 
 local getch
 local ungetch
@@ -262,41 +261,35 @@ local function obtaininput()
 	return str
 end
 
-function register()
-	log('entered interactive mode')
-	local terminate = false
+log('entered interactive mode')
+local terminate = false
 
-	local function exit()
-		terminate = true
-	end
+local function exit()
+	terminate = true
+end
 
-	local fenv = setmetatable({exit = exit}, {__index = _G})
-	fenv._ENV = fenv
-	print('Interactive input. Call "exit()" to continue\n')
+local fenv = setmetatable({exit = exit}, {__index = _G})
+fenv._ENV = fenv
+print('Interactive input. Call "exit()" to continue\n')
 
-	while not terminate do
-		local str = obtaininput()
-		local func, err = loadstring('print(' .. str .. ')', nil, nil, fenv)
+while not terminate do
+	local str = obtaininput()
+	local func, err = loadstring('print(' .. str .. ')', nil, nil, fenv)
+	if func then
+		local suc, err = pcall(func)
+		if not suc then
+			print(err)
+		end
+	else
+		func, err = loadstring(str, nil, nil, fenv)
 		if func then
 			local suc, err = pcall(func)
 			if not suc then
 				print(err)
 			end
 		else
-			func, err = loadstring(str, nil, nil, fenv)
-			if func then
-				local suc, err = pcall(func)
-				if not suc then
-					print(err)
-				end
-			else
-				print(err)
-			end
+			print(err)
 		end
 	end
-	log('exited from interactive mode')
-	window:finish()
 end
-
-function unregister()
-end
+log('exited from interactive mode')
