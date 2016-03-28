@@ -96,7 +96,7 @@ namespace graphics
 		}
 	{
 		m_type.store( RANGE_ASSERT(
-				type, 0, Primitive_Invalid, "primitive type" ),
+				type, 0, primitivetype::invalid, "primitive type" ),
 			std::memory_order_release );
 	}
 

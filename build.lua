@@ -179,7 +179,7 @@ local function build_methodlist(entry)
 			-g extraheaders "common.hpp cinttypes" \z
 			-g structname "methodlist" \z
 			-g packageprefix "host." \z
-			-g compactffi "false" \z
+			-g compactffi "true" \z
 			-g defaultlparent "base.ffipure" \z
 			-g fileprefix "%s" \z
 			bind.lua %s',

@@ -57,15 +57,15 @@ namespace utils
 				length -= trstruct.sourceresult;
 				switch( trresult )
 				{
-				case translate_success:
-				case translate_source_overrun:
+				case translate::success:
+				case translate::source_overrun:
 					return;
 
-				case translate_dest_unsupported:
+				case translate::dest_unsupported:
 					syserror();
 					break;
 
-				case translate_dest_overrun:
+				case translate::dest_overrun:
 					break;
 				}
 			}

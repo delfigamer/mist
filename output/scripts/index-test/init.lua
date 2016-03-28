@@ -39,12 +39,12 @@ do
 	vdeclelems[0] = {
 		attribute = 0,
 		offset = ffi.offsetof('Vertex', 'pos'),
-		format = 1, -- VertexElementFormat_Float2
+		format = vertexdeclaration.format.float2,
 	}
 	vdeclelems[1] = {
 		attribute = 1,
 		offset = ffi.offsetof('Vertex', 'color'),
-		format = 7, -- VertexElementFormat_UByte4N
+		format = vertexdeclaration.format.ubyte4n,
 	}
 	local vdecl = vertexdeclaration:create(vdecldata, ffi.sizeof('Vertex'))
 

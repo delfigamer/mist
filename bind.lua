@@ -19,7 +19,7 @@ end
 --     release
 --     noluamethod
 --   R_STRUCT() ... R_END()
--- R_ENUM() -- NYI
+-- R_ENUM()
 --   name = "..."
 -- R_EMIT() ... R_END()
 --   target =
@@ -43,6 +43,7 @@ end
 --     lua_start
 --     lua_beforeclasses
 --     lua_beforemethods
+--     lua_beforeenums
 --     lua_beforemetatypes
 --     lua_end
 
@@ -129,6 +130,7 @@ end
 local header_list = {}
 local class_list = {}
 local method_list = {}
+local enum_list = {}
 local emit_list = {}
 
 local function parse_metastr(input)
@@ -254,6 +256,41 @@ local function parse_class(ns, metastr, keyword, cname, parentstr, body)
 	return ''
 end
 
+local function parse_enumfield(ns, enum, name, value)
+	local nv = tonumber(value)
+	if nv then
+		table.append(enum.fields, {
+			name = name,
+			value = nv,
+		})
+	end
+end
+
+local function parse_enum(ns, metastr, cname, body)
+	local meta = parse_metastr(metastr)
+	local enum = {
+		meta = meta,
+		cname = cname,
+		lname = meta.name or cname,
+		namespace = ns,
+		fields = {},
+	}
+	table.append(enum_list, enum)
+	body = string.gsub(
+		body,
+		'/%*.-%*/',
+		'')
+	body = string.gsub(
+		body,
+		'//[^\n]*',
+		'')
+	body = string.gsub(
+		body,
+		'%s*([%a_][%w_]*)%s*=%s*([xX%x]+)%s*,',
+		bind(parse_enumfield, ns, enum))
+	return ''
+end
+
 local function parse_emit(metastr, content)
 	local meta = parse_metastr(metastr)
 	local part = {
@@ -274,6 +311,12 @@ local function parse_namespace_body(ns, body)
 			(.-)\z
 			R_END%b()',
 		parse_emit)
+	body = string.gsub(
+		body,
+		'R_ENUM(%b())%s*\z
+			namespace%s+([%a_][%w_]*)%s*{%s*enum%s*\z
+			(%b{})%s*;%s*}',
+		bind(parse_enum, ns))
 	body = string.gsub(
 		body,
 		'namespace%s+([%a_][%w_]*)%s*\z
@@ -519,6 +562,20 @@ local function build_method(method)
 	end
 end
 
+local function build_enum(enum)
+	local fieldstr = {}
+	for i, field in ipairs(enum.fields) do
+		fieldstr[i] = '\t[\'' .. field.name .. '\'] = \z
+			' .. tostring(field.value) .. ',\n'
+	end
+	fieldstr = table.concat(fieldstr)
+	enum.luadef = 'local ' .. enum.lname .. ' = package.modtable(\z
+		\'' .. packageprefix .. enum.lname .. '\', \z
+		table.makeenum{\n\z
+		' .. fieldstr .. '\z
+		})\n'
+end
+
 local function construct_class_defs()
 	local defs = {
 		classes = {},
@@ -683,6 +740,10 @@ local function emit_lua()
 	for i, method in ipairs(method_list) do
 		mllua:write(method.luamethod)
 	end
+	emit_direct(mllua, 'lua_beforeenums')
+	for i, enum in ipairs(enum_list) do
+		mllua:write(enum.luadef)
+	end
 	emit_direct(mllua, 'lua_beforemetatypes')
 	for i, class in ipairs(class_list) do
 		mllua:write(class.luametabuild)
@@ -712,6 +773,9 @@ local function main()
 	sort_class_list()
 	for i, method in ipairs(method_list) do
 		build_method(method)
+	end
+	for i, enum in ipairs(enum_list) do
+		build_enum(enum)
 	end
 	emit_hpp()
 	emit_cpp()

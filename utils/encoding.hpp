@@ -56,16 +56,21 @@ R_END()
 		extern encoding_t const utf16be;
 		extern encoding_t const utf32le;
 		extern encoding_t const utf32be;
-		enum indices
+
+		R_ENUM( name = encodingindex )
+		namespace index
 		{
-			index_utf8 = 0,
-			index_utf16 = 1,
-			index_utf32 = 2,
-			index_utf16le = 3,
-			index_utf16be = 4,
-			index_utf32le = 5,
-			index_utf32be = 6,
-		};
+			enum
+			{
+				utf8 = 0,
+				utf16 = 1,
+				utf32 = 2,
+				utf16le = 3,
+				utf16be = 4,
+				utf32le = 5,
+				utf32be = 6,
+			};
+		}
 	}
 
 	R_CLASS()
@@ -84,14 +89,18 @@ R_END()
 	R_END()
 	};
 
-	enum
+	R_ENUM( name = translateresult )
+	namespace translate
 	{
-		translate_success = 1,
-		translate_source_overrun = 2,
-		translate_source_corrupted = 3,
-		translate_dest_unsupported = 4,
-		translate_dest_overrun = 5,
-	};
+		enum
+		{
+			success = 1,
+			source_overrun = 2,
+			source_corrupted = 3,
+			dest_unsupported = 4,
+			dest_overrun = 5,
+		};
+	}
 
 	int translatestr( translation_t* translation );
 

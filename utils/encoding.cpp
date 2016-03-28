@@ -494,7 +494,7 @@ namespace utils
 		uint32_t defaultchar = translation->defaultchar;
 		size_t sourceresult = 0;
 		size_t destresult = 0;
-		int resultcode = translate_success;
+		int resultcode = translate::success;
 		while( sourcesize != 0 )
 		{
 			uint32_t charcode;
@@ -506,14 +506,14 @@ namespace utils
 			{
 				if( spointlength == 0 )
 				{
-					resultcode = translate_source_overrun;
+					resultcode = translate::source_overrun;
 					break;
 				}
 				else
 				{
 					if( defaultchar == 0 )
 					{
-						resultcode = translate_source_corrupted;
+						resultcode = translate::source_corrupted;
 						break;
 					}
 					else
@@ -532,12 +532,12 @@ namespace utils
 			{
 				if( dpointlength == 0 )
 				{
-					resultcode = translate_dest_unsupported;
+					resultcode = translate::dest_unsupported;
 					break;
 				}
 				else
 				{
-					resultcode = translate_dest_overrun;
+					resultcode = translate::dest_overrun;
 					break;
 				}
 			}

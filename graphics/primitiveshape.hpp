@@ -13,36 +13,55 @@
 
 namespace graphics
 {
+	R_ENUM()
+	namespace blendfunc
+	{
+		enum
+		{
+			add = 0,
+			subtract = 1,
+			invsubtract = 2,
+			invalid = 3,
+		};
+	}
+
+	R_ENUM()
+	namespace blendfactor
+	{
+		enum
+		{
+			zero = 0,
+			one = 1,
+			source = 2,
+			invsource = 3,
+			dest = 4,
+			invdest = 5,
+			sourcealpha = 6,
+			invsourcealpha = 7,
+			destalpha = 8,
+			invdestalpha = 9,
+			invalid = 10,
+		};
+	}
+
+	R_ENUM( name = primitivetype )
+	namespace primitivetype
+	{
+		enum
+		{
+			pointlist = 0,
+			linestrip = 1,
+			linelist = 2,
+			trianglestrip = 3,
+			trianglefan = 4,
+			trianglelist = 5,
+			invalid = 6,
+		};
+	}
+
 	R_CLASS( name = primitiveshape )
 	class PrimitiveShape: public Shape
 	{
-	public:
-		enum
-		{
-			Method_Add = 0,
-			Method_Subtract = 1,
-			Method_RevSubtract = 2,
-			Method_Invalid = 3,
-			Factor_Zero = 0,
-			Factor_One = 1,
-			Factor_Source = 2,
-			Factor_InvSource = 3,
-			Factor_Dest = 4,
-			Factor_InvDest = 5,
-			Factor_SourceAlpha = 6,
-			Factor_InvSourceAlpha = 7,
-			Factor_DestAlpha = 8,
-			Factor_InvDestAlpha = 9,
-			Factor_Invalid = 10,
-			Primitive_PointList = 0,
-			Primitive_LineStrip = 1,
-			Primitive_LineList = 2,
-			Primitive_TriangleStrip = 3,
-			Primitive_TriangleFan = 4,
-			Primitive_TriangleList = 5,
-			Primitive_Invalid = 6,
-		};
-
 	private:
 		typedef utils::FlagLock mutex_t;
 		typedef std::lock_guard< mutex_t > lock_t;

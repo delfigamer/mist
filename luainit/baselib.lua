@@ -238,6 +238,15 @@ function table.makeset(list)
 	return r
 end
 
+function table.makeenum(list)
+	local r = {}
+	for n, v in pairs(list) do
+		r[n] = v
+		r[v] = n
+	end
+	return r
+end
+
 function table.pack(...)
 	return {
 		count = select('#', ...),
@@ -248,8 +257,9 @@ end
 local native_unpack = unpack
 
 function table.unpack(t, a, b)
-	a = a or 1
-	b = b or t.count or #t
+	local count = t.count or #t
+	a = a and (a > 0 and a or count + 1 - a) or 1
+	b = b and (b > 0 and b or count + 1 - b) or count
 	return native_unpack(t, a, b)
 end
 
