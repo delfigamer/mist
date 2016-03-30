@@ -1,411 +1,168 @@
-do
-	local gt = setmetatable({}, {
-		__index = _G,
-		__newindex = function(t,i,v)
-			error('attempt to set global ' .. tostring(i))
-		end,
-	})
-	_G = gt
-	setfenv(1, gt)
-end
+assert(loadfile('base.lua'))()
+local env = require('env')
+local sources = require('build-sources')
 
 local currenttarget = ...
 currenttarget = currenttarget or 'all'
 
+-- additional arguments:
+--   platform = 'win32'|'win64'
+--   configuration = 'debug'
+--   dryrun = true|false
+
 local ffi = require('ffi')
 
-function table.append(arr, item)
-	local pos = #arr + 1
-	arr[pos] = item
-	return pos
+local platform = {
+	['win32'] = true,
+	['win64'] = true,
+}
+if _G.platform then
+	platform = platform[_G.platform] and _G.platform or error('unknown platform')
+else
+	platform = ({
+		['Windows-x86'] = 'win32',
+		['Windows-x64'] = 'win64',
+	})[ffi.os .. '-' .. ffi.arch] or error('unknown platform')
 end
 
-function table.pop(arr)
-	local pos = #arr
-	local item = arr[pos]
-	arr[pos] = nil
-	return item
+local configuration = {
+	['debug'] = {
+		debug = true,
+	},
+}
+if _G.configuration then
+	configuration = configuration[_G.configuration] or
+		error('unknown configuration')
+else
+	configuration = configuration['debug']
 end
 
-local path_sep = ffi.abi('win') and '\\' or '/'
-
-local function path(str)
-	return string.gsub(str, '/', path_sep)
-end
-
-local platform = _G.platform or ({
-	['Windows-x86'] = 'win32',
-	['Windows-x64'] = 'win64',
-})[ffi.os .. '-' .. ffi.arch] or error('unknown platform')
+local dryrun = not not _G.dryrun
 
 local builddir = 'build/' .. platform
 local luacpath = builddir .. '/luac.exe'
 
-local function execute(str)
-	print(str)
-	if os.execute(str) ~= 0 then
-		error('build failed')
-	end
-end
-
-local function execute_noerr(str)
-	print(str)
-	os.execute(str)
-end
-
-ffi.cdef[[
-typedef struct
-{
-	uint16_t wYear;
-	uint16_t wMonth;
-	uint16_t wDayOfWeek;
-	uint16_t wDay;
-	uint16_t wHour;
-	uint16_t wMinute;
-	uint16_t wSecond;
-	uint16_t wMilliseconds;
-} systemtime_t;
-void __stdcall GetSystemTime(
-	systemtime_t* lpSystemTime
-);
-bool __stdcall SystemTimeToFileTime(
-	systemtime_t const* lpSystemTime,
-	uint64_t* lpFileTime
-);
-bool __stdcall CloseHandle(
-	void const* hObject
-);
-void const* __stdcall CreateFileA(
-	char const* lpFileName,
-	uint32_t dwDesiredAccess,
-	uint32_t dwShareMode,
-	void const* lpSecurityAttributes,
-	uint32_t dwCreationDisposition,
-	uint32_t dwFlagsAndAttributes,
-	void const* hTemplateFile
-);
-bool __stdcall GetFileTime(
-	void const* hFile,
-	uint64_t* lpCreationTime,
-	uint64_t* lpLastAccessTime,
-	uint64_t* lpLastWriteTime
-);
-bool __stdcall SetFileTime(
-	void const* hFile,
-	uint64_t const* lpCreationTime,
-	uint64_t const* lpLastAccessTime,
-	uint64_t const* lpLastWriteTime
-);
-]]
-
-local function getcurrenttime()
-	local cst = ffi.new('systemtime_t[1]')
-	ffi.C.GetSystemTime(cst)
-	local lwt = ffi.new('uint64_t[1]')
-	if ffi.C.SystemTimeToFileTime(cst, lwt) then
-		return lwt[0]
-	else
-		error('cannot get current time')
-	end
-end
-
-local function entry_filltime(entry)
-	local handle = ffi.C.CreateFileA(
-		path(entry.target),
-		0x80000000, -- GENERIC_READ
-		7, -- FILE_SHARE_READ || FILE_SHARE_WRITE || FILE_SHARE_DELETE
-		nil,
-		3, -- OPEN_EXISTING
-		0x80, -- FILE_ATTRIBUTE_NORMAL
-		nil)
-	if handle ~= nil then
-		local lwt = ffi.new('uint64_t[1]')
-		if ffi.C.GetFileTime(handle, nil, nil, lwt) then
-			entry.time = lwt[0]
-		end
-		ffi.C.CloseHandle(handle)
-	end
-end
-
-local function build_touch(entry)
-	print('touch ' .. path(entry.target))
-	local handle = ffi.C.CreateFileA(
-		path(entry.target),
-		0x40000000, -- GENERIC_WRITE
-		7, -- FILE_SHARE_READ || FILE_SHARE_WRITE || FILE_SHARE_DELETE
-		nil,
-		3, -- OPEN_EXISTING
-		0x80, -- FILE_ATTRIBUTE_NORMAL
-		nil)
-	if handle ~= nil then
-		local cst = ffi.new('systemtime_t[1]')
-		ffi.C.GetSystemTime(cst)
-		local lwt = ffi.new('uint64_t[1]')
-		if ffi.C.SystemTimeToFileTime(cst, lwt) then
-			ffi.C.SetFileTime(handle, nil, nil, lwt)
-		end
-		ffi.C.CloseHandle(handle)
-	end
-end
-
 local function build_clean(entry)
 	for i, dep in ipairs(entry.directories) do
-		execute_noerr(string.format(
-			'rd /s /q "%s"',
-			path(dep)))
+		print('rmdir', dep)
+		if not dryrun then
+			env.rmdir(dep)
+		end
 	end
 	for i, dep in ipairs(entry.files) do
-		execute_noerr(string.format(
-			'del /q "%s"',
-			path(dep)))
+		print('rm', dep)
+		if not dryrun then
+			env.rm(dep)
+		end
 	end
+	return true
 end
 
-local build_lua_format = path(luacpath) .. ' "%s" "%s"'
+function env.luac(t)
+	return
+		env.makepath(t.target) and
+		env.execute(env.path(luacpath) .. ' \z
+			"' .. env.path(t.target) .. '" \z
+			"' .. env.path(t.source) ..  '" \z
+			' .. t.flags)
+end
+
 local function build_lua(entry)
-	execute(string.format(
-		build_lua_format,
-		path(entry.target), path(entry.dependencies[1])))
+	print('luac', entry.target)
+	return dryrun or env.luac{
+		target = entry.target,
+		source = entry.source,
+		flags = configuration.debug and '' or 'd',
+	}
 end
 
 local function build_methodlist(entry)
-	local depstr = {}
-	for i, dep in ipairs(entry.dependencies) do
-		depstr[i] = '"' .. path(dep) .. '"'
-	end
-	execute(string.format(
-		'lua \z
-			-g extraclasses "" \z
-			-g extraheaders "common.hpp cinttypes" \z
-			-g structname "methodlist" \z
-			-g packageprefix "host." \z
-			-g compactffi "true" \z
-			-g defaultlparent "base.ffipure" \z
-			-g fileprefix "%s" \z
-			bind.lua %s',
-		path(entry.target), table.concat(depstr, ' ')))
+	print('methodlist', entry.target)
+	return dryrun or
+		env.makepath(entry.target) and
+		env.lua{
+			vars = {
+				extraclasses = '',
+				extraheaders = 'common.hpp cinttypes',
+				structname = 'methodlist',
+				packageprefix = 'host.',
+				compactffi = configuration.debug and 'false' or 'true',
+				defaultparent = 'base.ffipure',
+				fileprefix = env.path(entry.target),
+			},
+			script = 'bind.lua',
+			args = entry.items,
+		}
 end
 
 local function build_luainit(entry)
-	local depstr = {}
-	for i, dep in ipairs(entry.dependencies) do
-		depstr[i] = '"' .. path(dep) .. '"'
-	end
-	execute(string.format(
-		'lua \z
-			-g structname "luainit" \z
-			-g fileprefix "%s" \z
-			embed.lua %s',
-		path(entry.target), table.concat(depstr, ' ')))
+	print('luainit', entry.target)
+	return dryrun or
+		env.makepath(entry.target) and
+		env.lua{
+			vars = {
+				structname = 'luainit',
+				fileprefix = env.path(entry.target),
+			},
+			script = 'embed.lua',
+			args = entry.items,
+		}
 end
 
-local build_cpp_format =
-	'g++ \z
-		-o "%s" \z
-		"%s" \z
-		-c \z
-		-O2 \z
-		-Wall -Werror \z
-		-I. \z
-		"-I' .. path(builddir) .. '" \z
-		-std=c++11 \z
-		-pipe'
 local function build_cpp(entry)
-	execute(string.format(
-		build_cpp_format,
-		path(entry.target), path(entry.dependencies[1])))
+	print('compile', entry.target)
+	return dryrun or env.compile{
+		target = entry.target,
+		source = entry.source,
+		incpath = builddir,
+	}
 end
 
 local function build_exe(entry)
-	local depstr = {}
-	for i = 1, #entry.dependencies do
-		depstr[i] = '"' .. path(entry.dependencies[i]) .. '"'
-	end
-	local libstr = {}
-	for i = 1, #entry.libraries do
-		libstr[i] = '-l' .. entry.libraries[i]
-	end
-	execute(string.format(
-		'g++ -o "%s" %s \z
-			-pipe \z
-			-L. \z
-			%s',
-		path(entry.target), table.concat(depstr, ' '), table.concat(libstr, ' ')))
+	print('link', entry.target)
+	return dryrun or env.link{
+		target = entry.target,
+		items = entry.items,
+		libs = entry.libraries,
+	}
 end
 
 local targets = {}
 
 table.append(targets, {
-	target = 'offline utility/luac.cpp',
-	dependencies = {},
-	autodep = true,
+	target = 'luac.cpp',
 	issource = true,
+	autodep = true,
 })
 table.append(targets, {
 	build = build_cpp,
 	target = builddir .. '/luac.o',
-	dependencies = {
-		'offline utility/luac.cpp',
-	},
+	source = 'luac.cpp',
 })
 table.append(targets, {
 	build = build_exe,
 	target = luacpath,
-	dependencies = {
-		builddir .. '/luac.o',
+	items = {
+		builddir .. '/luac.o'
 	},
 	libraries = {
 		'luajit-' .. platform,
 	},
 })
 
-table.append(targets, {
-	target = 'client-console/main.cpp',
-	dependencies = {},
-	autodep = true,
-	issource = true,
-})
-table.append(targets, {
-	build = build_cpp,
-	target = builddir .. '/client-console/main.o',
-	dependencies = {
-		'client-console/main.cpp',
-	},
-})
-table.append(targets, {
-	target = 'client-main/main.cpp',
-	dependencies = {},
-	autodep = true,
-	issource = true,
-})
-table.append(targets, {
-	build = build_cpp,
-	target = builddir .. '/client-main/main.o',
-	dependencies = {
-		'client-main/main.cpp',
-	},
-})
-
-for i, unit in ipairs{
-	'utils/cbase',
-	'utils/configset',
-	'utils/console',
-	'utils/cyclicbuffer',
-	'utils/encoding',
-	'utils/path',
-	'rsbin/common',
-	'rsbin/fileio',
-	'rsbin/fsthread',
-	'rsbin/pngreader',
-	'rsbin/pngwriter',
-	'client-console/window',
-	'graphics/clearshape',
-	'graphics/common',
-	'graphics/context',
-	'graphics/display',
-	'graphics/primitiveshape',
-	'graphics/resource',
-	'graphics/shape',
-	'graphics/shapegroup',
-	'graphics/staticvertexbuffer',
-	'graphics/vertexbuffer',
-	'graphics/vertexdeclaration',
-	'client-main/event',
-	'client-main/window',
-} do
-	table.append(targets, {
-		target = unit .. '.cpp',
-		dependencies = {},
-		autodep = true,
-		issource = true,
-	})
-	table.append(targets, {
-		target = unit .. '.hpp',
-		dependencies = {},
-		autodep = true,
-		issource = true,
-	})
-	table.append(targets, {
-		build = build_cpp,
-		target = builddir .. '/' .. unit .. '.o',
-		dependencies = {
-			unit .. '.cpp',
-		},
-	})
-end
-
-
-for i, unit in ipairs{
-	'common',
-	'osapi',
-	'utils/databuffer',
-	'utils/flaglock',
-	'utils/mpsclist',
-	'utils/mpscqueue',
-	'utils/profile',
-	'utils/ref',
-	'utils/refobject',
-	'utils/singleton',
-	'utils/strexception',
-	'utils/string',
-} do
-	table.append(targets, {
-		target = unit .. '.hpp',
-		dependencies = {},
-		autodep = true,
-		issource = true,
-	})
-end
-
-table.append(targets, {
-	build = build_methodlist,
-	target = builddir .. '/client-console/methodlist',
-	dependencies = {
-		'utils/cbase.hpp',
-		'utils/configset.hpp',
-		'utils/databuffer.hpp',
-		'utils/encoding.hpp',
-		'utils/refobject.hpp',
-		'rsbin/common.hpp',
-		'rsbin/fsthread.hpp',
-		'rsbin/fileio.hpp',
-		'rsbin/pngreader.hpp',
-		'rsbin/pngwriter.hpp',
-		'client-console/window.hpp',
-	},
-})
-
-table.append(targets, {
-	build = build_methodlist,
-	target = builddir .. '/client-main/methodlist',
-	dependencies = {
-		'utils/cbase.hpp',
-		'utils/configset.hpp',
-		'utils/databuffer.hpp',
-		'utils/encoding.hpp',
-		'utils/refobject.hpp',
-		'rsbin/common.hpp',
-		'rsbin/fsthread.hpp',
-		'rsbin/fileio.hpp',
-		'rsbin/pngreader.hpp',
-		'rsbin/pngwriter.hpp',
-		'graphics/clearshape.hpp',
-		'graphics/primitiveshape.hpp',
-		'graphics/resource.hpp',
-		'graphics/shape.hpp',
-		'graphics/shapegroup.hpp',
-		'graphics/staticvertexbuffer.hpp',
-		'graphics/vertexbuffer.hpp',
-		'graphics/vertexdeclaration.hpp',
-		'client-main/event.hpp',
-		'client-main/window.hpp',
-	},
-})
-
+local methodlist_items = {
+	console = {},
+	main = {},
+}
 for i, clientname in ipairs{
 	'console',
 	'main',
 } do
+	table.append(targets, {
+		build = build_methodlist,
+		target = builddir .. '/client-' .. clientname .. '/methodlist',
+		items = methodlist_items[clientname],
+	})
 	table.append(targets, {
 		target = builddir .. '/client-' .. clientname .. '/methodlist.cpp',
 		dependencies = {
@@ -433,36 +190,12 @@ for i, clientname in ipairs{
 	table.append(targets, {
 		build = build_cpp,
 		target = builddir .. '/client-' .. clientname .. '/methodlist.o',
-		dependencies = {
-			builddir .. '/client-' .. clientname .. '/methodlist.cpp',
-		},
+		source = builddir .. '/client-' .. clientname .. '/methodlist.cpp',
 	})
 	table.append(targets, {
 		target = builddir .. '/client-' .. clientname .. '/methodlist.lua',
 		dependencies = {
 			builddir .. '/client-' .. clientname .. '/methodlist',
-		},
-	})
-end
-
-for i, unit in ipairs{
-	'luainit/main',
-	'luainit/baselib',
-	'luainit/object',
-	'luainit/ffipure',
-	'luainit/hostlib',
-} do
-	table.append(targets, {
-		target = unit .. '.lua',
-		dependencies = {},
-		issource = true,
-	})
-	table.append(targets, {
-		build = build_lua,
-		target = builddir .. '/' .. unit .. '.lb',
-		dependencies = {
-			unit .. '.lua',
-			luacpath,
 		},
 	})
 end
@@ -474,16 +207,15 @@ for i, clientname in ipairs{
 	table.append(targets, {
 		build = build_lua,
 		target = builddir .. '/client-' .. clientname .. '/methodlist.lb',
+		source = builddir .. '/client-' .. clientname .. '/methodlist.lua',
 		dependencies = {
-			builddir .. '/client-' .. clientname .. '/methodlist.lua',
 			luacpath,
 		},
 	})
-
 	table.append(targets, {
 		build = build_luainit,
 		target = builddir .. '/client-' .. clientname .. '/luainit',
-		dependencies = {
+		items = {
 			builddir .. '/luainit/main.lb',
 			builddir .. '/luainit/baselib.lb',
 			builddir .. '/luainit/object.lb',
@@ -519,70 +251,35 @@ for i, clientname in ipairs{
 	table.append(targets, {
 		build = build_cpp,
 		target = builddir .. '/client-' .. clientname .. '/luainit.o',
-		dependencies = {
-			builddir .. '/client-' .. clientname .. '/luainit.cpp',
-		},
+		source = builddir .. '/client-' .. clientname .. '/luainit.cpp',
 	})
 end
+
+local client_items = {
+	['console'] = {
+		builddir .. '/client-console/luainit.o',
+		builddir .. '/client-console/methodlist.o',
+	},
+	['main'] = {
+		builddir .. '/client-main/luainit.o',
+		builddir .. '/client-main/methodlist.o',
+	},
+}
 
 table.append(targets, {
 	build = build_exe,
 	target = 'output/bin-' .. platform .. '/client-console.exe',
-	dependencies = {
-		builddir .. '/utils/cbase.o',
-		builddir .. '/utils/configset.o',
-		builddir .. '/utils/console.o',
-		builddir .. '/utils/cyclicbuffer.o',
-		builddir .. '/utils/encoding.o',
-		builddir .. '/utils/path.o',
-		builddir .. '/rsbin/common.o',
-		builddir .. '/rsbin/fileio.o',
-		builddir .. '/rsbin/fsthread.o',
-		builddir .. '/rsbin/pngreader.o',
-		builddir .. '/rsbin/pngwriter.o',
-		builddir .. '/client-console/luainit.o',
-		builddir .. '/client-console/main.o',
-		builddir .. '/client-console/methodlist.o',
-		builddir .. '/client-console/window.o',
-	},
+	items = client_items['console'],
 	libraries = {
 		'luajit-' .. platform,
 		'png-' .. platform,
 		'z',
 	},
 })
-
 table.append(targets, {
 	build = build_exe,
 	target = 'output/bin-' .. platform .. '/client-main.exe',
-	dependencies = {
-		builddir .. '/utils/cbase.o',
-		builddir .. '/utils/configset.o',
-		builddir .. '/utils/console.o',
-		builddir .. '/utils/cyclicbuffer.o',
-		builddir .. '/utils/encoding.o',
-		builddir .. '/utils/path.o',
-		builddir .. '/rsbin/common.o',
-		builddir .. '/rsbin/fileio.o',
-		builddir .. '/rsbin/fsthread.o',
-		builddir .. '/rsbin/pngreader.o',
-		builddir .. '/rsbin/pngwriter.o',
-		builddir .. '/graphics/clearshape.o',
-		builddir .. '/graphics/common.o',
-		builddir .. '/graphics/context.o',
-		builddir .. '/graphics/display.o',
-		builddir .. '/graphics/primitiveshape.o',
-		builddir .. '/graphics/resource.o',
-		builddir .. '/graphics/shape.o',
-		builddir .. '/graphics/shapegroup.o',
-		builddir .. '/graphics/staticvertexbuffer.o',
-		builddir .. '/graphics/vertexbuffer.o',
-		builddir .. '/graphics/vertexdeclaration.o',
-		builddir .. '/client-main/luainit.o',
-		builddir .. '/client-main/main.o',
-		builddir .. '/client-main/methodlist.o',
-		builddir .. '/client-main/window.o',
-	},
+	items = client_items['main'],
 	libraries = {
 		'luajit-' .. platform,
 		'png-' .. platform,
@@ -604,36 +301,94 @@ table.append(targets, {
 table.append(targets, {
 	build = build_clean,
 	target = 'clean',
-	dependencies = {},
 	alwaysbuild = true,
 	directories = {
 		builddir,
 	},
 	files = {
-		'output/client-console-' .. platform .. '.exe',
+		'output/bin-' .. platform .. '/client-console.exe',
+		'output/bin-' .. platform .. '/client-main.exe',
 	},
 })
+
+for i, unit in ipairs(sources) do
+	if unit.type == 'native' then
+		if not unit.noheader then
+			table.append(targets, {
+				target = unit.name .. '.hpp',
+				issource = true,
+				autodep = true,
+			})
+		end
+		if not unit.headeronly then
+			table.append(targets, {
+				target = unit.name .. '.cpp',
+				issource = true,
+				autodep = true,
+			})
+			table.append(targets, {
+				build = build_cpp,
+				target = builddir .. '/' .. unit.name .. '.o',
+				source = unit.name .. '.cpp',
+			})
+		end
+		for use in string.gmatch(unit.use, '[^;]+') do
+			if not unit.headeronly then
+				table.append(client_items[use],
+					builddir .. '/' .. unit.name .. '.o')
+			end
+			if unit.methodlist then
+				table.append(methodlist_items[use], unit.name .. '.hpp')
+			end
+		end
+	elseif unit.type == 'luainit' then
+		table.append(targets, {
+			target = unit.name .. '.lua',
+			issource = true,
+		})
+		table.append(targets, {
+			build = build_lua,
+			target = builddir .. '/' .. unit.name .. '.lb',
+			source = unit.name .. '.lua',
+			dependencies = {
+				luacpath,
+			},
+		})
+	end
+end
 
 for i, entry in ipairs(targets) do
 	targets[entry.target] = entry
 end
 
-local function fill_dependencies(entry)
-	local f, err = io.open(path(entry.target), 'r')
-	if not f then
-		return
+-- fill dependencies
+for i, entry in ipairs(targets) do
+	if not entry.dependencies then
+		entry.dependencies = {}
 	end
-	for line in f:lines() do
-		local fn = string.match(line, '#%s*include%s*<(.*)>')
-		if fn and targets[fn] then
-			table.append(entry.dependencies, fn)
+	if entry.source then
+		table.append(entry.dependencies, entry.source)
+	end
+	if entry.objects then
+		for i, obj in ipairs(entry.objects) do
+			table.append(entry.dependencies, object)
 		end
 	end
-end
-
-for i, entry in ipairs(targets) do
+	if entry.items then
+		for i, item in ipairs(entry.items) do
+			table.append(entry.dependencies, item)
+		end
+	end
 	if entry.autodep then
-		fill_dependencies(entry)
+		local f, err = io.open(env.path(entry.target), 'r')
+		if f then
+			for line in f:lines() do
+				local fn = string.match(line, '#%s*include%s*<(.*)>')
+				if fn and targets[fn] then
+					table.append(entry.dependencies, fn)
+				end
+			end
+		end
 	end
 end
 
@@ -649,32 +404,18 @@ end
 	-- end
 -- end
 
-local function add_target(list, set, tname)
-	if set[tname] then
-		return list
-	end
-	local entry = targets[tname]
-	if not entry then
-		error('cannot find target ' .. tname)
-	end
-	table.append(list, entry)
-	set[tname] = true
-	for i, dep in ipairs(entry.dependencies) do
-		add_target(list, set, dep)
-	end
-	return list
-end
-
 -- sort targets according to dependencies
 do
 	local result = {}
 	local ready = {}
-	local current = add_target({}, {}, currenttarget)
+	local current = targets
 	while #current ~= 0 do
 		local next = {}
 		for i, entry in ipairs(current) do
 			for j, dep in ipairs(entry.dependencies) do
-				if not ready[dep] then
+				if not targets[dep] then
+					error('unknown target: ' .. dep)
+				elseif not ready[dep] then
 					table.append(next, entry)
 					goto notready
 				end
@@ -701,25 +442,26 @@ for i, entry in ipairs(targets) do
 	targets[entry.target] = entry
 end
 
-for i, dep in ipairs{
-	builddir,
-	builddir .. '/utils',
-	builddir .. '/rsbin',
-	builddir .. '/graphics',
-	builddir .. '/luainit',
-	builddir .. '/client-console',
-	builddir .. '/client-main',
-	'output/bin-' .. platform
-} do
-	execute_noerr(string.format(
-		'md "%s"',
-		path(dep)))
+-- mark the targets to build
+do
+	local next = {targets[currenttarget]}
+	next[1].marked = true
+	while #next > 0 do
+		local entry = table.pop(next)
+		for i, dep in ipairs(entry.dependencies) do
+			local depentry = targets[dep]
+			if not depentry.marked then
+				depentry.marked = true
+				table.append(next, depentry)
+			end
+		end
+	end
 end
 
 -- load the state of previous build
 local buildstate
-do
-	local f = loadfile(path(builddir .. '/buildstate.lua'), 't', '', {})
+if not _G.cleanstate then
+	local f = loadfile(env.path(builddir .. '/buildstate.lua'), 't', '', {})
 	local suc, ret = pcall(f)
 	if type(ret) == 'table' and
 		type(ret.timemap) == 'table' and
@@ -734,7 +476,7 @@ buildstate = buildstate or {
 }
 
 local function savebuildstate()
-	local f = io.open(path(builddir .. '/buildstate.lua'), 'w')
+	local f = io.open(env.path(builddir .. '/buildstate.lua'), 'w')
 	if not f then
 		return
 	end
@@ -754,13 +496,16 @@ end
 
 -- detect changes and propagate them through the graph
 for i, entry in ipairs(targets) do
-	entry_filltime(entry)
-	if entry.time and entry.issource and
-		(not buildstate.timemap[entry.target] or
-			entry.time > buildstate.timemap[entry.target]) or
-		entry.target == currenttarget
-	then
-		print('', entry.target)
+	if entry.issource then
+		local time = env.getfiletime(entry.target)
+		if time and
+			(not buildstate.timemap[entry.target] or
+				time > buildstate.timemap[entry.target])
+		then
+			print('changed:', entry.target)
+			buildstate.updatemap[entry.target] = true
+		end
+	elseif entry.alwaysbuild or entry.target == currenttarget then
 		buildstate.updatemap[entry.target] = true
 	else
 		for j, dep in ipairs(entry.dependencies) do
@@ -775,23 +520,23 @@ end
 
 savebuildstate()
 
-local function buildtargets()
-	for i, entry in ipairs(targets) do
-		if (buildstate.updatemap[entry.target] or entry.alwaysbuild) and
-			entry.build
-		then
-			entry:build()
-			entry_filltime(entry)
-		end
-		buildstate.timemap[entry.target] = entry.time
-		buildstate.updatemap[entry.target] = nil
-	end
-end
-
+-- build marked targets
 do
-	local suc, ret = pcall(buildtargets)
-	savebuildstate()
-	if not suc then
-		error(ret)
+	for i, entry in ipairs(targets) do
+		if entry.marked then
+			if (buildstate.updatemap[entry.target] or entry.alwaysbuild) and
+				entry.build
+			then
+				if not entry:build() then
+					print('build failed', entry.target)
+					break
+				end
+			end
+			if not dryrun then
+				buildstate.updatemap[entry.target] = nil
+			end
+		end
+		buildstate.timemap[entry.target] = env.getfiletime(entry.target)
 	end
 end
+savebuildstate()

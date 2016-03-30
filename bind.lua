@@ -67,7 +67,7 @@ local extraheaders
 local structname
 local fileprefix
 local packageprefix
-local defaultlparent
+local defaultparent
 local compactffi
 
 local filelist = {...}
@@ -392,7 +392,7 @@ local function build_class(class)
 				' .. parent.lname .. ':module(\z
 				\'' .. packageprefix .. class.lname .. '\')\n'
 	else
-		parentname = defaultlparent
+		parentname = defaultparent
 		class.luadef = 'local ' .. class.lname .. ' = \z
 				default_base:module(\z
 				\'' .. packageprefix .. class.lname .. '\')\n'
@@ -731,7 +731,7 @@ local function emit_lua()
 	mllua:write(']]\n')
 	emit_direct(mllua, 'lua_beforeclasses')
 	mllua:write('local default_base = require(\'')
-	mllua:write(defaultlparent)
+	mllua:write(defaultparent)
 	mllua:write('\')\n')
 	for i, class in ipairs(class_list) do
 		mllua:write(class.luadef)
@@ -758,8 +758,8 @@ local function main()
 	structname = _G.structname or error('global "structname" must be set')
 	fileprefix = _G.fileprefix or error('global "fileprefix" must be set')
 	packageprefix = _G.packageprefix or ''
-	defaultlparent = _G.defaultlparent or
-		error('global "defaultlparent" must be set')
+	defaultparent = _G.defaultparent or
+		error('global "defaultparent" must be set')
 	compactffi = strtob(_G.compactffi or '')
 	for i, filename in ipairs(filelist) do
 		local modulename = assert(string.match(filename, '(.*)%..*'))
