@@ -112,17 +112,6 @@ function utility.bind(f, ...)
 	return f
 end
 
-function utility.pack(...)
-	local argc, argv = select('#', ...), {...}
-	return function(a, b)
-		if a == '#' then
-			return argc
-		else
-			return unpack(argv, a or 1, b or argc)
-		end
-	end
-end
-
 -- function utility.table_insert(target, generator, f, s, var)
 	-- while true do
 		-- local args = pack(f(s, var))

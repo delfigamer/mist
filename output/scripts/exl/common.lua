@@ -23,12 +23,12 @@ local escape_start = table.makeset{
 }
 
 function common.identserial(ident)
-	local parts = string.split(ident, '.', true)
-	for i, part in ipairs(parts) do
+	local parts = {}
+	for part in string.gmatch(ident, '[^.]+') do
 		if escape_start[string.sub(part, 1, 1)] then
-			parts[i] = string.format('%i_%s', #part, part)
+			table.append(parts, string.format('%i_%s', #part, part))
 		else
-			parts[i] = string.format('%i%s', #part, part)
+			table.append(parts, string.format('%i%s', #part, part))
 		end
 	end
 	return table.concat(parts, '_')

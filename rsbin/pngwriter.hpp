@@ -1,9 +1,11 @@
 #ifndef RSBIN_PNGWRITER_HPP__
 #define RSBIN_PNGWRITER_HPP__ 1
 
+#include <rsbin/pngcommon.hpp>
 #include <utils/string.hpp>
 #include <utils/cyclicbuffer.hpp>
 #include <utils/ref.hpp>
+#include <utils/refobject.hpp>
 #include <utils/databuffer.hpp>
 #include <common.hpp>
 #include <png/png.hpp>
@@ -12,15 +14,8 @@
 namespace rsbin
 {
 	R_CLASS( name = pngwriter )
-	class PngWriter
+	class PngWriter: public utils::RefObject
 	{
-	public:
-		enum
-		{
-			BitmapFormat_Int8_Gamma = 0,
-			BitmapFormat_Invalid = 1,
-		};
-
 	private:
 		int m_format;
 		int m_stage;
@@ -50,16 +45,18 @@ namespace rsbin
 	public:
 		PngWriter() = delete;
 		PngWriter(
-			int format, int width, int height,
+			bitmapformat format, int width, int height,
 			utils::DataBuffer* data );
 		~PngWriter();
 		PngWriter( PngWriter const& ) = delete;
 		PngWriter& operator=( PngWriter const& ) = delete;
 
 		R_METHOD() static PngWriter* create(
-			int format, int width, int height,
-			utils::DataBuffer* data );
-		R_METHOD( release ) void release();
+			bitmapformat format, int width, int height,
+			utils::DataBuffer* data )
+		{
+			return new PngWriter( format, width, height, data );
+		}
 		R_METHOD() void grab( int length, void* buffer, int* result );
 		R_METHOD() bool isfinished();
 	};

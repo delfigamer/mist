@@ -117,9 +117,9 @@ namespace rsbin
 	}
 
 	PngWriter::PngWriter(
-			int format, int width, int height,
+			bitmapformat format, int width, int height,
 			utils::DataBuffer* data )
-		: m_format( format )
+		: m_format( int( format ) )
 		, m_stage( stage_writeheader )
 		, m_width( width )
 		, m_height( height )
@@ -128,11 +128,11 @@ namespace rsbin
 		, m_png( 0 )
 		, m_info( 0 )
 	{
-		if( format < 0 || format >= BitmapFormat_Invalid )
+		if( m_format < 0 || m_format >= int( bitmapformat::invalid ) )
 		{
 			throw std::runtime_error( "invalid bitmap format" );
 		}
-		m_stride = width * formattable[ format ].pixelstride;
+		m_stride = width * formattable[ m_format ].pixelstride;
 	}
 
 	PngWriter::~PngWriter()
@@ -141,18 +141,6 @@ namespace rsbin
 		{
 			png_destroy_write_struct( &m_png, m_info ? &m_info : 0 );
 		}
-	}
-
-	PngWriter* PngWriter::create(
-		int format, int width, int height,
-		utils::DataBuffer* data )
-	{
-		return new PngWriter( format, width, height, data );
-	}
-
-	void PngWriter::release()
-	{
-		delete this;
 	}
 
 	void PngWriter::grab( int length, void* buffer, int* result )

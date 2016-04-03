@@ -55,20 +55,17 @@ R_END()
 		extern encoding_t const utf32le;
 		extern encoding_t const utf32be;
 
-		R_ENUM( name = encodingindex )
-		namespace index
+		R_ENUM()
+		enum class encodingindex
 		{
-			enum
-			{
-				utf8 = 0,
-				utf16 = 1,
-				utf32 = 2,
-				utf16le = 3,
-				utf16be = 4,
-				utf32le = 5,
-				utf32be = 6,
-			};
-		}
+			utf8 = 0,
+			utf16 = 1,
+			utf32 = 2,
+			utf16le = 3,
+			utf16be = 4,
+			utf32le = 5,
+			utf32be = 6,
+		};
 	}
 
 	R_STRUCT()

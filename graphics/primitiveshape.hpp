@@ -14,50 +14,41 @@
 namespace graphics
 {
 	R_ENUM()
-	namespace blendfunc
+	enum class blendfunc
 	{
-		enum
-		{
-			add = 0,
-			subtract = 1,
-			invsubtract = 2,
-			invalid = 3,
-		};
-	}
+		add = 0,
+		subtract = 1,
+		invsubtract = 2,
+		invalid = 3,
+	};
 
 	R_ENUM()
-	namespace blendfactor
+	enum class blendfactor
 	{
-		enum
-		{
-			zero = 0,
-			one = 1,
-			source = 2,
-			invsource = 3,
-			dest = 4,
-			invdest = 5,
-			sourcealpha = 6,
-			invsourcealpha = 7,
-			destalpha = 8,
-			invdestalpha = 9,
-			invalid = 10,
-		};
-	}
+		zero = 0,
+		one = 1,
+		source = 2,
+		invsource = 3,
+		dest = 4,
+		invdest = 5,
+		sourcealpha = 6,
+		invsourcealpha = 7,
+		destalpha = 8,
+		invdestalpha = 9,
+		invalid = 10,
+	};
 
-	R_ENUM( name = primitivetype )
-	namespace primitivetype
+	R_ENUM()
+	enum class primitivetype
 	{
-		enum
-		{
-			pointlist = 0,
-			linestrip = 1,
-			linelist = 2,
-			trianglestrip = 3,
-			trianglefan = 4,
-			trianglelist = 5,
-			invalid = 6,
-		};
-	}
+		pointlist = 0,
+		linestrip = 1,
+		linelist = 2,
+		trianglestrip = 3,
+		trianglefan = 4,
+		trianglelist = 5,
+		invalid = 6,
+	};
 
 	R_CLASS( name = primitiveshape )
 	class PrimitiveShape: public Shape

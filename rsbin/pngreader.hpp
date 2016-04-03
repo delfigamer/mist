@@ -1,8 +1,10 @@
 #ifndef RSBIN_PNGREADER_HPP__
 #define RSBIN_PNGREADER_HPP__ 1
 
+#include <rsbin/pngcommon.hpp>
 #include <utils/string.hpp>
 #include <utils/ref.hpp>
+#include <utils/refobject.hpp>
 #include <utils/databuffer.hpp>
 #include <common.hpp>
 #include <png/png.hpp>
@@ -11,17 +13,10 @@
 namespace rsbin
 {
 	R_CLASS( name = pngreader )
-	class PngReader
+	class PngReader: public utils::RefObject
 	{
-	public:
-		enum BitmapFormat
-		{
-			BitmapFormat_Int8_Gamma = 0,
-			BitmapFormat_Invalid = 1,
-		};
-
 	private:
-		BitmapFormat m_format;
+		int m_format;
 		bool m_finished;
 		uint32_t m_width;
 		uint32_t m_height;
@@ -43,14 +38,15 @@ namespace rsbin
 		void doprocesschunk();
 
 	public:
-		PngReader() = delete;
-		PngReader( int format );
+		PngReader( bitmapformat format );
 		~PngReader();
 		PngReader( PngReader const& ) = delete;
 		PngReader& operator=( PngReader const& ) = delete;
 
-		R_METHOD() static PngReader* create( int format );
-		R_METHOD( release ) void release();
+		R_METHOD() static PngReader* create( bitmapformat format )
+		{
+			return new PngReader( format );
+		}
 		R_METHOD() void feed( int length, void const* buffer );
 		R_METHOD() bool isfinished() NOEXCEPT { return m_finished; }
 		R_METHOD() int getwidth() NOEXCEPT { return m_width; }

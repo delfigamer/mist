@@ -3,6 +3,7 @@ local host = package.modtable(modname)
 local cbase = require('host.cbase')
 local ffi = require('ffi')
 local fileio = require('host.fileio')
+local fileopenmode = require('host.fileopenmode')
 local rsbin = require('host.rsbin')
 
 function host.write(str)
@@ -16,8 +17,8 @@ function host.getchar()
 end
 
 local function tabconcat(...)
-	local args = {...}
-	for i = 1, select('#', ...) do
+	local args = table.pack(...)
+	for i = 1, args.count do
 		args[i] = tostring(args[i])
 	end
 	return table.concat(args, '\t')
@@ -77,7 +78,7 @@ package.loaders[2] = function(modname)
 	if not path then
 		return perr
 	end
-	local iosuc, ioret = pcall(fileio.create, fileio, path, 0)
+	local iosuc, ioret = pcall(fileio.create, fileio, path, fileopenmode.read)
 	if not iosuc then
 		return ioret
 	end

@@ -139,6 +139,13 @@ local sources = {
 	},
 	{
 		type = 'native',
+		name = 'rsbin/pngcommon',
+		headeronly = true,
+		use = 'console;main',
+		methodlist = true,
+	},
+	{
+		type = 'native',
 		name = 'rsbin/pngreader',
 		use = 'console;main',
 		methodlist = true,

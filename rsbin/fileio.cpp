@@ -82,15 +82,16 @@ namespace rsbin
 		},
 	};
 #endif
-	FileIo::FileIo( char const* path, int mode )
+	FileIo::FileIo( char const* path, fileopenmode mode )
 		: m_handle( 0 )
 	{
-		if( mode < 0 || mode >= int( sizeof( fp_map ) / sizeof( fp_map[ 0 ] ) ) )
+		if( int( mode ) < 0 ||
+			int( mode ) >= int( sizeof( fp_map ) / sizeof( fp_map[ 0 ] ) ) )
 		{
 			throw std::runtime_error( "invalid file mode" );
 		}
 		utils::Ref< utils::Path > upath = utils::Path::create( path );
-		FileParameters* fp = &fp_map[ mode ];
+		FileParameters* fp = &fp_map[ int( mode ) ];
 #if defined( _WIN32 ) || defined( _WIN64 )
 		m_handle = ( void* )CreateFileW(
 			upath->combine(),
@@ -104,7 +105,7 @@ namespace rsbin
 		{
 			syserror();
 		}
-		if( mode == FileMode_Read )
+		if( mode == fileopenmode::read )
 		{
 			LARGE_INTEGER filesize;
 			GetFileSizeEx( m_handle, &filesize );
@@ -147,7 +148,7 @@ namespace rsbin
 		{
 			syserror();
 		}
-		/*if( mode == FileMode_Read )
+		/*if( mode == fileopenmode::read )
 		{
 			struct stat filestat;
 			if( fstat( m_handle, &filestat ) == -1 )
@@ -201,11 +202,6 @@ namespace rsbin
 #endif
 	}
 
-	FileIo* FileIo::create( char const* path, int mode )
-	{
-		return new FileIo( path, mode );
-	}
-
 	FsTask* FileIo::startread( uint64_t offset, int length, void* buffer )
 	{
 		FsTask* task = new FsTask;
@@ -223,7 +219,7 @@ namespace rsbin
 		task->m_offset = offset;
 		task->m_length = length;
 		task->m_buffer = ( uint8_t* )buffer;
-		task->m_direction = IoActionRead;
+		task->m_action = ioaction::read;
 		task->m_result = 0;
 		FsThread->pushmain( task );
 		return task;
@@ -236,7 +232,7 @@ namespace rsbin
 		task->m_offset = offset;
 		task->m_length = length;
 		task->m_buffer = ( uint8_t* )buffer;
-		task->m_direction = IoActionWrite;
+		task->m_action = ioaction::write;
 		task->m_result = 0;
 		FsThread->pushmain( task );
 		return task;
@@ -249,7 +245,7 @@ namespace rsbin
 		task->m_offset = size;
 		task->m_length = 0;
 		task->m_buffer = 0;
-		task->m_direction = IoActionTruncate;
+		task->m_action = ioaction::truncate;
 		task->m_result = 0;
 		FsThread->pushhigh( task );
 		while( !task->m_finished.load( std::memory_order_acquire ) )

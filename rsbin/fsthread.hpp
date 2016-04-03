@@ -15,11 +15,11 @@ namespace rsbin
 {
 	class FileIo;
 
-	enum IoDirection: int
+	enum class ioaction
 	{
-		IoActionRead = 0,
-		IoActionWrite = 1,
-		IoActionTruncate = 2,
+		read = 0,
+		write = 1,
+		truncate = 2,
 	};
 
 	R_CLASS( name = fstask )
@@ -30,7 +30,7 @@ namespace rsbin
 		uint64_t m_offset;
 		int m_length;
 		uint8_t* m_buffer;
-		IoDirection m_direction;
+		ioaction m_action;
 		int m_result;
 		utils::String m_error;
 		std::atomic< bool > m_finished;

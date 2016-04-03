@@ -15,7 +15,7 @@ namespace rsbin
 		int pixelstride;
 	};
 
-	void setformat_r8g8b8a8(
+	void setformat_rgba8(
 			png_structp png, png_infop info,
 			int bitdepth, int colortype )
 	{
@@ -60,7 +60,7 @@ namespace rsbin
 	}
 
 	format_t const formattable[] = {
-		{ &setformat_r8g8b8a8, 4 },
+		{ &setformat_rgba8, 4 },
 	};
 
 	void PngReader::error_handler( png_structp png, png_const_charp msg )
@@ -124,8 +124,8 @@ namespace rsbin
 		reader->m_finished = true;
 	}
 
-	PngReader::PngReader( int format )
-		: m_format( BitmapFormat( format ) )
+	PngReader::PngReader( bitmapformat format )
+		: m_format( int( format ) )
 		, m_finished( false )
 		, m_width( 0 )
 		, m_height( 0 )
@@ -133,7 +133,7 @@ namespace rsbin
 		, m_png( 0 )
 		, m_info( 0 )
 	{
-		if( format < 0 || format >= BitmapFormat_Invalid )
+		if( m_format < 0 || m_format >= int( bitmapformat::invalid ) )
 		{
 			throw std::runtime_error( "invalid bitmap format" );
 		}
@@ -161,16 +161,6 @@ namespace rsbin
 			png_destroy_read_struct(
 				&m_png, m_info ? &m_info : 0, 0 );
 		}
-	}
-
-	PngReader* PngReader::create( int format )
-	{
-		return new PngReader( format );
-	}
-
-	void PngReader::release()
-	{
-		delete this;
 	}
 
 	void PngReader::feed( int length, void const* buffer )

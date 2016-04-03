@@ -29,7 +29,7 @@ namespace rsbin
 		{
 			uint64_t viewsize = task->m_target->m_viewsize;
 			int result = 0;
-			if( task->m_direction == IoActionRead && task->m_offset < viewsize )
+			if( task->m_action == ioaction::read && task->m_offset < viewsize )
 			{
 				int length = task->m_length;
 				if( length > MemBlockSize )
@@ -61,9 +61,9 @@ namespace rsbin
 				{
 					length = BlockSize;
 				}
-				switch( task->m_direction )
+				switch( task->m_action )
 				{
-				case IoActionRead:
+				case ioaction::read:
 					if( !ReadFile(
 						handle, task->m_buffer, length, ( LPDWORD )&result, 0 ) )
 					{
@@ -71,7 +71,7 @@ namespace rsbin
 					}
 					break;
 
-				case IoActionWrite:
+				case ioaction::write:
 					if( !WriteFile(
 						handle, task->m_buffer, length, ( LPDWORD )&result, 0 ) )
 					{
@@ -79,7 +79,7 @@ namespace rsbin
 					}
 					break;
 
-				case IoActionTruncate:
+				case ioaction::truncate:
 					if( !SetEndOfFile( handle ) )
 					{
 						syserror();
@@ -101,9 +101,9 @@ namespace rsbin
 				{
 					length = BlockSize;
 				}
-				switch( task->m_direction )
+				switch( task->m_action )
 				{
-				case IoActionRead:
+				case ioaction::read:
 					result = read( handle, task->m_buffer, length );
 					if( result == -1 )
 					{
@@ -111,7 +111,7 @@ namespace rsbin
 					}
 					break;
 
-				case IoActionWrite:
+				case ioaction::write:
 					result = write( handle, task->m_buffer, length );
 					if( result == -1 )
 					{
@@ -119,7 +119,7 @@ namespace rsbin
 					}
 					break;
 
-				case IoActionTruncate:
+				case ioaction::truncate:
 					if( ftruncate( handle, task->m_offset ) == -1 )
 					{
 						syserror();
