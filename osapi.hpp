@@ -55,7 +55,8 @@ namespace
 			0,
 			0xfffd,
 		};
-		if( utils::translatestr( &translation ) != utils::translate::success )
+		if( utils::translatestr( &translation ) !=
+			utils::translateresult::success )
 		{
 			LocalFree( wbuffer );
 			throw utils::StrException( "[%73s:%4i]\tWin32 error %i", file, line, lasterror );
@@ -64,7 +65,8 @@ namespace
 		translation.dest = cbuffer;
 		translation.sourcesize = translation.sourceresult;
 		translation.destsize = translation.destresult;
-		if( utils::translatestr( &translation ) != utils::translate::success )
+		if( utils::translatestr( &translation ) !=
+			utils::translateresult::success )
 		{
 			LocalFree( wbuffer );
 			delete[] cbuffer;

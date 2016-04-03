@@ -117,7 +117,7 @@ namespace utils
 			0,
 			0,
 		};
-		if( translatestr( &translation ) != translate::success )
+		if( translatestr( &translation ) != translateresult::success )
 		{
 			throw std::runtime_error( "invalid UTF-8 string" );
 		}
@@ -125,7 +125,7 @@ namespace utils
 			translation.destresult, translation.destresult, 0 );
 		translation.dest = db->m_data;
 		translation.destsize = translation.destresult;
-		if( translatestr( &translation ) != translate::success )
+		if( translatestr( &translation ) != translateresult::success )
 		{
 			throw std::runtime_error( "invalid UTF-8 string" );
 		}

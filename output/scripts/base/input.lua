@@ -184,7 +184,7 @@ function input.pushevent(event)
 end
 
 function input.maincycle(target)
-	local wevent = ffi.new('event')
+	local wevent = ffi.new('struct event')
 	while true do
 		local event
 		if window:popevent(wevent) then

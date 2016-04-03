@@ -89,7 +89,7 @@ namespace window
 		switch( uMsg )
 		{
 		case WM_DESTROY:
-			pushevent( Event::Close );
+			pushevent( EventName::close );
 			m_finishrequired = true;
 			// PostQuitMessage( 0 );
 			return 0;
@@ -97,13 +97,13 @@ namespace window
 			paint();
 			return 0;
 		case WM_KEYDOWN:
-			pushevent( Event::KeyDown, wParam );
+			pushevent( EventName::keydown, wParam );
 			return 0;
 		case WM_KEYUP:
-			pushevent( Event::KeyUp, wParam );
+			pushevent( EventName::keyup, wParam );
 			return 0;
 		case WM_CHAR:
-			pushevent( Event::Char, wParam );
+			pushevent( EventName::character, wParam );
 			return 0;
 		case WM_MOUSEMOVE:
 			pointmove( 0, true, lParam );
@@ -130,7 +130,7 @@ namespace window
 			pointmove( 3, false, lParam );
 			return 0;
 		case WM_ACTIVATE:
-			pushevent( Event::Focus,
+			pushevent( EventName::focus,
 				wParam == WA_ACTIVE || wParam == WA_CLICKACTIVE );
 			return 0;
 		default:
@@ -146,17 +146,17 @@ namespace window
 			m_pointstate[ point ] = newstate;
 			if( newstate )
 			{
-				pushevent( Event::PointDown, point,
+				pushevent( EventName::pointdown, point,
 					GET_X_LPARAM( lParam ), GET_Y_LPARAM( lParam ) );
 			}
 			else
 			{
-				pushevent( Event::PointUp, point );
+				pushevent( EventName::pointup, point );
 			}
 		}
 		else if( newstate )
 		{
-			pushevent( Event::PointMove, point,
+			pushevent( EventName::pointmove, point,
 				GET_X_LPARAM( lParam ), GET_Y_LPARAM( lParam ) );
 		}
 	}
@@ -626,7 +626,7 @@ namespace window
 		m_luathread.join();
 	}
 
-	void Window::pushevent( int name, int a1, int a2, int a3, int a4 )
+	void Window::pushevent( EventName name, int a1, int a2, int a3, int a4 )
 	{
 		m_eventqueue.push( Event{ name, a1, a2, a3, a4 } );
 	}

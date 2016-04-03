@@ -12,7 +12,7 @@ namespace utils
 	// dest may be 0
 	// if destsize == 0 && dest == 0, always succeeds
 	// if destsize == 0 && dest != 0, always fails
-R_EMIT( target = ffi_start )
+R_EMIT( target = ffi_start, typename = ::utils::encoder_t | encoder_t )
 	typedef bool( *encoder_t )(
 		void* dest,
 		uint32_t charcode,
@@ -25,7 +25,7 @@ R_END()
 	// buffer overrun - return false, *pointlength <- 0
 	// charcode may be 0
 	// if sourcesize == 0, source is assumed to be unbound
-R_EMIT( target = ffi_start )
+R_EMIT( target = ffi_start, typename = ::utils::decoder_t | decoder_t )
 	typedef bool( *decoder_t )(
 		void const* source,
 		uint32_t* charcode,
@@ -33,13 +33,11 @@ R_EMIT( target = ffi_start )
 		size_t* pointlength );
 R_END()
 
-	R_CLASS()
+	R_STRUCT()
 	struct encoding_t
 	{
-	R_STRUCT()
 		encoder_t encode;
 		decoder_t decode;
-	R_END()
 		encoding_t( encoder_t _encode, decoder_t _decode )
 			: encode( _encode )
 			, decode( _decode )
@@ -73,10 +71,9 @@ R_END()
 		}
 	}
 
-	R_CLASS()
+	R_STRUCT()
 	struct translation_t
 	{
-	R_STRUCT()
 		encoding_t const* senc;
 		encoding_t const* denc;
 		void const* source;
@@ -86,29 +83,26 @@ R_END()
 		uint32_t defaultchar; // if 0, stops immediately after a error
 		size_t sourceresult; // out
 		size_t destresult; // out
-	R_END()
 	};
 
-	R_ENUM( name = translateresult )
-	namespace translate
+	R_ENUM()
+	enum class translateresult
 	{
-		enum
-		{
-			success = 1,
-			source_overrun = 2,
-			source_corrupted = 3,
-			dest_unsupported = 4,
-			dest_overrun = 5,
-		};
-	}
+		success = 0,
+		source_overrun = 1,
+		source_corrupted = 2,
+		dest_unsupported = 3,
+		dest_overrun = 4,
+	};
 
-	int translatestr( translation_t* translation );
+	translateresult translatestr( translation_t* translation );
 
 	R_CLASS( name = encoding )
 	struct Encoding
 	{
 		R_METHOD() static encoding_t const* getencoding( int index );
-		R_METHOD() static int translatestr( translation_t* translation );
+		R_METHOD() static translateresult
+			translatestr( translation_t* translation );
 	};
 }
 

@@ -46,7 +46,7 @@ namespace utils
 					sizeof( buffer ), // destsize
 					0xfffd, // defaultchar
 				};
-				int trresult = utils::translatestr( &trstruct );
+				translateresult trresult = utils::translatestr( &trstruct );
 				DWORD wcresult;
 				if( !WriteConsoleW(
 					( HANDLE )m_outputhandle, buffer, trstruct.destresult / 2, &wcresult, 0 ) )
@@ -57,15 +57,16 @@ namespace utils
 				length -= trstruct.sourceresult;
 				switch( trresult )
 				{
-				case translate::success:
-				case translate::source_overrun:
+				case translateresult::success:
+				case translateresult::source_overrun:
+				default:
 					return;
 
-				case translate::dest_unsupported:
+				case translateresult::dest_unsupported:
 					syserror();
 					break;
 
-				case translate::dest_overrun:
+				case translateresult::dest_overrun:
 					break;
 				}
 			}

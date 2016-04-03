@@ -479,7 +479,7 @@ namespace utils
 		sourcesize_zterm = size_t( -1 ),
 	};
 
-	int translatestr( translation_t* translation )
+	translateresult translatestr( translation_t* translation )
 	{
 		encoding_t const* senc = translation->senc;
 		encoding_t const* denc = translation->denc;
@@ -494,7 +494,7 @@ namespace utils
 		uint32_t defaultchar = translation->defaultchar;
 		size_t sourceresult = 0;
 		size_t destresult = 0;
-		int resultcode = translate::success;
+		translateresult resultcode = translateresult::success;
 		while( sourcesize != 0 )
 		{
 			uint32_t charcode;
@@ -506,14 +506,14 @@ namespace utils
 			{
 				if( spointlength == 0 )
 				{
-					resultcode = translate::source_overrun;
+					resultcode = translateresult::source_overrun;
 					break;
 				}
 				else
 				{
 					if( defaultchar == 0 )
 					{
-						resultcode = translate::source_corrupted;
+						resultcode = translateresult::source_corrupted;
 						break;
 					}
 					else
@@ -532,12 +532,12 @@ namespace utils
 			{
 				if( dpointlength == 0 )
 				{
-					resultcode = translate::dest_unsupported;
+					resultcode = translateresult::dest_unsupported;
 					break;
 				}
 				else
 				{
-					resultcode = translate::dest_overrun;
+					resultcode = translateresult::dest_overrun;
 					break;
 				}
 			}
@@ -573,7 +573,7 @@ namespace utils
 		return encoding_table[ index ];
 	}
 
-	int Encoding::translatestr( translation_t* translation )
+	translateresult Encoding::translatestr( translation_t* translation )
 	{
 		return ::utils::translatestr( translation );
 	}

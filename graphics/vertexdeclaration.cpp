@@ -21,7 +21,7 @@ namespace graphics
 				}
 				if( elems[ i ].format < 0 ||
 					elems[ i ].format >=
-						vertexelementformat::invalid )
+						int( vertexelementformat::invalid ) )
 				{
 					throw utils::StrException(
 						"invalid format for element %i", i );

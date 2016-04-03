@@ -9,25 +9,22 @@
 namespace graphics
 {
 	R_ENUM( name = vertexelementformat )
-	namespace vertexelementformat
+	enum class vertexelementformat
 	{
-		enum
-		{
-			float1 = 0,
-			float2 = 1,
-			float3 = 2,
-			float4 = 3,
-			ubyte4 = 4,
-			short2 = 5,
-			short4 = 6,
-			ubyte4n = 7,
-			short2n = 8,
-			short4n = 9,
-			ushort2n = 10,
-			ushort4n = 11,
-			invalid = 12,
-		};
-	}
+		float1 = 0,
+		float2 = 1,
+		float3 = 2,
+		float4 = 3,
+		ubyte4 = 4,
+		short2 = 5,
+		short4 = 6,
+		ubyte4n = 7,
+		short2n = 8,
+		short4n = 9,
+		ushort2n = 10,
+		ushort4n = 11,
+		invalid = 12,
+	};
 
 /*
 R_EMIT( target = lua_beforemetatypes )
@@ -35,14 +32,12 @@ R_EMIT( target = lua_beforemetatypes )
 R_END()
 */
 
-	R_CLASS( name = vertexdeclelement )
+	R_STRUCT( name = vertexdeclelement )
 	struct VertexDeclElement
 	{
-	R_STRUCT()
 		int attribute;
 		int offset;
 		int format;
-	R_END()
 	};
 
 	R_CLASS( name = vertexdeclaration )

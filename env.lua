@@ -74,7 +74,7 @@ if not _G.toolchain or _G.toolchain == 'gcc' then
 				if type(value) == 'string' then
 					table.append(varstr, name .. '=[[' .. value .. ']]')
 				else
-					table.append(varstr, name .. '=' .. value)
+					table.append(varstr, name .. '=' .. tostring(value))
 				end
 			end
 		end

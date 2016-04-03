@@ -106,12 +106,12 @@ namespace utils
 
 /*
 R_EMIT( target = lua_beforemethods )
-local function reference_add(self)
-	return methodlist.utils_refobject_addref(self.ptr)
+local function reference_addref(self)
+	return methodlist.refobject_addref(self)
 end
 
 function refobject:release()
-	methodlist.utils_refobject_release(self.ptr)
+	methodlist.refobject_release(self.ptr)
 	self.ptr = nil
 	return
 end

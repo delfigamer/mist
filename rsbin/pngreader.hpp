@@ -55,7 +55,7 @@ namespace rsbin
 		R_METHOD() bool isfinished() NOEXCEPT { return m_finished; }
 		R_METHOD() int getwidth() NOEXCEPT { return m_width; }
 		R_METHOD() int getheight() NOEXCEPT { return m_height; }
-		R_METHOD( addref = result[0] ) utils::DataBuffer* getdata() NOEXCEPT
+		R_METHOD( addref ) utils::DataBuffer* getdata() NOEXCEPT
 		{
 			return m_data;
 		}

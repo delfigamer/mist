@@ -29,12 +29,15 @@ local configuration = {
 	['debug'] = {
 		debug = true,
 	},
+	['release'] = {
+		debug = false,
+	},
 }
 if _G.configuration then
 	configuration = configuration[_G.configuration] or
 		error('unknown configuration')
 else
-	configuration = configuration['debug']
+	configuration = configuration['release']
 end
 
 local dryrun = not not _G.dryrun
@@ -82,12 +85,7 @@ local function build_methodlist(entry)
 		env.makepath(entry.target) and
 		env.lua{
 			vars = {
-				extraclasses = '',
-				extraheaders = 'common.hpp cinttypes',
-				structname = 'methodlist',
-				packageprefix = 'host.',
-				compactffi = configuration.debug and 'false' or 'true',
-				defaultparent = 'base.ffipure',
+				compactffi = not configuration.debug,
 				fileprefix = env.path(entry.target),
 			},
 			script = 'bind.lua',
@@ -406,36 +404,25 @@ end
 
 -- sort targets according to dependencies
 do
-	local result = {}
-	local ready = {}
-	local current = targets
-	while #current ~= 0 do
-		local next = {}
-		for i, entry in ipairs(current) do
-			for j, dep in ipairs(entry.dependencies) do
-				if not targets[dep] then
-					error('unknown target: ' .. dep)
-				elseif not ready[dep] then
-					table.append(next, entry)
-					goto notready
-				end
-			end
-			ready[entry.target] = true
-			table.append(result, entry)
-		::notready::
+	local function preceding(entry)
+		local r = {}
+		for i, dep in ipairs(entry.dependencies) do
+			table.append(r, targets[dep])
 		end
-		if #next == #current then
-			for i, entry in ipairs(current) do
-				print(string.format('target %s:', entry.target))
-				for j, dep in ipairs(entry.dependencies) do
-					print(string.format('\t%s', dep))
-				end
-			end
-			error('cannot resolve dependency graph')
-		end
-		current = next
+		return r
 	end
-	targets = result
+	local result, leftover = table.weak_sort(targets, preceding)
+	if result then
+		targets = result
+	else
+		for i, entry in ipairs(current) do
+			print(string.format('target %s:', entry.target))
+			for j, dep in ipairs(entry.dependencies) do
+				print(string.format('\t%s', dep))
+			end
+		end
+		error('cannot resolve dependency graph')
+	end
 end
 
 for i, entry in ipairs(targets) do

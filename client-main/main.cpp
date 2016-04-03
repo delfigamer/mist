@@ -82,7 +82,8 @@ void android_main( android_app* app )
 			0,
 			0xfffd,
 		};
-		if( utils::translatestr( &translation ) != utils::translate::success )
+		if( utils::translatestr( &translation ) !=
+			utils::translateresult::success )
 		{
 			throw std::runtime_error( "cannot translate command line" );
 		}
@@ -91,7 +92,8 @@ void android_main( android_app* app )
 		translation.dest = db->m_data;
 		translation.sourcesize = translation.sourceresult;
 		translation.destsize = db->m_capacity;
-		if( utils::translatestr( &translation ) != utils::translate::success )
+		if( utils::translatestr( &translation ) !=
+			utils::translateresult::success )
 		{
 			throw std::runtime_error( "cannot translate command line" );
 		}

@@ -31,44 +31,25 @@ namespace window
 {
 	class Window;
 
-R_EMIT( target = ffi_end )
+R_STRUCT( name = windowinfo_t )
 	struct WindowInfo
 	{
 		int width;
 		int height;
 		float texelsoffset;
 		float texeltoffset;
-R_END()
-/*
-R_EMIT( target = ffi_end )
-		configset* configset;
-R_END()
-*/
-		utils::ConfigSet const* configset;
-R_EMIT( target = ffi_end )
+		utils::ConfigSet* configset;
 		bool acceleratorinput;
 		bool pointinput;
 		bool keyboardinput;
 		bool silent;
 		methodlist_t const* methodlist;
-R_END()
-/*
-R_EMIT( target = ffi_end )
-		window* window;
-R_END()
-*/
 		Window* window;
-R_EMIT( target = ffi_end )
 	};
-R_END()
 /*
-R_EMIT( target = ffi_end )
-	typedef struct WindowInfo windowinfo_t;
-R_END()
-
 R_EMIT( target = lua_beforeclasses )
 local windowinfo = package.loaded['host.info']
-windowinfo = ffi.cast('windowinfo_t const*', windowinfo)
+windowinfo = ffi.cast('struct windowinfo_t const*', windowinfo)
 package.loaded['host.info'] = windowinfo
 local methodlist = windowinfo.methodlist
 R_END()
@@ -154,7 +135,7 @@ R_END()
 		void luathreadfunc();
 		void initlstate();
 		void closelstate();
-		void pushevent( int name,
+		void pushevent( EventName name,
 			int a1 = 0, int a2 = 0, int a3 = 0, int a4 = 0 );
 
 	public:

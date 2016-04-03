@@ -203,5 +203,43 @@ function table.unpack(t, a, b)
 	return native_unpack(t, a, b)
 end
 
+-- sorts a list according to a weak order relation R
+-- 'preceding' is a function that, given an element b, returns a list L(b)
+-- let Q = {{a, b) / a is an element of L(b)}
+-- R is the transitive closure of Q
+-- if R is not a weak order, that is, if there are loops in Q, the function
+-- returns nil, part_of_list_with_loop
+-- otherwise, it returns a single list L, where R(L[i], L[j]) => i<j
+function table.weak_sort(list, preceding)
+	local result = {}
+	local ready = {}
+	local current = list
+	local prec_cache = {}
+	while #current ~= 0 do
+		local next = {}
+		for i, entry in ipairs(current) do
+			local prec = prec_cache[entry]
+			if not prec then
+				prec = preceding(entry)
+				prec_cache[entry] = prec
+			end
+			for j, dep in ipairs(prec) do
+				if not ready[dep] then
+					table.append(next, entry)
+					goto notready
+				end
+			end
+			ready[entry] = true
+			table.append(result, entry)
+		::notready::
+		end
+		if #next == #current then
+			return nil, next
+		end
+		current = next
+	end
+	return result
+end
+
 _G.module = nil
 _G.unpack = nil

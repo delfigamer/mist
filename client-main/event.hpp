@@ -5,25 +5,27 @@
 
 namespace window
 {
-	R_CLASS( name = event )
+	R_ENUM( name = eventname )
+	enum class EventName
+	{
+		close = 0,
+		pointdown = 1, // point code, window x, y
+		pointup = 2, // point code
+		pointmove = 3, // point code, window x, y
+		keydown = 4, // key code
+		keyup = 5, // key code
+		character = 6, // unicode char index
+		focus = 7, // 0 - lost, 1 - gained
+		invalid = 8,
+	};
+	R_STRUCT( name = event )
 	struct Event
 	{
-		enum
-		{
-			Close = 0,
-			PointDown = 1, // point code, window x, y
-			PointUp = 2, // point code
-			PointMove = 3, // point code, window x, y
-			KeyDown = 4, // key code
-			KeyUp = 5, // key code
-			Char = 6, // unicode char index
-			Focus = 7, // 0 - lost, 1 - gained
-			Invalid = 8,
-		};
-	R_STRUCT()
-		int name;
-		int arg[ 4 ];
-	R_END()
+		EventName name;
+		int a;
+		int b;
+		int c;
+		int d;
 	};
 }
 
@@ -34,28 +36,28 @@ function event.instmeta:__tostring()
 		return 'event< close >'
 	elseif self.name == 1 then
 		return string.format('event< pointdown, %i, %i, %i >',
-			self.arg[0], self.arg[1], self.arg[2])
+			self.a, self.b, self.c)
 	elseif self.name == 2 then
 		return string.format('event< pointup, %i >',
-			self.arg[0])
+			self.a)
 	elseif self.name == 3 then
 		return string.format('event< pointmove, %i, %i, %i >',
-			self.arg[0], self.arg[1], self.arg[2])
+			self.a, self.b, self.c)
 	elseif self.name == 4 then
 		return string.format('event< keydown, %i >',
-			self.arg[0])
+			self.a)
 	elseif self.name == 5 then
 		return string.format('event< keyup, %i >',
-			self.arg[0])
+			self.a)
 	elseif self.name == 6 then
 		return string.format('event< char, %i >',
-			self.arg[0])
+			self.a)
 	elseif self.name == 7 then
 		return string.format('event< focus, %s >',
-			self.arg[0] == 0 and 'false' or 'true')
+			self.a == 0 and 'false' or 'true')
 	else
 		return string.format('event< %i, %i, %i, %i, %i >',
-			self.name, self.arg[0], self.arg[1], self.arg[2], self.arg[3])
+			self.name, self.a, self.b, self.c, self.d)
 	end
 end
 R_END()

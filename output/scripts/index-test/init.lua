@@ -32,10 +32,10 @@ do
 	vertices[6] = {{-0.5, -0.5}, {0xff,    0,    0, 0xff}}
 
 	local vdecldata = databuffer:create(
-		ffi.sizeof('vertexdeclelement') * 2,
-		ffi.sizeof('vertexdeclelement') * 2,
+		ffi.sizeof('struct vertexdeclelement') * 2,
+		ffi.sizeof('struct vertexdeclelement') * 2,
 		nil)
-	local vdeclelems = ffi.cast('vertexdeclelement*', vdecldata:getdata())
+	local vdeclelems = ffi.cast('struct vertexdeclelement*', vdecldata:getdata())
 	vdeclelems[0] = {
 		attribute = 0,
 		offset = ffi.offsetof('Vertex', 'pos'),
@@ -62,9 +62,9 @@ end
 collectgarbage()
 
 local function updatepos(event)
-	if event.arg[0] == 1 then
-		local x = event.arg[1] * (2 / info.width) - 1
-		local y = event.arg[2] * (-2 / info.height) + 1
+	if event.a == 1 then
+		local x = event.b * (2 / info.width) - 1
+		local y = event.c * (-2 / info.height) + 1
 		index.pshape:setmatrix(ffi.new('float[16]',
 			1, 0, 0, 0,
 			0, 1, 0, 0,
