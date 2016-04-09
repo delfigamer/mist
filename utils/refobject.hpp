@@ -1,10 +1,11 @@
 #ifndef UTILS_REFOBJECT_HPP__
 #define UTILS_REFOBJECT_HPP__ 1
 
-#include <common.hpp>
-#include <cstdio>
-#include <atomic>
 #include <utils/console.hpp>
+#include <common.hpp>
+#include <atomic>
+#include <cstdio>
+#include <cinttypes>
 
 namespace utils
 {
@@ -12,12 +13,12 @@ namespace utils
 	class RefObject
 	{
 	private:
-		mutable std::atomic< int > m_refcount;
+		mutable std::atomic< ptrdiff_t > m_refcount;
 
 	public:
-		int addref() const NOEXCEPT;
-		int release() const NOEXCEPT;
-		int refcount() const NOEXCEPT;
+		ptrdiff_t addref() const NOEXCEPT;
+		ptrdiff_t release() const NOEXCEPT;
+		ptrdiff_t refcount() const NOEXCEPT;
 		R_METHOD( name = addref, noluamethod ) void vaddref() const NOEXCEPT
 		{
 			addref();
@@ -35,19 +36,19 @@ namespace utils
 		RefObject& operator=( RefObject&& other ) NOEXCEPT;
 	};
 
-	inline int RefObject::addref() const NOEXCEPT
+	inline ptrdiff_t RefObject::addref() const NOEXCEPT
 	{
-		int rc = m_refcount.fetch_add( 1, std::memory_order_relaxed ) + 1;
+		ptrdiff_t rc = m_refcount.fetch_add( 1, std::memory_order_relaxed ) + 1;
 		return rc;
 	}
 
-	inline int RefObject::release() const NOEXCEPT
+	inline ptrdiff_t RefObject::release() const NOEXCEPT
 	{
 		if( !this )
 		{
 			return -1;
 		}
-		int rc = m_refcount.fetch_sub( 1, std::memory_order_relaxed ) - 1;
+		ptrdiff_t rc = m_refcount.fetch_sub( 1, std::memory_order_relaxed ) - 1;
 		if( rc == 0 )
 		{
 			const_cast< RefObject* >( this )->destroy();
@@ -55,19 +56,10 @@ namespace utils
 		return rc;
 	}
 
-	inline int RefObject::refcount() const NOEXCEPT
+	inline ptrdiff_t RefObject::refcount() const NOEXCEPT
 	{
 		return m_refcount.load( std::memory_order_relaxed );
 	}
-
-	template< int i >
-	struct rocount
-	{
-		static std::atomic< int > d;
-	};
-
-	template< int i >
-	std::atomic< int > rocount< i >::d( 0 );
 
 	inline RefObject::RefObject() NOEXCEPT
 		: m_refcount( 1 )
@@ -107,7 +99,9 @@ namespace utils
 /*
 R_EMIT( target = lua_beforemethods )
 local function reference_addref(self)
-	return methodlist.refobject_addref(self)
+	if self ~= nil then
+		methodlist.refobject_addref(self)
+	end
 end
 
 function refobject:release()

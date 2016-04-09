@@ -5,6 +5,7 @@
 #include <utils/databuffer.hpp>
 #include <utils/ref.hpp>
 #include <common.hpp>
+#include <cinttypes>
 
 namespace graphics
 {
@@ -46,21 +47,21 @@ R_END()
 	private:
 		IDirect3DVertexDeclaration9* m_vertexdeclaration;
 		utils::Ref< utils::DataBuffer > m_data;
-		int m_vertexsize;
+		size_t m_vertexsize;
 
 	protected:
 		virtual void doadvance() override;
 
 	public:
-		VertexDeclaration( utils::DataBuffer* data, int vertexsize );
+		VertexDeclaration( utils::DataBuffer* data, size_t vertexsize );
 		virtual ~VertexDeclaration() override;
 		VertexDeclaration( VertexDeclaration const& ) = delete;
 		VertexDeclaration& operator=( VertexDeclaration const& ) = delete;
 
-		bool bind( int* vertexsize );
+		bool bind( size_t* vertexsize );
 
 		R_METHOD() static VertexDeclaration* create(
-			utils::DataBuffer* data, int vertexsize )
+			utils::DataBuffer* data, size_t vertexsize )
 		{
 			return new VertexDeclaration( data, vertexsize );
 		}

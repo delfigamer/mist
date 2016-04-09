@@ -5,7 +5,7 @@ namespace graphics
 {
 	namespace Context
 	{
-		std::atomic< int > DrawnFrame( 0 );
+		std::atomic< size_t > DrawnFrame( 0 );
 		IDirect3D9* D3D = 0;
 		IDirect3DDevice9* Device = 0;
 		utils::MPSCQueue< Resource* > Dead;

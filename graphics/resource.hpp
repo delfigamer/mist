@@ -5,6 +5,7 @@
 #include <common.hpp>
 #include <atomic>
 #include <d3d9.h>
+#include <cinttypes>
 
 namespace graphics
 {
@@ -12,7 +13,7 @@ namespace graphics
 	class Resource: public utils::RefObject
 	{
 	protected:
-		std::atomic< int > m_lastframe;
+		std::atomic< size_t > m_lastframe;
 
 	protected:
 		virtual void doadvance() = 0;

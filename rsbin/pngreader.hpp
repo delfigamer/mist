@@ -9,6 +9,7 @@
 #include <common.hpp>
 #include <png/png.hpp>
 #include <csetjmp>
+#include <cinttypes>
 
 namespace rsbin
 {
@@ -20,7 +21,7 @@ namespace rsbin
 		bool m_finished;
 		uint32_t m_width;
 		uint32_t m_height;
-		int m_stride;
+		ptrdiff_t m_stride;
 		utils::Ref< utils::DataBuffer > m_data;
 		png_structp m_png;
 		png_infop m_info;
@@ -47,10 +48,10 @@ namespace rsbin
 		{
 			return new PngReader( format );
 		}
-		R_METHOD() void feed( int length, void const* buffer );
+		R_METHOD() void feed( size_t length, void const* buffer );
 		R_METHOD() bool isfinished() NOEXCEPT { return m_finished; }
-		R_METHOD() int getwidth() NOEXCEPT { return m_width; }
-		R_METHOD() int getheight() NOEXCEPT { return m_height; }
+		R_METHOD() uint32_t getwidth() NOEXCEPT { return m_width; }
+		R_METHOD() uint32_t getheight() NOEXCEPT { return m_height; }
 		R_METHOD( addref ) utils::DataBuffer* getdata() NOEXCEPT
 		{
 			return m_data;

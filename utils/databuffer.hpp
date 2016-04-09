@@ -12,16 +12,16 @@ namespace utils
 	class DataBuffer: public RefObject
 	{
 	public:
-		int m_length;
-		int const m_capacity;
-		uint8_t m_data[];
+		size_t m_length;
+		size_t const m_capacity;
+		uint8_t m_data[ 8 ];
 
 		R_METHOD( name = create ) static DataBuffer* newinstance(
-			int length, int capacity, void const* data )
+			size_t length, size_t capacity, void const* data )
 		{
 			DataBuffer* db;
 			db = ( DataBuffer* )operator new(
-				sizeof( DataBuffer ) + capacity );
+				sizeof( DataBuffer ) - sizeof( uint8_t[ 8 ] ) + capacity );
 			try
 			{
 				new( db )DataBuffer( length, capacity, data );
@@ -35,13 +35,13 @@ namespace utils
 		}
 
 		static Ref< DataBuffer > create(
-			int length, int capacity, void const* data )
+			size_t length, size_t capacity, void const* data )
 		{
 			return Ref< DataBuffer >( newinstance( length, capacity, data ), 0 );
 		}
 
 	private:
-		DataBuffer( int length, int capacity, void const* data )
+		DataBuffer( size_t length, size_t capacity, void const* data )
 			: m_length( length )
 			, m_capacity( capacity )
 		{
@@ -66,9 +66,9 @@ namespace utils
 		DataBuffer& operator=( DataBuffer const& ) = delete;
 
 		R_METHOD() void* getdata() NOEXCEPT { return m_data; }
-		R_METHOD() int getlength() NOEXCEPT { return m_length; }
-		R_METHOD() void setlength( int length ) NOEXCEPT { m_length = length; }
-		R_METHOD() int getcapacity() NOEXCEPT { return m_capacity; }
+		R_METHOD() size_t getlength() NOEXCEPT { return m_length; }
+		R_METHOD() void setlength( size_t length ) NOEXCEPT { m_length = length; }
+		R_METHOD() size_t getcapacity() NOEXCEPT { return m_capacity; }
 	};
 }
 

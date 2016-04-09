@@ -62,7 +62,7 @@ R_END()
 		Window( Window&& ) = delete;
 		~Window();
 
-		int mainloop();
+		void mainloop();
 	};
 }
 

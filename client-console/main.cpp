@@ -1,4 +1,5 @@
 #include <client-console/window.hpp>
+#include <rsbin/fsthread.hpp>
 #include <utils/console.hpp>
 #include <utils/databuffer.hpp>
 #include <utils/cbase.hpp>
@@ -104,6 +105,7 @@ int main( int argc, char const** argv )
 	{
 		utils::Console->writeln( "! Critical error: %s", e.what() );
 	}
+	rsbin::FsThread->finalize();
 	LOG( "~ Application end" );
 	return 0;
 }

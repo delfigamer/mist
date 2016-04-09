@@ -3,6 +3,7 @@
 #include <graphics/common.hpp>
 #include <utils/console.hpp>
 #include <utils/cbase.hpp>
+#include <cstring>
 
 namespace graphics
 {
@@ -88,15 +89,21 @@ namespace graphics
 			blendftable, destblend, "destination blend factor" ) )
 		, m_blendop( TABLE_ASSERT(
 			blendoptable, blendmethod, "blend method" ) )
+#if !defined( _MSC_VER )
 		, m_matrix{
 			1, 0, 0, 0,
 			0, 1, 0, 0,
 			0, 0, 1, 0,
 			0, 0, 0, 1,
 		}
+#endif
 	{
+#if defined( _MSC_VER )
+		memset( &m_matrix, 0, sizeof( m_matrix ) );
+		m_matrix._11 = m_matrix._22 = m_matrix._33 = m_matrix._44 = 1;
+#endif
 		m_type.store( RANGE_ASSERT(
-				type, 0, primitivetype::invalid, "primitive type" ),
+				type, 0, int( primitivetype::invalid ), "primitive type" ),
 			std::memory_order_release );
 	}
 
@@ -113,7 +120,7 @@ namespace graphics
 		{
 			return;
 		}
-		int vertexcount;
+		size_t vertexcount;
 		VertexDeclaration* vdecl;
 		if( !vb->bind( &vertexcount, &vdecl ) )
 		{
@@ -160,7 +167,7 @@ namespace graphics
 		checkerror( Context::Device->DrawPrimitive(
 			D3DPRIMITIVETYPE( typetable[ ptype ] ),
 			0,
-			( vertexcount - poffsettable[ ptype ] ) / pfactortable[ ptype ] ) );
+			UINT( ( vertexcount - poffsettable[ ptype ] ) / pfactortable[ ptype ] ) ) );
 	}
 
 	void PrimitiveShape::setvertexbuffer( VertexBuffer* value )

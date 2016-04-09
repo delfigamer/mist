@@ -1,5 +1,4 @@
-#ifndef UTILS_STRING_HPP__
-#define UTILS_STRING_HPP__ 1
+#pragma once
 
 #include <utils/databuffer.hpp>
 #include <utils/ref.hpp>
@@ -7,6 +6,7 @@
 #include <atomic>
 #include <utility>
 #include <cstring>
+#include <cinttypes>
 
 namespace utils
 {
@@ -17,7 +17,7 @@ namespace utils
 
 	public:
 		String();
-		String( const char* newchars, int length = 0 );
+		String( const char* newchars, size_t length = 0 );
 		String( const String& other ) NOEXCEPT;
 		String( String&& other ) NOEXCEPT;
 		String( Ref< DataBuffer > const& db );
@@ -28,9 +28,9 @@ namespace utils
 
 		operator bool() const NOEXCEPT;
 		operator char const*() const NOEXCEPT;
-		int getlength() const NOEXCEPT;
+		size_t getlength() const NOEXCEPT;
 		const char* getchars() const NOEXCEPT;
-		void setchars( const char* newchars, int length = 0 );
+		void setchars( const char* newchars, size_t length = 0 );
 	};
 
 	inline String::String()
@@ -38,7 +38,7 @@ namespace utils
 	{
 	}
 
-	inline String::String( const char* newchars, int length )
+	inline String::String( const char* newchars, size_t length )
 		: m_payload( nullptr )
 	{
 		setchars( newchars, length );
@@ -90,10 +90,10 @@ namespace utils
 		return getchars();
 	}
 
-	inline int String::getlength() const NOEXCEPT
+	inline size_t String::getlength() const NOEXCEPT
 	{
 		DataBuffer* e = m_payload;
-		return ( e ? e->m_length : 0 );
+		return ( e ? e->m_length - 1 : 0 );
 	}
 
 	inline const char* String::getchars() const NOEXCEPT
@@ -103,7 +103,7 @@ namespace utils
 		return ( e ? ( char const* )e->m_data : "" );
 	}
 
-	inline void String::setchars( const char* newchars, int length )
+	inline void String::setchars( const char* newchars, size_t length )
 	{
 		if( !newchars )
 		{
@@ -127,5 +127,3 @@ namespace utils
 		m_payload = payload;
 	}
 }
-
-#endif

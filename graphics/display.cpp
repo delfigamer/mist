@@ -10,8 +10,16 @@ namespace graphics
 {
 	Display::Display()
 		: m_hwnd( 0 )
+#if !defined( _MSC_VER )
 		, m_info{ 0, 0, 0.5, -0.5 }
+#endif
 	{
+#if defined( _MSC_VER )
+		m_info.width = 0;
+		m_info.height = 0;
+		m_info.texelsoffset = 0.5;
+		m_info.texeltoffset = -0.5;
+#endif
 	}
 
 	Display::~Display()

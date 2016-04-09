@@ -21,10 +21,14 @@ namespace utils
 		struct Item
 		{
 			std::atomic< Item* > m_next;
+#if defined( _MSC_VER )
+			char m_data[ sizeof( value_type ) ];
+#else
 			union {
 				value_type m_data;
 				int m_dummy;
 			};
+#endif
 
 			Item()
 				: m_next( nullptr )
@@ -41,7 +45,7 @@ namespace utils
 		Item* m_first;
 		std::atomic< Item* > m_last;
 
-		void appenditem( MPSCQueue::Item* item );
+		void appenditem( Item* item );
 
 	public:
 		MPSCQueue();
@@ -56,7 +60,7 @@ namespace utils
 	};
 
 	template< typename T >
-	void MPSCQueue< T >::appenditem( MPSCQueue::Item* item )
+	void MPSCQueue< T >::appenditem( typename MPSCQueue< T >::Item* item )
 	{
 		Item* prev = m_last.exchange( item, std::memory_order_relaxed );
 		prev->m_next.store( item, std::memory_order_release );
@@ -84,8 +88,13 @@ namespace utils
 		Item* item = new Item();
 		try
 		{
+#if defined( _MSC_VER )
+			new( item->m_data )value_type(
+				std::forward< Ts >( args )... );
+#else
 			new( &item->m_data )value_type(
 				std::forward< Ts >( args )... );
+#endif
 		}
 		catch( ... )
 		{
@@ -96,7 +105,7 @@ namespace utils
 	}
 
 	template< typename T >
-	bool MPSCQueue< T >::peek( MPSCQueue< T >::value_type* target )
+	bool MPSCQueue< T >::peek( typename MPSCQueue< T >::value_type* target )
 	{
 		Item* item = m_first->m_next.load( std::memory_order_acquire );
 		if( !item )
@@ -105,13 +114,17 @@ namespace utils
 		}
 		if( target != 0 )
 		{
+#if defined( _MSC_VER )
+			*target = *( value_type* )item->m_data;
+#else
 			*target = item->m_data;
+#endif
 		}
 		return true;
 	}
 
 	template< typename T >
-	bool MPSCQueue< T >::pop( MPSCQueue< T >::value_type* target )
+	bool MPSCQueue< T >::pop( typename MPSCQueue< T >::value_type* target )
 	{
 		Item* item = m_first->m_next.load( std::memory_order_acquire );
 		if( !item )
@@ -120,9 +133,17 @@ namespace utils
 		}
 		if( target != 0 )
 		{
+#if defined( _MSC_VER )
+			*target = std::move( *( value_type* )item->m_data );
+#else
 			*target = std::move( item->m_data );
+#endif
 		}
+#if defined( _MSC_VER )
+		( ( value_type* )item->m_data )->~value_type();
+#else
 		item->m_data.~value_type();
+#endif
 		delete m_first;
 		m_first = item;
 		return true;

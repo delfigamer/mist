@@ -19,7 +19,7 @@ namespace graphics
 
 	void Resource::advance()
 	{
-		int drawnframe = Context::DrawnFrame.load( std::memory_order_relaxed );
+		size_t drawnframe = Context::DrawnFrame.load( std::memory_order_relaxed );
 		if( m_lastframe < drawnframe )
 		{
 			m_lastframe = drawnframe;

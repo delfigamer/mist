@@ -1,6 +1,7 @@
 # Build directory
 /build/
 /output/bin-*
+/output/flow
 
 # Object files
 *.o
@@ -45,3 +46,6 @@
 
 # SciTE files
 SciTE.*
+
+# Exclusions
+!/vs/**/*.bat

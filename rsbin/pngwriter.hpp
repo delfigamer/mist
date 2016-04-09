@@ -10,6 +10,7 @@
 #include <common.hpp>
 #include <png/png.hpp>
 #include <csetjmp>
+#include <cinttypes>
 
 namespace rsbin
 {
@@ -19,10 +20,10 @@ namespace rsbin
 	private:
 		int m_format;
 		int m_stage;
-		int m_width;
-		int m_height;
-		int m_stride;
-		int m_rowpos;
+		uint32_t m_width;
+		uint32_t m_height;
+		ptrdiff_t m_stride;
+		uint32_t m_rowpos;
 		utils::Ref< utils::DataBuffer > m_data;
 		utils::CyclicBuffer m_buffer;
 		png_structp m_png;
@@ -45,19 +46,19 @@ namespace rsbin
 	public:
 		PngWriter() = delete;
 		PngWriter(
-			bitmapformat format, int width, int height,
+			bitmapformat format, uint32_t width, uint32_t height,
 			utils::DataBuffer* data );
 		~PngWriter();
 		PngWriter( PngWriter const& ) = delete;
 		PngWriter& operator=( PngWriter const& ) = delete;
 
 		R_METHOD() static PngWriter* create(
-			bitmapformat format, int width, int height,
+			bitmapformat format, uint32_t width, uint32_t height,
 			utils::DataBuffer* data )
 		{
 			return new PngWriter( format, width, height, data );
 		}
-		R_METHOD() void grab( int length, void* buffer, int* result );
+		R_METHOD() size_t grab( size_t length, void* buffer );
 		R_METHOD() bool isfinished();
 	};
 }

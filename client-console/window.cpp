@@ -80,9 +80,8 @@ namespace window
 		}
 	}
 
-	int Window::mainloop()
+	void Window::mainloop()
 	{
-		return 0;
 	}
 
 	void Window::initialize()

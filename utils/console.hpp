@@ -1,10 +1,10 @@
-#ifndef UTILS_CONSOLE_HPP__
-#define UTILS_CONSOLE_HPP__ 1
+#pragma once
 
 #include <utils/singleton.hpp>
 #include <common.hpp>
-#include <cstdarg>
 #include <mutex>
+#include <cstdarg>
+#include <cinttypes>
 #if defined( getchar )
 #undef getchar
 #endif
@@ -28,8 +28,8 @@ namespace utils
 		bool m_outputisconsole;
 #endif
 
-		void writeconsole( char const* str, int length );
-		void writefile( char const* str, int length );
+		void writeconsole( char const* str, size_t length );
+		void writefile( char const* str, size_t length );
 		void linestart();
 
 	public:
@@ -61,5 +61,3 @@ namespace utils
 	utils::Console->writeln( \
 		"[%73s:%4i]\t" format, \
 		__FILE__, __LINE__, ##__VA_ARGS__ )
-
-#endif

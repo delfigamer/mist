@@ -16,7 +16,7 @@ namespace graphics
 				RELEASE( m_vertexbuffer );
 				m_buffercapacity = data->m_capacity;
 				checkerror( Context::Device->CreateVertexBuffer(
-					m_buffercapacity,
+					UINT( m_buffercapacity ),
 					D3DUSAGE_WRITEONLY,
 					0,
 					D3DPOOL_DEFAULT,

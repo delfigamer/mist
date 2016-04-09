@@ -35,7 +35,7 @@ namespace utils
 		{
 			return ( char_t const* )m_result->m_data;
 		}
-		int size = m_target->m_length + sizeof( char_t );
+		size_t size = m_target->m_length + sizeof( char_t );
 		Path* current = m_base;
 		while( current )
 		{
@@ -80,11 +80,12 @@ namespace utils
 		{
 #if defined( _WIN32 ) || defined( _WIN64 )
 			int cwdlength = GetFullPathNameW( PATH_START_W, 0, 0, 0 );
-			Ref< DataBuffer > db = DataBuffer::create( 0, cwdlength * 2 + 8, 0 );
-			memcpy( db->m_data, L"\\\\\?\\", 8 );
+			Ref< DataBuffer > db = DataBuffer::create( 0, cwdlength * 2 + 10, 0 );
+			uint8_t* data = db->m_data;
+			memcpy( data, L"\\\\\?\\", 8 );
 			cwdlength = GetFullPathNameW( PATH_START_W, cwdlength + 1,
-				LPWSTR( db->m_data + 8 ), 0 );
-			wchar_t* buf = ( wchar_t* )db->m_data;
+				LPWSTR( data + 8 ), 0 );
+			wchar_t* buf = ( wchar_t* )data;
 			if( buf[ cwdlength + 3 ] == '\\' )
 			{
 				db->m_length = cwdlength * 2 + 6;
@@ -105,7 +106,7 @@ namespace utils
 		return defaultbase;
 	}
 #if defined( _WIN32 ) || defined( _WIN64 )
-	static Ref< DataBuffer > intern( uint8_t const* str, int length )
+	static Ref< DataBuffer > intern( uint8_t const* str, size_t length )
 	{
 		translation_t translation =
 		{
@@ -113,7 +114,7 @@ namespace utils
 			&encoding::utf16,
 			str,
 			0,
-			size_t( length ),
+			length,
 			0,
 			0,
 		};
@@ -132,7 +133,7 @@ namespace utils
 		return db;
 	}
 
-	static Ref< DataBuffer > intern( uint16_t const* str, int length )
+	static Ref< DataBuffer > intern( uint16_t const* str, size_t length )
 	{
 		return DataBuffer::create( length * 2, length * 2, str );
 	}
@@ -143,13 +144,13 @@ namespace utils
 	}
 #endif
 	template< typename char_t >
-	static int findsep( char_t const* str )
+	static size_t findsep( char_t const* str )
 	{
-		for( int i = 0; true; ++i )
+		for( char_t const* ch = str; true; ++ch )
 		{
-			if( str[ i ] == 0 || str[ i ] == '\\' || str[ i ] == '/' )
+			if( *ch == 0 || *ch == '\\' || *ch == '/' )
 			{
-				return i;
+				return ch - str;
 			}
 		}
 	}
@@ -165,11 +166,11 @@ namespace utils
 	}
 
 	template< typename char_t >
-	static bool trim( char_t const** pstr, int* plength )
+	static bool trim( char_t const** pstr, size_t* plength )
 	{
 		char_t const* str = *pstr;
-		int length = *plength;
-		for( int i = 0; i < length; ++i )
+		size_t length = *plength;
+		for( size_t i = 0; i < length; ++i )
 		{
 			if( str[ i ] > 32 )
 			{
@@ -180,7 +181,7 @@ namespace utils
 		}
 		return false;
 	left_pass:
-		for( int i = length - 1; i >= 0; --i )
+		for( size_t i = length - 1; i >= 0; --i )
 		{
 			if( str[ i ] > 32 )
 			{
@@ -203,7 +204,7 @@ namespace utils
 			while( pathh[ 0 ] != 0 )
 			{
 				uint16_t const* partstr = pathh;
-				int partlen = findsep( pathh );
+				size_t partlen = findsep( pathh );
 				pathh = skipsep( pathh + partlen );
 				if( trim( &partstr, &partlen ) )
 				{
@@ -233,7 +234,7 @@ namespace utils
 		while( pathb[ 0 ] != 0 )
 		{
 			uint8_t const* partstr = pathb;
-			int partlen = findsep( pathb );
+			size_t partlen = findsep( pathb );
 			pathb = skipsep( pathb + partlen );
 			if( trim( &partstr, &partlen ) )
 			{

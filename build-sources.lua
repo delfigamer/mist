@@ -191,6 +191,42 @@ local sources = {
 	},
 	{
 		type = 'native',
+		name = 'graphics/programtranslator',
+		use = 'console',
+		methodlist = true,
+	},
+	{
+		type = 'native',
+		name = 'graphics/programtranslator-base',
+		use = 'console',
+		headeronly = true,
+	},
+	{
+		type = 'native',
+		name = 'graphics/programtranslator-functions',
+		use = 'console',
+		headeronly = true,
+	},
+	{
+		type = 'native',
+		name = 'graphics/programtranslator-generators',
+		use = 'console',
+		headeronly = true,
+	},
+	{
+		type = 'native',
+		name = 'graphics/programtranslator-state',
+		use = 'console',
+		headeronly = true,
+	},
+	{
+		type = 'native',
+		name = 'graphics/programtranslator-step',
+		use = 'console',
+		headeronly = true,
+	},
+	{
+		type = 'native',
 		name = 'graphics/resource',
 		use = 'main',
 		methodlist = true,

@@ -83,6 +83,7 @@ package.loaders[2] = function(modname)
 		return ioret
 	end
 	local chunk, err = load(file_loader(ioret), path, 'bt', env)
+	ioret:release()
 	if chunk then
 		return chunk
 	else

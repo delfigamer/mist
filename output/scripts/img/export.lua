@@ -20,7 +20,20 @@ local function clampf(c)
 end
 
 local function f32tou8_gamma(c, offset, factor, invgamma)
-	return math.floor(math.pow(clampf(c * factor + offset), invgamma) * 255 + 0.5)
+	return math.floor(
+		math.pow(clampf(c * factor + offset), invgamma) * 255 + 0.5)
+end
+
+local function f32tou24(c, offset, factor)
+	local value = math.floor(clampf(c * factor + offset) * 0xffffff + 0.5)
+	return
+		bit.rshift(value, 16),
+		bit.band(bit.rshift(value, 8), 0xff),
+		bit.band(value, 0xff)
+end
+
+local function f32tou24log(c, offset, factor, power)
+	return f32tou24(math.log(c * factor + offset, power), 0, 1)
 end
 
 local function export(it)
@@ -37,15 +50,44 @@ local function export(it)
 	local invgamma = it.invgamma or 1/2.2
 	local offset = it.offset or 0
 	local factor = it.factor or 1
+	local power = it.power or math.exp(1)
 	if ifmat.header.planes == 1 then
 		for y = 0, height - 1 do
 			local row = ptr + y * width * 4
 			for x = 0, width - 1 do
 				local pixel = row + x * 4
-				local value = f32tou8_gamma(ifmat.data[y][x][0], offset, factor, invgamma)
-				pixel[0] = value
-				pixel[1] = value
-				pixel[2] = value
+				if it.encode24 then
+					local r, g, b = f32tou24(
+						ifmat.data[y][x][0], offset, factor)
+					pixel[0] = r
+					pixel[1] = g
+					pixel[2] = b
+				elseif it.encode24log then
+					local r, g, b = f32tou24log(
+						ifmat.data[y][x][0], offset, factor, power)
+					pixel[0] = r
+					pixel[1] = g
+					pixel[2] = b
+				else
+					local value = f32tou8_gamma(
+						ifmat.data[y][x][0], offset, factor, invgamma)
+					pixel[0] = value
+					pixel[1] = value
+					pixel[2] = value
+				end
+				pixel[3] = 255
+			end
+		end
+	elseif ifmat.header.planes == 2 then
+		for y = 0, height - 1 do
+			local row = ptr + y * width * 4
+			for x = 0, width - 1 do
+				local pixel = row + x * 4
+				pixel[0] =
+					f32tou8_gamma(ifmat.data[y][x][0], offset, factor, invgamma)
+				pixel[1] =
+					f32tou8_gamma(ifmat.data[y][x][1], offset, factor, invgamma)
+				pixel[2] = 0
 				pixel[3] = 255
 			end
 		end
@@ -54,9 +96,12 @@ local function export(it)
 			local row = ptr + y * width * 4
 			for x = 0, width - 1 do
 				local pixel = row + x * 4
-				pixel[0] = f32tou8_gamma(ifmat.data[y][x][0], offset, factor, invgamma)
-				pixel[1] = f32tou8_gamma(ifmat.data[y][x][1], offset, factor, invgamma)
-				pixel[2] = f32tou8_gamma(ifmat.data[y][x][2], offset, factor, invgamma)
+				pixel[0] =
+					f32tou8_gamma(ifmat.data[y][x][0], offset, factor, invgamma)
+				pixel[1] =
+					f32tou8_gamma(ifmat.data[y][x][1], offset, factor, invgamma)
+				pixel[2] =
+					f32tou8_gamma(ifmat.data[y][x][2], offset, factor, invgamma)
 				pixel[3] = 255
 			end
 		end

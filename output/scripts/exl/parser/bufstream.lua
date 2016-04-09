@@ -19,7 +19,7 @@ end
 function bufstream:getc(noconvert)
 	if not self.buffer[1] and not self.beof then
 		local cbuf = ffi.new('uint8_t[256]')
-		local len = self.stream:read(256, cbuf)
+		local len = tonumber(self.stream:read(256, cbuf))
 		for i = 0, len-1 do
 			self.buffer[len-i] = string.char(cbuf[i])
 		end

@@ -10,21 +10,9 @@
 #undef getchar
 #endif
 
-#if defined( _MSC_VER )
-#include <cstdarg>
-static int snprintf( char* buffer, int buflen, char const* format, ... )
-{
-	va_list arg;
-	va_start( arg, format );
-	int result = vsnprintf( buffer, buflen, format, arg );
-	va_end( arg );
-	return result;
-}
-#endif
-
 namespace utils
 {
-	void ConsoleClass::writeconsole( char const* str, int length )
+	void ConsoleClass::writeconsole( char const* str, size_t length )
 	{
 #if defined( _WIN32 ) || defined( _WIN64 )
 		if( m_outputhandle == 0 )
@@ -42,14 +30,14 @@ namespace utils
 					&encoding::utf16, // denc
 					str, // source
 					buffer, // dest
-					size_t( length ), // sourcesize
+					length, // sourcesize
 					sizeof( buffer ), // destsize
 					0xfffd, // defaultchar
 				};
 				translateresult trresult = utils::translatestr( &trstruct );
 				DWORD wcresult;
 				if( !WriteConsoleW(
-					( HANDLE )m_outputhandle, buffer, trstruct.destresult / 2, &wcresult, 0 ) )
+					( HANDLE )m_outputhandle, buffer, DWORD( trstruct.destresult / 2 ), &wcresult, 0 ) )
 				{
 					syserror();
 				}
@@ -74,7 +62,7 @@ namespace utils
 		else
 		{
 			DWORD result;
-			if( !WriteFile( ( HANDLE )m_outputhandle, str, length, &result, 0 ) )
+			if( !WriteFile( ( HANDLE )m_outputhandle, str, DWORD( length ), &result, 0 ) )
 			{
 				syserror();
 			}
@@ -84,7 +72,7 @@ namespace utils
 #endif
 	}
 
-	void ConsoleClass::writefile( char const* str, int length )
+	void ConsoleClass::writefile( char const* str, size_t length )
 	{
 		fprintf( ( FILE* )m_file, "%.*s", length, str );
 	}
@@ -184,14 +172,14 @@ namespace utils
 			char const* npos = strchr( str, '\n' );
 			if( npos )
 			{
-				writefile( str, npos - str + 1 );
-				writeconsole( str, npos - str + 1 );
+				writefile( str, int( npos - str + 1 ) );
+				writeconsole( str, int( npos - str + 1 ) );
 				m_newline = true;
 				str = npos + 1;
 			}
 			else
 			{
-				int len = strlen( str );
+				int len = int( strlen( str ) );
 				writefile( str, len );
 				writeconsole( str, len );
 				break;
@@ -293,7 +281,7 @@ namespace utils
 		if( m_inputisconsole )
 		{
 			wchar_t buffer[ 2 ] = { 0 };
-			int length = 0;
+			size_t length = 0;
 			while( true )
 			{
 				DWORD result;
@@ -314,7 +302,7 @@ namespace utils
 		else
 		{
 			str[ 0 ] = 0;
-			int length = 0;
+			size_t length = 0;
 			while( true )
 			{
 				DWORD result;
@@ -359,7 +347,7 @@ namespace utils
 			str[ pointlength ] = 0;
 		}
 #else
-		int length = 0;
+		size_t length = 0;
 		while( true )
 		{
 			scanf( "%c", str + length );

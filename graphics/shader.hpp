@@ -13,18 +13,6 @@ namespace graphics
 	R_CLASS( name = shader )
 	class Shader: public Resource
 	{
-	public:
-		enum
-		{
-			ShaderFormat_GLSL_100 = 0,
-			ShaderFormat_HLSL_3_0_Source = 1,
-			ShaderFormat_HLSL_3_0_Bytecode = 2,
-			ShaderFormat_Invalid = 3,
-			ShaderStage_Vertex = 0,
-			ShaderStage_Fragment = 1,
-			ShaderStage_Invalid = 2,
-		};
-
 	private:
 		int m_stage;
 		union

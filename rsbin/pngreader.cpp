@@ -12,7 +12,7 @@ namespace rsbin
 		void( *setformat )(
 			png_structp png, png_infop info,
 			int bitdepth, int colortype );
-		int pixelstride;
+		ptrdiff_t pixelstride;
 	};
 
 	void setformat_rgba8(
@@ -93,7 +93,7 @@ namespace rsbin
 		reader->m_stride =
 			reader->m_width *
 			formattable[ reader->m_format ].pixelstride;
-		int size = reader->m_stride * reader->m_height;
+		size_t size = reader->m_stride * reader->m_height;
 		reader->m_data = utils::DataBuffer::create(
 			size, size, 0 );
 		memset( reader->m_data->m_data, 0, size );
@@ -163,7 +163,7 @@ namespace rsbin
 		}
 	}
 
-	void PngReader::feed( int length, void const* buffer )
+	void PngReader::feed( size_t length, void const* buffer )
 	{
 		if( setjmp( m_jmpbuf ) )
 		{

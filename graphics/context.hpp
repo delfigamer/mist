@@ -4,6 +4,7 @@
 #include <utils/mpscqueue.hpp>
 #include <d3d9.h>
 #include <atomic>
+#include <cstdint>
 
 namespace graphics
 {
@@ -11,7 +12,7 @@ namespace graphics
 
 	namespace Context
 	{
-		extern std::atomic< int > DrawnFrame;
+		extern std::atomic< size_t > DrawnFrame;
 		extern IDirect3D9* D3D;
 		extern IDirect3DDevice9* Device;
 		extern utils::MPSCQueue< Resource* > Dead;

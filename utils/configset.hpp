@@ -4,6 +4,7 @@
 #include <utils/string.hpp>
 #include <common.hpp>
 #include <lua/lua.hpp>
+#include <cinttypes>
 
 namespace utils
 {
@@ -20,13 +21,13 @@ namespace utils
 		ConfigSet( ConfigSet const& ) = delete;
 		ConfigSet& operator=( ConfigSet const& ) = delete;
 
-		int integer( char const* expr, int def = 0 ) const;
+		ptrdiff_t integer( char const* expr, ptrdiff_t def = 0 ) const;
 		double number( char const* expr, double def = 0 ) const;
 		String string(
 			char const* expr, String const& def = 0 ) const;
 		bool boolean( char const* expr, bool def = false ) const;
 		void runcmd( char const* expr );
-		R_METHOD( name = integer ) int linteger( char const* expr, int def ) const
+		R_METHOD( name = integer ) ptrdiff_t linteger( char const* expr, ptrdiff_t def ) const
 		{
 			return integer( expr, def );
 		}
@@ -35,8 +36,8 @@ namespace utils
 		{
 			return number( expr, def );
 		}
-		R_METHOD( name = lstring ) int lstring(
-			char const* expr, char* buffer, int buflen ) const;
+		R_METHOD( name = lstring ) size_t lstring(
+			char const* expr, char* buffer, size_t buflen ) const;
 		R_METHOD( name = boolean ) bool lboolean(
 			char const* expr, bool def ) const
 		{

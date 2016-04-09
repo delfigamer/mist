@@ -1,0 +1,69 @@
+Triangle: A,B,C
+Ray: O,D
+Intersection: I
+
+ix = A ax + B bx + C cx
+iy = A ay + B by + C cy
+iz = A az + B bz + C cz
+A + B + C = 1
+ix = ox + D dx
+iy = oy + D dy
+iz = oz + D dz
+
+A ax + B bx + C cx - ix = 0
+A ay + B by + C cy - iy = 0
+A az + B bz + C cz - iz = 0
+A + B + C = 1
+- D dx + ix = ox
+- D dy + iy = oy
+- D dz + iz = oz
+
+ A  B  C   D ix iy iz
+ax bx cx   0 -1  0  0 |  0
+ay by cy   0  0 -1  0 |  0
+az bz cz   0  0  0 -1 |  0
+ 1  1  1   0  0  0  0 |  1
+ 0  0  0 -dx  1  0  0 | ox
+ 0  0  0 -dy  0  1  0 | oy
+ 0  0  0 -dz  0  0  1 | oz
+
+ A  B  C   D
+ 1  1  1   0 |  1
+ax bx cx -dx | ox
+ay by cy -dy | oy
+az bz cz -dz | oz
+
+den = det{
+	{ 1,  1,  1,  0},
+	{ax, bx, cx, dx},
+	{ay, by, cy, dy},
+	{az, bz, cz, dz},
+}
+
+A = det{
+	{ 1,  1,  1,  0},
+	{ox, bx, cx, dx},
+	{oy, by, cy, dy},
+	{oz, bz, cz, dz},
+} / den
+B = det{
+	{ 1,  1,  1,  0},
+	{ax, ox, cx, dx},
+	{ay, oy, cy, dy},
+	{az, oz, cz, dz},
+} / den
+C = det{
+	{ 1,  1,  1,  0},
+	{ax, bx, ox, dx},
+	{ay, by, oy, dy},
+	{az, bz, oz, dz},
+} / den
+D = det{
+	{-1, -1, -1, -1},
+	{ax, bx, cx, ox},
+	{ay, by, cy, oy},
+	{az, bz, cz, oz},
+} / den
+ix = ox + D dx
+iy = oy + D dy
+iz = oz + D dz

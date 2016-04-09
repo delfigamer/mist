@@ -7,11 +7,11 @@ namespace graphics
 {
 	namespace
 	{
-		void validatedecldata( int length, void* data )
+		void validatedecldata( size_t length, void* data )
 		{
 			bool attrused[ Limits::AttributeCount ] = { 0 };
 			VertexDeclElement* elems = ( VertexDeclElement* )data;
-			for( int i = 0; i < int( length / sizeof( VertexDeclElement ) ); ++i )
+			for( size_t i = 0; i < length / sizeof( VertexDeclElement ); ++i )
 			{
 				if( elems[ i ].attribute < 0 ||
 					elems[ i ].attribute >= Limits::AttributeCount )
@@ -58,9 +58,9 @@ namespace graphics
 			utils::DataBuffer* data = m_data;
 			std::atomic_thread_fence( std::memory_order_acquire );
 			VertexDeclElement* elems = ( VertexDeclElement* )data->m_data;
-			int elemcount = data->m_length / sizeof( VertexDeclElement );
+			size_t elemcount = data->m_length / sizeof( VertexDeclElement );
 			D3DVERTEXELEMENT9 d3delems[ 9 ];
-			for( int i = 0; i < elemcount; ++i )
+			for( size_t i = 0; i < elemcount; ++i )
 			{
 				d3delems[ i ].Stream = 0;
 				d3delems[ i ].Offset = elems[ i ].offset;
@@ -79,7 +79,7 @@ namespace graphics
 	}
 
 	VertexDeclaration::VertexDeclaration(
-		utils::DataBuffer* data, int vertexsize )
+		utils::DataBuffer* data, size_t vertexsize )
 		: m_vertexdeclaration( 0 )
 		, m_vertexsize( vertexsize )
 	{
@@ -93,7 +93,7 @@ namespace graphics
 		RELEASE( m_vertexdeclaration );
 	}
 
-	bool VertexDeclaration::bind( int* vertexsize )
+	bool VertexDeclaration::bind( size_t* vertexsize )
 	{
 		if( !m_vertexdeclaration )
 		{

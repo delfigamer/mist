@@ -1,6 +1,4 @@
 #include <graphics/common.hpp>
-#include <utils/strexception.hpp>
-#include <utils/console.hpp>
 #include <unordered_map>
 #include <d3d9.h>
 

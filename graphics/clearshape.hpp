@@ -4,6 +4,7 @@
 #include <graphics/shape.hpp>
 #include <common.hpp>
 #include <atomic>
+#include <cinttypes>
 
 namespace graphics
 {
@@ -14,7 +15,7 @@ namespace graphics
 		std::atomic< int > m_flags;
 		std::atomic< uint32_t > m_color;
 		std::atomic< float > m_depth;
-		std::atomic< int > m_stencil;
+		std::atomic< uint32_t > m_stencil;
 
 	protected:
 		virtual void doadvance() override;
@@ -34,7 +35,7 @@ namespace graphics
 		}
 		R_METHOD() void setcolor( float const* value );
 		R_METHOD() void setdepth( float value );
-		R_METHOD() void setstencil( int value );
+		R_METHOD() void setstencil( uint32_t value );
 	};
 }
 

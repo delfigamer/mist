@@ -23,10 +23,14 @@ namespace utils
 		{
 			std::atomic< Item* > m_next;
 			std::atomic< bool > m_dead;
+#if defined( _MSC_VER )
+			char m_data[ sizeof( value_type ) ];
+#else
 			union {
 				value_type m_data;
 				int m_dummy;
 			};
+#endif
 
 			Item()
 				: m_next( nullptr )
@@ -62,7 +66,7 @@ namespace utils
 		Item* m_first;
 		std::atomic< Item* > m_last;
 
-		void appenditem( MPSCList::Item* item );
+		void appenditem( Item* item );
 
 	public:
 		MPSCList();
@@ -95,7 +99,11 @@ namespace utils
 				next = 0;
 				break;
 			}
+#if defined( _MSC_VER )
+			( ( value_type* )next->m_data )->~value_type();
+#else
 			next->m_data.~value_type();
+#endif
 			delete next;
 			replace = repl;
 			next = repl;
@@ -113,7 +121,11 @@ namespace utils
 	{
 		if( m_current )
 		{
+#if defined( _MSC_VER )
+			return *( value_type* )m_current->m_data;
+#else
 			return m_current->m_data;
+#endif
 		}
 		else
 		{
@@ -123,14 +135,14 @@ namespace utils
 
 	template< typename T >
 	bool MPSCList< T >::Iterator::operator==(
-		MPSCList< T >::Iterator const& other )
+		typename MPSCList< T >::Iterator const& other )
 	{
 		return m_current == other.m_current;
 	}
 
 	template< typename T >
 	bool MPSCList< T >::Iterator::operator!=(
-		MPSCList< T >::Iterator const& other )
+		typename MPSCList< T >::Iterator const& other )
 	{
 		return !( *this == other );
 	}
@@ -146,7 +158,7 @@ namespace utils
 	}
 
 	template< typename T >
-	void MPSCList< T >::appenditem( MPSCList::Item* item )
+	void MPSCList< T >::appenditem( typename MPSCList< T >::Item* item )
 	{
 		Item* prev = m_last.exchange( item, std::memory_order_relaxed );
 		prev->m_next.store( item, std::memory_order_release );
@@ -167,7 +179,11 @@ namespace utils
 		while( item )
 		{
 			Item* next = item->m_next.load( std::memory_order_relaxed );
+#if defined( _MSC_VER )
+			( ( value_type* )item->m_data )->~value_type();
+#else
 			item->m_data.~value_type();
+#endif
 			delete item;
 			item = next;
 		}
@@ -181,8 +197,13 @@ namespace utils
 		Item* item = new Item();
 		try
 		{
+#if defined( _MSC_VER )
+			new( item->m_data )value_type(
+				std::forward< Ts >( args )... );
+#else
 			new( &item->m_data )value_type(
 				std::forward< Ts >( args )... );
+#endif
 		}
 		catch( ... )
 		{

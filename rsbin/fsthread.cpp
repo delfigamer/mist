@@ -10,8 +10,8 @@
 
 namespace rsbin
 {
-	int const BlockSize = 0x1000; // 64K
-	int const MemBlockSize = 0x1000; // 64K
+	size_t const BlockSize = 0x1000; // 64K
+	size_t const MemBlockSize = 0x1000; // 64K
 
 	void FsTask::promote()
 	{
@@ -28,17 +28,17 @@ namespace rsbin
 		try
 		{
 			uint64_t viewsize = task->m_target->m_viewsize;
-			int result = 0;
+			size_t result = 0;
 			if( task->m_action == ioaction::read && task->m_offset < viewsize )
 			{
-				int length = task->m_length;
+				size_t length = task->m_length;
 				if( length > MemBlockSize )
 				{
 					length = MemBlockSize;
 				}
 				if( task->m_offset + length > viewsize )
 				{
-					length = int( viewsize - task->m_offset );
+					length = viewsize - task->m_offset;
 				}
 				memcpy(
 					task->m_buffer,
@@ -56,16 +56,17 @@ namespace rsbin
 				{
 					syserror();
 				}
-				int length = task->m_length;
+				size_t length = task->m_length;
 				if( length > BlockSize )
 				{
 					length = BlockSize;
 				}
+				DWORD dwresult = 0;
 				switch( task->m_action )
 				{
 				case ioaction::read:
 					if( !ReadFile(
-						handle, task->m_buffer, length, ( LPDWORD )&result, 0 ) )
+						handle, task->m_buffer, DWORD( length ), &dwresult, 0 ) )
 					{
 						syserror();
 					}
@@ -73,7 +74,7 @@ namespace rsbin
 
 				case ioaction::write:
 					if( !WriteFile(
-						handle, task->m_buffer, length, ( LPDWORD )&result, 0 ) )
+						handle, task->m_buffer, DWORD( length ), &dwresult, 0 ) )
 					{
 						syserror();
 					}
@@ -86,6 +87,7 @@ namespace rsbin
 					}
 					break;
 				}
+				result = dwresult;
 #elif defined( __ANDROID__ )
 				if( task->m_offset + task->m_length > 0x7fffffffULL )
 				{
@@ -96,7 +98,7 @@ namespace rsbin
 				{
 					syserror();
 				}
-				int length = task->m_length;
+				size_t length = task->m_length;
 				if( length > BlockSize )
 				{
 					length = BlockSize;
@@ -144,26 +146,30 @@ namespace rsbin
 
 	void FsThreadClass::threadfunc()
 	{
+		queue_t highqueue;
+		queue_t mainqueue;
+		m_highqueue.store( &highqueue, std::memory_order_release );
+		m_mainqueue.store( &mainqueue, std::memory_order_release );
 		try
 		{
 			utils::Ref< FsTask > currenttask;
 			while( !m_terminate.load( std::memory_order_relaxed ) )
 			{
-				if( m_highqueue.peek( &currenttask ) )
+				if( highqueue.peek( &currenttask ) )
 				{
 					if( iteratetask( currenttask ) )
 					{
-						m_highqueue.pop();
+						highqueue.pop();
 						currenttask->m_finished.store( true,
 							std::memory_order_release );
 						currenttask = nullptr;
 					}
 				}
-				else if( m_mainqueue.peek( &currenttask ) )
+				else if( mainqueue.peek( &currenttask ) )
 				{
 					if( iteratetask( currenttask ) )
 					{
-						m_mainqueue.pop();
+						mainqueue.pop();
 						currenttask->m_finished.store( true,
 							std::memory_order_release );
 						currenttask = nullptr;
@@ -183,29 +189,50 @@ namespace rsbin
 		{
 			LOG( "!" );
 		}
-
 	}
 
 	FsThreadClass::FsThreadClass()
 		: m_terminate( false )
-		, m_thread( &FsThreadClass::threadfunc, this )
+		, m_highqueue( nullptr )
+		, m_mainqueue( nullptr )
 	{
+		m_thread = std::thread( &FsThreadClass::threadfunc, this );
 	}
 
 	FsThreadClass::~FsThreadClass()
 	{
-		m_terminate.store( true, std::memory_order_relaxed );
-		m_thread.join();
+		finalize();
+	}
+
+	void FsThreadClass::finalize()
+	{
+		if( !m_terminate.load( std::memory_order_relaxed ) )
+		{
+			m_terminate.store( true, std::memory_order_relaxed );
+			m_thread.join();
+		}
 	}
 
 	void FsThreadClass::pushhigh( FsTask* task )
 	{
-		m_highqueue.push( task );
+		queue_t* hq;
+		do
+		{
+			hq = m_highqueue.load( std::memory_order_acquire );
+		}
+			while( hq == 0 );
+		hq->push( task );
 	}
 
 	void FsThreadClass::pushmain( FsTask* task )
 	{
-		m_mainqueue.push( task );
+		queue_t* mq;
+		do
+		{
+			mq = m_mainqueue.load( std::memory_order_acquire );
+		}
+			while( mq == 0 );
+		mq->push( task );
 	}
 
 	utils::Singleton< FsThreadClass > FsThread;

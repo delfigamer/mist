@@ -26,7 +26,7 @@ namespace graphics
 		int flags = m_flags.load( std::memory_order_relaxed );
 		uint32_t color = m_color.load( std::memory_order_relaxed );
 		float depth = m_depth.load( std::memory_order_relaxed );
-		int stencil = m_stencil.load( std::memory_order_relaxed );
+		uint32_t stencil = m_stencil.load( std::memory_order_relaxed );
 		if( flags )
 		{
 			checkerror( Context::Device->Clear(
@@ -45,7 +45,7 @@ namespace graphics
 		m_depth.store( value, std::memory_order_relaxed );
 	}
 
-	void ClearShape::setstencil( int value )
+	void ClearShape::setstencil( uint32_t value )
 	{
 		m_stencil.store( value, std::memory_order_relaxed );
 	}

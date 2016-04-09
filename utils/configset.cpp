@@ -49,7 +49,7 @@ namespace utils {
 		T lua_get( lua_State* L, int index );
 
 		template<>
-		int lua_get< int >( lua_State* L, int index )
+		ptrdiff_t lua_get< ptrdiff_t >( lua_State* L, int index )
 		{
 			return lua_tointeger( L, index );
 		}
@@ -111,9 +111,9 @@ namespace utils {
 		}
 	}
 
-	int ConfigSet::integer( char const* expr, int def ) const
+	ptrdiff_t ConfigSet::integer( char const* expr, ptrdiff_t def ) const
 	{
-		return accessor< int >( m_lstate, expr, def );
+		return int( accessor< ptrdiff_t >( m_lstate, expr, def ) );
 	}
 
 	double ConfigSet::number( char const* expr, double def ) const
@@ -150,20 +150,20 @@ namespace utils {
 		lua_settop( m_lstate, 0 );
 	}
 
-	int ConfigSet::lstring(
-		char const* expr, char* buffer, int buflen ) const
+	size_t ConfigSet::lstring(
+		char const* expr, char* buffer, size_t buflen ) const
 	{
 		String str = string( expr );
 		if( !str )
 		{
 			return 0;
 		}
-		int strlen = str.getlength() - 1;
+		size_t strlen = str.getlength();
 		if( buffer )
 		{
-			if( buflen > strlen )
+			if( buflen > strlen + 1 )
 			{
-				buflen = strlen;
+				buflen = strlen + 1;
 			}
 			memcpy( buffer, str.getchars(), buflen );
 		}

@@ -2,15 +2,11 @@
 #include <client-main/methodlist.hpp>
 #include <client-main/luainit.hpp>
 #include <utils/strexception.hpp>
-#include <utils/profile.hpp>
 #include <utils/encoding.hpp>
 #include <utils/cbase.hpp>
 #include <osapi.hpp>
 #include <cstdlib>
 #include <cstdio>
-
-#undef PROFILE
-#define PROFILE( name, op ) { op }
 
 namespace window
 {
@@ -97,13 +93,13 @@ namespace window
 			paint();
 			return 0;
 		case WM_KEYDOWN:
-			pushevent( EventName::keydown, wParam );
+			pushevent( EventName::keydown, int( wParam ) );
 			return 0;
 		case WM_KEYUP:
-			pushevent( EventName::keyup, wParam );
+			pushevent( EventName::keyup, int( wParam ) );
 			return 0;
 		case WM_CHAR:
-			pushevent( EventName::character, wParam );
+			pushevent( EventName::character, int( wParam ) );
 			return 0;
 		case WM_MOUSEMOVE:
 			pointmove( 0, true, lParam );
@@ -163,13 +159,13 @@ namespace window
 
 	Window::Window( WindowCreationData const& wcd )
 		: m_hwnd( 0 )
-		, m_pointstate{ 0 }
 		, m_terminated( false )
 		, m_mainconfig( MAINCONFIG_PATH, MAINCONFIG_STR )
 		, m_finishrequired( false )
 		, m_finished( false )
 	{
 		marker();
+		memset( &m_pointstate, 0, sizeof( m_pointstate ) );
 		m_mainconfig.runcmd( wcd.cmdline );
 		m_silent = m_mainconfig.boolean( "silent", false );
 		m_fpscounter = 0;
@@ -219,12 +215,12 @@ namespace window
 			RECT WindowRect = {
 				0,
 				0,
-				m_mainconfig.integer(
+				LONG( m_mainconfig.integer(
 					"windowsize[1] or windowsize.x",
-					DefaultWindowSize[ 0 ] ),
-				m_mainconfig.integer(
+					DefaultWindowSize[ 0 ] ) ),
+				LONG( m_mainconfig.integer(
 					"windowsize[2] or windowsize.y",
-					DefaultWindowSize[ 1 ] ) };
+					DefaultWindowSize[ 1 ] ) ) };
 			if( !AdjustWindowRect(
 				&WindowRect, WindowStyle, false ) )
 			{
@@ -534,7 +530,6 @@ namespace window
 
 	void Window::paint()
 	{
-	PROFILE( "paint",
 		if( !m_silent )
 		{
 			m_display.paint();
@@ -554,7 +549,6 @@ namespace window
 			SetWindowText( m_hwnd, buffer );
 #endif
 		}
-	)
 	}
 
 	utils::String lua_retrieveerror( lua_State* L )
@@ -630,107 +624,6 @@ namespace window
 	{
 		m_eventqueue.push( Event{ name, a1, a2, a3, a4 } );
 	}
-
-	// PROFILE( "pointevent",
-		// PointEventData* edata = ( PointEventData* )vedata;
-		// lua_pushvalue( L, 1 );
-		// lua_pushstring( L, edata->event );
-		// lua_pushinteger( L, edata->point );
-		// int callresult;
-		// if( edata->x >= 0 && edata->y >= 0 )
-		// {
-			// lua_pushinteger( L, edata->x );
-			// lua_pushinteger( L, edata->y );
-			// callresult = lua_pcall( L, 4, 0, 0 );
-		// }
-		// else
-		// {
-			// callresult = lua_pcall( L, 2, 0, 0 );
-		// }
-		// if( callresult != 0 )
-		// {
-			// *error = lua_retrieveerror( L );
-		// }
-		// delete edata;
-	// )
-
-	// PROFILE( "keyevent",
-		// KeyEventData* edata = ( KeyEventData* )vedata;
-		// lua_pushvalue( L, 1 );
-		// lua_pushstring( L, edata->event );
-		// lua_pushinteger( L, edata->key );
-		// if( lua_pcall( L, 2, 0, 0 ) != 0 )
-		// {
-			// *error = lua_retrieveerror( L );
-		// }
-		// delete edata;
-	// )
-
-	// PROFILE( "charevent",
-		// CharEventData* edata = ( CharEventData* )vedata;
-		// char buffer[ 5 ];
-		// size_t pointsize;
-		// if( utils::encoding::utf8.encode(
-			// buffer, edata->ch, sizeof( buffer ) - 1, &pointsize ) )
-		// {
-			// buffer[ pointsize ] = 0;
-			// lua_pushvalue( L, 1 );
-			// lua_pushstring( L, edata->event );
-			// lua_pushstring( L, buffer );
-			// if( lua_pcall( L, 2, 0, 0 ) != 0 )
-			// {
-				// *error = lua_retrieveerror( L );
-			// }
-		// }
-		// delete edata;
-	// )
-
-	// PROFILE( "notifyevent",
-		// lua_pushvalue( L, 1 );
-		// lua_pushstring( L, ( char const* )vedata );
-		// if( lua_pcall( L, 1, 0, 0 ) != 0 ) {
-			// *error = lua_retrieveerror( L );
-		// }
-	// )
-
-		// marker();
-		// lua_pushvalue( L, 1 );
-		// lua_pushstring( L, "destroy" );
-		// if( lua_pcall( L, 1, 0, 0 ) != 0 )
-		// {
-			// *error = lua_retrieveerror( L );
-		// }
-		// marker();
-
-		// Window* self = ( Window* )vedata;
-		// if( self->m_lstateready )
-		// {
-			// marker();
-			// clock_t time = clock();
-			// if( lua_isnoneornil( L, 1 ) )
-			// {
-				// return;
-			// }
-			// lua_pushvalue( L, 1 );
-			// lua_pushstring( L, "tick" );
-			// lua_pushnumber(
-				// L,
-				// float( time - self->m_timeoffset ) / CLOCKS_PER_SEC );
-			// if( lua_pcall( L, 2, 0, 0 ) != 0 )
-			// {
-				// *error = lua_retrieveerror( L );
-			// }
-			// self->m_timeoffset = time;
-			// self->m_tpscounter += 1;
-			// time = clock();
-			// if( time > self->m_tpstime )
-			// {
-				// self->m_tps = self->m_tpscounter;
-				// self->m_tpscounter = 0;
-				// self->m_tpstime = time + CLOCKS_PER_SEC;
-			// }
-			// marker();
-		// }
 
 	void Window::setshape( graphics::Shape* nv )
 	{

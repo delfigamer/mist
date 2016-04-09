@@ -19,19 +19,23 @@ namespace graphics
 			float mf[ 4 ];
 			for( int i = 0; i < 4; ++i )
 			{
-				mf[ i ] = ( fabs( f[ i ] ) - fabs( f[ i ] - 1 ) ) * 127.5 + 128;
+				mf[ i ] = ( fabs( f[ i ] ) - fabs( f[ i ] - 1 ) ) * 127.5f + 128;
 			}
-			uint32_t ri = mf[ 0 ];
-			uint32_t gi = mf[ 1 ];
-			uint32_t bi = mf[ 2 ];
-			uint32_t ai = mf[ 3 ];
+			uint32_t ri = uint32_t( mf[ 0 ] );
+			uint32_t gi = uint32_t( mf[ 1 ] );
+			uint32_t bi = uint32_t( mf[ 2 ] );
+			uint32_t ai = uint32_t( mf[ 3 ] );
 			return ai << 24 | ri << 16 | gi << 8 | bi;
 		}
 
-		int p2align( int x )
+		size_t p2align( size_t x )
 		{
+			if( x == 0 )
+			{
+				return 1;
+			}
 			x -= 1;
-			int r = 1;
+			size_t r = 1;
 			while( x > 0 )
 			{
 				r <<= 1;
@@ -50,7 +54,8 @@ namespace graphics
 			}
 		}
 
-		int RANGE_ASSERT( int value, int min, int max, char const* name )
+		template< typename T, typename U >
+		T RANGE_ASSERT( T value, U min, U max, char const* name )
 		{
 			if( value >= min && value < max )
 			{
@@ -64,12 +69,12 @@ namespace graphics
 
 		template< typename T >
 		auto TABLE_ASSERT(
-			T& table, int value, char const* name )
+			T& table, size_t value, char const* name )
 			-> decltype( table[ 0 ] )
 		{
 			return table[ RANGE_ASSERT(
 				value,
-				0,
+				size_t( 0 ),
 				sizeof( table ) / sizeof( table[ 0 ] ),
 				name ) ];
 		}

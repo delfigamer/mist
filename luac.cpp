@@ -1,3 +1,4 @@
+#include <common.hpp>
 #include <lua/lua.hpp>
 #include <cstdio>
 #include <cstdlib>
@@ -7,22 +8,21 @@ int main( int argc, char const** argv )
 {
 	if( argc < 3 )
 	{
-		fprintf( stderr, "Syntax: luac <target> <source> [<flags>]\n" );
-		fprintf( stderr, "Possible flags:\n" );
-		fprintf( stderr, "\td  remove debug information\n" );
+		printf( "Syntax: luac <target> <source> [<flags>]\n" );
+		printf( "Possible flags:\n" );
+		printf( "\td  remove debug information\n" );
 		return EXIT_FAILURE;
 	}
 	bool nodebug = false;
 	if( argc >= 4 )
 	{
-		nodebug = strchr( argv[ 3 ], 'd' );
+		nodebug = strchr( argv[ 3 ], 'd' ) != 0;
 	}
 	lua_State* L = luaL_newstate();
 	luaL_openlibs( L );
 	if( luaL_loadfile( L, argv[ 2 ] ) != 0 )
 	{
-		fprintf( stderr,
-			"Failed to load source file: %s\n", lua_tostring( L, -1 ) );
+		printf( "Failed to load source file: %s\n", lua_tostring( L, -1 ) );
 		return EXIT_FAILURE;
 	}
 	// chunk
@@ -36,7 +36,7 @@ int main( int argc, char const** argv )
 	// chunk, string, string.dump, chunk, nodebug
 	if( lua_pcall( L, 2, 1, 0 ) != 0 )
 	{
-		fprintf( stderr, "Failed to compile: %s\n", lua_tostring( L, -1 ) );
+		printf( "Failed to compile: %s\n", lua_tostring( L, -1 ) );
 		return EXIT_FAILURE;
 	}
 	// chunk, string, bytecode

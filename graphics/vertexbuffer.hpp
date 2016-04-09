@@ -6,6 +6,7 @@
 #include <utils/databuffer.hpp>
 #include <utils/ref.hpp>
 #include <common.hpp>
+#include <cinttypes>
 
 namespace graphics
 {
@@ -15,8 +16,8 @@ namespace graphics
 	protected:
 		utils::Ref< VertexDeclaration > m_vertexdeclaration;
 		IDirect3DVertexBuffer9* m_vertexbuffer;
-		int m_buffercapacity;
-		int m_buffersize;
+		size_t m_buffercapacity;
+		size_t m_buffersize;
 
 		virtual void doadvance() override;
 
@@ -26,7 +27,7 @@ namespace graphics
 		VertexBuffer( VertexBuffer const& ) = delete;
 		VertexBuffer& operator=( VertexBuffer const& ) = delete;
 
-		bool bind( int* vertexcount, VertexDeclaration** pvd );
+		bool bind( size_t* vertexcount, VertexDeclaration** pvd );
 	};
 }
 

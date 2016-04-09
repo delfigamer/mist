@@ -10,7 +10,7 @@
 
 namespace rsbin
 {
-	int const BlockingReadThreshold = 0x1000; // 4K
+	size_t const BlockingReadThreshold = 0x1000; // 4K
 	uint64_t const MaxViewSize = (
 		sizeof( void* ) >= 8 ?
 		0x10000000000ULL : // 1T
@@ -202,7 +202,7 @@ namespace rsbin
 #endif
 	}
 
-	FsTask* FileIo::startread( uint64_t offset, int length, void* buffer )
+	FsTask* FileIo::startread( uint64_t offset, size_t length, void* buffer )
 	{
 		FsTask* task = new FsTask;
 		if( length < BlockingReadThreshold && offset + length <= m_viewsize )
@@ -225,7 +225,7 @@ namespace rsbin
 		return task;
 	}
 
-	FsTask* FileIo::startwrite( uint64_t offset, int length, void const* buffer )
+	FsTask* FileIo::startwrite( uint64_t offset, size_t length, void const* buffer )
 	{
 		FsTask* task = new FsTask;
 		task->m_target = this;

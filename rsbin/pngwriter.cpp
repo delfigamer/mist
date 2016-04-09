@@ -3,13 +3,12 @@
 #include <utils/cbase.hpp>
 #include <utils/console.hpp>
 #include <stdexcept>
-#include <cinttypes>
 
 namespace rsbin
 {
 	struct format_t
 	{
-		int pixelstride;
+		ptrdiff_t pixelstride;
 		int bitdepth;
 		int colortype;
 		double invgamma;
@@ -46,7 +45,7 @@ namespace rsbin
 		png_structp png, png_bytep data, png_size_t length )
 	{
 		PngWriter* writer = ( PngWriter* )png_get_io_ptr( png );
-		writer->m_buffer.push( length, data );
+		writer->m_buffer.push( int( length ), data );
 	}
 
 	void PngWriter::flush_callback( png_structp png )
@@ -117,8 +116,8 @@ namespace rsbin
 	}
 
 	PngWriter::PngWriter(
-			bitmapformat format, int width, int height,
-			utils::DataBuffer* data )
+		bitmapformat format, uint32_t width, uint32_t height,
+		utils::DataBuffer* data )
 		: m_format( int( format ) )
 		, m_stage( stage_writeheader )
 		, m_width( width )
@@ -143,24 +142,25 @@ namespace rsbin
 		}
 	}
 
-	void PngWriter::grab( int length, void* buffer, int* result )
+	size_t PngWriter::grab( size_t length, void* buffer )
 	{
-		*result = 0;
+		size_t result = 0;
 		while( length > 0 )
 		{
-			int advance = m_buffer.pop( length, buffer );
+			size_t advance = m_buffer.pop( length, buffer );
 			length -= advance;
 			buffer = ( uint8_t* )buffer + advance;
-			*result += advance;
+			result += advance;
 			if( !feedbuffer() )
 			{
 				break;
 			}
 		}
-		int advance = m_buffer.pop( length, buffer );
+		size_t advance = m_buffer.pop( length, buffer );
 		length -= advance;
 		buffer = ( uint8_t* )buffer + advance;
-		*result += advance;
+		result += advance;
+		return result;
 	}
 
 	bool PngWriter::isfinished()

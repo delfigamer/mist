@@ -26,14 +26,14 @@ namespace graphics
 		RELEASE( m_vertexbuffer );
 	}
 
-	bool VertexBuffer::bind( int* vertexcount, VertexDeclaration** pvd )
+	bool VertexBuffer::bind( size_t* vertexcount, VertexDeclaration** pvd )
 	{
 		VertexDeclaration* vd = m_vertexdeclaration;
 		if( !vd || !m_vertexbuffer )
 		{
 			return false;
 		}
-		int vertexsize;
+		size_t vertexsize;
 		if( !vd->bind( &vertexsize ) )
 		{
 			return false;
@@ -42,7 +42,7 @@ namespace graphics
 		if( Context::CurrentVertexBuffer != m_vertexbuffer )
 		{
 			checkerror( Context::Device->SetStreamSource(
-				0, m_vertexbuffer, 0, vertexsize ) );
+				0, m_vertexbuffer, 0, UINT( vertexsize ) ) );
 			Context::CurrentVertexBuffer = m_vertexbuffer;
 		}
 		*vertexcount = m_buffersize / vertexsize;

@@ -48,9 +48,9 @@ namespace rsbin
 			return new FileIo( path, mode );
 		}
 		R_METHOD() FsTask* startread(
-			uint64_t offset, int length, void* buffer );
+			uint64_t offset, size_t length, void* buffer );
 		R_METHOD() FsTask* startwrite(
-			uint64_t offset, int length, void const* buffer );
+			uint64_t offset, size_t length, void const* buffer );
 		R_METHOD() void setsize( uint64_t size );
 	};
 }
