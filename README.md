@@ -28,3 +28,16 @@ The intended compiler is MinGW. The engine uses `std::thread`, which is currentl
 When ready, run the "build.lua" script in the project's root directory.
 
 Once built, only the contents of `output` folder are required and used by the engine. The `build` folder contains intermediate files.
+
+## Building with Visual Studio 2013
+So, I finally got around to teaching VS how to deal with all those code generators, and it seems to work.
+
+Again, you will need LuaJIT, libpng and also zlib.
+
+To build LuaJIT, follow the instructions for msvc on their installation page. Once finished, grab `lua51.dll`, `lua51.lib` and `lua.exe` and copy them into the root `mist/` directory. Rename the .lib file to `lua51-ARCH.lib` (see the table above). Copy the dll and rename the copy `lua51-ARCH.dll`. In the end, you should have the `lua.exe`+`lua51.dll` pair to run the code generating scripts and `lua51-ARCH.dll`+`lua51-ARCH.lib` for the engine itself.
+
+Similarly, build libpng with the included solution. To avoid linker warnings when compiling the engine, you can disable link-time and whole program optimization for libpng; though this is not a requirement. After that, you should have `libpng.dll`, `libpng.lib`, `zlib.dll` and `zlib.lib` in the projects' output directory. Copy them to `mist/` and append the corresponding `-ARCH` for each of them.
+
+Now, you should be ready to open `mist/vs/vs.sln` and build the solution. Due to the way file link are made, if you change the active platform or target, you should reload the projects or, alternatively, restart Visual Studio.
+
+Again, intermediate files are put into `build/vs-config-platform` and the resulting binaries are in `output/bin-vs-config-platform`. The appropriate dlls are copied into this folder as well. As its name doesn't really matter, if you wish, you can rename it into just `bin` or whatever strikes your fancy.
