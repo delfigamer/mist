@@ -1,5 +1,4 @@
-#ifndef UTILS_CONFIGSET_HPP__
-#define UTILS_CONFIGSET_HPP__ 1
+#pragma once
 
 #include <utils/string.hpp>
 #include <common.hpp>
@@ -59,5 +58,3 @@ function configset:string(expr, def)
 end
 R_END()
 */
-
-#endif

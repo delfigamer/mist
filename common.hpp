@@ -3,6 +3,7 @@
 #define R_ENUM( ... )
 #define R_STRUCT( ... )
 #define R_CLASS( ... )
+#define R_EXTERNAL( ... )
 #define R_METHOD( ... )
 #define R_TYPE( ... )
 #define R_EMIT( ... )

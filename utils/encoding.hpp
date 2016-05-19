@@ -1,5 +1,4 @@
-#ifndef UTILS_ENCODING_HPP__
-#define UTILS_ENCODING_HPP__ 1
+#pragma once
 
 #include <common.hpp>
 #include <cinttypes>
@@ -102,5 +101,3 @@ R_END()
 			translatestr( translation_t* translation );
 	};
 }
-
-#endif

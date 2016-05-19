@@ -1,44 +1,14 @@
-#ifndef WINDOW_WINDOW_HPP__
-#define WINDOW_WINDOW_HPP__ 1
+#pragma once
 
+#include <client-console/windowinfo.hpp>
 #include <utils/configset.hpp>
 #include <utils/ref.hpp>
 #include <common.hpp>
 #include <lua/lua.hpp>
 #include <ctime>
 
-struct methodlist_t;
-
-namespace graphics
-{
-	class Shape;
-}
-
 namespace window
 {
-R_STRUCT( name = windowinfo_t )
-	struct WindowInfo
-	{
-		int width;
-		int height;
-		float texelsoffset;
-		float texeltoffset;
-		utils::ConfigSet* configset;
-		bool acceleratorinput;
-		bool pointinput;
-		bool keyboardinput;
-		bool silent;
-		methodlist_t const* methodlist;
-	};
-/*
-R_EMIT( target = lua_beforeclasses )
-local windowinfo = package.loaded['host.info']
-windowinfo = ffi.cast('struct windowinfo_t const*', windowinfo)
-package.loaded['host.info'] = windowinfo
-local methodlist = windowinfo.methodlist
-R_END()
-*/
-
 	struct WindowCreationData
 	{
 		utils::String cmdline;
@@ -65,5 +35,3 @@ R_END()
 		void mainloop();
 	};
 }
-
-#endif

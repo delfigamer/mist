@@ -1,5 +1,4 @@
-#ifndef UTILS_SINGLETON_HPP__
-#define UTILS_SINGLETON_HPP__ 1
+#pragma once
 
 #include <utils/flaglock.hpp>
 #include <common.hpp>
@@ -80,5 +79,3 @@ namespace utils
 		return get();
 	}
 }
-
-#endif

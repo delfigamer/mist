@@ -1,8 +1,5 @@
-#ifndef PNG_HPP__
-#define PNG_HPP__ 1
+#pragma once
 
 extern "C" {
 #include "png.h"
 }
-
-#endif

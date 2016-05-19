@@ -10,8 +10,6 @@
 
 namespace window
 {
-#define marker() /* LOG( "-" ), */ ( void )( 0 )
-
 #if defined( _WIN32 ) || defined( _WIN64 )
 #define PLATFORM "win"
 #elif defined(__ANDROID__)
@@ -160,11 +158,11 @@ namespace window
 	Window::Window( WindowCreationData const& wcd )
 		: m_hwnd( 0 )
 		, m_terminated( false )
+		, m_renderermodule( 0 )
 		, m_mainconfig( MAINCONFIG_PATH, MAINCONFIG_STR )
 		, m_finishrequired( false )
 		, m_finished( false )
 	{
-		marker();
 		memset( &m_pointstate, 0, sizeof( m_pointstate ) );
 		m_mainconfig.runcmd( wcd.cmdline );
 		m_silent = m_mainconfig.boolean( "silent", false );
@@ -293,7 +291,6 @@ namespace window
 
 	int32_t Window::handle_input( AInputEvent* event )
 	{
-		marker();
 		switch( AInputEvent_getType( event ) )
 		{
 		case AINPUT_EVENT_TYPE_MOTION:
@@ -351,22 +348,18 @@ namespace window
 		switch( cmd )
 		{
 		case APP_CMD_SAVE_STATE:
-			marker();
 			m_app->savedStateSize = 0;
 			break;
 		case APP_CMD_INIT_WINDOW:
-			marker();
 			if( m_app->window != 0 )
 			{
 				initialize();
 			}
 			break;
 		case APP_CMD_TERM_WINDOW:
-			marker();
 			m_finished = true;
 			break;
 		case APP_CMD_GAINED_FOCUS:
-			marker();
 			if( m_accelerometerSensor != 0 )
 			{
 				ASensorEventQueue_enableSensor(
@@ -378,7 +371,6 @@ namespace window
 			// notifyevent( "focusgained" );
 			break;
 		case APP_CMD_LOST_FOCUS:
-			marker();
 			if( m_accelerometerSensor != 0 )
 			{
 				ASensorEventQueue_disableSensor(
@@ -387,7 +379,6 @@ namespace window
 			// notifyevent( "focuslost" );
 			break;
 		}
-		marker();
 	}
 
 	void Window::handle_sensor( ASensorEvent* event )
@@ -407,7 +398,6 @@ namespace window
 		, m_finishrequired( false )
 		, m_finished( false )
 	{
-		marker();
 		m_mainconfig.runcmd( wcd.cmdline );
 		m_silent = m_mainconfig.boolean( "silent", false );
 		if( !m_silent )
@@ -428,12 +418,10 @@ namespace window
 
 	Window::~Window()
 	{
-		marker();
 	}
 
 	int Window::mainloop()
 	{
-		marker();
 		if( m_silent )
 		{
 			finalize();
@@ -473,29 +461,86 @@ namespace window
 			paint();
 		}
 	}
-
 #endif
+
+	static utils::Ref< utils::DataBuffer > utf8toutf16( utils::String str )
+	{
+		utils::translation_t translation = {
+			&utils::encoding::utf8,
+			&utils::encoding::utf16,
+			str.getchars(),
+			0,
+			0,
+			0,
+			0xfffd,
+		};
+		if( utils::translatestr( &translation ) !=
+			utils::translateresult::success )
+		{
+			throw std::runtime_error( "cannot translate a utf-8 string" );
+		}
+		utils::Ref< utils::DataBuffer > db = utils::DataBuffer::create(
+			translation.destresult, translation.destresult, 0 );
+		translation.dest = db->m_data;
+		translation.sourcesize = translation.sourceresult;
+		translation.destsize = db->m_capacity;
+		if( utils::translatestr( &translation ) !=
+			utils::translateresult::success )
+		{
+			throw std::runtime_error( "cannot translate a utf-8 string" );
+		}
+		return std::move( db );
+	}
 
 	void Window::initialize()
 	{
-		marker();
+		m_info.window = this;
+		m_info.configset = &m_mainconfig;
+		m_info.silent = m_silent;
+		m_info.client_methodlist = &client_main_methodlist;
 		if( !m_silent )
 		{
 #if defined( _WIN32 ) || defined( _WIN64 )
-			m_display.initialize( m_mainconfig, m_hwnd );
-#elif defined( __ANDROID__ )
-			m_display.initialize( m_mainconfig, m_app );
-#endif
-			auto dinfo = m_display.getdisplayinfo();
-			m_info.width = dinfo->width;
-			m_info.height = dinfo->height;
-			m_info.texelsoffset = dinfo->texelsoffset;
-			m_info.texeltoffset = dinfo->texeltoffset;
-#if defined( _WIN32 ) || defined( _WIN64 )
+			utils::String rpath = m_mainconfig.string( "renderer" );
+			utils::Ref< utils::DataBuffer > wrpath = utf8toutf16( rpath );
+			m_renderermodule = LoadLibraryW( ( wchar_t* )wrpath->m_data );
+			if( !m_renderermodule )
+			{
+				throw utils::StrException(
+					"cannot load renderer %s", rpath.getchars() );
+			}
+			m_renderer_connect = renderer_connect_t(
+				GetProcAddress( m_renderermodule, "renderer_connect" ) );
+			m_renderer_display_create = renderer_display_create_t(
+				GetProcAddress( m_renderermodule, "renderer_display_create" ) );
+			m_renderer_display_destroy = renderer_display_destroy_t(
+				GetProcAddress( m_renderermodule, "renderer_display_destroy" ) );
+			m_renderer_display_paint = renderer_display_paint_t(
+				GetProcAddress( m_renderermodule, "renderer_display_paint" ) );
+			m_renderer_display_setshape = renderer_display_setshape_t(
+				GetProcAddress( m_renderermodule, "renderer_display_setshape" ) );
+			if(
+				!m_renderer_connect ||
+				!m_renderer_display_create ||
+				!m_renderer_display_destroy ||
+				!m_renderer_display_paint ||
+				!m_renderer_display_setshape )
+			{
+				FreeLibrary( m_renderermodule );
+				throw utils::StrException(
+					"%s is not a valid Mist renderer", rpath.getchars() );
+			}
+			m_renderer_connect( &m_info );
+			if( !m_renderer_display_create( m_hwnd, &m_display ) )
+			{
+				throw utils::StrException(
+					"%s", utils::cbase::geterror() );
+			}
 			m_info.acceleratorinput = false;
 			m_info.pointinput = true;
 			m_info.keyboardinput = true;
 #elif defined( __ANDROID__ )
+			// m_display.initialize( m_mainconfig, m_app );
 			m_info.acceleratorinput = false;
 			m_info.pointinput = true;
 			m_info.keyboardinput = false;
@@ -511,10 +556,6 @@ namespace window
 			m_info.pointinput = false;
 			m_info.keyboardinput = false;
 		}
-		m_info.configset = &m_mainconfig;
-		m_info.silent = m_silent;
-		m_info.methodlist = &methodlist;
-		m_info.window = this;
 		m_fpstime = clock() + CLOCKS_PER_SEC;
 		initlstate();
 	}
@@ -524,7 +565,11 @@ namespace window
 		closelstate();
 		if( !m_silent )
 		{
-			m_display.finalize();
+			if( m_renderer_display_destroy && m_display )
+			{
+				m_renderer_display_destroy( m_display );
+			}
+			FreeLibrary( m_renderermodule );
 		}
 	}
 
@@ -532,7 +577,11 @@ namespace window
 	{
 		if( !m_silent )
 		{
-			m_display.paint();
+			if( !m_renderer_display_paint( m_display ) )
+			{
+				throw utils::StrException(
+					"%s", utils::cbase::geterror() );
+			}
 			m_fpscounter += 1;
 			clock_t time = clock();
 			if( time > m_fpstime )
@@ -578,7 +627,7 @@ namespace window
 			}
 			lua_pushlightuserdata( L, &luainit[ 1 ] );
 			lua_pushlightuserdata( L, &m_info );
-			if( lua_pcall( L, 2, 1, 0 ) != 0 )
+			if( lua_pcall( L, 2, 0, 0 ) != 0 )
 			{
 				utils::String error = lua_retrieveerror( L );
 				LOG( "%s", error.getchars() );
@@ -627,7 +676,7 @@ namespace window
 
 	void Window::setshape( graphics::Shape* nv )
 	{
-		m_display.setshape( nv );
+		m_renderer_display_setshape( m_display, nv );
 	}
 
 	bool Window::popevent( Event* event )

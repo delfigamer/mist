@@ -22,6 +22,26 @@ while true do
 	sourceptr = sourceptr + 1
 end
 
+if package.loaded['host.info'].renderer_module ~= nil then
+	local sourceptr = ffi.cast(
+		'struct{\z
+			char const* name;\z
+			char const* data;\z
+			int length;\z
+		}*', package.loaded['host.info'].renderer_module)
+	while true do
+		if sourceptr[0].data == nil then
+			break
+		end
+		local name = ffi.string(sourceptr[0].name)
+		local length = sourceptr[0].length
+		local source = ffi.string(sourceptr[0].data, length)
+		local chunk = assert(load(source, name))
+		assert(pcall(chunk))
+		sourceptr = sourceptr + 1
+	end
+end
+
 setfenv(1, _G)
 protectglobaltable(true)
 

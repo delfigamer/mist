@@ -1,5 +1,4 @@
-#ifndef UTILS_PATH_HPP__
-#define UTILS_PATH_HPP__ 1
+#pragma once
 
 #include <utils/databuffer.hpp>
 #include <utils/ref.hpp>
@@ -36,5 +35,3 @@ namespace utils
 		static Ref< Path > create( void const* path );
 	};
 }
-
-#endif

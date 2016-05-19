@@ -2,7 +2,7 @@ rem %1 "$(SolutionDir)"
 rem %2 $(Platform)-$(Configuration)
 cd %~1..
 call lua ^
-	-e "compactffi=false fileprefix=[[build\%2\client-console\methodlist]]" ^
+	-e "compactffi=false fileprefix=[[build\%2\client-console\methodlist]] structname=[[client_console_methodlist]]" ^
 	"bind.lua" ^
 	"utils\cbase.hpp" ^
 	"utils\configset.hpp" ^
@@ -16,4 +16,4 @@ call lua ^
 	"rsbin\pngreader.hpp" ^
 	"rsbin\pngwriter.hpp" ^
 	"client-console\window.hpp" ^
-	"graphics\programtranslator.hpp"
+	"client-console\windowinfo.hpp"

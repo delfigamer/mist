@@ -22,18 +22,23 @@ function env.makepath(path)
 	return true
 end
 
-function env.pathlist(list, prefix)
+local function null_func(...)
+	return ...
+end
+
+function env.flaglist(list, prefix, func)
 	prefix = prefix or ''
+	func = func or null_func
 	local str = {}
 	if not list then
 		return ''
 	elseif type(list) == 'string' then
 		for item in string.gmatch(list, '[^;]+') do
-			table.append(str, '"' .. prefix .. env.path(item) .. '" ')
+			table.append(str, '"' .. prefix .. func(item) .. '" ')
 		end
 	else
 		for i, item in ipairs(list) do
-			str[i] = '"' .. prefix .. env.path(item) .. '" '
+			str[i] = '"' .. prefix .. func(item) .. '" '
 		end
 	end
 	return table.concat(str)
@@ -41,6 +46,16 @@ end
 
 if not _G.toolchain or _G.toolchain == 'gcc' then
 	function env.compile(t)
+		local macrostr = {}
+		if t.macros then
+			for name, value in pairs(t.macros) do
+				if type(value) == 'string' then
+					table.append(macrostr, '"-D' .. name .. '=' .. value .. '" ')
+				elseif value then
+					table.append(macrostr, '"-D' .. name .. '" ')
+				end
+			end
+		end
 		return
 			env.makepath(t.target) and
 			env.execute('g++ \z
@@ -49,9 +64,11 @@ if not _G.toolchain or _G.toolchain == 'gcc' then
 				-c \z
 				-O2 \z
 				-Wall -Werror \z
-				' .. env.pathlist(env.incpath, '-I') .. '\z
-				' .. env.pathlist(t.incpath, '-I') .. '\z
+				' .. env.flaglist(env.incpath, '-I', env.path) .. '\z
+				' .. env.flaglist(t.incpath, '-I', env.path) .. '\z
+				' .. table.concat(macrostr) .. '\z
 				-std=c++11 \z
+				-fvisibility=hidden \z
 				-pipe')
 	end
 
@@ -60,10 +77,12 @@ if not _G.toolchain or _G.toolchain == 'gcc' then
 			env.makepath(t.target) and
 			env.execute('g++ \z
 				-o "' .. env.path(t.target) .. '" \z
-				' .. env.pathlist(t.items) .. '\z
-				' .. env.pathlist(env.libpath, '-L') .. '\z
-				' .. env.pathlist(t.libpath, '-L') .. '\z
-				' .. env.pathlist(t.libs, '-l') .. '\z
+				' .. env.flaglist(t.items, '', env.path) .. '\z
+				' .. env.flaglist(env.libpath, '-L', env.path) .. '\z
+				' .. env.flaglist(t.libpath, '-L', env.path) .. '\z
+				' .. env.flaglist(t.libs, '-l', env.path) .. '\z
+				' .. (t.dll and '-shared ' or '') .. '\z
+				-fvisibility=hidden \z
 				-pipe')
 	end
 
@@ -81,7 +100,7 @@ if not _G.toolchain or _G.toolchain == 'gcc' then
 		return env.execute('lua \z
 			-e "' .. table.concat(varstr, ' ') .. '" \z
 			"' .. env.path(t.script) .. '" \z
-			' .. env.pathlist(t.args))
+			' .. env.flaglist(t.args, '', env.path))
 	end
 end
 

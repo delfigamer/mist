@@ -1,5 +1,4 @@
-#ifndef RSBIN_FILEIO_HPP__
-#define RSBIN_FILEIO_HPP__ 1
+#pragma once
 
 #include <utils/refobject.hpp>
 #include <utils/string.hpp>
@@ -54,5 +53,3 @@ namespace rsbin
 		R_METHOD() void setsize( uint64_t size );
 	};
 }
-
-#endif

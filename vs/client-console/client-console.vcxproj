@@ -21,7 +21,6 @@
   <ItemGroup>
     <ClCompile Include="..\..\client-console\main.cpp" />
     <ClCompile Include="..\..\client-console\window.cpp" />
-    <ClCompile Include="..\..\graphics\programtranslator.cpp" />
     <ClCompile Include="..\..\rsbin\common.cpp" />
     <ClCompile Include="..\..\rsbin\fileio.cpp" />
     <ClCompile Include="..\..\rsbin\fsthread.cpp" />
@@ -36,13 +35,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\client-console\window.hpp" />
+    <ClInclude Include="..\..\client-console\windowinfo.hpp" />
     <ClInclude Include="..\..\common.hpp" />
-    <ClInclude Include="..\..\graphics\programtranslator-base.hpp" />
-    <ClInclude Include="..\..\graphics\programtranslator-functions.hpp" />
-    <ClInclude Include="..\..\graphics\programtranslator-generators.hpp" />
-    <ClInclude Include="..\..\graphics\programtranslator-state.hpp" />
-    <ClInclude Include="..\..\graphics\programtranslator-step.hpp" />
-    <ClInclude Include="..\..\graphics\programtranslator.hpp" />
     <ClInclude Include="..\..\osapi.hpp" />
     <ClInclude Include="..\..\rsbin\common.hpp" />
     <ClInclude Include="..\..\rsbin\fileio.hpp" />

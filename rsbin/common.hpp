@@ -1,5 +1,4 @@
-#ifndef RSBIN_COMMON_HPP__
-#define RSBIN_COMMON_HPP__ 1
+#pragma once
 
 #include <common.hpp>
 
@@ -12,5 +11,3 @@ namespace rsbin
 		R_METHOD() static bool isfileavailable( char const* path );
 	};
 }
-
-#endif

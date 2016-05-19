@@ -2,16 +2,12 @@
 #include <client-console/luainit.hpp>
 #include <client-console/methodlist.hpp>
 #include <utils/strexception.hpp>
-#include <utils/profile.hpp>
 #include <utils/encoding.hpp>
 #include <utils/cbase.hpp>
 #include <utils/console.hpp>
 #include <osapi.hpp>
 #include <cstdlib>
 #include <cstdio>
-
-#undef PROFILE
-#define PROFILE( name, op ) { op }
 
 #if defined( _MSC_VER )
 #include <cstdarg>
@@ -27,8 +23,6 @@ static int snprintf( char* buffer, int buflen, char const* format, ... )
 
 namespace window
 {
-#define marker() /* LOG( m_console, "-" ) */ ( void )( 0 )
-
 #if defined( _WIN32 ) || defined( _WIN64 )
 #define PLATFORM "win"
 #elif defined(__ANDROID__)
@@ -66,14 +60,12 @@ namespace window
 		, m_cmdline( wcd.cmdline )
 		, m_lstate( 0 )
 	{
-		marker();
 		m_mainconfig.runcmd( m_cmdline );
 		initialize();
 	}
 
 	Window::~Window()
 	{
-		marker();
 		if( m_lstate )
 		{
 			lua_close( m_lstate );
@@ -86,45 +78,37 @@ namespace window
 
 	void Window::initialize()
 	{
-		marker();
+		m_info.window = this;
+		m_info.configset = &m_mainconfig;
+		m_info.acceleratorinput = false;
+		m_info.pointinput = false;
+		m_info.keyboardinput = false;
+		m_info.silent = true;
+		m_info.client_methodlist = &client_console_methodlist;
+		m_info.renderer_methodlist = nullptr;
+		m_info.renderer_module = nullptr;
 		m_info.width = 0;
 		m_info.height = 0;
 		m_info.texelsoffset = 0;
 		m_info.texeltoffset = 0;
-		m_info.acceleratorinput = false;
-		m_info.pointinput = false;
-		m_info.keyboardinput = false;
-		m_info.configset = &m_mainconfig;
-		m_info.silent = true;
-		m_info.methodlist = &methodlist;
 		initlstate();
 	}
 
 	void Window::initlstate()
 	{
-		// utils::String bootscript = m_mainconfig.string(
-			// "bootscript" );
-		// LOG( "~ Boot script location: %s", bootscript.getchars() );
-		// if( bootscript )
-		// {
-			m_lstate = luaL_newstate();
-			luaL_openlibs( m_lstate );
-			if( luaL_loadbuffer(
-				m_lstate,
-				luainit[ 0 ].data, luainit[ 0 ].length, luainit[ 0 ].name ) != 0 )
-			{
-				lua_throwerror( m_lstate );
-			}
-			lua_pushlightuserdata( m_lstate, &luainit[ 1 ] );
-			lua_pushlightuserdata( m_lstate, &m_info );
-			if( lua_pcall( m_lstate, 2, 0, 0 ) != 0 )
-			{
-				lua_throwerror( m_lstate );
-			}
-		// }
-		// else
-		// {
-			// CriticalError_m( "bootscript undefined" );
-		// }
+		m_lstate = luaL_newstate();
+		luaL_openlibs( m_lstate );
+		if( luaL_loadbuffer(
+			m_lstate,
+			luainit[ 0 ].data, luainit[ 0 ].length, luainit[ 0 ].name ) != 0 )
+		{
+			lua_throwerror( m_lstate );
+		}
+		lua_pushlightuserdata( m_lstate, &luainit[ 1 ] );
+		lua_pushlightuserdata( m_lstate, &m_info );
+		if( lua_pcall( m_lstate, 2, 0, 0 ) != 0 )
+		{
+			lua_throwerror( m_lstate );
+		}
 	}
 }

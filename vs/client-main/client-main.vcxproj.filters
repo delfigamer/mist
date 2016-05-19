@@ -19,9 +19,6 @@
     <Filter Include="Source Files\rsbin">
       <UniqueIdentifier>{4d895bd6-4876-4316-bdaa-9435bf4d05b5}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\graphics">
-      <UniqueIdentifier>{126c0856-0a5d-4023-8ce6-7c7be5b52f3e}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\utils\cbase.cpp">
@@ -56,42 +53,6 @@
     </ClCompile>
     <ClCompile Include="..\..\rsbin\pngwriter.cpp">
       <Filter>Source Files\rsbin</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\graphics\programtranslator.cpp">
-      <Filter>Source Files\graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\graphics\clearshape.cpp">
-      <Filter>Source Files\graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\graphics\common.cpp">
-      <Filter>Source Files\graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\graphics\context.cpp">
-      <Filter>Source Files\graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\graphics\display.cpp">
-      <Filter>Source Files\graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\graphics\primitiveshape.cpp">
-      <Filter>Source Files\graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\graphics\resource.cpp">
-      <Filter>Source Files\graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\graphics\shape.cpp">
-      <Filter>Source Files\graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\graphics\shapegroup.cpp">
-      <Filter>Source Files\graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\graphics\staticvertexbuffer.cpp">
-      <Filter>Source Files\graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\graphics\vertexbuffer.cpp">
-      <Filter>Source Files\graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\graphics\vertexdeclaration.cpp">
-      <Filter>Source Files\graphics</Filter>
     </ClCompile>
     <ClCompile Include="..\..\build\vs120-$(Platform)-$(Configuration)\client-main\luainit.cpp">
       <Filter>Source Files</Filter>
@@ -169,57 +130,6 @@
     </ClInclude>
     <ClInclude Include="..\..\rsbin\pngwriter.hpp">
       <Filter>Source Files\rsbin</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\graphics\programtranslator.hpp">
-      <Filter>Source Files\graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\graphics\programtranslator-base.hpp">
-      <Filter>Source Files\graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\graphics\programtranslator-functions.hpp">
-      <Filter>Source Files\graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\graphics\programtranslator-generators.hpp">
-      <Filter>Source Files\graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\graphics\programtranslator-state.hpp">
-      <Filter>Source Files\graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\graphics\programtranslator-step.hpp">
-      <Filter>Source Files\graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\graphics\clearshape.hpp">
-      <Filter>Source Files\graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\graphics\common.hpp">
-      <Filter>Source Files\graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\graphics\context.hpp">
-      <Filter>Source Files\graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\graphics\display.hpp">
-      <Filter>Source Files\graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\graphics\primitiveshape.hpp">
-      <Filter>Source Files\graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\graphics\resource.hpp">
-      <Filter>Source Files\graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\graphics\shape.hpp">
-      <Filter>Source Files\graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\graphics\shapegroup.hpp">
-      <Filter>Source Files\graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\graphics\staticvertexbuffer.hpp">
-      <Filter>Source Files\graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\graphics\vertexbuffer.hpp">
-      <Filter>Source Files\graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\graphics\vertexdeclaration.hpp">
-      <Filter>Source Files\graphics</Filter>
     </ClInclude>
     <ClInclude Include="..\..\osapi.hpp">
       <Filter>Source Files</Filter>

@@ -14,15 +14,13 @@ local function ftoi(n)
 	return floatint_t(n).i
 end
 
---[[
-	return (attribute 1 * attribute 2) ^ float4(2.2, 2.2, 2.2, 1)
-]]
 local tokens = {
 	pt.attribute_1,
 	pt.attribute_2,
 	pt.multiply,
-	pt.literal_float4, ftoi(2.2), ftoi(2.2), ftoi(2.2), ftoi(1),
+	pt.extract_0,
 	pt.power,
+	pt.texture_0,
 }
 
 local db = databuffer:create(#tokens*4, #tokens*4, nil)

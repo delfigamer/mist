@@ -20,7 +20,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{E9FA2563-F02A-4959-97DD-45023C7B5388}</ProjectGuid>
-    <RootNamespace>luainitconsole</RootNamespace>
+    <RootNamespace>luainitmain</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -91,7 +91,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>cd $(SolutionDir).. &amp;&amp; lua -e "structname=[[luainit]] fileprefix=[[build\vs120-$(Platform)-$(Configuration)\client-main\luainit]]" "embed.lua" "$(OutDir)main.lb" "$(OutDir)baselib.lb" "$(OutDir)object.lb" "$(OutDir)ffipure.lb" "$(OutDir)methodlist-main.lb" "$(OutDir)hostlib.lb"</Command>
+      <Command>cd $(SolutionDir).. &amp;&amp; lua -e "structname=[[luainit]] fileprefix=[[build\vs120-$(Platform)-$(Configuration)\client-main\luainit]]" "embed.lua" "$(OutDir)main.lb" "$(OutDir)baselib.lb" "$(OutDir)object.lb" "$(OutDir)ffipure.lb" "$(OutDir)methodlist_main.lb" "$(OutDir)hostlib.lb"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -104,7 +104,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>cd $(SolutionDir).. &amp;&amp; lua -e "structname=[[luainit]] fileprefix=[[build\vs120-$(Platform)-$(Configuration)\client-main\luainit]]" "embed.lua" "$(OutDir)main.lb" "$(OutDir)baselib.lb" "$(OutDir)object.lb" "$(OutDir)ffipure.lb" "$(OutDir)methodlist-main.lb" "$(OutDir)hostlib.lb"</Command>
+      <Command>cd $(SolutionDir).. &amp;&amp; lua -e "structname=[[luainit]] fileprefix=[[build\vs120-$(Platform)-$(Configuration)\client-main\luainit]]" "embed.lua" "$(OutDir)main.lb" "$(OutDir)baselib.lb" "$(OutDir)object.lb" "$(OutDir)ffipure.lb" "$(OutDir)methodlist_main.lb" "$(OutDir)hostlib.lb"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -125,7 +125,7 @@
       </Command>
     </PreLinkEvent>
     <PostBuildEvent>
-      <Command>cd $(SolutionDir).. &amp;&amp; lua -e "structname=[[luainit]] fileprefix=[[build\vs120-$(Platform)-$(Configuration)\client-main\luainit]]" "embed.lua" "$(OutDir)main.lb" "$(OutDir)baselib.lb" "$(OutDir)object.lb" "$(OutDir)ffipure.lb" "$(OutDir)methodlist-main.lb" "$(OutDir)hostlib.lb"</Command>
+      <Command>cd $(SolutionDir).. &amp;&amp; lua -e "structname=[[luainit]] fileprefix=[[build\vs120-$(Platform)-$(Configuration)\client-main\luainit]]" "embed.lua" "$(OutDir)main.lb" "$(OutDir)baselib.lb" "$(OutDir)object.lb" "$(OutDir)ffipure.lb" "$(OutDir)methodlist_main.lb" "$(OutDir)hostlib.lb"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -146,7 +146,7 @@
       </Command>
     </PreLinkEvent>
     <PostBuildEvent>
-      <Command>cd $(SolutionDir).. &amp;&amp; lua -e "structname=[[luainit]] fileprefix=[[build\vs120-$(Platform)-$(Configuration)\client-main\luainit]]" "embed.lua" "$(OutDir)main.lb" "$(OutDir)baselib.lb" "$(OutDir)object.lb" "$(OutDir)ffipure.lb" "$(OutDir)methodlist-main.lb" "$(OutDir)hostlib.lb"</Command>
+      <Command>cd $(SolutionDir).. &amp;&amp; lua -e "structname=[[luainit]] fileprefix=[[build\vs120-$(Platform)-$(Configuration)\client-main\luainit]]" "embed.lua" "$(OutDir)main.lb" "$(OutDir)baselib.lb" "$(OutDir)object.lb" "$(OutDir)ffipure.lb" "$(OutDir)methodlist_main.lb" "$(OutDir)hostlib.lb"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -209,14 +209,14 @@
   <ItemGroup>
     <CustomBuild Include="..\..\build\vs120-$(Platform)-$(Configuration)\client-main\methodlist.lua">
       <FileType>Document</FileType>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(OutDir)%(Filename)-main.lb</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)%(Filename)-main.lb</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(OutDir)%(Filename)-main.lb</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)%(Filename)-main.lb</Outputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">"$(SolutionDir)..\build\vs120-$(Platform)-$(Configuration)\luac.exe" "$(OutDir)%(Filename)-main.lb" "%(FullPath)"</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(SolutionDir)..\build\vs120-$(Platform)-$(Configuration)\luac.exe" "$(OutDir)%(Filename)-main.lb" "%(FullPath)"</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(SolutionDir)..\build\vs120-$(Platform)-$(Configuration)\luac.exe" "$(OutDir)%(Filename)-main.lb" "%(FullPath)"</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(SolutionDir)..\build\vs120-$(Platform)-$(Configuration)\luac.exe" "$(OutDir)%(Filename)-main.lb" "%(FullPath)"</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(OutDir)%(Filename)_main.lb</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)%(Filename)_main.lb</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(OutDir)%(Filename)_main.lb</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)%(Filename)_main.lb</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">"$(SolutionDir)..\build\vs120-$(Platform)-$(Configuration)\luac.exe" "$(OutDir)%(Filename)_main.lb" "%(FullPath)"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(SolutionDir)..\build\vs120-$(Platform)-$(Configuration)\luac.exe" "$(OutDir)%(Filename)_main.lb" "%(FullPath)"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(SolutionDir)..\build\vs120-$(Platform)-$(Configuration)\luac.exe" "$(OutDir)%(Filename)_main.lb" "%(FullPath)"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(SolutionDir)..\build\vs120-$(Platform)-$(Configuration)\luac.exe" "$(OutDir)%(Filename)_main.lb" "%(FullPath)"</Command>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

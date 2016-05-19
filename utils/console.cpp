@@ -68,13 +68,13 @@ namespace utils
 			}
 		}
 #else
-		printf( "%.*s", length, str );
+		printf( "%.*s", int( length ), str );
 #endif
 	}
 
 	void ConsoleClass::writefile( char const* str, size_t length )
 	{
-		fprintf( ( FILE* )m_file, "%.*s", length, str );
+		fprintf( ( FILE* )m_file, "%.*s", int( length ), str );
 	}
 
 	ConsoleClass::ConsoleClass()

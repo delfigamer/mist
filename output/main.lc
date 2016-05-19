@@ -1,9 +1,7 @@
-local ds = (_PLATFORM == 'win') and '\\' or '/'
+local sep = (_PLATFORM == 'win') and '\\' or '/'
 
-bootscript = _PATH .. 'scripts' .. ds .. 'system' .. ds .. 'boot.lua'
 if _CONSOLE then
 	index = 'index-cmd'
-	-- index = 'index-exltest'
 else
 	index = 'index-test'
 	silent = false
@@ -11,5 +9,6 @@ else
 		windowsize={1280, 720}
 	end
 end
+renderer = 'renderer-d3d9'
 vsync = false
 tpslimit = 0

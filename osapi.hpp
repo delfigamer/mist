@@ -1,5 +1,4 @@
-#ifndef OSAPI_HPP__
-#define OSAPI_HPP__ 1
+#pragma once
 
 #if defined( _WIN32 ) || defined( _WIN64 )
 #ifndef WIN32_LEAN_AND_MEAN
@@ -90,6 +89,4 @@ namespace
 #elif defined( __ANDROID__ )
 #define PATH_START "/storage/sdcard0/Android/data/me.sheimi.sgit/files/repo/mist/output/"
 #define PATH_SEP "/"
-#endif
-
 #endif

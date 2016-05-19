@@ -1,14 +1,13 @@
 local modname = ...
 local input = package.modtable(modname)
 local defer = require('base.defer')
-local enum = require('base.enum')
 local ffi = require('ffi')
 -- local info = require('host.info')
 local queue = require('base.queue')
 local set = require('base.set')
 local window = require('host.window')
 
-input.events = enum{
+input.events = table.makeenum{
 	close = 0,
 	pointdown = 1,
 	pointup = 2,

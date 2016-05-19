@@ -1,5 +1,4 @@
-#ifndef UTILS_FLAGLOCK_HPP__
-#define UTILS_FLAGLOCK_HPP__ 1
+#pragma once
 
 #include <common.hpp>
 #include <atomic>
@@ -42,5 +41,3 @@ namespace utils
 		}
 	};
 }
-
-#endif

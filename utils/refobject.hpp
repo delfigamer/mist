@@ -1,7 +1,5 @@
-#ifndef UTILS_REFOBJECT_HPP__
-#define UTILS_REFOBJECT_HPP__ 1
+#pragma once
 
-#include <utils/console.hpp>
 #include <common.hpp>
 #include <atomic>
 #include <cstdio>
@@ -111,5 +109,3 @@ function refobject:release()
 end
 R_END()
 */
-
-#endif

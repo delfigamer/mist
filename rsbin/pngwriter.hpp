@@ -1,5 +1,4 @@
-#ifndef RSBIN_PNGWRITER_HPP__
-#define RSBIN_PNGWRITER_HPP__ 1
+#pragma once
 
 #include <rsbin/pngcommon.hpp>
 #include <utils/string.hpp>
@@ -62,5 +61,3 @@ namespace rsbin
 		R_METHOD() bool isfinished();
 	};
 }
-
-#endif

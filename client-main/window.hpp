@@ -1,17 +1,15 @@
-#ifndef WINDOW_WINDOW_HPP__
-#define WINDOW_WINDOW_HPP__ 1
+#pragma once
 
+#include <client-main/windowinfo.hpp>
 #include <client-main/event.hpp>
 #include <utils/mpscqueue.hpp>
 #include <utils/configset.hpp>
 #include <utils/ref.hpp>
 #include <utils/console.hpp>
 #if defined( _WIN32 ) || defined( _WIN64 )
-#include <graphics/display.hpp>
 #include <windows.h>
 #include <windowsx.h>
 #elif defined(__ANDROID__)
-#include <graphics/display.hpp>
 #include <EGL/egl.h>
 #include <android/sensor.h>
 #include <android/log.h>
@@ -25,44 +23,17 @@
 #include <atomic>
 #include <ctime>
 
-struct methodlist_t;
+namespace graphics
+{
+	class Shape;
+	class Display;
+}
 
 namespace window
 {
-	class Window;
-
-R_STRUCT( name = windowinfo_t )
-	struct WindowInfo
-	{
-		int width;
-		int height;
-		float texelsoffset;
-		float texeltoffset;
-		utils::ConfigSet* configset;
-		bool acceleratorinput;
-		bool pointinput;
-		bool keyboardinput;
-		bool silent;
-		methodlist_t const* methodlist;
-		Window* window;
-	};
-/*
-R_EMIT( target = lua_beforeclasses )
-local windowinfo = package.loaded['host.info']
-windowinfo = ffi.cast('struct windowinfo_t const*', windowinfo)
-package.loaded['host.info'] = windowinfo
-local methodlist = windowinfo.methodlist
-R_END()
-
-R_EMIT( target = lua_end )
-package.loaded['host.window'] = window:new(windowinfo.window)
-R_END()
-*/
-
 	struct WindowCreationData
 	{
-#if defined( CON_TARGET )
-#elif defined( _WIN32 ) || defined( _WIN64 )
+#if defined( _WIN32 ) || defined( _WIN64 )
 		HINSTANCE hInstance;
 #elif defined( __ANDROID__ )
 		android_app* app;
@@ -74,6 +45,15 @@ R_END()
 	class Window
 	{
 #if defined( _WIN32 ) || defined( _WIN64 )
+	private:
+		typedef void( *renderer_connect_t )( window::WindowInfo* info );
+		typedef bool( *renderer_display_create_t )(
+			HWND hwnd, graphics::Display** display );
+		typedef bool( *renderer_display_destroy_t )( graphics::Display* display );
+		typedef bool( *renderer_display_paint_t )( graphics::Display* display );
+		typedef bool( *renderer_display_setshape_t )(
+			graphics::Display* display, graphics::Shape* shape );
+
 	private:
 		static wchar_t const* ClassName;
 		static wchar_t const* WindowCaption;
@@ -87,6 +67,12 @@ R_END()
 		HWND m_hwnd;
 		bool m_pointstate[ 4 ];
 		bool m_terminated;
+		HMODULE m_renderermodule;
+		renderer_connect_t m_renderer_connect;
+		renderer_display_create_t m_renderer_display_create;
+		renderer_display_destroy_t m_renderer_display_destroy;
+		renderer_display_paint_t m_renderer_display_paint;
+		renderer_display_setshape_t m_renderer_display_setshape;
 
 	public:
 		friend LRESULT CALLBACK GlobalWindowProc(
@@ -114,7 +100,7 @@ R_END()
 #endif
 	private:
 		utils::ConfigSet m_mainconfig;
-		graphics::Display m_display;
+		graphics::Display* m_display;
 		std::thread m_luathread;
 		utils::MPSCQueue< Event > m_eventqueue;
 		bool m_silent;
@@ -150,5 +136,3 @@ R_END()
 		R_METHOD() bool popevent( Event* event );
 	};
 }
-
-#endif

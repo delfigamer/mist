@@ -1,5 +1,4 @@
-#ifndef UTILS_STREXCEPTION_HPP__
-#define UTILS_STREXCEPTION_HPP__ 1
+#pragma once
 
 #include <utils/string.hpp>
 #include <utils/ref.hpp>
@@ -76,5 +75,3 @@ namespace utils
 		return m_message;
 	}
 }
-
-#endif

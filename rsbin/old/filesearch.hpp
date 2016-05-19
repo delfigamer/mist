@@ -16,7 +16,7 @@ namespace rsbin {
 		uint64_t size;
 		int savetime[ 6 ];
 	};
-	
+
 	class FileSearch: public utils::RefObject {
 	private:
 		utils::String m_target;
@@ -27,7 +27,7 @@ namespace rsbin {
 		char m_filename[ 1024 ];
 #elif defined( __ANDROID__ )
 #endif
-		
+
 	public:
 		virtual bool query( int id, void** target ) override;
 		FileSearch() = delete;
@@ -37,7 +37,7 @@ namespace rsbin {
 		FileSearch( FileSearch&& other ) = delete;
 		FileSearch& operator=( FileSearch const& other ) = delete;
 		FileSearch& operator=( FileSearch&& other ) = delete;
-		
+
 		bool hasentry();
 		void getentry( FileSearchEntry* entry );
 		void findnext();

@@ -1,5 +1,4 @@
-#ifndef UTILS_CBASE_HPP__
-#define UTILS_CBASE_HPP__ 1
+#pragma once
 
 #include <common.hpp>
 
@@ -15,5 +14,3 @@ namespace utils
 		R_METHOD() static void getchar( char* str );
 	};
 }
-
-#endif

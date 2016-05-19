@@ -1,5 +1,4 @@
-#ifndef UTILS_REF_HPP__
-#define UTILS_REF_HPP__ 1
+#pragma once
 
 #include <utils/refobject.hpp>
 #include <common.hpp>
@@ -301,5 +300,3 @@ namespace utils
 		return Ref< T >( new T( std::forward< Ts >( args )... ), 0 );
 	}
 }
-
-#endif

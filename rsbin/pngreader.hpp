@@ -1,5 +1,4 @@
-#ifndef RSBIN_PNGREADER_HPP__
-#define RSBIN_PNGREADER_HPP__ 1
+#pragma once
 
 #include <rsbin/pngcommon.hpp>
 #include <utils/string.hpp>
@@ -58,5 +57,3 @@ namespace rsbin
 		}
 	};
 }
-
-#endif

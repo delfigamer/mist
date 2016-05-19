@@ -1,5 +1,4 @@
-#ifndef UTILS_MPSCQUEUE_HPP__
-#define UTILS_MPSCQUEUE_HPP__ 1
+#pragma once
 
 #include <common.hpp>
 #include <atomic>
@@ -149,5 +148,3 @@ namespace utils
 		return true;
 	}
 }
-
-#endif

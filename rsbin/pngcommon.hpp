@@ -1,5 +1,4 @@
-#ifndef RSBIN_PNGCOMMON_HPP__
-#define RSBIN_PNGCOMMON_HPP__ 1
+#pragma once
 
 #include <common.hpp>
 
@@ -12,5 +11,3 @@ namespace rsbin
 		invalid = 1,
 	};
 }
-
-#endif

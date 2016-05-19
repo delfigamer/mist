@@ -26,7 +26,7 @@ namespace rsbin {
 		png_infop m_info;
 		utils::String m_error;
 		jmp_buf m_jmpbuf;
-		
+
 		static void error_handler( png_structp png, png_const_charp msg );
 		static void warning_handler( png_structp png, png_const_charp msg );
 		static void write_callback( png_structp png, png_bytep data, png_size_t length );
@@ -35,7 +35,7 @@ namespace rsbin {
 		void dowritechunk();
 		void dowriteend();
 		bool flushbuffer();
-		
+
 	public:
 		virtual bool query( int id, void** target ) override;
 		PngWriteTask() = delete;
@@ -45,7 +45,7 @@ namespace rsbin {
 		PngWriteTask( PngWriteTask&& other ) = delete;
 		PngWriteTask& operator=( PngWriteTask const& other ) = delete;
 		PngWriteTask& operator=( PngWriteTask&& other ) = delete;
-		
+
 		virtual void doaction() override;
 	};
 }

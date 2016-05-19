@@ -1,5 +1,4 @@
-#ifndef UTILS_DATABUFFER_HPP__
-#define UTILS_DATABUFFER_HPP__ 1
+#pragma once
 
 #include <utils/refobject.hpp>
 #include <utils/ref.hpp>
@@ -71,5 +70,3 @@ namespace utils
 		R_METHOD() size_t getcapacity() NOEXCEPT { return m_capacity; }
 	};
 }
-
-#endif

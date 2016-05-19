@@ -1,5 +1,4 @@
-#ifndef UTILS_MPSCLIST_HPP__
-#define UTILS_MPSCLIST_HPP__ 1
+#pragma once
 
 #include <common.hpp>
 #include <atomic>
@@ -226,5 +225,3 @@ namespace utils
 		return Iterator( 0 );
 	}
 }
-
-#endif

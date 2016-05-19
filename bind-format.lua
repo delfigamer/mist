@@ -192,16 +192,11 @@ function format.method_luabody(ent)
 		echo('if ')
 	end
 	echo('methodlist.', ent.flname, '(')
-	-- echo(luacallargstr)
 	do
 		local sep
 		if not ent.bstatic then
 			sep = sep_next(sep, ', ')
-			-- if ent.class.needsbox then
 				echo('self.ptr')
-			-- else
-				-- luacallargstr[1] = 'self'
-			-- end
 		end
 		for i, arg in ipairs(ent.arglist) do
 			sep = sep_next(sep, ', ')
@@ -266,7 +261,7 @@ function format.hpp(t)
 		end
 	end
 	format.emit_point(t.emit_ents, 'hpp_mldecl')
-	echo('struct methodlist_t\n')
+	echo('struct ', t.structname, '_t\n')
 	echo('{\n')
 	format.emit_point(t.emit_ents, 'hpp_mldeclstart')
 	for i, ent in ipairs(t.method_ents) do
@@ -277,7 +272,7 @@ function format.hpp(t)
 	end
 	format.emit_point(t.emit_ents, 'hpp_beforemldef')
 	echo('};\n')
-	echo('extern methodlist_t const methodlist;\n')
+	echo('extern ', t.structname, '_t const ', t.structname, ';\n')
 	format.emit_point(t.emit_ents, 'hpp_end')
 end
 
@@ -300,7 +295,7 @@ function format.cpp(t)
 	end
 	echo('}\n')
 	format.emit_point(t.emit_ents, 'cpp_beforemldef')
-	echo('methodlist_t const methodlist = {\n')
+	echo(t.structname, '_t const ', t.structname, ' = {\n')
 	for i, ent in ipairs(t.method_ents) do
 		echo('\t', ent.flname, ',\n')
 	end
@@ -310,8 +305,8 @@ end
 
 function format.ffi(t)
 	format.emit_point(t.emit_ents, 'ffi_start')
-	echo('struct methodlist_t;\n')
-	echo('typedef struct{} ')
+	echo('struct ', t.structname, '_t;\n')
+	echo('typedef void* ')
 	do
 		local sep
 		for i, ent in ipairs(t.type_ents) do
@@ -333,7 +328,7 @@ function format.ffi(t)
 		end
 	end
 	format.emit_point(t.emit_ents, 'ffi_beforemldecl')
-	echo('struct methodlist_t {\n')
+	echo('struct ', t.structname, '_t {\n')
 	format.emit_point(t.emit_ents, 'ffi_mldeclstart')
 	for i, ent in ipairs(t.method_ents) do
 		echo('\tbool(*', ent.flname, ')')
@@ -361,8 +356,8 @@ function format.lua(t)
 	for i, ent in ipairs(t.type_ents) do
 		if ent.type == 'class' or ent.type == 'struct' then
 			if ent.parent then
-				echo('local ', ent.lname, ' = ',
-					ent.parent.lname, ':module(\'host.', ent.lname, '\')\n')
+				echo('local ', ent.lname, ' = require(\'host.',
+					ent.parent.lname, '\'):module(\'host.', ent.lname, '\')\n')
 			else
 				echo('local ', ent.lname, ' = ffipure:module(\'host.',
 					ent.lname, '\')\n')

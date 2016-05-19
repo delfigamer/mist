@@ -27,23 +27,38 @@ end
 
 local configuration = {
 	['debug'] = {
+		tag = 'debug',
 		debug = true,
+		compilermacros = {
+			MIST_DEBUG = true,
+		},
 	},
 	['release'] = {
+		tag = 'release',
 		debug = false,
+		compilermacros = {
+		},
 	},
 }
 if _G.configuration then
 	configuration = configuration[_G.configuration] or
 		error('unknown configuration')
 else
-	configuration = configuration['release']
+	configuration = configuration['debug']
 end
 
-local dryrun = not not _G.dryrun
+if not not _G.dryrun then
+	function env.execute(str)
+		print(str)
+		return true
+	end
+end
 
-local builddir = 'build/' .. platform
+local builddir = 'build/l-' .. platform .. '-' .. configuration.tag
+local outputdir = 'output/bin-l-' .. platform .. '-' .. configuration.tag
 local luacpath = builddir .. '/luac.exe'
+currenttarget = string.gsub(currenttarget, '$b', builddir)
+currenttarget = string.gsub(currenttarget, '$o', outputdir)
 
 local function build_clean(entry)
 	for i, dep in ipairs(entry.directories) do
@@ -72,7 +87,7 @@ end
 
 local function build_lua(entry)
 	print('luac', entry.target)
-	return dryrun or env.luac{
+	return env.luac{
 		target = entry.target,
 		source = entry.source,
 		flags = configuration.debug and '' or 'd',
@@ -81,12 +96,13 @@ end
 
 local function build_methodlist(entry)
 	print('methodlist', entry.target)
-	return dryrun or
+	return
 		env.makepath(entry.target) and
 		env.lua{
 			vars = {
 				compactffi = not configuration.debug,
 				fileprefix = env.path(entry.target),
+				structname = entry.structname,
 			},
 			script = 'bind.lua',
 			args = entry.items,
@@ -95,7 +111,7 @@ end
 
 local function build_luainit(entry)
 	print('luainit', entry.target)
-	return dryrun or
+	return
 		env.makepath(entry.target) and
 		env.lua{
 			vars = {
@@ -109,19 +125,30 @@ end
 
 local function build_cpp(entry)
 	print('compile', entry.target)
-	return dryrun or env.compile{
+	return env.compile{
 		target = entry.target,
 		source = entry.source,
 		incpath = builddir,
+		macros = configuration.compilermacros,
 	}
 end
 
 local function build_exe(entry)
-	print('link', entry.target)
-	return dryrun or env.link{
+	print('link exe', entry.target)
+	return env.link{
 		target = entry.target,
 		items = entry.items,
 		libs = entry.libraries,
+	}
+end
+
+local function build_dll(entry)
+	print('link dll', entry.target)
+	return env.link{
+		target = entry.target,
+		items = entry.items,
+		libs = entry.libraries,
+		dll = true,
 	}
 end
 
@@ -149,125 +176,182 @@ table.append(targets, {
 })
 
 local methodlist_items = {
-	console = {},
-	main = {},
+	['client-console'] = {},
+	['client-main'] = {},
+	['renderer-d3d9'] = {},
 }
-for i, clientname in ipairs{
-	'console',
-	'main',
+for i, target in ipairs{
+	'client-console',
+	'client-main',
+	'renderer-d3d9',
 } do
+	local targetname = string.gsub(target, '%-', '_')
 	table.append(targets, {
 		build = build_methodlist,
-		target = builddir .. '/client-' .. clientname .. '/methodlist',
-		items = methodlist_items[clientname],
+		target = builddir .. '/' .. target .. '/methodlist',
+		items = methodlist_items[target],
+		structname = targetname .. '_methodlist',
 	})
 	table.append(targets, {
-		target = builddir .. '/client-' .. clientname .. '/methodlist.cpp',
+		target = builddir .. '/' .. target .. '/methodlist.cpp',
 		dependencies = {
-			builddir .. '/client-' .. clientname .. '/methodlist',
+			builddir .. '/' .. target .. '/methodlist',
 		},
 	})
 	table.append(targets, {
-		target = builddir .. '/client-' .. clientname .. '/methodlist.hpp',
+		target = builddir .. '/' .. target .. '/methodlist.hpp',
 		dependencies = {
-			builddir .. '/client-' .. clientname .. '/methodlist',
+			builddir .. '/' .. target .. '/methodlist',
 		},
 	})
 	table.append(targets, {
-		target = 'client-' .. clientname .. '/methodlist.cpp',
+		target = target .. '/methodlist.cpp',
 		dependencies = {
-			builddir .. '/client-' .. clientname .. '/methodlist.cpp',
+			builddir .. '/' .. target .. '/methodlist.cpp',
 		},
 	})
 	table.append(targets, {
-		target = 'client-' .. clientname .. '/methodlist.hpp',
+		target = target .. '/methodlist.hpp',
 		dependencies = {
-			builddir .. '/client-' .. clientname .. '/methodlist.hpp',
+			builddir .. '/' .. target .. '/methodlist.hpp',
 		},
 	})
 	table.append(targets, {
 		build = build_cpp,
-		target = builddir .. '/client-' .. clientname .. '/methodlist.o',
-		source = builddir .. '/client-' .. clientname .. '/methodlist.cpp',
+		target = builddir .. '/' .. target .. '/methodlist.o',
+		source = builddir .. '/' .. target .. '/methodlist.cpp',
 	})
 	table.append(targets, {
-		target = builddir .. '/client-' .. clientname .. '/methodlist.lua',
+		target = builddir .. '/' .. target .. '/methodlist.lua',
 		dependencies = {
-			builddir .. '/client-' .. clientname .. '/methodlist',
+			builddir .. '/' .. target .. '/methodlist',
 		},
 	})
 end
 
-for i, clientname in ipairs{
-	'console',
-	'main',
+for i, target in ipairs{
+	'client-console',
+	'client-main',
 } do
 	table.append(targets, {
 		build = build_lua,
-		target = builddir .. '/client-' .. clientname .. '/methodlist.lb',
-		source = builddir .. '/client-' .. clientname .. '/methodlist.lua',
+		target = builddir .. '/' .. target .. '/methodlist.lb',
+		source = builddir .. '/' .. target .. '/methodlist.lua',
 		dependencies = {
 			luacpath,
 		},
 	})
 	table.append(targets, {
 		build = build_luainit,
-		target = builddir .. '/client-' .. clientname .. '/luainit',
+		target = builddir .. '/' .. target .. '/luainit',
 		items = {
 			builddir .. '/luainit/main.lb',
 			builddir .. '/luainit/baselib.lb',
 			builddir .. '/luainit/object.lb',
 			builddir .. '/luainit/ffipure.lb',
-			builddir .. '/client-' .. clientname .. '/methodlist.lb',
+			builddir .. '/' .. target .. '/methodlist.lb',
 			builddir .. '/luainit/hostlib.lb',
 		},
 	})
 	table.append(targets, {
-		target = builddir .. '/client-' .. clientname .. '/luainit.cpp',
+		target = builddir .. '/' .. target .. '/luainit.cpp',
 		dependencies = {
-			builddir .. '/client-' .. clientname .. '/luainit',
+			builddir .. '/' .. target .. '/luainit',
 		},
 	})
 	table.append(targets, {
-		target = builddir .. '/client-' .. clientname .. '/luainit.hpp',
+		target = builddir .. '/' .. target .. '/luainit.hpp',
 		dependencies = {
-			builddir .. '/client-' .. clientname .. '/luainit',
+			builddir .. '/' .. target .. '/luainit',
 		},
 	})
 	table.append(targets, {
-		target = 'client-' .. clientname .. '/luainit.cpp',
+		target = target .. '/luainit.cpp',
 		dependencies = {
-			builddir .. '/client-' .. clientname .. '/luainit.cpp',
+			builddir .. '/' .. target .. '/luainit.cpp',
 		},
 	})
 	table.append(targets, {
-		target = 'client-' .. clientname .. '/luainit.hpp',
+		target = target .. '/luainit.hpp',
 		dependencies = {
-			builddir .. '/client-' .. clientname .. '/luainit.hpp',
+			builddir .. '/' .. target .. '/luainit.hpp',
 		},
 	})
 	table.append(targets, {
 		build = build_cpp,
-		target = builddir .. '/client-' .. clientname .. '/luainit.o',
-		source = builddir .. '/client-' .. clientname .. '/luainit.cpp',
+		target = builddir .. '/' .. target .. '/luainit.o',
+		source = builddir .. '/' .. target .. '/luainit.cpp',
 	})
 end
 
-local client_items = {
-	['console'] = {
+for i, target in ipairs{
+	'renderer-d3d9',
+} do
+	table.append(targets, {
+		build = build_lua,
+		target = builddir .. '/' .. target .. '/methodlist.lb',
+		source = builddir .. '/' .. target .. '/methodlist.lua',
+		dependencies = {
+			luacpath,
+		},
+	})
+	table.append(targets, {
+		build = build_luainit,
+		target = builddir .. '/' .. target .. '/luainit',
+		items = {
+			builddir .. '/' .. target .. '/methodlist.lb',
+		},
+	})
+	table.append(targets, {
+		target = builddir .. '/' .. target .. '/luainit.cpp',
+		dependencies = {
+			builddir .. '/' .. target .. '/luainit',
+		},
+	})
+	table.append(targets, {
+		target = builddir .. '/' .. target .. '/luainit.hpp',
+		dependencies = {
+			builddir .. '/' .. target .. '/luainit',
+		},
+	})
+	table.append(targets, {
+		target = target .. '/luainit.cpp',
+		dependencies = {
+			builddir .. '/' .. target .. '/luainit.cpp',
+		},
+	})
+	table.append(targets, {
+		target = target .. '/luainit.hpp',
+		dependencies = {
+			builddir .. '/' .. target .. '/luainit.hpp',
+		},
+	})
+	table.append(targets, {
+		build = build_cpp,
+		target = builddir .. '/' .. target .. '/luainit.o',
+		source = builddir .. '/' .. target .. '/luainit.cpp',
+	})
+end
+
+local target_items = {
+	['client-console'] = {
 		builddir .. '/client-console/luainit.o',
 		builddir .. '/client-console/methodlist.o',
 	},
-	['main'] = {
+	['client-main'] = {
 		builddir .. '/client-main/luainit.o',
 		builddir .. '/client-main/methodlist.o',
+	},
+	['renderer-d3d9'] = {
+		builddir .. '/renderer-d3d9/luainit.o',
+		builddir .. '/renderer-d3d9/methodlist.o',
 	},
 }
 
 table.append(targets, {
 	build = build_exe,
-	target = 'output/bin-' .. platform .. '/client-console.exe',
-	items = client_items['console'],
+	target = outputdir .. '/client-console.exe',
+	items = target_items['client-console'],
 	libraries = {
 		'luajit-' .. platform,
 		'png-' .. platform,
@@ -276,23 +360,32 @@ table.append(targets, {
 })
 table.append(targets, {
 	build = build_exe,
-	target = 'output/bin-' .. platform .. '/client-main.exe',
-	items = client_items['main'],
+	target = outputdir .. '/client-main.exe',
+	items = target_items['client-main'],
 	libraries = {
 		'luajit-' .. platform,
 		'png-' .. platform,
 		'gdi32',
+		'z',
+	},
+})
+table.append(targets, {
+	build = build_dll,
+	target = outputdir .. '/renderer-d3d9.dll',
+	items = target_items['renderer-d3d9'],
+	libraries = {
+		'gdi32',
 		'd3d9',
 		'd3dx9',
-		'z',
 	},
 })
 
 table.append(targets, {
 	target = 'all',
 	dependencies = {
-		'output/bin-' .. platform .. '/client-console.exe',
-		'output/bin-' .. platform .. '/client-main.exe',
+		outputdir .. '/client-console.exe',
+		outputdir .. '/client-main.exe',
+		outputdir .. '/renderer-d3d9.dll',
 	},
 })
 
@@ -304,8 +397,9 @@ table.append(targets, {
 		builddir,
 	},
 	files = {
-		'output/bin-' .. platform .. '/client-console.exe',
-		'output/bin-' .. platform .. '/client-main.exe',
+		outputdir .. '/client-console.exe',
+		outputdir .. '/client-main.exe',
+		outputdir .. '/renderer-d3d9.dll',
 	},
 })
 
@@ -332,11 +426,13 @@ for i, unit in ipairs(sources) do
 		end
 		for use in string.gmatch(unit.use, '[^;]+') do
 			if not unit.headeronly then
-				table.append(client_items[use],
+				table.append(target_items[use],
 					builddir .. '/' .. unit.name .. '.o')
 			end
-			if unit.methodlist then
-				table.append(methodlist_items[use], unit.name .. '.hpp')
+		end
+		if unit.methodlist then
+			for mluse in string.gmatch(unit.methodlist, '[^;]+') do
+				table.append(methodlist_items[mluse], unit.name .. '.hpp')
 			end
 		end
 	elseif unit.type == 'luainit' then
@@ -429,9 +525,22 @@ for i, entry in ipairs(targets) do
 	targets[entry.target] = entry
 end
 
+if _G.printgraph then
+	for i, entry in ipairs(targets) do
+		print(entry.target .. ':')
+		for j, dep in ipairs(entry.dependencies) do
+			print('', dep)
+		end
+	end
+	return
+end
+
 -- mark the targets to build
 do
 	local next = {targets[currenttarget]}
+	if not next[1] then
+		error('invalid current target')
+	end
 	next[1].marked = true
 	while #next > 0 do
 		local entry = table.pop(next)

@@ -4,6 +4,8 @@ local format = require('bind-format')
 
 local filelist = {...}
 
+local structname = _G.structname or error('global structname must be set')
+
 -- _G.fileprefix
 -- _G.compactffi
 -- R_ENUM()
@@ -17,6 +19,8 @@ local filelist = {...}
 --     stringwrap
 --     addref
 --     noluamethod
+-- R_EXTERNAL()
+--   typename = fcname | lname | fcname | lname ...
 -- R_EMIT() ... R_END()
 --   typename = fcname | lname | fcname | lname ...
 --   target =
@@ -57,10 +61,11 @@ local function setfilecontents(path, content)
 end
 
 local type_map = {
-	['::methodlist_t'] = {
+	['::' .. structname .. '_t'] = {
 		type = 'special',
-		fcname = '::methodlist_t',
-		ffiname = 'struct methodlist_t',
+		fcname = '::' .. structname .. '_t',
+		ffiname = 'struct ' .. structname .. '_t',
+		source = '',
 	}
 }
 do
@@ -69,6 +74,7 @@ do
 			type = 'base',
 			fcname = name,
 			ffiname = name,
+			source = '',
 		}
 	end
 
@@ -83,7 +89,6 @@ do
 	basetype('uint32_t')
 	basetype('uint64_t')
 	basetype('size_t')
-	basetype('usize_t')
 	basetype('ptrdiff_t')
 	basetype('intptr_t')
 	basetype('uintptr_t')
@@ -109,21 +114,31 @@ local function type_lookup(nsprefix, cname)
 			currentns = string.match(currentns, '^(.*::).-::')
 		end
 	end
-	error('unknown type: ' .. cname .. ' at ' .. nsprefix)
+	return nil, 'unknown type: ' .. cname .. ' at ' .. nsprefix
 end
 
 local function resolve_type(typedef)
 	if typedef.type == 'void' then
 	elseif typedef.type == 'reference' then
-		typedef.target = type_lookup(typedef.nsprefix, typedef.cname)
+		local target, err = type_lookup(typedef.nsprefix, typedef.cname)
+		if target then
+			typedef.target = target
+		else
+			error(typedef.source .. '\t' .. err)
+		end
 	elseif typedef.type == 'pointer' then
 		local base = typedef.base
 		resolve_type(base)
 		if base.type == 'reference' then
-			local basetarget = type_lookup(base.nsprefix, base.cname)
-			if basetarget.type == 'class' then
-				typedef.type = 'classbox'
-				typedef.target = basetarget
+			local basetarget, err = type_lookup(base.nsprefix, base.cname)
+			if basetarget then
+				if basetarget.type == 'class' or basetarget.type == 'externalclass'
+				then
+					typedef.type = 'classbox'
+					typedef.target = basetarget
+				end
+			else
+				error(typedef.source .. '\t' .. err)
 			end
 		end
 	end
@@ -139,14 +154,27 @@ local function register_entity(ent)
 		table.append(emit_ents, ent)
 		if ent.meta.typename then
 			for fcname, lname in
-				string.gmatch(ent.meta.typename, '([^%s|]+)%s*|%s*([%a_][%w_]*)')
+				string.gmatch(ent.meta.typename,
+					'%s*([^|]*[^%s|])%s*|%s*([%a_][%w_]*)')
 			do
-				type_map[fcname] = {
-					type = 'special',
-					fcname = fcname,
-					lname = lname,
-					ffiname = lname,
-				}
+				local classfcname = string.match(fcname, '^class%s*(.*)')
+				if classfcname then
+					type_map[classfcname] = {
+						type = 'externalclass',
+						fcname = classfcname,
+						lname = lname,
+						ffiname = lname,
+						source = ent.source,
+					}
+				else
+					type_map[fcname] = {
+						type = 'special',
+						fcname = fcname,
+						lname = lname,
+						ffiname = lname,
+						source = ent.source,
+					}
+				end
 			end
 		end
 	elseif ent.type == 'enum' then
@@ -174,7 +202,7 @@ end
 -- load and parse the files
 for i, filename in ipairs(filelist) do
 	table.append(boundheaders, filename)
-	local fents = parser(getfilecontents(filename))
+	local fents = parser(filename, getfilecontents(filename))
 	for i, ent in ipairs(fents) do
 		register_entity(ent)
 	end
@@ -188,7 +216,12 @@ for i, ent in ipairs(type_ents) do
 		end
 	elseif ent.type == 'class' then
 		if ent.parent then
-			ent.parent = type_lookup(ent.nsprefix, ent.parent)
+			local parent, err = type_lookup(ent.nsprefix, ent.parent)
+			if parent then
+				ent.parent = parent
+			else
+				error(ent.source .. '\t' .. err)
+			end
 		end
 	end
 end
@@ -204,13 +237,20 @@ end
 -- sort classes according to their inheritance
 do
 	local function preceding(ent)
-		return {ent.parent}
+		if ent.parent and ent.parent.type == 'class' then
+			return {ent.parent}
+		else
+			return {}
+		end
 	end
 	local result, leftover = table.weak_sort(type_ents, preceding)
 	if result then
 		type_ents = result
 	else
 		error('cannot resolve class inheritance')
+		for i, ent in ipairs(leftover) do
+			print('', ent.fcname .. ': ' .. ent.parent.fcname)
+		end
 	end
 end
 
@@ -221,6 +261,7 @@ local fenv = {
 	method_ents = method_ents,
 	fileprefix = _G.fileprefix or error('global fileprefix must be set'),
 	compactffi = _G.compactffi,
+	structname = structname,
 }
 
 setfilecontents(fileprefix .. '.cpp', format.format(format.cpp, fenv))

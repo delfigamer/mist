@@ -21,23 +21,6 @@
   <ItemGroup>
     <ClCompile Include="..\..\client-main\main.cpp" />
     <ClCompile Include="..\..\client-main\window.cpp" />
-    <ClCompile Include="..\..\graphics\clearshape.cpp" />
-    <ClCompile Include="..\..\graphics\common.cpp">
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)graphics-common.obj</ObjectFileName>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)graphics-common.obj</ObjectFileName>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)graphics-common.obj</ObjectFileName>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)graphics-common.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="..\..\graphics\context.cpp" />
-    <ClCompile Include="..\..\graphics\display.cpp" />
-    <ClCompile Include="..\..\graphics\primitiveshape.cpp" />
-    <ClCompile Include="..\..\graphics\programtranslator.cpp" />
-    <ClCompile Include="..\..\graphics\resource.cpp" />
-    <ClCompile Include="..\..\graphics\shape.cpp" />
-    <ClCompile Include="..\..\graphics\shapegroup.cpp" />
-    <ClCompile Include="..\..\graphics\staticvertexbuffer.cpp" />
-    <ClCompile Include="..\..\graphics\vertexbuffer.cpp" />
-    <ClCompile Include="..\..\graphics\vertexdeclaration.cpp" />
     <ClCompile Include="..\..\rsbin\common.cpp" />
     <ClCompile Include="..\..\rsbin\fileio.cpp" />
     <ClCompile Include="..\..\rsbin\fsthread.cpp" />
@@ -54,23 +37,6 @@
     <ClInclude Include="..\..\client-main\event.hpp" />
     <ClInclude Include="..\..\client-main\window.hpp" />
     <ClInclude Include="..\..\common.hpp" />
-    <ClInclude Include="..\..\graphics\clearshape.hpp" />
-    <ClInclude Include="..\..\graphics\common.hpp" />
-    <ClInclude Include="..\..\graphics\context.hpp" />
-    <ClInclude Include="..\..\graphics\display.hpp" />
-    <ClInclude Include="..\..\graphics\primitiveshape.hpp" />
-    <ClInclude Include="..\..\graphics\programtranslator-base.hpp" />
-    <ClInclude Include="..\..\graphics\programtranslator-functions.hpp" />
-    <ClInclude Include="..\..\graphics\programtranslator-generators.hpp" />
-    <ClInclude Include="..\..\graphics\programtranslator-state.hpp" />
-    <ClInclude Include="..\..\graphics\programtranslator-step.hpp" />
-    <ClInclude Include="..\..\graphics\programtranslator.hpp" />
-    <ClInclude Include="..\..\graphics\resource.hpp" />
-    <ClInclude Include="..\..\graphics\shape.hpp" />
-    <ClInclude Include="..\..\graphics\shapegroup.hpp" />
-    <ClInclude Include="..\..\graphics\staticvertexbuffer.hpp" />
-    <ClInclude Include="..\..\graphics\vertexbuffer.hpp" />
-    <ClInclude Include="..\..\graphics\vertexdeclaration.hpp" />
     <ClInclude Include="..\..\osapi.hpp" />
     <ClInclude Include="..\..\rsbin\common.hpp" />
     <ClInclude Include="..\..\rsbin\fileio.hpp" />
@@ -199,7 +165,7 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>lua51-win64.lib;libpng-win64.lib;zlib-win64.lib;d3d9.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>lua51-win64.lib;libpng-win64.lib;zlib-win64.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>LIBCMT</IgnoreSpecificDefaultLibraries>
     </Link>
     <PostBuildEvent>
@@ -245,7 +211,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>lua51-win64.lib;libpng-win64.lib;zlib-win64.lib;d3d9.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>lua51-win64.lib;libpng-win64.lib;zlib-win64.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>LIBCMT</IgnoreSpecificDefaultLibraries>
     </Link>
     <PostBuildEvent>

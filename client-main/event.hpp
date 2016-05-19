@@ -1,5 +1,4 @@
-#ifndef WINDOW_EVENT_HPP__
-#define WINDOW_EVENT_HPP__ 1
+#pragma once
 
 #include <common.hpp>
 
@@ -62,5 +61,3 @@ function event.instmeta:__tostring()
 end
 R_END()
 */
-
-#endif
