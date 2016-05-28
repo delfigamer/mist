@@ -63,15 +63,11 @@ currenttarget = string.gsub(currenttarget, '$o', outputdir)
 local function build_clean(entry)
 	for i, dep in ipairs(entry.directories) do
 		print('rmdir', dep)
-		if not dryrun then
-			env.rmdir(dep)
-		end
+		env.rmdir(dep)
 	end
 	for i, dep in ipairs(entry.files) do
 		print('rm', dep)
-		if not dryrun then
-			env.rm(dep)
-		end
+		env.rm(dep)
 	end
 	return true
 end
@@ -139,6 +135,9 @@ local function build_exe(entry)
 		target = entry.target,
 		items = entry.items,
 		libs = entry.libraries,
+		libpath = {
+			outputdir,
+		},
 	}
 end
 
@@ -148,8 +147,16 @@ local function build_dll(entry)
 		target = entry.target,
 		items = entry.items,
 		libs = entry.libraries,
+		libpath = {
+			outputdir,
+		},
 		dll = true,
 	}
+end
+
+local function build_copy(entry)
+	print('copy', entry.target)
+	return env.copy(entry.source, entry.target)
 end
 
 local targets = {}
@@ -179,11 +186,13 @@ local methodlist_items = {
 	['client-console'] = {},
 	['client-main'] = {},
 	['renderer-d3d9'] = {},
+	['renderer-gles'] = {},
 }
 for i, target in ipairs{
 	'client-console',
 	'client-main',
 	'renderer-d3d9',
+	'renderer-gles',
 } do
 	local targetname = string.gsub(target, '%-', '_')
 	table.append(targets, {
@@ -286,6 +295,7 @@ end
 
 for i, target in ipairs{
 	'renderer-d3d9',
+	'renderer-gles',
 } do
 	table.append(targets, {
 		build = build_lua,
@@ -346,6 +356,10 @@ local target_items = {
 		builddir .. '/renderer-d3d9/luainit.o',
 		builddir .. '/renderer-d3d9/methodlist.o',
 	},
+	['renderer-gles'] = {
+		builddir .. '/renderer-gles/luainit.o',
+		builddir .. '/renderer-gles/methodlist.o',
+	},
 }
 
 table.append(targets, {
@@ -379,6 +393,36 @@ table.append(targets, {
 		'd3dx9',
 	},
 })
+table.append(targets, {
+	build = build_dll,
+	target = outputdir .. '/renderer-gles.dll',
+	items = target_items['renderer-gles'],
+	libraries = {
+		'gdi32',
+		'GLESv2',
+		'EGL',
+	},
+	dependencies = {
+		outputdir .. '/d3dcompiler_47.dll',
+		outputdir .. '/libEGL.dll',
+		outputdir .. '/libGLESv2.dll',
+	},
+})
+for i, name in ipairs{
+	'd3dcompiler_47',
+	'libEGL',
+	'libGLESv2',
+} do
+	table.append(targets, {
+		target = name .. '-' .. platform .. '.dll',
+		issource = true,
+	})
+	table.append(targets, {
+		build = build_copy,
+		target = outputdir .. '/' .. name .. '.dll',
+		source = name .. '-' .. platform .. '.dll',
+	})
+end
 
 table.append(targets, {
 	target = 'all',
@@ -386,6 +430,7 @@ table.append(targets, {
 		outputdir .. '/client-console.exe',
 		outputdir .. '/client-main.exe',
 		outputdir .. '/renderer-d3d9.dll',
+		outputdir .. '/renderer-gles.dll',
 	},
 })
 
@@ -400,6 +445,10 @@ table.append(targets, {
 		outputdir .. '/client-console.exe',
 		outputdir .. '/client-main.exe',
 		outputdir .. '/renderer-d3d9.dll',
+		outputdir .. '/renderer-gles.dll',
+		outputdir .. '/d3dcompiler_47.dll',
+		outputdir .. '/libEGL.dll',
+		outputdir .. '/libGLESv2.dll',
 	},
 })
 
@@ -572,7 +621,8 @@ buildstate = buildstate or {
 }
 
 local function savebuildstate()
-	local f = io.open(env.path(builddir .. '/buildstate.lua'), 'w')
+	env.makepath(builddir .. '/buildstate.lua')
+	local f, err = io.open(env.path(builddir .. '/buildstate.lua'), 'w')
 	if not f then
 		return
 	end
@@ -601,15 +651,15 @@ for i, entry in ipairs(targets) do
 			print('changed:', entry.target)
 			buildstate.updatemap[entry.target] = true
 		end
-	elseif entry.alwaysbuild or entry.target == currenttarget then
+	end
+	if entry.alwaysbuild or entry.target == currenttarget then
 		buildstate.updatemap[entry.target] = true
-	else
-		for j, dep in ipairs(entry.dependencies) do
-			local depentry = targets[dep]
-			if buildstate.updatemap[dep] then
-				buildstate.updatemap[entry.target] = true
-				break
-			end
+	end
+	for j, dep in ipairs(entry.dependencies) do
+		local depentry = targets[dep]
+		if buildstate.updatemap[dep] then
+			buildstate.updatemap[entry.target] = true
+			break
 		end
 	end
 end
@@ -628,7 +678,7 @@ do
 					break
 				end
 			end
-			if not dryrun then
+			if not _G.dryrun then
 				buildstate.updatemap[entry.target] = nil
 			end
 		end

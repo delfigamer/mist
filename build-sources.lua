@@ -3,6 +3,7 @@ local modname = ...
 --   client-console
 --   client-main
 --   renderer-d3d9
+--   renderer-gles
 local sources = {
 	{
 		type = 'native',
@@ -20,13 +21,13 @@ local sources = {
 		type = 'native',
 		name = 'common',
 		headeronly = true,
-		use = 'client-console;client-main;renderer-d3d9',
+		use = 'client-console;client-main;renderer-d3d9;renderer-gles',
 	},
 	{
 		type = 'native',
 		name = 'osapi',
 		headeronly = true,
-		use = 'client-console;client-main;renderer-d3d9',
+		use = 'client-console;client-main;renderer-d3d9;renderer-gles',
 	},
 	{
 		type = 'native',
@@ -54,7 +55,7 @@ local sources = {
 		type = 'native',
 		name = 'utils/databuffer',
 		headeronly = true,
-		use = 'client-console;client-main;renderer-d3d9',
+		use = 'client-console;client-main;renderer-d3d9;renderer-gles',
 		methodlist = 'client-console;client-main',
 	},
 	{
@@ -67,19 +68,19 @@ local sources = {
 		type = 'native',
 		name = 'utils/flaglock',
 		headeronly = true,
-		use = 'client-console;client-main;renderer-d3d9',
+		use = 'client-console;client-main;renderer-d3d9;renderer-gles',
 	},
 	{
 		type = 'native',
 		name = 'utils/mpsclist',
 		headeronly = true,
-		use = 'client-console;client-main;renderer-d3d9',
+		use = 'client-console;client-main;renderer-d3d9;renderer-gles',
 	},
 	{
 		type = 'native',
 		name = 'utils/mpscqueue',
 		headeronly = true,
-		use = 'client-console;client-main;renderer-d3d9',
+		use = 'client-console;client-main;renderer-d3d9;renderer-gles',
 	},
 	{
 		type = 'native',
@@ -90,13 +91,13 @@ local sources = {
 		type = 'native',
 		name = 'utils/ref',
 		headeronly = true,
-		use = 'client-console;client-main;renderer-d3d9',
+		use = 'client-console;client-main;renderer-d3d9;renderer-gles',
 	},
 	{
 		type = 'native',
 		name = 'utils/refobject',
 		headeronly = true,
-		use = 'client-console;client-main;renderer-d3d9',
+		use = 'client-console;client-main;renderer-d3d9;renderer-gles',
 		methodlist = 'client-console;client-main',
 	},
 	{
@@ -109,13 +110,13 @@ local sources = {
 		type = 'native',
 		name = 'utils/strexception',
 		headeronly = true,
-		use = 'client-console;client-main;renderer-d3d9',
+		use = 'client-console;client-main;renderer-d3d9;renderer-gles',
 	},
 	{
 		type = 'native',
 		name = 'utils/string',
 		headeronly = true,
-		use = 'client-console;client-main;renderer-d3d9',
+		use = 'client-console;client-main;renderer-d3d9;renderer-gles',
 	},
 	{
 		type = 'native',
@@ -278,6 +279,117 @@ local sources = {
 		use = 'renderer-d3d9',
 		methodlist = 'renderer-d3d9',
 	},
+	-- {
+		-- type = 'native',
+		-- name = 'renderer-gles/clearshape',
+		-- use = 'renderer-gles',
+		-- methodlist = 'renderer-gles',
+	-- },
+	{
+		type = 'native',
+		name = 'renderer-gles/common',
+		use = 'renderer-gles',
+		methodlist = 'renderer-gles',
+	},
+	{
+		type = 'native',
+		name = 'renderer-gles/context',
+		use = 'renderer-gles',
+	},
+	{
+		type = 'native',
+		name = 'renderer-gles/display',
+		use = 'renderer-gles',
+	},
+	{
+		type = 'native',
+		name = 'renderer-gles/interface',
+		use = 'renderer-gles',
+	},
+	-- {
+		-- type = 'native',
+		-- name = 'renderer-gles/primitiveshape',
+		-- use = 'renderer-gles',
+		-- methodlist = 'renderer-gles',
+	-- },
+	-- {
+		-- type = 'native',
+		-- name = 'renderer-gles/programtranslator',
+		-- use = 'renderer-gles',
+		-- methodlist = 'renderer-gles',
+	-- },
+	-- {
+		-- type = 'native',
+		-- name = 'renderer-gles/programtranslator-base',
+		-- use = 'renderer-gles',
+		-- headeronly = true,
+	-- },
+	-- {
+		-- type = 'native',
+		-- name = 'renderer-gles/programtranslator-functions',
+		-- use = 'renderer-gles',
+		-- headeronly = true,
+	-- },
+	-- {
+		-- type = 'native',
+		-- name = 'renderer-gles/programtranslator-generators',
+		-- use = 'renderer-gles',
+		-- headeronly = true,
+	-- },
+	-- {
+		-- type = 'native',
+		-- name = 'renderer-gles/programtranslator-shaders',
+		-- use = 'renderer-gles',
+		-- headeronly = true,
+	-- },
+	-- {
+		-- type = 'native',
+		-- name = 'renderer-gles/programtranslator-state',
+		-- use = 'renderer-gles',
+		-- headeronly = true,
+	-- },
+	-- {
+		-- type = 'native',
+		-- name = 'renderer-gles/programtranslator-step',
+		-- use = 'renderer-gles',
+		-- headeronly = true,
+	-- },
+	{
+		type = 'native',
+		name = 'renderer-gles/resource',
+		use = 'renderer-gles',
+		methodlist = 'renderer-gles',
+	},
+	{
+		type = 'native',
+		name = 'renderer-gles/shape',
+		use = 'renderer-gles',
+		methodlist = 'renderer-gles',
+	},
+	-- {
+		-- type = 'native',
+		-- name = 'renderer-gles/shapegroup',
+		-- use = 'renderer-gles',
+		-- methodlist = 'renderer-gles',
+	-- },
+	-- {
+		-- type = 'native',
+		-- name = 'renderer-gles/staticvertexbuffer',
+		-- use = 'renderer-gles',
+		-- methodlist = 'renderer-gles',
+	-- },
+	-- {
+		-- type = 'native',
+		-- name = 'renderer-gles/vertexbuffer',
+		-- use = 'renderer-gles',
+		-- methodlist = 'renderer-gles',
+	-- },
+	-- {
+		-- type = 'native',
+		-- name = 'renderer-gles/vertexdeclaration',
+		-- use = 'renderer-gles',
+		-- methodlist = 'renderer-gles',
+	-- },
 	{
 		type = 'native',
 		name = 'client-main/event',
@@ -295,7 +407,7 @@ local sources = {
 		type = 'native',
 		name = 'client-main/windowinfo',
 		headeronly = true,
-		use = 'client-main,renderer-d3d9',
+		use = 'client-main;renderer-d3d9;renderer-gles',
 		methodlist = 'client-main',
 	},
 	{

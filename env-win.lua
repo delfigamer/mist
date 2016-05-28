@@ -106,6 +106,8 @@ function env.setfiletime(path, time)
 end
 
 function env.rmdir(path)
+	-- /s: recursive
+	-- /q: silent
 	return env.execute('rd \z
 		/s \z
 		/q \z
@@ -113,6 +115,7 @@ function env.rmdir(path)
 end
 
 function env.rm(path)
+	-- /q: silent
 	return env.execute('del \z
 		/q \z
 		"' .. env.path(path) .. '"')
@@ -121,4 +124,16 @@ end
 function env.mkdir(path)
 	return env.execute('md \z
 		"' .. env.path(path) .. '"')
+end
+
+function env.copy(source, target)
+	-- /b: binary
+	-- /y: silent
+	return
+		env.makepath(target) and
+		env.execute('copy \z
+			/b \z
+			/y \z
+			"' .. env.path(source) .. '" \z
+			"' .. env.path(target) .. '"')
 end

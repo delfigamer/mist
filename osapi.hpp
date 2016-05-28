@@ -5,7 +5,6 @@
 #define WIN32_LEAN_AND_MEAN 1
 #endif
 #include <windows.h>
-#include <utils/encoding.hpp>
 #elif defined( __ANDROID__ )
 #include <cerrno>
 #include <sys/mman.h>
@@ -29,52 +28,24 @@ namespace
 		DWORD lasterror = GetLastError();
 		if( !lasterror )
 		{
-			throw utils::StrException( "[%73s:%4i]\tunknown Win32 error", file, line );
+			throw utils::StrException(
+				"[%73s:%4i]\tunknown Win32 error", file, line );
 		}
-		wchar_t* wbuffer;
-		int buflen = FormatMessageW(
-			FORMAT_MESSAGE_FROM_SYSTEM |
-				FORMAT_MESSAGE_ALLOCATE_BUFFER,
+		char buffer[ 1024 ];
+		size_t buflen = FormatMessageA(
+			FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_MAX_WIDTH_MASK,
 			0,
 			lasterror,
 			MAKELANGID( LANG_ENGLISH, SUBLANG_ENGLISH_US ),
-			( LPWSTR )&wbuffer,
-			0,
+			buffer,
+			sizeof( buffer ) - 1,
 			0 );
 		if( buflen == 0 )
 		{
-			throw utils::StrException( "[%73s:%4i]\tWin32 error %i", file, line, lasterror );
+			throw utils::StrException(
+				"[%73s:%4i]\tWin32 error %i", file, line, lasterror );
 		}
-		utils::translation_t translation = {
-			&utils::encoding::utf16,
-			&utils::encoding::utf8,
-			wbuffer,
-			0,
-			0,
-			0,
-			0xfffd,
-		};
-		if( utils::translatestr( &translation ) !=
-			utils::translateresult::success )
-		{
-			LocalFree( wbuffer );
-			throw utils::StrException( "[%73s:%4i]\tWin32 error %i", file, line, lasterror );
-		}
-		char* cbuffer = new char[ translation.destresult ];
-		translation.dest = cbuffer;
-		translation.sourcesize = translation.sourceresult;
-		translation.destsize = translation.destresult;
-		if( utils::translatestr( &translation ) !=
-			utils::translateresult::success )
-		{
-			LocalFree( wbuffer );
-			delete[] cbuffer;
-			throw utils::StrException( "[%73s:%4i]\tWin32 error %i", file, line, lasterror );
-		}
-		utils::StrException e( "[%73s:%4i]\t%s", file, line, cbuffer );
-		LocalFree( wbuffer );
-		delete[] cbuffer;
-		throw e;
+		throw utils::StrException( "[%73s:%4i]\t%s", file, line, buffer );
 #elif defined ( __ANDROID__ )
 		throw utils::StrException( "[%73s:%4i]\t%s", file, line, strerror( errno ) );
 #endif
