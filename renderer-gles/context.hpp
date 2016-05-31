@@ -12,8 +12,8 @@ namespace graphics
 	{
 		extern std::atomic< size_t > DrawnFrame;
 		extern utils::MPSCQueue< Resource* > Dead;
-		// extern void* CurrentVertexDeclaration;
-		// extern void* CurrentVertexBuffer;
+		extern void* CurrentVertexDeclaration;
+		extern void* CurrentVertexBuffer;
 
 		void markdead( Resource* res );
 		void cleanup();

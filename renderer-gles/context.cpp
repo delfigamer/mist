@@ -7,8 +7,8 @@ namespace graphics
 	{
 		std::atomic< size_t > DrawnFrame( 0 );
 		utils::MPSCQueue< Resource* > Dead;
-		// void* CurrentVertexDeclaration;
-		// void* CurrentVertexBuffer;
+		void* CurrentVertexDeclaration;
+		void* CurrentVertexBuffer;
 
 		void markdead( Resource* res )
 		{

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <renderer-d3d9/resource.hpp>
+#include <renderer-gles/resource.hpp>
 #include <utils/databuffer.hpp>
 #include <utils/ref.hpp>
 #include <common.hpp>
@@ -44,8 +44,19 @@ R_END()
 	class VertexDeclaration: public Resource
 	{
 	private:
-		IDirect3DVertexDeclaration9* m_vertexdeclaration;
+		struct attriblayout_t
+		{
+			int index;
+			int size;
+			int type;
+			bool normalized;
+			void* offset;
+		};
+
+	private:
 		utils::Ref< utils::DataBuffer > m_data;
+		attriblayout_t m_layout[ 8 ];
+		int m_attribcount;
 		size_t m_vertexsize;
 
 	protected:

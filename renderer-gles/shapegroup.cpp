@@ -1,5 +1,5 @@
-#include <renderer-d3d9/shapegroup.hpp>
-#include <renderer-d3d9/common.hpp>
+#include <renderer-gles/shapegroup.hpp>
+#include <renderer-gles/common.hpp>
 
 namespace graphics
 {

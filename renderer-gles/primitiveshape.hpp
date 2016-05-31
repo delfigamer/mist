@@ -1,10 +1,10 @@
 #pragma once
 
-#include <renderer-d3d9/shape.hpp>
-#include <renderer-d3d9/vertexbuffer.hpp>
-// #include <renderer-d3d9/indexbuffer.hpp>
-// #include <renderer-d3d9/program.hpp>
-// #include <renderer-d3d9/texture.hpp>
+#include <renderer-gles/shape.hpp>
+#include <renderer-gles/vertexbuffer.hpp>
+// #include <renderer-gles/indexbuffer.hpp>
+// #include <renderer-gles/program.hpp>
+// #include <renderer-gles/texture.hpp>
 #include <utils/ref.hpp>
 #include <utils/flaglock.hpp>
 #include <common.hpp>
@@ -66,7 +66,12 @@ namespace graphics
 		int m_blenddf;
 		int m_blendop;
 		mutex_t m_mutex;
-		D3DMATRIX m_matrix;
+		float m_matrix[ 16 ];
+
+		unsigned int m_vsh;
+		unsigned int m_fsh;
+		unsigned int m_program;
+		int m_matrixindex;
 
 	protected:
 		virtual void doadvance() override;

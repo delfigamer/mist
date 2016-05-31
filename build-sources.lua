@@ -279,12 +279,12 @@ local sources = {
 		use = 'renderer-d3d9',
 		methodlist = 'renderer-d3d9',
 	},
-	-- {
-		-- type = 'native',
-		-- name = 'renderer-gles/clearshape',
-		-- use = 'renderer-gles',
-		-- methodlist = 'renderer-gles',
-	-- },
+	{
+		type = 'native',
+		name = 'renderer-gles/clearshape',
+		use = 'renderer-gles',
+		methodlist = 'renderer-gles',
+	},
 	{
 		type = 'native',
 		name = 'renderer-gles/common',
@@ -306,12 +306,12 @@ local sources = {
 		name = 'renderer-gles/interface',
 		use = 'renderer-gles',
 	},
-	-- {
-		-- type = 'native',
-		-- name = 'renderer-gles/primitiveshape',
-		-- use = 'renderer-gles',
-		-- methodlist = 'renderer-gles',
-	-- },
+	{
+		type = 'native',
+		name = 'renderer-gles/primitiveshape',
+		use = 'renderer-gles',
+		methodlist = 'renderer-gles',
+	},
 	-- {
 		-- type = 'native',
 		-- name = 'renderer-gles/programtranslator',
@@ -366,30 +366,30 @@ local sources = {
 		use = 'renderer-gles',
 		methodlist = 'renderer-gles',
 	},
-	-- {
-		-- type = 'native',
-		-- name = 'renderer-gles/shapegroup',
-		-- use = 'renderer-gles',
-		-- methodlist = 'renderer-gles',
-	-- },
-	-- {
-		-- type = 'native',
-		-- name = 'renderer-gles/staticvertexbuffer',
-		-- use = 'renderer-gles',
-		-- methodlist = 'renderer-gles',
-	-- },
-	-- {
-		-- type = 'native',
-		-- name = 'renderer-gles/vertexbuffer',
-		-- use = 'renderer-gles',
-		-- methodlist = 'renderer-gles',
-	-- },
-	-- {
-		-- type = 'native',
-		-- name = 'renderer-gles/vertexdeclaration',
-		-- use = 'renderer-gles',
-		-- methodlist = 'renderer-gles',
-	-- },
+	{
+		type = 'native',
+		name = 'renderer-gles/shapegroup',
+		use = 'renderer-gles',
+		methodlist = 'renderer-gles',
+	},
+	{
+		type = 'native',
+		name = 'renderer-gles/staticvertexbuffer',
+		use = 'renderer-gles',
+		methodlist = 'renderer-gles',
+	},
+	{
+		type = 'native',
+		name = 'renderer-gles/vertexbuffer',
+		use = 'renderer-gles',
+		methodlist = 'renderer-gles',
+	},
+	{
+		type = 'native',
+		name = 'renderer-gles/vertexdeclaration',
+		use = 'renderer-gles',
+		methodlist = 'renderer-gles',
+	},
 	{
 		type = 'native',
 		name = 'client-main/event',

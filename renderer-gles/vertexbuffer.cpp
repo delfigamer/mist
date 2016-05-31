@@ -1,6 +1,6 @@
-#include <renderer-d3d9/vertexbuffer.hpp>
-#include <renderer-d3d9/context.hpp>
-#include <renderer-d3d9/common.hpp>
+#include <renderer-gles/vertexbuffer.hpp>
+#include <renderer-gles/context.hpp>
+#include <renderer-gles/common.hpp>
 
 namespace graphics
 {
@@ -23,7 +23,10 @@ namespace graphics
 
 	VertexBuffer::~VertexBuffer()
 	{
-		RELEASE( m_vertexbuffer );
+		if( m_vertexbuffer )
+		{
+			glDeleteBuffers( 1, &m_vertexbuffer );
+		}
 	}
 
 	bool VertexBuffer::bind( size_t* vertexcount, VertexDeclaration** pvd )
@@ -33,19 +36,19 @@ namespace graphics
 		{
 			return false;
 		}
+		if( Context::CurrentVertexBuffer != this )
+		{
+			glBindBuffer( GL_ARRAY_BUFFER, m_vertexbuffer );
+			checkerror();
+			Context::CurrentVertexBuffer = this;
+		}
 		size_t vertexsize;
 		if( !vd->bind( &vertexsize ) )
 		{
 			return false;
 		}
-		*pvd = vd;
-		if( Context::CurrentVertexBuffer != m_vertexbuffer )
-		{
-			checkerror( Context::Device->SetStreamSource(
-				0, m_vertexbuffer, 0, UINT( vertexsize ) ) );
-			Context::CurrentVertexBuffer = m_vertexbuffer;
-		}
 		*vertexcount = m_buffersize / vertexsize;
+		*pvd = vd;
 		return true;
 	}
 }

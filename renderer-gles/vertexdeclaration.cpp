@@ -1,6 +1,6 @@
-#include <renderer-d3d9/vertexbuffer.hpp>
-#include <renderer-d3d9/context.hpp>
-#include <renderer-d3d9/common.hpp>
+#include <renderer-gles/vertexbuffer.hpp>
+#include <renderer-gles/context.hpp>
+#include <renderer-gles/common.hpp>
 #include <atomic>
 
 #include <cstdio>
@@ -40,52 +40,54 @@ namespace graphics
 			}
 		}
 
-		int const elemtypetable[] = {
-			D3DDECLTYPE_FLOAT1,
-			D3DDECLTYPE_FLOAT2,
-			D3DDECLTYPE_FLOAT3,
-			D3DDECLTYPE_FLOAT4,
-			D3DDECLTYPE_UBYTE4,
-			D3DDECLTYPE_SHORT2,
-			D3DDECLTYPE_SHORT4,
-			D3DDECLTYPE_UBYTE4N,
-			D3DDECLTYPE_SHORT2N,
-			D3DDECLTYPE_SHORT4N,
-			D3DDECLTYPE_USHORT2N,
-			D3DDECLTYPE_USHORT4N,
+		struct elemformat_t
+		{
+			GLint size;
+			GLenum type;
+			GLboolean normalized;
+		};
+
+		elemformat_t const elemformattable[] = {
+			{ 1, GL_FLOAT, false },
+			{ 2, GL_FLOAT, false },
+			{ 3, GL_FLOAT, false },
+			{ 4, GL_FLOAT, false },
+			{ 4, GL_UNSIGNED_BYTE, false },
+			{ 2, GL_SHORT, false },
+			{ 4, GL_SHORT, false },
+			{ 4, GL_UNSIGNED_BYTE, true },
+			{ 2, GL_SHORT, true },
+			{ 4, GL_SHORT, true },
+			{ 2, GL_UNSIGNED_SHORT, true },
+			{ 4, GL_UNSIGNED_SHORT, true },
 		};
 	}
 
 	void VertexDeclaration::doadvance()
 	{
-		if( !m_vertexdeclaration )
+		if( m_attribcount == -1 )
 		{
 			utils::DataBuffer* data = m_data;
 			std::atomic_thread_fence( std::memory_order_acquire );
 			VertexDeclElement* elems = ( VertexDeclElement* )data->m_data;
-			size_t elemcount = data->m_length / sizeof( VertexDeclElement );
-			D3DVERTEXELEMENT9 d3delems[ 9 ];
-			for( size_t i = 0; i < elemcount; ++i )
+			size_t attribcount = data->m_length / sizeof( VertexDeclElement );
+			for( size_t i = 0; i < attribcount; ++i )
 			{
-				d3delems[ i ].Stream = 0;
-				d3delems[ i ].Offset = elems[ i ].offset;
-				d3delems[ i ].Type = elemtypetable[ elems[ i ].format ];
-				d3delems[ i ].Method = D3DDECLMETHOD_DEFAULT;
-				d3delems[ i ].Usage =
-					AttributeUsageTable[ elems[ i ].attribute ][ 0 ];
-				d3delems[ i ].UsageIndex =
-					AttributeUsageTable[ elems[ i ].attribute ][ 1 ];
+				m_layout[ i ].index = elems[ i ].attribute;
+				elemformat_t const& format = elemformattable[ elems[ i ].format ];
+				m_layout[ i ].size = format.size;
+				m_layout[ i ].type = format.type;
+				m_layout[ i ].normalized = format.normalized;
+				m_layout[ i ].offset = ( void* )size_t( elems[ i ].offset );
 			}
-			d3delems[ elemcount ] = D3DDECL_END();
-			checkerror( Context::Device->CreateVertexDeclaration(
-				d3delems,
-				&m_vertexdeclaration ) );
+			m_attribcount = attribcount;
+			m_data = nullptr;
 		}
 	}
 
 	VertexDeclaration::VertexDeclaration(
 		utils::DataBuffer* data, size_t vertexsize )
-		: m_vertexdeclaration( 0 )
+		: m_attribcount( -1 )
 		, m_vertexsize( vertexsize )
 	{
 		validatedecldata( data->m_length, data->m_data );
@@ -95,20 +97,30 @@ namespace graphics
 
 	VertexDeclaration::~VertexDeclaration()
 	{
-		RELEASE( m_vertexdeclaration );
 	}
 
 	bool VertexDeclaration::bind( size_t* vertexsize )
 	{
-		if( !m_vertexdeclaration )
+		if( m_attribcount == -1 )
 		{
 			return false;
 		}
-		if( Context::CurrentVertexDeclaration != m_vertexdeclaration )
+		if( Context::CurrentVertexDeclaration != this )
 		{
-			checkerror( Context::Device->SetVertexDeclaration(
-				m_vertexdeclaration ) );
-			Context::CurrentVertexDeclaration = m_vertexdeclaration;
+			for( int i = 0; i < m_attribcount; ++i )
+			{
+				glEnableVertexAttribArray( m_layout[ i ].index );
+				checkerror();
+				glVertexAttribPointer(
+					m_layout[ i ].index,
+					m_layout[ i ].size,
+					m_layout[ i ].type,
+					m_layout[ i ].normalized,
+					m_vertexsize,
+					m_layout[ i ].offset );
+				checkerror();
+			}
+			Context::CurrentVertexDeclaration = this;
 		}
 		*vertexsize = m_vertexsize;
 		return true;

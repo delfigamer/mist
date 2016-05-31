@@ -1,8 +1,10 @@
 #pragma once
 
-#include <renderer-d3d9/shape.hpp>
+#include <renderer-gles/shape.hpp>
+#include <utils/flaglock.hpp>
 #include <common.hpp>
 #include <atomic>
+#include <mutex>
 #include <cinttypes>
 
 namespace graphics
@@ -11,8 +13,20 @@ namespace graphics
 	class ClearShape: public Shape
 	{
 	private:
+		typedef utils::FlagLock mutex_t;
+		typedef std::lock_guard< mutex_t > lock_t;
+		struct color_t
+		{
+			mutex_t m_mutex;
+			float m_data[ 4 ];
+
+			void get( float* data );
+			void set( float const* data );
+		};
+
+	private:
 		std::atomic< int > m_flags;
-		std::atomic< uint32_t > m_color;
+		color_t m_color;
 		std::atomic< float > m_depth;
 		std::atomic< uint32_t > m_stencil;
 

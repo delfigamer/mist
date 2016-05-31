@@ -1,18 +1,30 @@
-#include <renderer-d3d9/clearshape.hpp>
-#include <renderer-d3d9/common.hpp>
+#include <renderer-gles/clearshape.hpp>
+#include <renderer-gles/common.hpp>
 #include <utils/cbase.hpp>
 
 namespace graphics
 {
+	void ClearShape::color_t::get( float* data )
+	{
+		lock_t lock( m_mutex );
+		memcpy( data, m_data, sizeof( m_data ) );
+	}
+
+	void ClearShape::color_t::set( float const* data )
+	{
+		lock_t lock( m_mutex );
+		memcpy( m_data, data, sizeof( m_data ) );
+	}
+
 	void ClearShape::doadvance()
 	{
 	}
 
 	ClearShape::ClearShape( bool ccolor, bool cdepth, bool cstencil )
 		: m_flags(
-			( ccolor ? D3DCLEAR_TARGET : 0 ) |
-			( cdepth ? D3DCLEAR_ZBUFFER : 0 ) |
-			( cstencil ? D3DCLEAR_STENCIL : 0 )
+			( ccolor ? GL_COLOR_BUFFER_BIT : 0 ) |
+			( cdepth ? GL_DEPTH_BUFFER_BIT : 0 ) |
+			( cstencil ? GL_STENCIL_BUFFER_BIT : 0 )
 		)
 	{
 	}
@@ -24,20 +36,35 @@ namespace graphics
 	void ClearShape::paint()
 	{
 		int flags = m_flags.load( std::memory_order_relaxed );
-		uint32_t color = m_color.load( std::memory_order_relaxed );
-		float depth = m_depth.load( std::memory_order_relaxed );
-		uint32_t stencil = m_stencil.load( std::memory_order_relaxed );
+		if( flags & GL_COLOR_BUFFER_BIT )
+		{
+			float color[ 4 ];
+			m_color.get( color );
+			glClearColor( color[ 0 ], color[ 1 ], color[ 2 ], color[ 3 ] );
+			checkerror();
+		}
+		if( flags & GL_DEPTH_BUFFER_BIT )
+		{
+			float depth = m_depth.load( std::memory_order_relaxed );
+			glClearDepthf( depth );
+			checkerror();
+		}
+		if( flags & GL_STENCIL_BUFFER_BIT )
+		{
+			uint32_t stencil = m_stencil.load( std::memory_order_relaxed );
+			glClearStencil( stencil );
+			checkerror();
+		}
 		if( flags )
 		{
-			checkerror( Context::Device->Clear(
-				0, 0, flags,
-				color, depth, stencil ) );
+			glClear( flags );
+			checkerror();
 		}
 	}
 
 	void ClearShape::setcolor( float const* value )
 	{
-		m_color.store( argb8( value ), std::memory_order_relaxed );
+		m_color.set( value );
 	}
 
 	void ClearShape::setdepth( float value )
