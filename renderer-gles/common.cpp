@@ -1,4 +1,5 @@
 #include <renderer-gles/common.hpp>
+#include <renderer-gles/gl2.hpp>
 #include <unordered_map>
 
 namespace graphics

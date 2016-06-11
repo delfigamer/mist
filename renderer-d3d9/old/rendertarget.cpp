@@ -1,7 +1,6 @@
 #include <renderer-d3d9/rendertarget.hpp>
 #include <renderer-d3d9/common.hpp>
 #include <renderer-d3d9/context.hpp>
-#include <utils/cbase.hpp>
 #include <stdexcept>
 
 namespace graphics

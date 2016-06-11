@@ -1,7 +1,6 @@
 #include <renderer-d3d9/primitiveshape.hpp>
 #include <renderer-d3d9/context.hpp>
 #include <renderer-d3d9/common.hpp>
-#include <utils/cbase.hpp>
 #include <cstring>
 
 namespace graphics

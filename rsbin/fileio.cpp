@@ -2,7 +2,6 @@
 #include <rsbin/fsthread.hpp>
 #include <utils/ref.hpp>
 #include <utils/path.hpp>
-#include <utils/cbase.hpp>
 #include <osapi.hpp>
 #include <thread>
 #include <stdexcept>

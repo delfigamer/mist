@@ -1,7 +1,6 @@
 #include <rsbin/common.hpp>
 #include <utils/path.hpp>
 #include <utils/ref.hpp>
-#include <utils/cbase.hpp>
 #if defined( _WIN32 ) || defined( _WIN64 )
 #include <osapi.hpp>
 #else

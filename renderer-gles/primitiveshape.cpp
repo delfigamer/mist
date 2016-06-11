@@ -1,6 +1,7 @@
 #include <renderer-gles/primitiveshape.hpp>
 #include <renderer-gles/context.hpp>
 #include <renderer-gles/common.hpp>
+#include <renderer-gles/gl2.hpp>
 #include <cstring>
 
 namespace graphics
@@ -120,7 +121,7 @@ namespace graphics
 				checkerror();
 				auto log = utils::DataBuffer::create( length, length, 0 );
 				glGetShaderInfoLog(
-					m_vsh, log->m_capacity, 0, ( char* )log->m_data );
+					m_vsh, GLsizei( log->m_capacity ), 0, ( char* )log->m_data );
 				checkerror();
 				throw utils::StrException(
 					"VShader compilation failed: %s", ( char const* )log->m_data );
@@ -144,7 +145,7 @@ namespace graphics
 				checkerror();
 				auto log = utils::DataBuffer::create( length, length, 0 );
 				glGetShaderInfoLog(
-					m_fsh, log->m_capacity, 0, ( char* )log->m_data );
+					m_fsh, GLsizei( log->m_capacity ), 0, ( char* )log->m_data );
 				checkerror();
 				throw utils::StrException(
 					"FShader compilation failed: %s", ( char const* )log->m_data );
@@ -174,7 +175,7 @@ namespace graphics
 				checkerror();
 				auto log = utils::DataBuffer::create( length, length, 0 );
 				glGetProgramInfoLog(
-					m_program, log->m_capacity, 0, ( char* )log->m_data );
+					m_program, GLsizei( log->m_capacity ), 0, ( char* )log->m_data );
 				checkerror();
 				throw utils::StrException(
 					"Program link failed: %s", ( char const* )log->m_data );
@@ -277,7 +278,7 @@ namespace graphics
 			// vertexcount,
 			// 0,
 			// indexcount / 3 ) );
-		glDrawArrays( typetable[ ptype ], 0, vertexcount );
+		glDrawArrays( typetable[ ptype ], 0, GLsizei( vertexcount ) );
 	}
 
 	void PrimitiveShape::setvertexbuffer( VertexBuffer* value )

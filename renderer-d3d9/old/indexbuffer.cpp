@@ -1,6 +1,5 @@
 #include <renderer-d3d9/indexbuffer.hpp>
 #include <renderer-d3d9/common.hpp>
-#include <utils/cbase.hpp>
 
 namespace graphics
 {

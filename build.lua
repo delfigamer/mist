@@ -403,13 +403,11 @@ table.append(targets, {
 		'EGL',
 	},
 	dependencies = {
-		outputdir .. '/d3dcompiler_47.dll',
 		outputdir .. '/libEGL.dll',
 		outputdir .. '/libGLESv2.dll',
 	},
 })
 for i, name in ipairs{
-	'd3dcompiler_47',
 	'libEGL',
 	'libGLESv2',
 } do
@@ -446,7 +444,6 @@ table.append(targets, {
 		outputdir .. '/client-main.exe',
 		outputdir .. '/renderer-d3d9.dll',
 		outputdir .. '/renderer-gles.dll',
-		outputdir .. '/d3dcompiler_47.dll',
 		outputdir .. '/libEGL.dll',
 		outputdir .. '/libGLESv2.dll',
 	},

@@ -3,7 +3,6 @@
 #include <client-console/methodlist.hpp>
 #include <utils/strexception.hpp>
 #include <utils/encoding.hpp>
-#include <utils/cbase.hpp>
 #include <utils/console.hpp>
 #include <osapi.hpp>
 #include <cstdlib>

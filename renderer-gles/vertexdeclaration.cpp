@@ -1,9 +1,8 @@
 #include <renderer-gles/vertexbuffer.hpp>
 #include <renderer-gles/context.hpp>
 #include <renderer-gles/common.hpp>
+#include <renderer-gles/gl2.hpp>
 #include <atomic>
-
-#include <cstdio>
 
 namespace graphics
 {
@@ -44,7 +43,7 @@ namespace graphics
 		{
 			GLint size;
 			GLenum type;
-			GLboolean normalized;
+			bool normalized;
 		};
 
 		elemformat_t const elemformattable[] = {
@@ -80,7 +79,7 @@ namespace graphics
 				m_layout[ i ].normalized = format.normalized;
 				m_layout[ i ].offset = ( void* )size_t( elems[ i ].offset );
 			}
-			m_attribcount = attribcount;
+			m_attribcount = int( attribcount );
 			m_data = nullptr;
 		}
 	}
@@ -116,7 +115,7 @@ namespace graphics
 					m_layout[ i ].size,
 					m_layout[ i ].type,
 					m_layout[ i ].normalized,
-					m_vertexsize,
+					GLsizei( m_vertexsize ),
 					m_layout[ i ].offset );
 				checkerror();
 			}

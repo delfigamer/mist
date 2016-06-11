@@ -1,6 +1,5 @@
 #include <renderer-d3d9/staticvertexbuffer.hpp>
 #include <renderer-d3d9/common.hpp>
-#include <utils/cbase.hpp>
 #include <cstring>
 
 namespace graphics

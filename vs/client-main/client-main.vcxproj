@@ -19,31 +19,23 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\client-main\main.cpp" />
-    <ClCompile Include="..\..\client-main\window.cpp" />
-    <ClCompile Include="..\..\rsbin\common.cpp" />
-    <ClCompile Include="..\..\rsbin\fileio.cpp" />
-    <ClCompile Include="..\..\rsbin\fsthread.cpp" />
-    <ClCompile Include="..\..\rsbin\pngreader.cpp" />
-    <ClCompile Include="..\..\rsbin\pngwriter.cpp" />
     <ClCompile Include="..\..\utils\cbase.cpp" />
     <ClCompile Include="..\..\utils\configset.cpp" />
     <ClCompile Include="..\..\utils\console.cpp" />
     <ClCompile Include="..\..\utils\cyclicbuffer.cpp" />
     <ClCompile Include="..\..\utils\encoding.cpp" />
     <ClCompile Include="..\..\utils\path.cpp" />
+    <ClCompile Include="..\..\rsbin\common.cpp" />
+    <ClCompile Include="..\..\rsbin\fileio.cpp" />
+    <ClCompile Include="..\..\rsbin\fsthread.cpp" />
+    <ClCompile Include="..\..\rsbin\pngreader.cpp" />
+    <ClCompile Include="..\..\rsbin\pngwriter.cpp" />
+    <ClCompile Include="..\..\client-main\main.cpp" />
+    <ClCompile Include="..\..\client-main\window.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\client-main\event.hpp" />
-    <ClInclude Include="..\..\client-main\window.hpp" />
     <ClInclude Include="..\..\common.hpp" />
     <ClInclude Include="..\..\osapi.hpp" />
-    <ClInclude Include="..\..\rsbin\common.hpp" />
-    <ClInclude Include="..\..\rsbin\fileio.hpp" />
-    <ClInclude Include="..\..\rsbin\fsthread.hpp" />
-    <ClInclude Include="..\..\rsbin\pngcommon.hpp" />
-    <ClInclude Include="..\..\rsbin\pngreader.hpp" />
-    <ClInclude Include="..\..\rsbin\pngwriter.hpp" />
     <ClInclude Include="..\..\utils\cbase.hpp" />
     <ClInclude Include="..\..\utils\configset.hpp" />
     <ClInclude Include="..\..\utils\console.hpp" />
@@ -59,6 +51,15 @@
     <ClInclude Include="..\..\utils\singleton.hpp" />
     <ClInclude Include="..\..\utils\strexception.hpp" />
     <ClInclude Include="..\..\utils\string.hpp" />
+    <ClInclude Include="..\..\rsbin\common.hpp" />
+    <ClInclude Include="..\..\rsbin\fileio.hpp" />
+    <ClInclude Include="..\..\rsbin\fsthread.hpp" />
+    <ClInclude Include="..\..\rsbin\pngcommon.hpp" />
+    <ClInclude Include="..\..\rsbin\pngreader.hpp" />
+    <ClInclude Include="..\..\rsbin\pngwriter.hpp" />
+    <ClInclude Include="..\..\client-main\event.hpp" />
+    <ClInclude Include="..\..\client-main\window.hpp" />
+    <ClInclude Include="..\..\client-main\windowinfo.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\build\vs120-$(Platform)-$(Configuration)\client-main\luainit.cpp" />
@@ -71,67 +72,20 @@
     <RootNamespace>clientmain</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+  <PropertyGroup Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v120</PlatformToolset>
-    <CharacterSet>MultiByte</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
-    <CharacterSet>MultiByte</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>MultiByte</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+  <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>$(SolutionDir)..\output\bin-vs120-$(Platform)-$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)..\build\vs120-$(Platform)-$(Configuration)\client-main\</IntDir>
-    <IncludePath>$(SolutionDir)..;$(SolutionDir)..\build\vs120-$(Platform)-$(Configuration);$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)..;$(LibraryPath)</LibraryPath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>$(SolutionDir)..\output\bin-vs120-$(Platform)-$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)..\build\vs120-$(Platform)-$(Configuration)\client-main\</IntDir>
-    <IncludePath>$(SolutionDir)..;$(SolutionDir)..\build\vs120-$(Platform)-$(Configuration);$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)..;$(LibraryPath)</LibraryPath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>$(SolutionDir)..\output\bin-vs120-$(Platform)-$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)..\build\vs120-$(Platform)-$(Configuration)\client-main\</IntDir>
-    <IncludePath>$(SolutionDir)..;$(SolutionDir)..\build\vs120-$(Platform)-$(Configuration);$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)..;$(LibraryPath)</LibraryPath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+  <PropertyGroup>
     <OutDir>$(SolutionDir)..\output\bin-vs120-$(Platform)-$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)..\build\vs120-$(Platform)-$(Configuration)\client-main\</IntDir>
     <IncludePath>$(SolutionDir)..;$(SolutionDir)..\build\vs120-$(Platform)-$(Configuration);$(IncludePath)</IncludePath>
@@ -146,11 +100,11 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>lua51-win32.lib;libpng-win32.lib;zlib-win32.lib;d3d9.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>lua51-win32.lib;libpng-win32.lib;zlib-win32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>LIBCMT</IgnoreSpecificDefaultLibraries>
     </Link>
     <PostBuildEvent>
-      <Command>copy /b /y "$(SolutionDir)..\lua51-win32.dll" "$(OutDir)lua51.dll"</Command>
+      <Command>call postbuild.bat "$(SolutionDir)" "$(OutDir)" win32</Command>
     </PostBuildEvent>
     <ProjectReference>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
@@ -169,7 +123,7 @@
       <IgnoreSpecificDefaultLibraries>LIBCMT</IgnoreSpecificDefaultLibraries>
     </Link>
     <PostBuildEvent>
-      <Command>copy /b /y "$(SolutionDir)..\lua51-win64.dll" "$(OutDir)lua51.dll"</Command>
+      <Command>call postbuild.bat "$(SolutionDir)" "$(OutDir)" win64</Command>
     </PostBuildEvent>
     <ProjectReference>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
@@ -188,11 +142,11 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>lua51-win32.lib;libpng-win32.lib;zlib-win32.lib;d3d9.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>lua51-win32.lib;libpng-win32.lib;zlib-win32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>LIBCMT</IgnoreSpecificDefaultLibraries>
     </Link>
     <PostBuildEvent>
-      <Command>copy /b /y "$(SolutionDir)..\lua51-win32.dll" "$(OutDir)lua51.dll"</Command>
+      <Command>call postbuild.bat "$(SolutionDir)" "$(OutDir)" win64</Command>
     </PostBuildEvent>
     <ProjectReference>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
@@ -215,7 +169,7 @@
       <IgnoreSpecificDefaultLibraries>LIBCMT</IgnoreSpecificDefaultLibraries>
     </Link>
     <PostBuildEvent>
-      <Command>copy /b /y "$(SolutionDir)..\lua51-win64.dll" "$(OutDir)lua51.dll"</Command>
+      <Command>call postbuild.bat "$(SolutionDir)" "$(OutDir)" win32</Command>
     </PostBuildEvent>
     <ProjectReference>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>

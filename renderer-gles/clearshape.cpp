@@ -1,6 +1,6 @@
 #include <renderer-gles/clearshape.hpp>
 #include <renderer-gles/common.hpp>
-#include <utils/cbase.hpp>
+#include <renderer-gles/gl2.hpp>
 
 namespace graphics
 {

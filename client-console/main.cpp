@@ -2,7 +2,6 @@
 #include <rsbin/fsthread.hpp>
 #include <utils/console.hpp>
 #include <utils/databuffer.hpp>
-#include <utils/cbase.hpp>
 #if defined( _WIN32 ) || defined( _WIN64 )
 #include <utils/encoding.hpp>
 #include <windows.h>

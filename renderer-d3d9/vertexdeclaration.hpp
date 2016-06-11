@@ -4,6 +4,7 @@
 #include <utils/databuffer.hpp>
 #include <utils/ref.hpp>
 #include <common.hpp>
+#include <d3d9.h>
 #include <cinttypes>
 
 namespace graphics

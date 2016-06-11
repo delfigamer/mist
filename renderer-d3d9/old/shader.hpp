@@ -1,60 +1,47 @@
-#ifndef GRAPHICS_SHADER_HPP__
-#define GRAPHICS_SHADER_HPP__ 1
+#pragma once
 
-#include "resource.hpp"
-#include "texture.hpp"
+#include <renderer-d3d9/resource.hpp>
+#include <utils/string.hpp>
 #include <utils/databuffer.hpp>
 #include <utils/ref.hpp>
-#include <utils/counterlock.hpp>
+#include <common.hpp>
 #include <d3dx9shader.h>
-#include <mutex>
 
 namespace graphics
 {
+	R_CLASS( name = shader )
 	class Shader: public Resource
 	{
-	public:
-		enum
+	private:
+		int m_stage;
+		union
 		{
-			ShaderFormat_GLSL_100 = 0,
-			ShaderFormat_HLSL_3_0_Source = 1,
-			ShaderFormat_HLSL_3_0_Bytecode = 2,
+			IUnknown* m_shader;
+			IDirect3DVertexShader9* m_vertexshader;
+			IDirect3DPixelShader9* m_pixelshader;
 		};
-
-	private:
-		typedef utils::CounterLock mutex_t;
-		typedef std::lock_guard< mutex_t > lock_t;
-
-	private:
-		mutex_t m_mutex;
-		utils::Ref< Texture > m_textures[ 8 ];
-		int m_samplerindex[ 8 ];
-		IDirect3DVertexShader9* m_vertexshader;
-		IDirect3DPixelShader9* m_pixelshader;
-		ID3DXBuffer* m_vertexshaderdata;
-		ID3DXConstantTable* m_vertexshaderconstants;
-		ID3DXBuffer* m_pixelshaderdata;
-		ID3DXConstantTable* m_pixelshaderconstants;
+		utils::Ref< utils::DataBuffer > m_source;
+		utils::String m_log;
+		ID3DXConstantTable* m_constants;
 
 	protected:
 		virtual void doadvance() override;
 
 	public:
-		Shader();
+		Shader( int format, int stage, utils::DataBuffer* source );
 		virtual ~Shader() override;
 		Shader( Shader const& ) = delete;
 		Shader& operator=( Shader const& ) = delete;
 
-		void bind( utils::Ref< Texture > const* textures, int* worldmatrixindex );
-		void settexture( int stage, Texture* texture );
+		int getstage();
+		bool bind( ID3DXConstantTable** ct );
+
+		R_METHOD() static Shader* create(
+			int format, int stage, utils::DataBuffer* source )
+		{
+			return new Shader( format, stage, source );
+		}
+		R_METHOD() void getstate( bool* ready, bool* valid, char const** log );
+		R_METHOD() static bool isformatsupported( int format ) noexcept;
 	};
-
-	Shader* graphics_shader_new(
-		int format,
-		char const* vert, char const* frag, char const* texnames ) noexcept;
-	bool graphics_shader_settexture(
-		Shader* sh, int stage, Texture* texture ) noexcept;
-	int graphics_shader_isformatsupported( int format ) noexcept;
 }
-
-#endif

@@ -1,6 +1,6 @@
 #include <renderer-gles/staticvertexbuffer.hpp>
 #include <renderer-gles/common.hpp>
-#include <utils/cbase.hpp>
+#include <renderer-gles/gl2.hpp>
 #include <cstring>
 
 namespace graphics

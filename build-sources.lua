@@ -7,18 +7,6 @@ local modname = ...
 local sources = {
 	{
 		type = 'native',
-		name = 'client-console/main',
-		noheader = true,
-		use = 'client-console',
-	},
-	{
-		type = 'native',
-		name = 'client-main/main',
-		noheader = true,
-		use = 'client-main',
-	},
-	{
-		type = 'native',
 		name = 'common',
 		headeronly = true,
 		use = 'client-console;client-main;renderer-d3d9;renderer-gles',
@@ -29,6 +17,7 @@ local sources = {
 		headeronly = true,
 		use = 'client-console;client-main;renderer-d3d9;renderer-gles',
 	},
+--------------------------------------------------------------------------------
 	{
 		type = 'native',
 		name = 'utils/cbase',
@@ -118,6 +107,7 @@ local sources = {
 		headeronly = true,
 		use = 'client-console;client-main;renderer-d3d9;renderer-gles',
 	},
+--------------------------------------------------------------------------------
 	{
 		type = 'native',
 		name = 'rsbin/common',
@@ -155,6 +145,13 @@ local sources = {
 		use = 'client-console;client-main',
 		methodlist = 'client-console;client-main',
 	},
+--------------------------------------------------------------------------------
+	{
+		type = 'native',
+		name = 'client-console/main',
+		noheader = true,
+		use = 'client-console',
+	},
 	{
 		type = 'native',
 		name = 'client-console/window',
@@ -168,6 +165,77 @@ local sources = {
 		use = 'client-console',
 		methodlist = 'client-console',
 	},
+--------------------------------------------------------------------------------
+	{
+		type = 'native',
+		name = 'renderer-state/common',
+		headeronly = true,
+		use = 'renderer-d3d9;renderer-gles',
+	},
+	{
+		type = 'native',
+		name = 'renderer-state/context',
+		headeronly = true,
+		use = 'renderer-d3d9;renderer-gles',
+	},
+	{
+		type = 'native',
+		name = 'renderer-state/context-cpp',
+		headeronly = true,
+		use = 'renderer-d3d9;renderer-gles',
+	},
+	{
+		type = 'native',
+		name = 'renderer-state/interface',
+		headeronly = true,
+		use = 'renderer-d3d9;renderer-gles',
+	},
+	{
+		type = 'native',
+		name = 'renderer-state/interface-cpp',
+		headeronly = true,
+		use = 'renderer-d3d9;renderer-gles',
+	},
+	{
+		type = 'native',
+		name = 'renderer-state/resource',
+		headeronly = true,
+		use = 'renderer-d3d9;renderer-gles',
+		methodlist = 'renderer-d3d9;renderer-gles',
+	},
+	{
+		type = 'native',
+		name = 'renderer-state/resource-cpp',
+		headeronly = true,
+		use = 'renderer-d3d9;renderer-gles',
+	},
+	{
+		type = 'native',
+		name = 'renderer-state/shape',
+		headeronly = true,
+		use = 'renderer-d3d9;renderer-gles',
+		methodlist = 'renderer-d3d9;renderer-gles',
+	},
+	{
+		type = 'native',
+		name = 'renderer-state/shape-cpp',
+		headeronly = true,
+		use = 'renderer-d3d9;renderer-gles',
+	},
+	{
+		type = 'native',
+		name = 'renderer-state/shapegroup',
+		headeronly = true,
+		use = 'renderer-d3d9;renderer-gles',
+		methodlist = 'renderer-d3d9;renderer-gles',
+	},
+	{
+		type = 'native',
+		name = 'renderer-state/shapegroup-cpp',
+		headeronly = true,
+		use = 'renderer-d3d9;renderer-gles',
+	},
+--------------------------------------------------------------------------------
 	{
 		type = 'native',
 		name = 'renderer-d3d9/clearshape',
@@ -247,19 +315,16 @@ local sources = {
 		type = 'native',
 		name = 'renderer-d3d9/resource',
 		use = 'renderer-d3d9',
-		methodlist = 'renderer-d3d9',
 	},
 	{
 		type = 'native',
 		name = 'renderer-d3d9/shape',
 		use = 'renderer-d3d9',
-		methodlist = 'renderer-d3d9',
 	},
 	{
 		type = 'native',
 		name = 'renderer-d3d9/shapegroup',
 		use = 'renderer-d3d9',
-		methodlist = 'renderer-d3d9',
 	},
 	{
 		type = 'native',
@@ -279,6 +344,7 @@ local sources = {
 		use = 'renderer-d3d9',
 		methodlist = 'renderer-d3d9',
 	},
+--------------------------------------------------------------------------------
 	{
 		type = 'native',
 		name = 'renderer-gles/clearshape',
@@ -300,6 +366,12 @@ local sources = {
 		type = 'native',
 		name = 'renderer-gles/display',
 		use = 'renderer-gles',
+	},
+	{
+		type = 'native',
+		name = 'renderer-gles/gl2',
+		use = 'renderer-gles',
+		headeronly = true,
 	},
 	{
 		type = 'native',
@@ -358,19 +430,16 @@ local sources = {
 		type = 'native',
 		name = 'renderer-gles/resource',
 		use = 'renderer-gles',
-		methodlist = 'renderer-gles',
 	},
 	{
 		type = 'native',
 		name = 'renderer-gles/shape',
 		use = 'renderer-gles',
-		methodlist = 'renderer-gles',
 	},
 	{
 		type = 'native',
 		name = 'renderer-gles/shapegroup',
 		use = 'renderer-gles',
-		methodlist = 'renderer-gles',
 	},
 	{
 		type = 'native',
@@ -390,12 +459,19 @@ local sources = {
 		use = 'renderer-gles',
 		methodlist = 'renderer-gles',
 	},
+--------------------------------------------------------------------------------
 	{
 		type = 'native',
 		name = 'client-main/event',
 		headeronly = true,
 		use = 'client-main',
 		methodlist = 'client-main',
+	},
+	{
+		type = 'native',
+		name = 'client-main/main',
+		noheader = true,
+		use = 'client-main',
 	},
 	{
 		type = 'native',
@@ -410,6 +486,7 @@ local sources = {
 		use = 'client-main;renderer-d3d9;renderer-gles',
 		methodlist = 'client-main',
 	},
+--------------------------------------------------------------------------------
 	{
 		type = 'luainit',
 		name = 'luainit/main',

@@ -3,6 +3,7 @@
 #include <renderer-gles/context.hpp>
 #include <renderer-gles/common.hpp>
 #include <renderer-gles/interface.hpp>
+#include <renderer-gles/gl2.hpp>
 #include <stdexcept>
 #include <cstring>
 #include <ctime>
@@ -193,7 +194,7 @@ namespace graphics
 		}
 		else
 		{
-			glClearColor( 1, 0.3, 0.3, 1 );
+			glClearColor( 1.0f, 0.3f, 0.3f, 1.0f );
 			checkerror();
 			glClear( GL_COLOR_BUFFER_BIT );
 			checkerror();

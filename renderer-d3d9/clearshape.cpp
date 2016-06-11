@@ -1,6 +1,5 @@
 #include <renderer-d3d9/clearshape.hpp>
 #include <renderer-d3d9/common.hpp>
-#include <utils/cbase.hpp>
 
 namespace graphics
 {

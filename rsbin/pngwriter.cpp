@@ -1,6 +1,5 @@
 #include <rsbin/pngwriter.hpp>
 #include <utils/strexception.hpp>
-#include <utils/cbase.hpp>
 #include <utils/console.hpp>
 #include <stdexcept>
 

@@ -1,12 +1,3 @@
 #include <renderer-gles/shape.hpp>
 
-namespace graphics
-{
-	Shape::Shape()
-	{
-	}
-
-	Shape::~Shape()
-	{
-	}
-}
+#include <renderer-state/shape-cpp.hpp>
