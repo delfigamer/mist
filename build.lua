@@ -370,6 +370,10 @@ table.append(targets, {
 		'luajit-' .. platform,
 		'png-' .. platform,
 		'z',
+		'libFLAC_dynamic',
+	},
+	dependencies = {
+		outputdir .. '/libFLAC_dynamic.dll',
 	},
 })
 table.append(targets, {
@@ -381,6 +385,10 @@ table.append(targets, {
 		'png-' .. platform,
 		'gdi32',
 		'z',
+		'libFLAC_dynamic',
+	},
+	dependencies = {
+		outputdir .. '/libFLAC_dynamic.dll',
 	},
 })
 table.append(targets, {
@@ -410,6 +418,7 @@ table.append(targets, {
 for i, name in ipairs{
 	'libEGL',
 	'libGLESv2',
+	'libFLAC_dynamic',
 } do
 	table.append(targets, {
 		target = name .. '-' .. platform .. '.dll',

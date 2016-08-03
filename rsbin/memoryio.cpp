@@ -1,32 +1,27 @@
-#include "memoryio.hpp"
-#include "fsthread.hpp"
+#include <rsbin/memoryio.hpp>
+#include <rsbin/fsthread.hpp>
 #include <utils/ref.hpp>
 #include <thread>
 #include <stdexcept>
 #include <exception>
+#include <cstring>
 
 namespace rsbin
 {
 	enum
 	{
 		BlockingReadThreshold = 0x1000, // 4K
-		BlockShift = 16,
-		BlockSize = 0x10000, // 64K
-		BlockOffsetMask = 0xffff,
+		BlockShift = 4,
+		BlockSize = 0x10, // 64K
+		BlockOffsetMask = 0xf,
 	};
 
-	enum IoDirection: int
+	class MemoryReadTask: public IoTask
 	{
-		IoActionRead = 0,
-		IoActionWrite = 1,
-		IoActionTruncate = 2,
-	};
-
-	struct MemReadTask: public IoTask
-	{
+	public:
 		utils::Ref< MemoryIo > m_target;
 		uint64_t m_offset;
-		int m_length;
+		size_t m_length;
 		uint8_t* m_buffer;
 
 		virtual bool iterate() override
@@ -46,8 +41,8 @@ namespace rsbin
 				{
 					return true;
 				}
-				int boffset = m_offset & BlockOffsetMask;
-				int length = boffset ^ BlockOffsetMask;
+				size_t boffset = m_offset & BlockOffsetMask;
+				size_t length = BlockSize - boffset;
 				if( length > m_length )
 				{
 					length = m_length;
@@ -66,24 +61,24 @@ namespace rsbin
 			}
 			catch( std::exception const& error )
 			{
-				m_result = -1;
+				m_result = 0;
 				m_error.setchars( error.what() );
 				return true;
 			}
 			catch( ... )
 			{
-				m_result = -1;
+				m_result = 0;
 				m_error.setchars( "unknown error" );
 				return true;
 			}
 		}
 	};
 
-	struct MemWriteTask: public IoTask
+	struct MemoryWriteTask: public IoTask
 	{
 		utils::Ref< MemoryIo > m_target;
 		uint64_t m_offset;
-		int m_length;
+		size_t m_length;
 		uint8_t* m_buffer;
 
 		virtual bool iterate() override
@@ -105,8 +100,8 @@ namespace rsbin
 				{
 					return true;
 				}
-				int boffset = m_offset & BlockOffsetMask;
-				int length = boffset ^ BlockOffsetMask;
+				size_t boffset = m_offset & BlockOffsetMask;
+				size_t length = BlockSize - boffset;
 				if( length > m_length )
 				{
 					length = m_length;
@@ -127,20 +122,20 @@ namespace rsbin
 			}
 			catch( std::exception const& error )
 			{
-				m_result = -1;
+				m_result = 0;
 				m_error.setchars( error.what() );
 				return true;
 			}
 			catch( ... )
 			{
-				m_result = -1;
+				m_result = 0;
 				m_error.setchars( "unknown error" );
 				return true;
 			}
 		}
 	};
 
-	struct MemTruncateTask: public IoTask
+	struct MemoryTruncateTask: public IoTask
 	{
 		utils::Ref< MemoryIo > m_target;
 		uint64_t m_newsize;
@@ -156,13 +151,13 @@ namespace rsbin
 			}
 			catch( std::exception const& error )
 			{
-				m_result = -1;
+				m_result = 0;
 				m_error.setchars( error.what() );
 				return true;
 			}
 			catch( ... )
 			{
-				m_result = -1;
+				m_result = 0;
 				m_error.setchars( "unknown error" );
 				return true;
 			}
@@ -182,14 +177,10 @@ namespace rsbin
 		}
 	}
 
-	MemoryIo* MemoryIo::create()
+	IoTask* MemoryIo::startread(
+		uint64_t offset, size_t length, void* buffer )
 	{
-		return new MemoryIo();
-	}
-
-	IoTask* MemoryIo::startread( uint64_t offset, int length, void* buffer )
-	{
-		MemReadTask* task = new MemReadTask;
+		MemoryReadTask* task = new MemoryReadTask;
 		task->m_target = this;
 		task->m_offset = offset;
 		task->m_length = length;
@@ -209,10 +200,10 @@ namespace rsbin
 		return task;
 	}
 
-	IoTask* MemotyIo::startwrite(
-		uint64_t offset, int length, void const* buffer )
+	IoTask* MemoryIo::startwrite(
+		uint64_t offset, size_t length, void const* buffer )
 	{
-		MemWriteTask* task = new MemWriteTask;
+		MemoryWriteTask* task = new MemoryWriteTask;
 		task->m_target = this;
 		task->m_offset = offset;
 		task->m_length = length;
@@ -223,9 +214,9 @@ namespace rsbin
 
 	void MemoryIo::setsize( uint64_t size )
 	{
-		MemTruncateTask* task = new MemTruncateTask;
+		MemoryTruncateTask* task = new MemoryTruncateTask;
 		task->m_target = this;
-		task->m_size = size;
+		task->m_newsize = size;
 		FsThread->pushhigh( task );
 		while( !task->m_finished.load( std::memory_order_acquire ) )
 		{

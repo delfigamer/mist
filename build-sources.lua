@@ -122,7 +122,37 @@ local sources = {
 	},
 	{
 		type = 'native',
+		name = 'rsbin/flaccommon',
+		headeronly = true,
+		use = 'client-console;client-main',
+		methodlist = 'client-console;client-main',
+	},
+	{
+		type = 'native',
+		name = 'rsbin/flacwriter',
+		use = 'client-console;client-main',
+		methodlist = 'client-console;client-main',
+	},
+	{
+		type = 'native',
 		name = 'rsbin/fsthread',
+		use = 'client-console;client-main',
+	},
+	{
+		type = 'native',
+		name = 'rsbin/io',
+		use = 'client-console;client-main',
+		methodlist = 'client-console;client-main',
+	},
+	{
+		type = 'native',
+		name = 'rsbin/iotask',
+		use = 'client-console;client-main',
+		methodlist = 'client-console;client-main',
+	},
+	{
+		type = 'native',
+		name = 'rsbin/memoryio',
 		use = 'client-console;client-main',
 		methodlist = 'client-console;client-main',
 	},

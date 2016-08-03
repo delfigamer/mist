@@ -1,5 +1,4 @@
-#ifndef RSBIN_IOTASK_HPP__
-#define RSBIN_IOTASK_HPP__ 1
+#pragma once
 
 #include <utils/string.hpp>
 #include <utils/refobject.hpp>
@@ -12,7 +11,7 @@ namespace rsbin
 	class IoTask: public utils::RefObject
 	{
 	public:
-		int m_result;
+		size_t m_result;
 		utils::String m_error;
 		std::atomic< bool > m_finished;
 
@@ -21,22 +20,20 @@ namespace rsbin
 			, m_finished( false )
 		{
 		}
-		virtual ~IoTask() = default;
+		virtual ~IoTask();
 		IoTask( IoTask const& ) = delete;
 		IoTask& operator=( IoTask const& ) = delete;
 
-		virtual bool iterate() = 0;
+		virtual bool iterate() = 0; // return true if finished
 		R_METHOD() void promote();
 		R_METHOD() bool isfinished() NOEXCEPT
 		{
 			return m_finished.load( std::memory_order_acquire );
 		}
-		R_METHOD() int getresult() NOEXCEPT { return m_result; }
+		R_METHOD() size_t getresult() NOEXCEPT { return m_result; }
 		R_METHOD( stringwrap ) char const* geterror() NOEXCEPT
 		{
 			return m_error ? m_error.getchars() : 0;
 		}
 	};
 }
-
-#endif

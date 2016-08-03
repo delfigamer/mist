@@ -18,6 +18,7 @@ local function invoke(func, ...)
 	if ret[1] then
 		return table.unpack(ret, 2)
 	else
+		ret[2].traceback = ret[2].traceback .. debug.traceback('')
 		error(ret[2])
 	end
 end

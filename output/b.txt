@@ -1,0 +1,2 @@
+local sep = (_PLATFORM == 'win') and '\\' or '/'
+renderer = 'renderer-gles'

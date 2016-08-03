@@ -1,14 +1,12 @@
 #pragma once
 
-#include <utils/refobject.hpp>
+#include <rsbin/io.hpp>
 #include <utils/string.hpp>
 #include <common.hpp>
 #include <cinttypes>
 
 namespace rsbin
 {
-	class FsTask;
-
 	R_ENUM()
 	enum class fileopenmode
 	{
@@ -21,7 +19,7 @@ namespace rsbin
 	};
 
 	R_CLASS( name = fileio )
-	class FileIo: public utils::RefObject
+	class FileIo: public Io
 	{
 	public:
 #if defined( _WIN32 ) || defined( _WIN64 )
@@ -34,22 +32,19 @@ namespace rsbin
 		uint64_t m_viewsize;
 
 	public:
-		FileIo() = delete;
 		FileIo( char const* path, fileopenmode mode );
 		virtual ~FileIo() override;
 		FileIo( FileIo const& other ) = delete;
-		FileIo( FileIo&& other ) = delete;
 		FileIo& operator=( FileIo const& other ) = delete;
-		FileIo& operator=( FileIo&& other ) = delete;
 
 		R_METHOD() static FileIo* create( char const* path, fileopenmode mode )
 		{
 			return new FileIo( path, mode );
 		}
-		R_METHOD() FsTask* startread(
-			uint64_t offset, size_t length, void* buffer );
-		R_METHOD() FsTask* startwrite(
-			uint64_t offset, size_t length, void const* buffer );
-		R_METHOD() void setsize( uint64_t size );
+		virtual IoTask* startread(
+			uint64_t offset, size_t length, void* buffer ) override;
+		virtual IoTask* startwrite(
+			uint64_t offset, size_t length, void const* buffer ) override;
+		void setsize( uint64_t size ) override;
 	};
 }

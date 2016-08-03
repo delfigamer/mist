@@ -1,19 +1,190 @@
 #include <rsbin/fileio.hpp>
 #include <rsbin/fsthread.hpp>
+#include <rsbin/iotask.hpp>
 #include <utils/ref.hpp>
 #include <utils/path.hpp>
 #include <osapi.hpp>
 #include <thread>
 #include <stdexcept>
 #include <exception>
+#include <cstring>
 
 namespace rsbin
 {
-	size_t const BlockingReadThreshold = 0x1000; // 4K
-	uint64_t const MaxViewSize = (
-		sizeof( void* ) >= 8 ?
-		0x10000000000ULL : // 1T
-		0x1000000 ); // 16M
+	enum
+	{
+		BlockSize = 0x1000, // 64K
+		MemBlockSize = 0x1000, // 64K
+		BlockingReadThreshold = 0x1000, // 4K
+		MaxViewSize = (
+			sizeof( void* ) >= 8 ?
+			0x10000000000ULL : // 1T
+			0x1000000 ), // 16M
+	};
+
+	enum class ioaction
+	{
+		read = 0,
+		write = 1,
+		truncate = 2,
+	};
+
+	class FileIoTask: public IoTask
+	{
+	public:
+		utils::Ref< FileIo > m_target;
+		uint64_t m_offset;
+		size_t m_length;
+		uint8_t* m_buffer;
+		ioaction m_action;
+
+		FileIoTask();
+		virtual ~FileIoTask();
+		FileIoTask( FileIoTask const& ) = delete;
+		FileIoTask& operator=( FileIoTask const& ) = delete;
+
+		bool iterate() override;
+	};
+
+	FileIoTask::FileIoTask()
+	{
+	}
+
+	FileIoTask::~FileIoTask()
+	{
+	}
+
+	bool FileIoTask::iterate()
+	{
+		if( m_length <= 0 && m_action != ioaction::truncate )
+		{
+			return true;
+		}
+		try
+		{
+			uint64_t viewsize = m_target->m_viewsize;
+			size_t result = 0;
+			if( m_action == ioaction::read && m_offset < viewsize )
+			{
+				size_t length = m_length;
+				if( length > MemBlockSize )
+				{
+					length = MemBlockSize;
+				}
+				if( m_offset + length > viewsize )
+				{
+					length = viewsize - m_offset;
+				}
+				memcpy(
+					m_buffer,
+					m_target->m_view + m_offset,
+					length );
+				result = length;
+			}
+			else
+			{
+#if defined( _WIN32 ) || defined( _WIN64 )
+				HANDLE handle = ( HANDLE )m_target->m_handle;
+				LARGE_INTEGER lioffset;
+				lioffset.QuadPart = m_offset;
+				if( !SetFilePointerEx( handle, lioffset, 0, FILE_BEGIN ) )
+				{
+					syserror();
+				}
+				size_t length = m_length;
+				if( length > BlockSize )
+				{
+					length = BlockSize;
+				}
+				DWORD dwresult = 0;
+				switch( m_action )
+				{
+				case ioaction::read:
+					if( !ReadFile(
+						handle, m_buffer, DWORD( length ), &dwresult, 0 ) )
+					{
+						syserror();
+					}
+					break;
+
+				case ioaction::write:
+					if( !WriteFile(
+						handle, m_buffer, DWORD( length ), &dwresult, 0 ) )
+					{
+						syserror();
+					}
+					break;
+
+				case ioaction::truncate:
+					if( !SetEndOfFile( handle ) )
+					{
+						syserror();
+					}
+					break;
+				}
+				result = dwresult;
+#elif defined( __ANDROID__ )
+				if( m_offset + m_length > 0x7fffffffULL )
+				{
+					throw std::runtime_error(
+						"Android does not support files larger than 2GB" );
+				}
+				int handle = m_target->m_handle;
+				if( lseek( handle, m_offset, SEEK_SET ) == -1 )
+				{
+					syserror();
+				}
+				size_t length = m_length;
+				if( length > BlockSize )
+				{
+					length = BlockSize;
+				}
+				switch( m_action )
+				{
+				case ioaction::read:
+					result = read( handle, m_buffer, length );
+					if( result == -1 )
+					{
+						syserror();
+					}
+					break;
+
+				case ioaction::write:
+					result = write( handle, m_buffer, length );
+					if( result == -1 )
+					{
+						syserror();
+					}
+					break;
+
+				case ioaction::truncate:
+					if( ftruncate( handle, m_offset ) == -1 )
+					{
+						syserror();
+					}
+					break;
+				}
+#endif
+			}
+			m_result += result;
+			m_offset += result;
+			m_buffer += result;
+			m_length -= result;
+			return result == 0 || m_length == 0;
+		}
+		catch( std::exception const& error )
+		{
+			m_result = 0;
+			m_error.setchars( error.what() );
+			return true;
+		}
+		catch( ... )
+		{
+			m_result = 0;
+			m_error.setchars( "unknown error" );
+			return true;
+		}
+	}
 
 #if defined( _WIN32 ) || defined( _WIN64 )
 	struct FileParameters
@@ -81,6 +252,7 @@ namespace rsbin
 		},
 	};
 #endif
+
 	FileIo::FileIo( char const* path, fileopenmode mode )
 		: m_handle( 0 )
 	{
@@ -201,9 +373,10 @@ namespace rsbin
 #endif
 	}
 
-	FsTask* FileIo::startread( uint64_t offset, size_t length, void* buffer )
+	IoTask* FileIo::startread(
+		uint64_t offset, size_t length, void* buffer )
 	{
-		FsTask* task = new FsTask;
+		FileIoTask* task = new FileIoTask;
 		if( length < BlockingReadThreshold && offset + length <= m_viewsize )
 		{
 			memcpy(
@@ -219,33 +392,31 @@ namespace rsbin
 		task->m_length = length;
 		task->m_buffer = ( uint8_t* )buffer;
 		task->m_action = ioaction::read;
-		task->m_result = 0;
 		FsThread->pushmain( task );
 		return task;
 	}
 
-	FsTask* FileIo::startwrite( uint64_t offset, size_t length, void const* buffer )
+	IoTask* FileIo::startwrite(
+		uint64_t offset, size_t length, void const* buffer )
 	{
-		FsTask* task = new FsTask;
+		FileIoTask* task = new FileIoTask;
 		task->m_target = this;
 		task->m_offset = offset;
 		task->m_length = length;
 		task->m_buffer = ( uint8_t* )buffer;
 		task->m_action = ioaction::write;
-		task->m_result = 0;
 		FsThread->pushmain( task );
 		return task;
 	}
 
 	void FileIo::setsize( uint64_t size )
 	{
-		FsTask* task = new FsTask;
+		FileIoTask* task = new FileIoTask;
 		task->m_target = this;
 		task->m_offset = size;
 		task->m_length = 0;
 		task->m_buffer = 0;
 		task->m_action = ioaction::truncate;
-		task->m_result = 0;
 		FsThread->pushhigh( task );
 		while( !task->m_finished.load( std::memory_order_acquire ) )
 		{
