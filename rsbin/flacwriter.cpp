@@ -1,15 +1,42 @@
 #include <rsbin/flacwriter.hpp>
 #include <rsbin/flaccommon.hpp>
 #include <utils/strexception.hpp>
-#include <utils/console.hpp>
 #include <stdexcept>
 
 namespace rsbin
 {
-	enum
+	// Somehow, these symbols fail to import correctly from libFLAC
+	namespace
 	{
-		BlockSize = 0x10000,
-	};
+		char const* const FLAC__StreamEncoderStateString[] = {
+			"FLAC__STREAM_ENCODER_OK",
+			"FLAC__STREAM_ENCODER_UNINITIALIZED",
+			"FLAC__STREAM_ENCODER_OGG_ERROR",
+			"FLAC__STREAM_ENCODER_VERIFY_DECODER_ERROR",
+			"FLAC__STREAM_ENCODER_VERIFY_MISMATCH_IN_AUDIO_DATA",
+			"FLAC__STREAM_ENCODER_CLIENT_ERROR",
+			"FLAC__STREAM_ENCODER_IO_ERROR",
+			"FLAC__STREAM_ENCODER_FRAMING_ERROR",
+			"FLAC__STREAM_ENCODER_MEMORY_ALLOCATION_ERROR",
+		};
+
+		char const* const FLAC__StreamEncoderInitStatusString[] = {
+			"FLAC__STREAM_ENCODER_INIT_STATUS_OK",
+			"FLAC__STREAM_ENCODER_INIT_STATUS_ENCODER_ERROR",
+			"FLAC__STREAM_ENCODER_INIT_STATUS_UNSUPPORTED_CONTAINER",
+			"FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_CALLBACKS",
+			"FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_NUMBER_OF_CHANNELS",
+			"FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_BITS_PER_SAMPLE",
+			"FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_SAMPLE_RATE",
+			"FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_BLOCK_SIZE",
+			"FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_MAX_LPC_ORDER",
+			"FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_QLP_COEFF_PRECISION",
+			"FLAC__STREAM_ENCODER_INIT_STATUS_BLOCK_SIZE_TOO_SMALL_FOR_LPC_ORDER",
+			"FLAC__STREAM_ENCODER_INIT_STATUS_NOT_STREAMABLE",
+			"FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_METADATA",
+			"FLAC__STREAM_ENCODER_INIT_STATUS_ALREADY_INITIALIZED",
+		};
+	}
 
 	FLAC__StreamEncoderWriteStatus FlacWriter::write_callback(
 		const FLAC__StreamEncoder* encoder,
@@ -19,7 +46,9 @@ namespace rsbin
 		FlacWriter* writer = ( FlacWriter* )client_data;
 		try
 		{
-			writer->m_buffer.push( bytes, buffer );
+			uint64_t result = writer->m_target->blockwrite(
+				writer->m_targetpos, bytes, buffer );
+			writer->m_targetpos += result;
 			return FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
 		}
 		catch( std::exception const& e )
@@ -34,44 +63,22 @@ namespace rsbin
 		}
 	}
 
-	bool FlacWriter::feedbuffer()
+	FLAC__StreamEncoderSeekStatus FlacWriter::seek_callback(
+		const FLAC__StreamEncoder* encoder,
+		FLAC__uint64 absolute_byte_offset, void* client_data )
 	{
-		size_t rest = m_data->m_length / ( 4 * m_channels ) - m_position;
-		if( rest > 0 )
-		{
-			if( rest > BlockSize )
-			{
-				rest = BlockSize;
-			}
-			int32_t* data = ( int32_t* )m_data->m_data;
-			if( !FLAC__stream_encoder_process_interleaved(
-				m_encoder,
-				data + m_position * m_channels, rest ) )
-			{
-				FLAC__StreamEncoderState state =
-					FLAC__stream_encoder_get_state( m_encoder );
-				if( state == FLAC__STREAM_ENCODER_CLIENT_ERROR )
-				{
-					throw utils::StrException( "%s", m_error.getchars() );
-				}
-				else
-				{
-					throw std::runtime_error(
-						FLAC__StreamEncoderStateString[ state ] );
-				}
-			}
-			m_position += rest;
-			return true;
-		}
-		else
-		{
-			if( !m_finished )
-			{
-				FLAC__stream_encoder_finish( m_encoder );
-				m_finished = true;
-			}
-			return false;
-		}
+		FlacWriter* writer = ( FlacWriter* )client_data;
+		writer->m_targetpos = absolute_byte_offset;
+		return FLAC__STREAM_ENCODER_SEEK_STATUS_OK;
+	}
+
+	FLAC__StreamEncoderTellStatus FlacWriter::tell_callback(
+		const FLAC__StreamEncoder* encoder,
+		FLAC__uint64* absolute_byte_offset, void* client_data )
+	{
+		FlacWriter* writer = ( FlacWriter* )client_data;
+		*absolute_byte_offset = writer->m_targetpos;
+		return FLAC__STREAM_ENCODER_TELL_STATUS_OK;
 	}
 
 	FlacWriter::FlacWriter(
@@ -80,10 +87,9 @@ namespace rsbin
 		: m_bitdepth( bitdepth )
 		, m_channels( channels )
 		, m_samplerate( samplerate )
-		, m_position( 0 )
-		, m_finished( false )
 		, m_data( data )
 		, m_encoder( 0 )
+		, m_targetpos( 0 )
 	{
 		if( !Flac::isvalidformat( m_bitdepth, m_channels, m_samplerate ) )
 		{
@@ -94,6 +100,7 @@ namespace rsbin
 		{
 			throw std::runtime_error( "failed to create the flac encoder" );
 		}
+		m_target.emplace();
 		FLAC__stream_encoder_set_channels(
 			m_encoder, m_channels );
 		FLAC__stream_encoder_set_bits_per_sample(
@@ -106,8 +113,8 @@ namespace rsbin
 		FLAC__StreamEncoderInitStatus status = FLAC__stream_encoder_init_stream(
 			m_encoder,
 			&FlacWriter::write_callback,
-			0,
-			0,
+			&FlacWriter::seek_callback,
+			&FlacWriter::tell_callback,
 			0,
 			this );
 		if( status == FLAC__STREAM_ENCODER_INIT_STATUS_ENCODER_ERROR )
@@ -115,14 +122,50 @@ namespace rsbin
 			FLAC__StreamEncoderState state =
 				FLAC__stream_encoder_get_state( m_encoder );
 			FLAC__stream_encoder_delete( m_encoder );
-			throw std::runtime_error(
-				FLAC__StreamEncoderStateString[ state ] );
+			if( m_error )
+			{
+				throw utils::StrException( m_error );
+			}
+			else
+			{
+				throw std::runtime_error(
+					FLAC__StreamEncoderStateString[ state ] );
+			}
 		}
 		else if( status != FLAC__STREAM_ENCODER_INIT_STATUS_OK )
 		{
 			FLAC__stream_encoder_delete( m_encoder );
-			throw std::runtime_error(
-				FLAC__StreamEncoderInitStatusString[ status ] );
+			if( m_error )
+			{
+				throw utils::StrException( m_error );
+			}
+			else
+			{
+				throw std::runtime_error(
+					FLAC__StreamEncoderInitStatusString[ status ] );
+			}
+		}
+		bool success = FLAC__stream_encoder_process_interleaved(
+			m_encoder,
+			( int32_t* )m_data->m_data, unsigned( m_data->m_length / ( 4 * m_channels ) ) );
+		if( success )
+		{
+			success = FLAC__stream_encoder_finish( m_encoder );
+		}
+		if( !success )
+		{
+			FLAC__StreamEncoderState state =
+				FLAC__stream_encoder_get_state( m_encoder );
+			FLAC__stream_encoder_delete( m_encoder );
+			if( m_error )
+			{
+				throw utils::StrException( m_error );
+			}
+			else
+			{
+				throw std::runtime_error(
+					FLAC__StreamEncoderStateString[ state ] );
+			}
 		}
 	}
 
@@ -132,32 +175,5 @@ namespace rsbin
 		{
 			FLAC__stream_encoder_delete( m_encoder );
 		}
-	}
-
-	size_t FlacWriter::grab( size_t length, void* buffer )
-	{
-		size_t result = 0;
-		while( length > 0 )
-		{
-			size_t advance = m_buffer.pop( length, buffer );
-			length -= advance;
-			buffer = ( uint8_t* )buffer + advance;
-			result += advance;
-			if( !feedbuffer() )
-			{
-				break;
-			}
-		}
-		size_t advance = m_buffer.pop( length, buffer );
-		length -= advance;
-		buffer = ( uint8_t* )buffer + advance;
-		result += advance;
-		return result;
-	}
-
-	bool FlacWriter::isfinished()
-	{
-		return m_position == m_data->m_length / ( 4 * m_channels )
-			&& m_buffer.isempty();
 	}
 }

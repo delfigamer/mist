@@ -24,8 +24,7 @@ namespace rsbin
 		IoTask( IoTask const& ) = delete;
 		IoTask& operator=( IoTask const& ) = delete;
 
-		virtual bool iterate() = 0; // return true if finished
-		R_METHOD() void promote();
+		virtual bool iterate();
 		R_METHOD() bool isfinished() NOEXCEPT
 		{
 			return m_finished.load( std::memory_order_acquire );

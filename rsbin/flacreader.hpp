@@ -1,12 +1,12 @@
 #pragma once
 
+#include <rsbin/memoryio.hpp>
 #include <utils/string.hpp>
-#include <utils/cyclicbuffer.hpp>
+#include <utils/databuffer.hpp>
 #include <utils/ref.hpp>
 #include <utils/refobject.hpp>
-#include <utils/databuffer.hpp>
 #include <common.hpp>
-#include <flac/stream_decoder.hpp>
+#include <flac/stream_decoder.h>
 #include <cinttypes>
 
 namespace rsbin
@@ -19,8 +19,10 @@ namespace rsbin
 		int m_channels;
 		int m_samplerate;
 		FLAC__StreamDecoder* m_decoder;
-		utils::Ref< utils::DataBuffer > m_source;
-		utils::CyclicBuffer m_target;
+		utils::Ref< MemoryIo > m_source;
+		uint64_t m_sourcepos;
+		utils::Ref< utils::DataBuffer > m_target;
+		size_t m_totalsamples;
 		utils::String m_error;
 
 		static void error_callback(
@@ -29,26 +31,37 @@ namespace rsbin
 		static FLAC__StreamDecoderReadStatus read_callback(
 			const FLAC__StreamDecoder* decoder,
 			FLAC__byte* buffer, size_t* bytes, void* client_data );
+		static FLAC__StreamDecoderSeekStatus seek_callback(
+			const FLAC__StreamDecoder* decoder,
+			FLAC__uint64 absolute_byte_offset, void* client_data );
+		static FLAC__StreamDecoderTellStatus tell_callback(
+			const FLAC__StreamDecoder* decoder,
+			FLAC__uint64* absolute_byte_offset, void* client_data );
+		static FLAC__StreamDecoderLengthStatus length_callback(
+			const FLAC__StreamDecoder* decoder,
+			FLAC__uint64* stream_length, void* client_data );
+		static FLAC__bool eof_callback(
+			const FLAC__StreamDecoder* decoder, void* client_data );
 		static FLAC__StreamDecoderWriteStatus write_callback(
 			const FLAC__StreamDecoder* decoder,
 			const FLAC__Frame* frame,
 			const FLAC__int32* const* buffer, void* client_data );
 
 	public:
-		FlacReader( utils::DataBuffer* source );
+		FlacReader( MemoryIo* source );
 		~FlacReader();
 		FlacReader( FlacReader const& ) = delete;
 		FlacReader& operator=( FlacReader const& ) = delete;
 
-		R_METHOD() static FlacReader* create( utils::DataBuffer* source )
+		R_METHOD() static FlacReader* create( MemoryIo* source )
 		{
-			return new FlacReader();
+			return new FlacReader( source );
 		}
-		R_METHOD() void feed( size_t length, void const* buffer );
-		R_METHOD() size_t grab( size_t length, void* buffer );
-		R_METHOD() bool finish();
 		R_METHOD() int getbitdepth() NOEXCEPT { return m_bitdepth; }
 		R_METHOD() int getchannels() NOEXCEPT { return m_channels; }
 		R_METHOD() int getsamplerate() NOEXCEPT { return m_samplerate; }
+		R_METHOD( addref ) utils::DataBuffer* getdata() NOEXCEPT
+			{ return m_target; }
+		R_METHOD() bool isfinished() NOEXCEPT { return true; }
 	};
 }

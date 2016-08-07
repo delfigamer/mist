@@ -11,7 +11,12 @@ call lua ^
 	"utils\refobject.hpp" ^
 	"rsbin\common.hpp" ^
 	"rsbin\fileio.hpp" ^
-	"rsbin\fsthread.hpp" ^
+	"rsbin\flaccommon.hpp" ^
+	"rsbin\flacreader.hpp" ^
+	"rsbin\flacwriter.hpp" ^
+	"rsbin\io.hpp" ^
+	"rsbin\iotask.hpp" ^
+	"rsbin\memoryio.hpp" ^
 	"rsbin\pngcommon.hpp" ^
 	"rsbin\pngreader.hpp" ^
 	"rsbin\pngwriter.hpp" ^

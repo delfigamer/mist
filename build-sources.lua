@@ -129,6 +129,12 @@ local sources = {
 	},
 	{
 		type = 'native',
+		name = 'rsbin/flacreader',
+		use = 'client-console;client-main',
+		methodlist = 'client-console;client-main',
+	},
+	{
+		type = 'native',
 		name = 'rsbin/flacwriter',
 		use = 'client-console;client-main',
 		methodlist = 'client-console;client-main',

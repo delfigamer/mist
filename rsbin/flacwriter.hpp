@@ -1,7 +1,7 @@
 #pragma once
 
+#include <rsbin/memoryio.hpp>
 #include <utils/string.hpp>
-#include <utils/cyclicbuffer.hpp>
 #include <utils/ref.hpp>
 #include <utils/refobject.hpp>
 #include <utils/databuffer.hpp>
@@ -18,18 +18,22 @@ namespace rsbin
 		int m_bitdepth;
 		int m_channels;
 		int m_samplerate;
-		size_t m_position;
-		bool m_finished;
 		utils::Ref< utils::DataBuffer > m_data;
 		FLAC__StreamEncoder* m_encoder;
-		utils::CyclicBuffer m_buffer;
+		utils::Ref< MemoryIo > m_target;
+		uint64_t m_targetpos;
 		utils::String m_error;
 
 		static FLAC__StreamEncoderWriteStatus write_callback(
 			const FLAC__StreamEncoder* encoder,
 			const FLAC__byte* buffer, size_t bytes,
 			unsigned samples, unsigned current_frame, void* client_data );
-		bool feedbuffer();
+		static FLAC__StreamEncoderSeekStatus seek_callback(
+			const FLAC__StreamEncoder* encoder,
+			FLAC__uint64 absolute_byte_offset, void* client_data );
+		static FLAC__StreamEncoderTellStatus tell_callback(
+			const FLAC__StreamEncoder* encoder,
+			FLAC__uint64* absolute_byte_offset, void* client_data );
 
 	public:
 		FlacWriter(
@@ -45,7 +49,7 @@ namespace rsbin
 		{
 			return new FlacWriter( bitdepth, channels, samplerate, data );
 		}
-		R_METHOD() size_t grab( size_t length, void* buffer );
-		R_METHOD() bool isfinished();
+		R_METHOD() bool isfinished() NOEXCEPT { return true; }
+		R_METHOD( addref ) MemoryIo* getbuffer() NOEXCEPT { return m_target; }
 	};
 }

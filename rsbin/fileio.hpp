@@ -42,9 +42,11 @@ namespace rsbin
 			return new FileIo( path, mode );
 		}
 		virtual IoTask* startread(
-			uint64_t offset, size_t length, void* buffer ) override;
+			uint64_t offset, size_t length, void* buffer,
+			bool promote ) override;
 		virtual IoTask* startwrite(
-			uint64_t offset, size_t length, void const* buffer ) override;
+			uint64_t offset, size_t length, void const* buffer,
+			bool promote ) override;
 		void setsize( uint64_t size ) override;
 	};
 }

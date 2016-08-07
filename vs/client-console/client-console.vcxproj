@@ -27,7 +27,12 @@
     <ClCompile Include="..\..\utils\path.cpp" />
     <ClCompile Include="..\..\rsbin\common.cpp" />
     <ClCompile Include="..\..\rsbin\fileio.cpp" />
+    <ClCompile Include="..\..\rsbin\flacreader.cpp" />
+    <ClCompile Include="..\..\rsbin\flacwriter.cpp" />
     <ClCompile Include="..\..\rsbin\fsthread.cpp" />
+    <ClCompile Include="..\..\rsbin\io.cpp" />
+    <ClCompile Include="..\..\rsbin\iotask.cpp" />
+    <ClCompile Include="..\..\rsbin\memoryio.cpp" />
     <ClCompile Include="..\..\rsbin\pngreader.cpp" />
     <ClCompile Include="..\..\rsbin\pngwriter.cpp" />
     <ClCompile Include="..\..\client-console\main.cpp" />
@@ -53,7 +58,13 @@
     <ClInclude Include="..\..\utils\string.hpp" />
     <ClInclude Include="..\..\rsbin\common.hpp" />
     <ClInclude Include="..\..\rsbin\fileio.hpp" />
+    <ClInclude Include="..\..\rsbin\flaccommon.hpp" />
+    <ClInclude Include="..\..\rsbin\flacreader.hpp" />
+    <ClInclude Include="..\..\rsbin\flacwriter.hpp" />
     <ClInclude Include="..\..\rsbin\fsthread.hpp" />
+    <ClInclude Include="..\..\rsbin\io.hpp" />
+    <ClInclude Include="..\..\rsbin\iotask.hpp" />
+    <ClInclude Include="..\..\rsbin\memoryio.hpp" />
     <ClInclude Include="..\..\rsbin\pngcommon.hpp" />
     <ClInclude Include="..\..\rsbin\pngreader.hpp" />
     <ClInclude Include="..\..\rsbin\pngwriter.hpp" />
@@ -102,11 +113,11 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <DisableSpecificWarnings>4200</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4200;4800</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>lua51-win32.lib;libpng-win32.lib;zlib-win32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>lua51-win32.lib;libFLAC_dynamic-win32.lib;libpng-win32.lib;zlib-win32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>LIBCMT</IgnoreSpecificDefaultLibraries>
     </Link>
     <PostBuildEvent>
@@ -121,11 +132,11 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <DisableSpecificWarnings>4200</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4200;4800</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>lua51-win64.lib;libpng-win64.lib;zlib-win64.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>lua51-win64.lib;libFLAC_dynamic-win64.lib;libpng-win64.lib;zlib-win64.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>LIBCMT</IgnoreSpecificDefaultLibraries>
     </Link>
     <PostBuildEvent>
@@ -142,13 +153,13 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <DisableSpecificWarnings>4200</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4200;4800</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>lua51-win32.lib;libpng-win32.lib;zlib-win32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>lua51-win32.lib;libFLAC_dynamic-win32.lib;libpng-win32.lib;zlib-win32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>LIBCMT</IgnoreSpecificDefaultLibraries>
     </Link>
     <PostBuildEvent>
@@ -165,13 +176,13 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <DisableSpecificWarnings>4200</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4200;4800</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>lua51-win64.lib;libpng-win64.lib;zlib-win64.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>lua51-win64.lib;libFLAC_dynamic-win64.lib;libpng-win64.lib;zlib-win64.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>LIBCMT</IgnoreSpecificDefaultLibraries>
     </Link>
     <PostBuildEvent>

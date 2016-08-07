@@ -16,11 +16,11 @@ namespace rsbin
 		BlockSize = 0x1000, // 64K
 		MemBlockSize = 0x1000, // 64K
 		BlockingReadThreshold = 0x1000, // 4K
-		MaxViewSize = (
-			sizeof( void* ) >= 8 ?
-			0x10000000000ULL : // 1T
-			0x1000000 ), // 16M
 	};
+	size_t const MaxViewSize = (
+		sizeof( void* ) >= 8 ?
+		0x10000000000ULL : // 1T
+		0x1000000 ); // 16M
 
 	enum class ioaction
 	{
@@ -374,7 +374,7 @@ namespace rsbin
 	}
 
 	IoTask* FileIo::startread(
-		uint64_t offset, size_t length, void* buffer )
+		uint64_t offset, size_t length, void* buffer, bool promote )
 	{
 		FileIoTask* task = new FileIoTask;
 		if( length < BlockingReadThreshold && offset + length <= m_viewsize )
@@ -392,12 +392,19 @@ namespace rsbin
 		task->m_length = length;
 		task->m_buffer = ( uint8_t* )buffer;
 		task->m_action = ioaction::read;
-		FsThread->pushmain( task );
+		if( promote )
+		{
+			FsThread->pushhigh( task );
+		}
+		else
+		{
+			FsThread->pushmain( task );
+		}
 		return task;
 	}
 
 	IoTask* FileIo::startwrite(
-		uint64_t offset, size_t length, void const* buffer )
+		uint64_t offset, size_t length, void const* buffer, bool promote )
 	{
 		FileIoTask* task = new FileIoTask;
 		task->m_target = this;
@@ -405,7 +412,14 @@ namespace rsbin
 		task->m_length = length;
 		task->m_buffer = ( uint8_t* )buffer;
 		task->m_action = ioaction::write;
-		FsThread->pushmain( task );
+		if( promote )
+		{
+			FsThread->pushhigh( task );
+		}
+		else
+		{
+			FsThread->pushmain( task );
+		}
 		return task;
 	}
 

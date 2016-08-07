@@ -1,7 +1,9 @@
 # Build directory
 /build/
+
 /output/bin-*
 /output/flow
+*.flac
 
 # Object files
 *.o

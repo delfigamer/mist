@@ -18,9 +18,16 @@ namespace rsbin
 		Io& operator=( Io const& other ) = delete;
 
 		virtual R_METHOD() IoTask* startread(
-			uint64_t offset, size_t length, void* buffer ) = 0;
+			uint64_t offset, size_t length, void* buffer, bool promote ) = 0;
 		virtual R_METHOD() IoTask* startwrite(
-			uint64_t offset, size_t length, void const* buffer ) = 0;
+			uint64_t offset, size_t length, void const* buffer, bool promote ) = 0;
 		virtual R_METHOD() void setsize( uint64_t size ) = 0;
+
+		uint64_t blockread(
+			uint64_t offset, size_t length, void* buffer,
+			bool promote = false );
+		uint64_t blockwrite(
+			uint64_t offset, size_t length, void const* buffer,
+			bool promote = false );
 	};
 }

@@ -7,9 +7,9 @@ namespace rsbin
 	{
 	}
 
-	void IoTask::promote()
+	bool IoTask::iterate()
 	{
-		FsThread->pushhigh( this );
+		return true;
 	}
 }
 

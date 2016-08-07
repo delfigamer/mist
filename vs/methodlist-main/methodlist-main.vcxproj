@@ -22,7 +22,7 @@
     <CustomBuild Include="build.bat">
       <FileType>Document</FileType>
       <Command>call %(FullPath) "$(SolutionDir)" vs120-$(Platform)-$(Configuration)</Command>
-      <AdditionalInputs>$(SolutionDir)..\utils\cbase.hpp;$(SolutionDir)..\utils\configset.hpp;$(SolutionDir)..\utils\databuffer.hpp;$(SolutionDir)..\utils\encoding.hpp;$(SolutionDir)..\utils\refobject.hpp;$(SolutionDir)..\rsbin\common.hpp;$(SolutionDir)..\rsbin\fileio.hpp;$(SolutionDir)..\rsbin\fsthread.hpp;$(SolutionDir)..\rsbin\pngcommon.hpp;$(SolutionDir)..\rsbin\pngreader.hpp;$(SolutionDir)..\rsbin\pngwriter.hpp;$(SolutionDir)..\client-main\event.hpp;$(SolutionDir)..\client-main\window.hpp;$(SolutionDir)..\client-main\windowinfo.hpp</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\utils\cbase.hpp;$(SolutionDir)..\utils\configset.hpp;$(SolutionDir)..\utils\databuffer.hpp;$(SolutionDir)..\utils\encoding.hpp;$(SolutionDir)..\utils\refobject.hpp;$(SolutionDir)..\rsbin\common.hpp;$(SolutionDir)..\rsbin\fileio.hpp;$(SolutionDir)..\rsbin\flaccommon.hpp;$(SolutionDir)..\rsbin\flacreader.hpp;$(SolutionDir)..\rsbin\flacwriter.hpp;$(SolutionDir)..\rsbin\io.hpp;$(SolutionDir)..\rsbin\iotask.hpp;$(SolutionDir)..\rsbin\memoryio.hpp;$(SolutionDir)..\rsbin\pngcommon.hpp;$(SolutionDir)..\rsbin\pngreader.hpp;$(SolutionDir)..\rsbin\pngwriter.hpp;$(SolutionDir)..\client-main\event.hpp;$(SolutionDir)..\client-main\window.hpp;$(SolutionDir)..\client-main\windowinfo.hpp</AdditionalInputs>
       <Outputs>$(OutDir)methodlist.hpp;$(OutDir)methodlist.cpp;$(OutDir)methodlist.lua</Outputs>
     </CustomBuild>
   </ItemGroup>

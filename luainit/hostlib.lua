@@ -49,8 +49,7 @@ local buffer = ffi.new('char[0x1000]')
 function file_loader(io)
 	local offset = 0ULL
 	return function()
-		local task = io:startread(offset, 0x1000, buffer)
-		task:promote()
+		local task = io:startread(offset, 0x1000, buffer, true)
 		while not task:isfinished() do
 			cbase:yield()
 		end
