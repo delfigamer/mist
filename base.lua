@@ -210,6 +210,8 @@ end
 -- if R is not a weak order, that is, if there are loops in Q, the function
 -- returns nil, part_of_list_with_loop
 -- otherwise, it returns a single list L, where R(L[i], L[j]) => i<j
+-- main use: sorting interdependent entries, such that each one will only
+-- depend on preceding entries in the sorted list
 function table.weak_sort(list, preceding)
 	local result = {}
 	local ready = {}

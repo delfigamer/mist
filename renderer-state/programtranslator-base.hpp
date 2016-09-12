@@ -1,6 +1,6 @@
 #pragma once
 
-#include <renderer-d3d9/programtranslator.hpp>
+#include <renderer-state/programtranslator.hpp>
 #include <utils/string.hpp>
 #include <utils/ref.hpp>
 #include <utils/refobject.hpp>
@@ -25,6 +25,7 @@ namespace graphics
 				F&& first, S&& sedond, T&&... args );
 			static utils::Ref< StringBuilder > construct( utils::String str );
 			static utils::Ref< StringBuilder > construct( StringBuilder* sb );
+			static utils::Ref< StringBuilder > construct();
 		};
 
 		StringBuilder::StringBuilder( utils::Ref< StringBuilder > prefix,
@@ -102,6 +103,12 @@ namespace graphics
 				nullptr, nullptr, sb );
 		}
 
+		utils::Ref< StringBuilder > StringBuilder::construct()
+		{
+			return utils::Ref< StringBuilder >::create(
+				nullptr, nullptr, nullptr );
+		}
+
 		namespace valuetype
 		{
 			enum
@@ -117,16 +124,8 @@ namespace graphics
 			};
 		}
 
-		utils::String const typestr[] = {
-			"float",
-			"float2",
-			"float3",
-			"float4",
-			"float2x2",
-			"float3x3",
-			"float4x4",
-			"sampler2D",
-		};
+		// back-end-dependent
+		extern utils::String const typestr[];
 
 		struct Value: utils::RefObject
 		{

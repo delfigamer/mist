@@ -1,10 +1,11 @@
 #pragma once
 
-#include <renderer-d3d9/programtranslator.hpp>
-#include <renderer-d3d9/programtranslator-base.hpp>
-#include <renderer-d3d9/programtranslator-state.hpp>
-#include <renderer-d3d9/programtranslator-generators.hpp>
-#include <renderer-d3d9/programtranslator-functions.hpp>
+#include <renderer-state/programtranslator.hpp>
+#include <renderer-state/programtranslator-base.hpp>
+#include <renderer-state/programtranslator-state.hpp>
+#include <renderer-state/programtranslator-generators.hpp>
+#include <renderer-state/programtranslator-swizzles.hpp>
+#include <renderer-state/programtranslator-functions.hpp>
 #include <map>
 
 namespace graphics
@@ -30,6 +31,48 @@ namespace graphics
 			{
 				ts->error( "invalid token" );
 			}
+		}
+
+		void step_swizzle( TranslatorState* ts, programtoken token )
+		{
+			int it = int( token );
+			int parts[ 5 ];
+			utils::Ref< Value > arg = ts->pop();
+			if( it >= int( programtoken::swizzle_0 ) &&
+				it <= int( programtoken::swizzle_3 ) )
+			{
+				parts[ 0 ] = it - int( programtoken::swizzle_0 );
+				parts[ 1 ] = -1;
+			}
+			else if( it >= int( programtoken::swizzle_00 ) &&
+				it <= int( programtoken::swizzle_33 ) )
+			{
+				parts[ 0 ] = ( it - int( programtoken::swizzle_00 ) ) / 4;
+				parts[ 1 ] = ( it - int( programtoken::swizzle_00 ) ) % 4;
+				parts[ 2 ] = -1;
+			}
+			else if( it >= int( programtoken::swizzle_000 ) &&
+				it <= int( programtoken::swizzle_333 ) )
+			{
+				parts[ 0 ] = ( it - int( programtoken::swizzle_000 ) ) / 16;
+				parts[ 1 ] = ( it - int( programtoken::swizzle_000 ) ) / 4 % 4;
+				parts[ 2 ] = ( it - int( programtoken::swizzle_000 ) ) % 4;
+				parts[ 3 ] = -1;
+			}
+			else if( it >= int( programtoken::swizzle_0000 ) &&
+				it <= int( programtoken::swizzle_3333 ) )
+			{
+				parts[ 0 ] = ( it - int( programtoken::swizzle_0000 ) ) / 64;
+				parts[ 1 ] = ( it - int( programtoken::swizzle_0000 ) ) / 16 % 4;
+				parts[ 2 ] = ( it - int( programtoken::swizzle_0000 ) ) / 4 % 4;
+				parts[ 3 ] = ( it - int( programtoken::swizzle_0000 ) ) % 4;
+				parts[ 4 ] = -1;
+			}
+			else
+			{
+				ts->error( "invalid token" );
+			}
+			ts->push( utils::Ref< Value_Swizzle >::create( ts, arg, parts ) );
 		}
 
 		void step_unary( TranslatorState* ts, programtoken token )
@@ -132,7 +175,7 @@ namespace graphics
 				step_generator( ts, token );
 			break;
 			case 1: case 2: // swizzles
-				ts->error( "invalid token" );
+				step_swizzle( ts, token );
 			break;
 			case 3: // unary functions
 				ts->error( "invalid token" );

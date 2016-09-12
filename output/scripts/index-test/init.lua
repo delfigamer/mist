@@ -8,21 +8,13 @@ local input = require('base.input')
 local primitiveshape = require('host.primitiveshape')
 local shapegroup = require('host.shapegroup')
 local staticvertexbuffer = require('host.staticvertexbuffer')
-local vertexdeclaration = require('host.vertexdeclaration')
+local vertex = require('host.vertex')
 local window = require('host.window')
-
-ffi.cdef[[
-	typedef struct
-	{
-		float pos[ 2 ];
-		uint8_t color[ 4 ];
-	} Vertex;
-]]
 
 do
 	local vdata = databuffer:create(
-		ffi.sizeof('Vertex') * 6, ffi.sizeof('Vertex') * 7, nil)
-	local vertices = ffi.cast('Vertex*', vdata:getdata())
+		ffi.sizeof('vertex') * 6, ffi.sizeof('vertex') * 7, nil)
+	local vertices = ffi.cast('vertex*', vdata:getdata())
 	vertices[0] = {{-0.5, -0.5}, {0xff,    0,    0, 0xff}}
 	vertices[1] = {{-0.5,  0.5}, {0xff, 0xff,    0, 0xff}}
 	vertices[2] = {{ 0.0, -0.5}, {   0, 0xff,    0, 0xff}}
@@ -31,28 +23,11 @@ do
 	vertices[5] = {{ 0.5,  0.5}, {0xff,    0, 0xff, 0xff}}
 	vertices[6] = {{-0.5, -0.5}, {0xff,    0,    0, 0xff}}
 
-	local vdecldata = databuffer:create(
-		ffi.sizeof('struct vertexdeclelement') * 2,
-		ffi.sizeof('struct vertexdeclelement') * 2,
-		nil)
-	local vdeclelems = ffi.cast('struct vertexdeclelement*', vdecldata:getdata())
-	vdeclelems[0] = {
-		attribute = 0,
-		offset = ffi.offsetof('Vertex', 'pos'),
-		format = vertexdeclaration.format.float2,
-	}
-	vdeclelems[1] = {
-		attribute = 1,
-		offset = ffi.offsetof('Vertex', 'color'),
-		format = vertexdeclaration.format.ubyte4n,
-	}
-	local vdecl = vertexdeclaration:create(vdecldata, ffi.sizeof('Vertex'))
-
 	index.shape = shapegroup:create()
 	index.cshape = clearshape:create(true, false, false)
 	index.cshape:setcolor(ffi.new('float[4]', 0, 0, 0, 1))
 	index.pshape = primitiveshape:create(3, 1, 0, 0)
-	index.vbuf = staticvertexbuffer:create(vdecl)
+	index.vbuf = staticvertexbuffer:create()
 	index.vbuf:assign(vdata)
 	index.pshape:setvertexbuffer(index.vbuf)
 	index.cshapeentry = index.shape:insert(index.cshape)

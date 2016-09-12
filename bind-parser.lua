@@ -1,5 +1,13 @@
 local modname = ...
 
+local function q(s)
+	if s then
+		return string.format('%q', s)
+	else
+		return 'nil'
+	end
+end
+
 local function string_xgmatch(source, pattern)
 	local items = {}
 	source = string.gsub(source, pattern,
@@ -160,6 +168,15 @@ local function parse_method(filename, nsprefix, class, item)
 end
 
 local function parse_structfield(filename, nsprefix, item)
+	local type, name, arrsize = string.match(item[1],
+		'^(.-)%s*([%a_][%w_]*)%s*%[%s*(%w*)%s*%]$')
+	if type then
+		return {
+			type = parse_type(filename, nsprefix, type),
+			name = name,
+			arrsize = assert(tonumber(arrsize)),
+		}
+	end
 	local type, name = string.match(item[1], '^(.-)%s*([%a_][%w_]*)$')
 	return {
 		type = parse_type(filename, nsprefix, type),

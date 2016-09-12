@@ -27,6 +27,16 @@ R_EMIT( target = lua_beforeclasses )
 		'struct renderer_gles_methodlist_t const*',
 		require('host.info').renderer_methodlist)
 	local cbase = require('host.cbase')
+	local refobject = require('host.refobject')
+	local databuffer = require('host.databuffer')
+R_END()
+R_EMIT( target = lua_beforemethods )
+local client_methodlist = require('host.info').client_methodlist
+local function reference_addref(self)
+	if self ~= nil then
+		client_methodlist.refobject_addref(self)
+	end
+end
 R_END()
 */
 

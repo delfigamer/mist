@@ -8,12 +8,12 @@ namespace graphics
 	{
 		utils::String const typestr[] = {
 			"float",
-			"float2",
-			"float3",
-			"float4",
-			"float2x2",
-			"float3x3",
-			"float4x4",
+			"vec2",
+			"vec3",
+			"vec4",
+			"mat2",
+			"mat3",
+			"mat4",
 			"sampler2D",
 		};
 
@@ -36,8 +36,6 @@ namespace graphics
 					std::make_tuple(
 						programtoken::subtract, Value_Binary::factory, "-" ),
 					std::make_tuple(
-						programtoken::multiply, Value_Binary::factory, "*" ),
-					std::make_tuple(
 						programtoken::divide, Value_Binary::factory, "/" ),
 					std::make_tuple(
 						programtoken::modulus, Value_Binary::factory, "%" ),
@@ -54,6 +52,29 @@ namespace graphics
 				}
 			}
 			for( auto type : {
+				valuetype::float1,
+				valuetype::float2,
+				valuetype::float3,
+				valuetype::float4,
+			} )
+			{
+				ret.emplace(
+					FunctionSignature( programtoken::multiply, { type, type } ),
+					FunctionFactoryState(
+						Value_Binary::factory, "*", type, { 0, 1 } ) );
+			}
+			for( auto type : {
+				valuetype::float2x2,
+				valuetype::float3x3,
+				valuetype::float4x4,
+			} )
+			{
+				ret.emplace(
+					FunctionSignature( programtoken::multiply, { type, type } ),
+					FunctionFactoryState(
+						Value_Function::factory, "matrixCompMult", type, { 0, 1 } ) );
+			}
+			for( auto type : {
 				valuetype::float2,
 				valuetype::float3,
 				valuetype::float4,
@@ -66,12 +87,12 @@ namespace graphics
 					FunctionSignature(
 						programtoken::multiply, { valuetype::float1, type } ),
 					FunctionFactoryState(
-						Value_Function::factory, "mul", type, { 0, 1 } ) );
+						Value_Binary::factory, "*", type, { 0, 1 } ) );
 				ret.emplace(
 					FunctionSignature(
 						programtoken::multiply, { type, valuetype::float1 } ),
 					FunctionFactoryState(
-						Value_Function::factory, "mul", type, { 0, 1 } ) );
+						Value_Binary::factory, "*", type, { 0, 1 } ) );
 			}
 			for( auto i : {
 				std::make_tuple( valuetype::float2, valuetype::float2x2 ),
@@ -89,15 +110,15 @@ namespace graphics
 				ret.emplace(
 					FunctionSignature( programtoken::dot, { mattype, vectype } ),
 					FunctionFactoryState(
-						Value_Function::factory, "mul", vectype, { 0, 1 } ) );
+						Value_Binary::factory, "*", vectype, { 0, 1 } ) );
 				ret.emplace(
 					FunctionSignature( programtoken::dot, { vectype, mattype } ),
 					FunctionFactoryState(
-						Value_Function::factory, "mul", vectype, { 0, 1 } ) );
+						Value_Binary::factory, "*", vectype, { 0, 1 } ) );
 				ret.emplace(
 					FunctionSignature( programtoken::dot, { mattype, mattype } ),
 					FunctionFactoryState(
-						Value_Function::factory, "mul", mattype, { 0, 1 } ) );
+						Value_Binary::factory, "*", mattype, { 0, 1 } ) );
 			}
 			ret.emplace(
 				FunctionSignature(
@@ -111,7 +132,7 @@ namespace graphics
 					{ valuetype::sampler2D, valuetype::float2 } ),
 				FunctionFactoryState(
 					Value_Function::factory,
-					"tex2D", valuetype::float4, { 0, 1 } ) );
+					"texture2D", valuetype::float4, { 0, 1 } ) );
 			return ret;
 		}
 
@@ -119,14 +140,14 @@ namespace graphics
 			utils::Ref< StringBuilder >* defs )
 		{
 			static utils::String const attrstr[] = {
-				"attrs.a0",
-				"attrs.a1",
-				"attrs.a2",
-				"attrs.a3",
-				"attrs.a4",
-				"attrs.a5",
-				"attrs.a6",
-				"attrs.a7",
+				"var_a0",
+				"var_a1",
+				"var_a2",
+				"var_a3",
+				"var_a4",
+				"var_a5",
+				"var_a6",
+				"var_a7",
 			};
 			return StringBuilder::construct( attrstr[ m_index ] );
 		}
@@ -147,45 +168,45 @@ namespace graphics
 			return StringBuilder::construct( texstr[ m_index ] );
 		}
 
-		utils::String const attributevarstructstr[ 8 ] = {
-			"float4 a0:TEXCOORD0;\n",
-			"float4 a1:TEXCOORD1;\n",
-			"float4 a2:TEXCOORD2;\n",
-			"float4 a3:TEXCOORD3;\n",
-			"float4 a4:TEXCOORD4;\n",
-			"float4 a5:TEXCOORD5;\n",
-			"float4 a6:TEXCOORD6;\n",
-			"float4 a7:TEXCOORD7;\n",
+		utils::String const attributevarstr[ 8 ] = {
+			"varying vec4 var_a0;\n",
+			"varying vec4 var_a1;\n",
+			"varying vec4 var_a2;\n",
+			"varying vec4 var_a3;\n",
+			"varying vec4 var_a4;\n",
+			"varying vec4 var_a5;\n",
+			"varying vec4 var_a6;\n",
+			"varying vec4 var_a7;\n",
 		};
-		utils::String const attributeattrstructstr[ 8 ] = {
-			"float4 a0:TEXCOORD0;\n",
-			"float4 a1:TEXCOORD1;\n",
-			"float4 a2:TEXCOORD2;\n",
-			"float4 a3:TEXCOORD3;\n",
-			"float4 a4:TEXCOORD4;\n",
-			"float4 a5:TEXCOORD5;\n",
-			"float4 a6:TEXCOORD6;\n",
-			"float4 a7:TEXCOORD7;\n",
+		utils::String const attributeattrstr[ 8 ] = {
+			"attribute vec4 attr_a0;\n",
+			"attribute vec4 attr_a1;\n",
+			"attribute vec4 attr_a2;\n",
+			"attribute vec4 attr_a3;\n",
+			"attribute vec4 attr_a4;\n",
+			"attribute vec4 attr_a5;\n",
+			"attribute vec4 attr_a6;\n",
+			"attribute vec4 attr_a7;\n",
 		};
 		utils::String const attributeassignstr[ 8 ] = {
-			"vars.a0=attrs.a0;\n",
-			"vars.a1=attrs.a1;\n",
-			"vars.a2=attrs.a2;\n",
-			"vars.a3=attrs.a3;\n",
-			"vars.a4=attrs.a4;\n",
-			"vars.a5=attrs.a5;\n",
-			"vars.a6=attrs.a6;\n",
-			"vars.a7=attrs.a7;\n",
+			"var_a0=attr_a0;\n",
+			"var_a1=attr_a1;\n",
+			"var_a2=attr_a2;\n",
+			"var_a3=attr_a3;\n",
+			"var_a4=attr_a4;\n",
+			"var_a5=attr_a5;\n",
+			"var_a6=attr_a6;\n",
+			"var_a7=attr_a7;\n",
 		};
 		utils::String const texturedefstr[ 8 ] = {
-			"sampler2D texture_0:register(s0);\n",
-			"sampler2D texture_1:register(s1);\n",
-			"sampler2D texture_2:register(s2);\n",
-			"sampler2D texture_3:register(s3);\n",
-			"sampler2D texture_4:register(s4);\n",
-			"sampler2D texture_5:register(s5);\n",
-			"sampler2D texture_6:register(s6);\n",
-			"sampler2D texture_7:register(s7);\n",
+			"sampler2D texture_0;\n",
+			"sampler2D texture_1;\n",
+			"sampler2D texture_2;\n",
+			"sampler2D texture_3;\n",
+			"sampler2D texture_4;\n",
+			"sampler2D texture_5;\n",
+			"sampler2D texture_6;\n",
+			"sampler2D texture_7;\n",
 		};
 
 		utils::Ref< StringBuilder > makeshaders_vsh(
@@ -193,35 +214,28 @@ namespace graphics
 		{
 			auto vsh = StringBuilder::construct(
 				"// built from a mistsh bytecode\n"
-				"float4x4 worldviewmatrix:register(c0);\n"
-				"struct varyings_t{\n" );
+				"uniform mat4 worldviewmatrix;\n" );
 			for( int i = 0; i < 8; ++i )
 			{
 				if( ts->m_attributeused[ i ] )
 				{
 					vsh = StringBuilder::construct(
 						vsh,
-						attributevarstructstr[ i ] );
+						attributevarstr[ i ] );
 				}
 			}
-			vsh = StringBuilder::construct(
-				vsh,
-				"};\n"
-				"struct attributes_t{\n" );
 			for( int i = 0; i < 8; ++i )
 			{
 				if( ts->m_attributeused[ i ] )
 				{
 					vsh = StringBuilder::construct(
 						vsh,
-						attributeattrstructstr[ i ] );
+						attributeattrstr[ i ] );
 				}
 			}
 			vsh = StringBuilder::construct(
 				vsh,
-				"};\n"
-				"float4 main("
-					"in attributes_t attrs,out varyings_t vars):POSITION{\n" );
+				"void main(){\n" );
 			for( int i = 0; i < 8; ++i )
 			{
 				if( ts->m_attributeused[ i ] )
@@ -233,7 +247,7 @@ namespace graphics
 			}
 			vsh = StringBuilder::construct(
 				vsh,
-				"return mul(worldviewmatrix,attrs.a0);\n"
+				"gl_Position = worldviewmatrix*attr_a0;\n"
 				"}\n" );
 			return vsh;
 		}
@@ -243,20 +257,16 @@ namespace graphics
 			utils::Ref< Value > const& value )
 		{
 			auto fsh = StringBuilder::construct(
-				"// built from a mistsh bytecode\n"
-				"struct varyings_t{\n" );
+				"// built from a mistsh bytecode\n" );
 			for( int i = 0; i < 8; ++i )
 			{
 				if( ts->m_attributeused[ i ] )
 				{
 					fsh = StringBuilder::construct(
 						fsh,
-						attributevarstructstr[ i ] );
+						attributevarstr[ i ] );
 				}
 			}
-			fsh = StringBuilder::construct(
-				fsh,
-				"};\n" );
 			for( int i = 0; i < 8; ++i )
 			{
 				if( ts->m_textureused[ i ] )
@@ -268,13 +278,13 @@ namespace graphics
 			}
 			fsh = StringBuilder::construct(
 				fsh,
-				"float4 main(in varyings_t attrs):COLOR0{\n" );
+				"void main(){\n" );
 			utils::Ref< StringBuilder > vdefs;
 			auto vstr = value->getstring( &vdefs );
 			fsh = StringBuilder::construct(
 				fsh,
 				vdefs,
-				"return ",
+				"gl_Color = ",
 				vstr,
 				";\n"
 				"}\n" );

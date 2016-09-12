@@ -89,7 +89,11 @@ function format.struct_ffidef(ent)
 	for i, field in ipairs(ent.fields) do
 		echo('\t')
 		format.type_ffistr(field.type)
-		echo(' ', field.name, ';\n')
+		echo(' ', field.name)
+		if field.arrsize then
+			echo('[', tostring(field.arrsize), ']')
+		end
+		echo(';\n')
 	end
 	echo('};\n')
 end

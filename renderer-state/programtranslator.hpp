@@ -426,8 +426,8 @@ namespace graphics
 		// combine values into vectors and matrices
 		create_float2_1 = 0x700,
 		create_float2_2 = 0x701,
-		create_float3_2 = 0x702,
-		create_float3_1 = 0x703,
+		create_float3_1 = 0x702,
+		create_float3_2 = 0x703,
 		create_float3_3 = 0x704,
 		create_float4_1 = 0x705,
 		create_float4_2 = 0x706,

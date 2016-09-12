@@ -1,8 +1,8 @@
 #pragma once
 
-#include <renderer-d3d9/programtranslator.hpp>
-#include <renderer-d3d9/programtranslator-base.hpp>
-#include <renderer-d3d9/programtranslator-state.hpp>
+#include <renderer-state/programtranslator.hpp>
+#include <renderer-state/programtranslator-base.hpp>
+#include <renderer-state/programtranslator-state.hpp>
 #include <utils/ref.hpp>
 #include <utils/refobject.hpp>
 #include <tuple>
@@ -219,103 +219,8 @@ namespace graphics
 			return utils::Ref< Value_Binary >::create( ts, fs, args );
 		}
 
-		std::map< FunctionSignature, FunctionFactoryState > CreateFunctionMap()
-		{
-			std::map< FunctionSignature, FunctionFactoryState > ret;
-			for( auto type : {
-				valuetype::float1,
-				valuetype::float2,
-				valuetype::float3,
-				valuetype::float4,
-				valuetype::float2x2,
-				valuetype::float3x3,
-				valuetype::float4x4,
-			} )
-			{
-				for( auto i : {
-					std::make_tuple(
-						programtoken::add, Value_Binary::factory, "+" ),
-					std::make_tuple(
-						programtoken::subtract, Value_Binary::factory, "-" ),
-					std::make_tuple(
-						programtoken::multiply, Value_Binary::factory, "*" ),
-					std::make_tuple(
-						programtoken::divide, Value_Binary::factory, "/" ),
-					std::make_tuple(
-						programtoken::modulus, Value_Binary::factory, "%" ),
-					std::make_tuple(
-						programtoken::power, Value_Function::factory, "pow" ),
-				} )
-				{
-					auto token = std::get< 0 >( i );
-					auto factory = std::get< 1 >( i );
-					auto fname = std::get< 2 >( i );
-					ret.emplace(
-						FunctionSignature( token, { type, type } ),
-						FunctionFactoryState( factory, fname, type, { 0, 1 } ) );
-				}
-			}
-			for( auto type : {
-				valuetype::float2,
-				valuetype::float3,
-				valuetype::float4,
-				valuetype::float2x2,
-				valuetype::float3x3,
-				valuetype::float4x4,
-			} )
-			{
-				ret.emplace(
-					FunctionSignature(
-						programtoken::multiply, { valuetype::float1, type } ),
-					FunctionFactoryState(
-						Value_Function::factory, "mul", type, { 0, 1 } ) );
-				ret.emplace(
-					FunctionSignature(
-						programtoken::multiply, { type, valuetype::float1 } ),
-					FunctionFactoryState(
-						Value_Function::factory, "mul", type, { 0, 1 } ) );
-			}
-			for( auto i : {
-				std::make_tuple( valuetype::float2, valuetype::float2x2 ),
-				std::make_tuple( valuetype::float3, valuetype::float3x3 ),
-				std::make_tuple( valuetype::float4, valuetype::float4x4 ),
-			} )
-			{
-				auto vectype = std::get< 0 >( i );
-				auto mattype = std::get< 1 >( i );
-				ret.emplace(
-					FunctionSignature( programtoken::dot, { vectype, vectype } ),
-					FunctionFactoryState(
-						Value_Function::factory,
-						"dot", valuetype::float1, { 0, 1 } ) );
-				ret.emplace(
-					FunctionSignature( programtoken::dot, { mattype, vectype } ),
-					FunctionFactoryState(
-						Value_Function::factory, "mul", vectype, { 0, 1 } ) );
-				ret.emplace(
-					FunctionSignature( programtoken::dot, { vectype, mattype } ),
-					FunctionFactoryState(
-						Value_Function::factory, "mul", vectype, { 0, 1 } ) );
-				ret.emplace(
-					FunctionSignature( programtoken::dot, { mattype, mattype } ),
-					FunctionFactoryState(
-						Value_Function::factory, "mul", mattype, { 0, 1 } ) );
-			}
-			ret.emplace(
-				FunctionSignature(
-					programtoken::cross, { valuetype::float3, valuetype::float3 } ),
-				FunctionFactoryState(
-					Value_Function::factory,
-					"cross", valuetype::float3, { 0, 1 } ) );
-			ret.emplace(
-				FunctionSignature(
-					programtoken::sample,
-					{ valuetype::sampler2D, valuetype::float2 } ),
-				FunctionFactoryState(
-					Value_Function::factory,
-					"tex2D", valuetype::float4, { 0, 1 } ) );
-			return ret;
-		}
+		// back-end-dependent
+		std::map< FunctionSignature, FunctionFactoryState > CreateFunctionMap();
 
 		std::map< FunctionSignature, FunctionFactoryState > FunctionMap =
 			CreateFunctionMap();

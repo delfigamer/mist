@@ -20,7 +20,7 @@ local tokens = {
 	pt.multiply,
 	pt.extract_0,
 	pt.power,
-	pt.texture_0,
+	-- pt.texture_0,
 }
 
 local db = databuffer:create(#tokens*4, #tokens*4, nil)
@@ -29,3 +29,7 @@ for i, token in ipairs(tokens) do
 	data[i-1] = token
 end
 local tt = translatortest:create(db)
+local vsh = tt:getvertexsource()
+log(ffi.string(vsh:getdata(), vsh:getlength()))
+local fsh = tt:getfragmentsource()
+log(ffi.string(fsh:getdata(), fsh:getlength()))

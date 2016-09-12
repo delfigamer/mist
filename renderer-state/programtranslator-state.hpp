@@ -1,7 +1,7 @@
 #pragma once
 
-#include <renderer-d3d9/programtranslator.hpp>
-#include <renderer-d3d9/programtranslator-base.hpp>
+#include <renderer-state/programtranslator.hpp>
+#include <renderer-state/programtranslator-base.hpp>
 #include <utils/strexception.hpp>
 #include <utils/databuffer.hpp>
 #include <utils/ref.hpp>

@@ -1,8 +1,8 @@
 #pragma once
 
-#include <renderer-d3d9/programtranslator.hpp>
-#include <renderer-d3d9/programtranslator-base.hpp>
-#include <renderer-d3d9/programtranslator-state.hpp>
+#include <renderer-state/programtranslator.hpp>
+#include <renderer-state/programtranslator-base.hpp>
+#include <renderer-state/programtranslator-state.hpp>
 #include <utils/ref.hpp>
 #include <utils/databuffer.hpp>
 #include <utils/refobject.hpp>
@@ -18,6 +18,7 @@ namespace graphics
 			int m_index;
 
 			Value_Attribute( TranslatorState* ts, int index );
+			// back-end-dependent
 			virtual utils::Ref< StringBuilder > getstring(
 				utils::Ref< StringBuilder >* defs ) override;
 		};
@@ -27,6 +28,7 @@ namespace graphics
 			int m_index;
 
 			Value_Texture( TranslatorState* ts, int index );
+			// back-end-dependent
 			virtual utils::Ref< StringBuilder > getstring(
 				utils::Ref< StringBuilder >* defs ) override;
 		};
@@ -48,43 +50,11 @@ namespace graphics
 			ts->m_attributeused[ index ] = true;
 		}
 
-		utils::Ref< StringBuilder > Value_Attribute::getstring(
-			utils::Ref< StringBuilder >* defs )
-		{
-			static utils::String const attrstr[] = {
-				"attrs.a0",
-				"attrs.a1",
-				"attrs.a2",
-				"attrs.a3",
-				"attrs.a4",
-				"attrs.a5",
-				"attrs.a6",
-				"attrs.a7",
-			};
-			return StringBuilder::construct( attrstr[ m_index ] );
-		}
-
 		Value_Texture::Value_Texture( TranslatorState* ts, int index )
 			: m_index( index )
 		{
 			m_type = valuetype::sampler2D;
 			ts->m_textureused[ index ] = true;
-		}
-
-		utils::Ref< StringBuilder > Value_Texture::getstring(
-			utils::Ref< StringBuilder >* defs )
-		{
-			static utils::String const texstr[] = {
-				"texture_0",
-				"texture_1",
-				"texture_2",
-				"texture_3",
-				"texture_4",
-				"texture_5",
-				"texture_6",
-				"texture_7",
-			};
-			return StringBuilder::construct( texstr[ m_index ] );
 		}
 
 		Value_Literal::Value_Literal(
