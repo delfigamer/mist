@@ -1,5 +1,3 @@
-local sep = (_PLATFORM == 'win') and '\\' or '/'
-
 if _CONSOLE then
 	index = 'index-cmd'
 else

@@ -263,6 +263,25 @@ function table.unpack(t, a, b)
 	return native_unpack(t, a, b)
 end
 
+local function coroutine_initwrapper(func, ...)
+	coroutine.yield()
+	local ret = table.pack(pcall(func, ...))
+	if ret[1] then
+		return table.unpack(ret, 2)
+	else
+		error(ret[2])
+	end
+end
+
+function coroutine.init(func, ...)
+	if not func or type(func) ~= 'function' then
+		error('function expected')
+	end
+	local thread = coroutine.create(coroutine_initwrapper)
+	assert(coroutine.resume(thread, func, ...))
+	return thread
+end
+
 _G.unpack = nil
 _G.io = nil
 package.loaded['io'] = nil

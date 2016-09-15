@@ -2,9 +2,6 @@ local modname = ...
 local object = require('base.object')
 local fmat = object:module(modname)
 local ffi = require('ffi')
-local fileio = require('rs.fileio')
-local invoke = require('base.invoke')
-local iostream = require('rs.iostream')
 
 fmat.headertype = ffi.typeof[[
 	struct{
