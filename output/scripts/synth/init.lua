@@ -5,12 +5,11 @@ return package.modulepack{
 	target = target,
 	names = {
 		'common',
+		'controller',
 		'export',
-		'filter',
 		'func',
-		'generator',
 		'mixer',
-		'modulator',
-		'ramp',
+		'note',
+		'wrapper',
 	},
 }

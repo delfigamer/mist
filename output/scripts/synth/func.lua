@@ -1,42 +1,49 @@
 local modname = ...
 local func = package.modtable(modname)
+local common = require(modname, 1, 'common')
 
-function func.identity(v)
-	return v
+function func.clamp(v)
+	return 0.5*(math.abs(v+1) - math.abs(v-1))
 end
 
-function func.clampfilter(amp)
-	return function(v)
-		return (math.abs(v+amp) - math.abs(v-amp)) * 0.5
+function func.atannorm(v)
+	return (2/math.pi)*math.atan(v)
+end
+
+function func.expnorm(v)
+	if v < 0 then
+		return -func.expfilter(-v)
 	end
+	return 1 - math.exp(-v)
 end
 
-func.clamp = func.clampfilter(1)
-
-function func.atanfilter(amp, arg)
-	return function(v)
-		return math.atan(v*(1/amp))*(amp*2/math.pi)
-	end
-end
-
-function func.expfilter(amp)
-	local function func(v)
-		if v < 0 then
-			return -func(-v)
-		end
-		return amp*(1 - math.exp(-v*(1/amp)))
-	end
-	return func
-end
-
-function func.sinwave(phase)
-	return math.sin(phase)
-end
-
-function func.squarewave(phase)
+function func.square(phase)
 	return phase < math.pi and 1 or -1
 end
 
-function func.trianglewave(phase)
+function func.triangle(phase)
 	return math.abs(phase - math.pi) / (math.pi/2) - 1
+end
+
+function func.wavegen(basefunc)
+	local basefunc = basefunc or math.sin
+	local phase = 0
+	return function(frequency, dphase)
+		dphase = dphase or 0
+		local value = basefunc(phase + dphase)
+		phase = math.fmod(
+			phase + 2*math.pi*common.period*frequency,
+			math.pi*2)
+		return value
+	end
+end
+
+function func.lowpassgen(a, x)
+	assert(a)
+	local x = x or 0
+	local aw = a*common.period
+	return function(u)
+		x = x + (u - x)*aw
+		return x
+	end
 end
