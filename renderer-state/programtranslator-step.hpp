@@ -19,13 +19,13 @@ namespace graphics
 				it <= int( programtoken::attribute_7 ) )
 			{
 				int index = it - int( programtoken::attribute_0 );
-				ts->push( utils::Ref< Value_Attribute >::create( ts, index ) );
+				ts->push( Ref< Value_Attribute >::create( ts, index ) );
 			}
 			else if( it >= int( programtoken::texture_0 ) &&
 				it <= int( programtoken::texture_7 ) )
 			{
 				int index = it - int( programtoken::texture_0 );
-				ts->push( utils::Ref< Value_Texture >::create( ts, index ) );
+				ts->push( Ref< Value_Texture >::create( ts, index ) );
 			}
 			else
 			{
@@ -37,7 +37,7 @@ namespace graphics
 		{
 			int it = int( token );
 			int parts[ 5 ];
-			utils::Ref< Value > arg = ts->pop();
+			Ref< Value > arg = ts->pop();
 			if( it >= int( programtoken::swizzle_0 ) &&
 				it <= int( programtoken::swizzle_3 ) )
 			{
@@ -72,12 +72,12 @@ namespace graphics
 			{
 				ts->error( "invalid token" );
 			}
-			ts->push( utils::Ref< Value_Swizzle >::create( ts, arg, parts ) );
+			ts->push( Ref< Value_Swizzle >::create( ts, arg, parts ) );
 		}
 
 		void step_unary( TranslatorState* ts, programtoken token )
 		{
-			utils::Ref< Value > args[ 1 ];
+			Ref< Value > args[ 1 ];
 			args[ 0 ] = ts->pop();
 			auto it = FunctionMap.find(
 				{ token, { args[ 0 ]->m_type } } );
@@ -87,7 +87,7 @@ namespace graphics
 			}
 			else
 			{
-				utils::Ref< Value > value = it->second.m_factory(
+				Ref< Value > value = it->second.m_factory(
 					ts, &it->second, args );
 				ts->push( value );
 			}
@@ -95,7 +95,7 @@ namespace graphics
 
 		void step_binary( TranslatorState* ts, programtoken token )
 		{
-			utils::Ref< Value > args[ 2 ];
+			Ref< Value > args[ 2 ];
 			args[ 1 ] = ts->pop();
 			args[ 0 ] = ts->pop();
 			auto it = FunctionMap.find(
@@ -106,7 +106,7 @@ namespace graphics
 			}
 			else
 			{
-				utils::Ref< Value > value = it->second.m_factory(
+				Ref< Value > value = it->second.m_factory(
 					ts, &it->second, args );
 				ts->push( value );
 			}
@@ -136,7 +136,7 @@ namespace graphics
 			}
 			else
 			{
-				ts->push( utils::Ref< Value_Literal >::create(
+				ts->push( Ref< Value_Literal >::create(
 					it->second, elems, elems + size ) );
 			}
 		}
@@ -148,7 +148,7 @@ namespace graphics
 				it <= int( programtoken::extract_f ) )
 			{
 				int index = it - int( programtoken::extract_0 );
-				utils::Ref< Value > value = ts->peek( index );
+				Ref< Value > value = ts->peek( index );
 				ts->push( value );
 			}
 			else if( it >= int( programtoken::discard_1 ) &&

@@ -9,17 +9,17 @@ namespace graphics
 {
 	namespace programtranslator
 	{
-		utils::Ref< utils::DataBuffer > buildstring( StringBuilder* sb )
+		Ref< DataBuffer > buildstring( StringBuilder* sb )
 		{
 			size_t len = sb->getlength();
-			auto db = utils::DataBuffer::create( len + 1, len + 1, 0 );
+			auto db = DataBuffer::create( len + 1, len + 1, 0 );
 			sb->write( db->m_data, db->m_length - 1 );
 			db->m_data[ len ] = 0;
 			return db;
 		}
 	}
 
-	void translateprogram( utils::DataBuffer* input, ProgramSource* output )
+	void translateprogram( DataBuffer* input, ProgramSource* output )
 	{
 		programtranslator::TranslatorState ts;
 		ts.m_input = input;
@@ -30,8 +30,8 @@ namespace graphics
 		{
 			programtranslator::step( &ts );
 		}
-		utils::Ref< programtranslator::StringBuilder > vsh;
-		utils::Ref< programtranslator::StringBuilder > fsh;
+		Ref< programtranslator::StringBuilder > vsh;
+		Ref< programtranslator::StringBuilder > fsh;
 		programtranslator::makeshaders( &ts, &vsh, &fsh );
 		output->m_vertexsource = programtranslator::buildstring( vsh );
 		output->m_fragmentsource = programtranslator::buildstring( fsh );

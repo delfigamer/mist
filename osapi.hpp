@@ -14,9 +14,9 @@
 #include <unistd.h>
 #endif
 #include <common.hpp>
-#include <utils/strexception.hpp>
-#include <utils/databuffer.hpp>
-#include <utils/ref.hpp>
+#include <common/strexception.hpp>
+#include <common/databuffer.hpp>
+#include <common/ref.hpp>
 
 namespace
 {
@@ -28,7 +28,7 @@ namespace
 		DWORD lasterror = GetLastError();
 		if( !lasterror )
 		{
-			throw utils::StrException(
+			throw StrException(
 				"[%73s:%4i]\tunknown Win32 error", file, line );
 		}
 		char buffer[ 1024 ];
@@ -42,12 +42,12 @@ namespace
 			0 );
 		if( buflen == 0 )
 		{
-			throw utils::StrException(
+			throw StrException(
 				"[%73s:%4i]\tWin32 error %i", file, line, lasterror );
 		}
-		throw utils::StrException( "[%73s:%4i]\t%s", file, line, buffer );
+		throw StrException( "[%73s:%4i]\t%s", file, line, buffer );
 #elif defined ( __ANDROID__ )
-		throw utils::StrException( "[%73s:%4i]\t%s", file, line, strerror( errno ) );
+		throw StrException( "[%73s:%4i]\t%s", file, line, strerror( errno ) );
 #endif
 	}
 }

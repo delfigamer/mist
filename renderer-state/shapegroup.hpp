@@ -1,9 +1,9 @@
 #pragma once
 
 #include <renderer-state/shape.hpp>
-#include <utils/mpsclist.hpp>
-#include <utils/ref.hpp>
-#include <utils/refobject.hpp>
+#include <common/mpsclist.hpp>
+#include <common/ref.hpp>
+#include <common/refobject.hpp>
 #include <common.hpp>
 #include <mutex>
 #include <atomic>
@@ -19,7 +19,7 @@ namespace graphics
 		friend class ShapeGroupEntry;
 
 	private:
-		typedef utils::MPSCList< utils::Ref< Shape > > ShapeList;
+		typedef MPSCList< Ref< Shape > > ShapeList;
 
 	private:
 		std::atomic< bool > m_active;
@@ -48,10 +48,10 @@ namespace graphics
 	};
 
 	R_CLASS( name = shapegroupentry )
-	class ShapeGroupEntry: public utils::RefObject
+	class ShapeGroupEntry: public RefObject
 	{
 	private:
-		utils::Ref< ShapeGroup > m_shapegroup;
+		Ref< ShapeGroup > m_shapegroup;
 		ShapeGroup::ShapeList::Iterator m_iter;
 
 	public:

@@ -1,18 +1,18 @@
 #pragma once
 
-#include <utils/string.hpp>
-#include <utils/refobject.hpp>
+#include <common/string.hpp>
+#include <common/refobject.hpp>
 #include <common.hpp>
 #include <atomic>
 
 namespace rsbin
 {
 	R_CLASS( name = iotask )
-	class IoTask: public utils::RefObject
+	class IoTask: public RefObject
 	{
 	public:
 		size_t m_result;
-		utils::String m_error;
+		String m_error;
 		std::atomic< bool > m_finished;
 
 		IoTask()

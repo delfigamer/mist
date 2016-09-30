@@ -5,12 +5,12 @@
 
 /*
 R_EMIT( typename =
-	class ::utils::RefObject | refobject |
-	class ::utils::DataBuffer | databuffer )
+	class ::RefObject | refobject |
+	class ::DataBuffer | databuffer )
 R_END()
 R_EMIT( target = hpp_beforeclasses )
-	namespace utils {class RefObject;}
-	namespace utils {class DataBuffer;}
+	class RefObject;
+	class DataBuffer;
 R_END()
 R_EMIT( target = cpp_start )
 	namespace utils
@@ -20,7 +20,6 @@ R_EMIT( target = cpp_start )
 			static void seterror( char const* error );
 		};
 	}
-	namespace utils {class DataBuffer;}
 R_END()
 R_EMIT( target = lua_beforeclasses )
 	local methodlist = ffi.cast(

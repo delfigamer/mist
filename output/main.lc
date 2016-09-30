@@ -7,6 +7,8 @@ else
 		windowsize={1280, 720}
 	end
 end
+
+
 -- renderer = 'renderer-d3d9'
 renderer = 'renderer-gles'
 vsync = false

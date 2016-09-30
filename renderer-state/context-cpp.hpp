@@ -7,7 +7,7 @@ namespace graphics
 	namespace Context
 	{
 		std::atomic< size_t > DrawnFrame( 0 );
-		utils::MPSCQueue< Resource* > Dead;
+		MPSCQueue< Resource* > Dead;
 		void* CurrentVertexDeclaration;
 		void* CurrentVertexBuffer;
 

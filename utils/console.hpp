@@ -1,6 +1,5 @@
 #pragma once
 
-#include <utils/singleton.hpp>
 #include <common.hpp>
 #include <mutex>
 #include <cstdarg>
@@ -54,7 +53,7 @@ namespace utils
 		void getchar( char* str );
 	};
 
-	extern utils::Singleton< ConsoleClass > Console;
+	extern ConsoleClass* Console;
 }
 
 #define LOG( format, ... ) \

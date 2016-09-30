@@ -1,7 +1,7 @@
 #pragma once
 
-#include <utils/ref.hpp>
-#include <utils/databuffer.hpp>
+#include <common/ref.hpp>
+#include <common/databuffer.hpp>
 #include <common.hpp>
 
 namespace graphics
@@ -493,28 +493,28 @@ namespace graphics
 
 	struct ProgramSource
 	{
-		utils::Ref< utils::DataBuffer > m_vertexsource;
-		utils::Ref< utils::DataBuffer > m_fragmentsource;
+		Ref< DataBuffer > m_vertexsource;
+		Ref< DataBuffer > m_fragmentsource;
 	};
 
-	void translateprogram( utils::DataBuffer* input, ProgramSource* output );
+	void translateprogram( DataBuffer* input, ProgramSource* output );
 
 	R_CLASS()
 	struct TranslatorTest
 	{
 		ProgramSource m_output;
 
-		R_METHOD() static TranslatorTest* create( utils::DataBuffer* input )
+		R_METHOD() static TranslatorTest* create( DataBuffer* input )
 		{
 			TranslatorTest* self = new TranslatorTest;
 			translateprogram( input, &self->m_output );
 			return self;
 		}
-		R_METHOD( addref ) utils::DataBuffer* getvertexsource()
+		R_METHOD( addref ) DataBuffer* getvertexsource()
 		{
 			return m_output.m_vertexsource;
 		}
-		R_METHOD( addref ) utils::DataBuffer* getfragmentsource()
+		R_METHOD( addref ) DataBuffer* getfragmentsource()
 		{
 			return m_output.m_fragmentsource;
 		}

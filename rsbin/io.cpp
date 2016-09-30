@@ -1,6 +1,6 @@
 #include <rsbin/io.hpp>
 #include <rsbin/iotask.hpp>
-#include <utils/strexception.hpp>
+#include <common/strexception.hpp>
 
 namespace rsbin
 {
@@ -21,7 +21,7 @@ namespace rsbin
 		}
 		if( task->m_error )
 		{
-			utils::StrException error( task->m_error );
+			StrException error( task->m_error );
 			task->release();
 			throw error;
 		}
@@ -42,7 +42,7 @@ namespace rsbin
 		}
 		if( task->m_error )
 		{
-			utils::StrException error( task->m_error );
+			StrException error( task->m_error );
 			task->release();
 			throw error;
 		}

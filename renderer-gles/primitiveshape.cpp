@@ -119,11 +119,11 @@ namespace graphics
 				int length;
 				glGetShaderiv( m_vsh, GL_INFO_LOG_LENGTH, &length );
 				checkerror();
-				auto log = utils::DataBuffer::create( length, length, 0 );
+				auto log = DataBuffer::create( length, length, 0 );
 				glGetShaderInfoLog(
 					m_vsh, GLsizei( log->m_capacity ), 0, ( char* )log->m_data );
 				checkerror();
-				throw utils::StrException(
+				throw StrException(
 					"VShader compilation failed: %s", ( char const* )log->m_data );
 			}
 		}
@@ -143,11 +143,11 @@ namespace graphics
 				int length;
 				glGetShaderiv( m_fsh, GL_INFO_LOG_LENGTH, &length );
 				checkerror();
-				auto log = utils::DataBuffer::create( length, length, 0 );
+				auto log = DataBuffer::create( length, length, 0 );
 				glGetShaderInfoLog(
 					m_fsh, GLsizei( log->m_capacity ), 0, ( char* )log->m_data );
 				checkerror();
-				throw utils::StrException(
+				throw StrException(
 					"FShader compilation failed: %s", ( char const* )log->m_data );
 			}
 		}
@@ -173,11 +173,11 @@ namespace graphics
 				int length;
 				glGetProgramiv( m_program, GL_INFO_LOG_LENGTH, &length );
 				checkerror();
-				auto log = utils::DataBuffer::create( length, length, 0 );
+				auto log = DataBuffer::create( length, length, 0 );
 				glGetProgramInfoLog(
 					m_program, GLsizei( log->m_capacity ), 0, ( char* )log->m_data );
 				checkerror();
-				throw utils::StrException(
+				throw StrException(
 					"Program link failed: %s", ( char const* )log->m_data );
 			}
 			m_matrixindex = glGetUniformLocation( m_program, "worldmatrix" );

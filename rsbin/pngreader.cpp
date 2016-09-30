@@ -1,5 +1,5 @@
 #include <rsbin/pngreader.hpp>
-#include <utils/strexception.hpp>
+#include <common/strexception.hpp>
 #include <utils/console.hpp>
 #include <stdexcept>
 #include <cstring>
@@ -93,7 +93,7 @@ namespace rsbin
 			reader->m_width *
 			formattable[ reader->m_format ].pixelstride;
 		size_t size = reader->m_stride * reader->m_height;
-		reader->m_data = utils::DataBuffer::create(
+		reader->m_data = DataBuffer::create(
 			size, size, 0 );
 		memset( reader->m_data->m_data, 0, size );
 	}
@@ -166,7 +166,7 @@ namespace rsbin
 	{
 		if( setjmp( m_jmpbuf ) )
 		{
-			throw utils::StrException( m_error );
+			throw StrException( m_error );
 		}
 		png_process_data(
 			m_png, m_info, png_bytep( buffer ), length );

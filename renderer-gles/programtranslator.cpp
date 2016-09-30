@@ -6,7 +6,7 @@ namespace graphics
 {
 	namespace programtranslator
 	{
-		utils::String const typestr[] = {
+		String const typestr[] = {
 			"float",
 			"vec2",
 			"vec3",
@@ -136,10 +136,10 @@ namespace graphics
 			return ret;
 		}
 
-		utils::Ref< StringBuilder > Value_Attribute::getstring(
-			utils::Ref< StringBuilder >* defs )
+		Ref< StringBuilder > Value_Attribute::getstring(
+			Ref< StringBuilder >* defs )
 		{
-			static utils::String const attrstr[] = {
+			static String const attrstr[] = {
 				"var_a0",
 				"var_a1",
 				"var_a2",
@@ -152,10 +152,10 @@ namespace graphics
 			return StringBuilder::construct( attrstr[ m_index ] );
 		}
 
-		utils::Ref< StringBuilder > Value_Texture::getstring(
-			utils::Ref< StringBuilder >* defs )
+		Ref< StringBuilder > Value_Texture::getstring(
+			Ref< StringBuilder >* defs )
 		{
-			static utils::String const texstr[] = {
+			static String const texstr[] = {
 				"texture_0",
 				"texture_1",
 				"texture_2",
@@ -168,7 +168,7 @@ namespace graphics
 			return StringBuilder::construct( texstr[ m_index ] );
 		}
 
-		utils::String const attributevarstr[ 8 ] = {
+		String const attributevarstr[ 8 ] = {
 			"varying vec4 var_a0;\n",
 			"varying vec4 var_a1;\n",
 			"varying vec4 var_a2;\n",
@@ -178,7 +178,7 @@ namespace graphics
 			"varying vec4 var_a6;\n",
 			"varying vec4 var_a7;\n",
 		};
-		utils::String const attributeattrstr[ 8 ] = {
+		String const attributeattrstr[ 8 ] = {
 			"attribute vec4 attr_a0;\n",
 			"attribute vec4 attr_a1;\n",
 			"attribute vec4 attr_a2;\n",
@@ -188,7 +188,7 @@ namespace graphics
 			"attribute vec4 attr_a6;\n",
 			"attribute vec4 attr_a7;\n",
 		};
-		utils::String const attributeassignstr[ 8 ] = {
+		String const attributeassignstr[ 8 ] = {
 			"var_a0=attr_a0;\n",
 			"var_a1=attr_a1;\n",
 			"var_a2=attr_a2;\n",
@@ -198,7 +198,7 @@ namespace graphics
 			"var_a6=attr_a6;\n",
 			"var_a7=attr_a7;\n",
 		};
-		utils::String const texturedefstr[ 8 ] = {
+		String const texturedefstr[ 8 ] = {
 			"sampler2D texture_0;\n",
 			"sampler2D texture_1;\n",
 			"sampler2D texture_2;\n",
@@ -209,7 +209,7 @@ namespace graphics
 			"sampler2D texture_7;\n",
 		};
 
-		utils::Ref< StringBuilder > makeshaders_vsh(
+		Ref< StringBuilder > makeshaders_vsh(
 			TranslatorState* ts )
 		{
 			auto vsh = StringBuilder::construct(
@@ -252,9 +252,9 @@ namespace graphics
 			return vsh;
 		}
 
-		utils::Ref< StringBuilder > makeshaders_fsh(
+		Ref< StringBuilder > makeshaders_fsh(
 			TranslatorState* ts,
-			utils::Ref< Value > const& value )
+			Ref< Value > const& value )
 		{
 			auto fsh = StringBuilder::construct(
 				"// built from a mistsh bytecode\n" );
@@ -279,7 +279,7 @@ namespace graphics
 			fsh = StringBuilder::construct(
 				fsh,
 				"void main(){\n" );
-			utils::Ref< StringBuilder > vdefs;
+			Ref< StringBuilder > vdefs;
 			auto vstr = value->getstring( &vdefs );
 			fsh = StringBuilder::construct(
 				fsh,

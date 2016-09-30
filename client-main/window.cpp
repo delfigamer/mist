@@ -1,7 +1,7 @@
 #include <client-main/window.hpp>
 #include <client-main/methodlist.hpp>
 #include <client-main/luainit.hpp>
-#include <utils/strexception.hpp>
+#include <common/strexception.hpp>
 #include <utils/encoding.hpp>
 #include <utils/cbase.hpp>
 #include <osapi.hpp>
@@ -26,7 +26,7 @@ namespace window
 		snprintf(
 			StrBuffer, sizeof( StrBuffer ),
 			"[%s : %s @ %i] %s", file, function, line, msg );
-		throw utils::StrException( StrBuffer );
+		throw StrException( StrBuffer );
 	}
 
 #define CriticalError_m( msg ) CriticalError( \
@@ -463,7 +463,7 @@ namespace window
 	}
 #endif
 
-	static utils::Ref< utils::DataBuffer > utf8toutf16( utils::String str )
+	static Ref< DataBuffer > utf8toutf16( String str )
 	{
 		utils::translation_t translation = {
 			&utils::encoding::utf8,
@@ -479,7 +479,7 @@ namespace window
 		{
 			throw std::runtime_error( "cannot translate a utf-8 string" );
 		}
-		utils::Ref< utils::DataBuffer > db = utils::DataBuffer::create(
+		Ref< DataBuffer > db = DataBuffer::create(
 			translation.destresult, translation.destresult, 0 );
 		translation.dest = db->m_data;
 		translation.sourcesize = translation.sourceresult;
@@ -501,12 +501,12 @@ namespace window
 		if( !m_silent )
 		{
 #if defined( _WIN32 ) || defined( _WIN64 )
-			utils::String rpath = m_mainconfig.string( "renderer" );
-			utils::Ref< utils::DataBuffer > wrpath = utf8toutf16( rpath );
+			String rpath = m_mainconfig.string( "renderer" );
+			Ref< DataBuffer > wrpath = utf8toutf16( rpath );
 			m_renderermodule = LoadLibraryW( ( wchar_t* )wrpath->m_data );
 			if( !m_renderermodule )
 			{
-				throw utils::StrException(
+				throw StrException(
 					"cannot load renderer %s", rpath.getchars() );
 			}
 			m_renderer_connect = renderer_connect_t(
@@ -527,13 +527,13 @@ namespace window
 				!m_renderer_display_setshape )
 			{
 				FreeLibrary( m_renderermodule );
-				throw utils::StrException(
+				throw StrException(
 					"%s is not a valid Mist renderer", rpath.getchars() );
 			}
 			m_renderer_connect( &m_info );
 			if( !m_renderer_display_create( m_hwnd, &m_display ) )
 			{
-				throw utils::StrException(
+				throw StrException(
 					"%s", utils::cbase::geterror() );
 			}
 			m_info.acceleratorinput = false;
@@ -579,7 +579,7 @@ namespace window
 		{
 			if( !m_renderer_display_paint( m_display ) )
 			{
-				throw utils::StrException(
+				throw StrException(
 					"%s", utils::cbase::geterror() );
 			}
 			m_fpscounter += 1;
@@ -600,12 +600,12 @@ namespace window
 		}
 	}
 
-	utils::String lua_retrieveerror( lua_State* L )
+	String lua_retrieveerror( lua_State* L )
 	{
 		lua_getglobal( L, "tostring" );
 		lua_insert( L, -2 );
 		lua_pcall( L, 1, 1, 0 );
-		utils::String message( lua_tostring( L, -1 ) );
+		String message( lua_tostring( L, -1 ) );
 		lua_pop( L, 1 );
 		return message;
 	}
@@ -621,7 +621,7 @@ namespace window
 				L,
 				luainit[ 0 ].data, luainit[ 0 ].length, luainit[ 0 ].name ) != 0 )
 			{
-				utils::String error = lua_retrieveerror( L );
+				String error = lua_retrieveerror( L );
 				LOG( "%s", error.getchars() );
 				goto end;
 			}
@@ -629,7 +629,7 @@ namespace window
 			lua_pushlightuserdata( L, &m_info );
 			if( lua_pcall( L, 2, 0, 0 ) != 0 )
 			{
-				utils::String error = lua_retrieveerror( L );
+				String error = lua_retrieveerror( L );
 				LOG( "%s", error.getchars() );
 			}
 		end:

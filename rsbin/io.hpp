@@ -1,6 +1,6 @@
 #pragma once
 
-#include <utils/refobject.hpp>
+#include <common/refobject.hpp>
 #include <common.hpp>
 #include <cinttypes>
 
@@ -9,7 +9,7 @@ namespace rsbin
 	class IoTask;
 
 	R_CLASS( name = io )
-	class Io: public utils::RefObject
+	class Io: public RefObject
 	{
 	public:
 		Io();

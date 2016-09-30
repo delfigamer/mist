@@ -1,6 +1,6 @@
 #pragma once
 
-#include <utils/mpscqueue.hpp>
+#include <common/mpscqueue.hpp>
 #include <atomic>
 #include <cstdint>
 
@@ -11,7 +11,7 @@ namespace graphics
 	namespace Context
 	{
 		extern std::atomic< size_t > DrawnFrame;
-		extern utils::MPSCQueue< Resource* > Dead;
+		extern MPSCQueue< Resource* > Dead;
 		extern void* CurrentVertexDeclaration;
 		extern void* CurrentVertexBuffer;
 

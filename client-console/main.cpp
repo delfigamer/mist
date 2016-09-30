@@ -1,7 +1,7 @@
 #include <client-console/window.hpp>
 #include <rsbin/fsthread.hpp>
 #include <utils/console.hpp>
-#include <utils/databuffer.hpp>
+#include <common/databuffer.hpp>
 #if defined( _WIN32 ) || defined( _WIN64 )
 #include <utils/encoding.hpp>
 #include <windows.h>
@@ -58,6 +58,8 @@ static wchar_t const* trimpath( wchar_t const* argstr )
 
 int main( int argc, char const** argv )
 {
+	utils::Console = new utils::ConsoleClass();
+	rsbin::FsThread = new rsbin::FsThreadClass();
 	LOG( "~ Console application start" );
 	window::WindowCreationData wcd;
 	try
@@ -79,7 +81,7 @@ int main( int argc, char const** argv )
 		{
 			throw std::runtime_error( "cannot translate command line" );
 		}
-		utils::Ref< utils::DataBuffer > db = utils::DataBuffer::create(
+		Ref< DataBuffer > db = DataBuffer::create(
 			translation.destresult, translation.destresult, 0 );
 		translation.dest = db->m_data;
 		translation.sourcesize = translation.sourceresult;
@@ -104,7 +106,8 @@ int main( int argc, char const** argv )
 	{
 		utils::Console->writeln( "! Critical error: %s", e.what() );
 	}
-	rsbin::FsThread->finalize();
+	delete rsbin::FsThread;
 	LOG( "~ Application end" );
+	delete utils::Console;
 	return 0;
 }

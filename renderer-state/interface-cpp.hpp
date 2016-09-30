@@ -1,8 +1,8 @@
 #pragma once
 
 #include <client-main/methodlist.hpp>
-#include <utils/strexception.hpp>
-#include <utils/databuffer.hpp>
+#include <common/strexception.hpp>
+#include <common/databuffer.hpp>
 #include <utility>
 #include <cstdarg>
 #include <cstdio>
@@ -67,7 +67,7 @@ namespace graphics
 		{
 			char const* error;
 			WindowInfo->client_methodlist->cbase_geterror( &error );
-			throw utils::StrException( "%s", error );
+			throw StrException( "%s", error );
 		}
 	}
 
@@ -83,7 +83,7 @@ namespace graphics
 		{
 			char const* error;
 			WindowInfo->client_methodlist->cbase_geterror( &error );
-			throw utils::StrException( "%s", error );
+			throw StrException( "%s", error );
 		}
 	}
 
@@ -99,21 +99,21 @@ namespace graphics
 		{
 			char const* error;
 			WindowInfo->client_methodlist->cbase_geterror( &error );
-			throw utils::StrException( "%s", error );
+			throw StrException( "%s", error );
 		}
 	}
 
-	utils::String getconfig_string( char const* expr, utils::String const& def )
+	String getconfig_string( char const* expr, String const& def )
 	{
 		size_t len = getconfig_lstring( expr, 0, 0 );
 		if( len == 0 )
 		{
 			return def;
 		}
-		auto payload = utils::DataBuffer::create( len, len, 0 );
+		auto payload = DataBuffer::create( len, len, 0 );
 		payload->m_length =
 			getconfig_lstring( expr, payload->m_data, payload->m_capacity );
-		return utils::String( std::move( payload ) );
+		return String( std::move( payload ) );
 	}
 
 	bool getconfig_boolean( char const* expr, bool def )
@@ -128,7 +128,7 @@ namespace graphics
 		{
 			char const* error;
 			WindowInfo->client_methodlist->cbase_geterror( &error );
-			throw utils::StrException( "%s", error );
+			throw StrException( "%s", error );
 		}
 	}
 

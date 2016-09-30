@@ -1,5 +1,5 @@
 #include <rsbin/pngwriter.hpp>
-#include <utils/strexception.hpp>
+#include <common/strexception.hpp>
 #include <utils/console.hpp>
 #include <stdexcept>
 
@@ -95,7 +95,7 @@ namespace rsbin
 	{
 		if( setjmp( m_jmpbuf ) )
 		{
-			throw utils::StrException( m_error );
+			throw StrException( m_error );
 		}
 		switch( m_stage )
 		{
@@ -116,7 +116,7 @@ namespace rsbin
 
 	PngWriter::PngWriter(
 		bitmapformat format, uint32_t width, uint32_t height,
-		utils::DataBuffer* data )
+		DataBuffer* data )
 		: m_format( int( format ) )
 		, m_stage( stage_writeheader )
 		, m_width( width )

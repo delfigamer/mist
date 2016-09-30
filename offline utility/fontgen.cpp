@@ -1,6 +1,6 @@
-#include <utils/strexception.hpp>
+#include <common/strexception.hpp>
 #include <utils/configset.hpp>
-#include <utils/string.hpp>
+#include <common/string.hpp>
 #include <utils/encoding.hpp>
 #include <windows.h>
 #include <io.h>
@@ -15,7 +15,7 @@ void CriticalWinError(
 	char StrBuffer[ 1024 ];
 	snprintf( StrBuffer, sizeof( StrBuffer ),
 		"[%s : %s @ %i] %s", file, function, line, msg );
-	throw utils::StrException( StrBuffer );
+	throw StrException( StrBuffer );
 }
 
 static TEXTMETRIC TextMetric;
@@ -82,7 +82,7 @@ static wchar_t const* trimpath( wchar_t const* argstr )
 	}
 }
 
-utils::String convertstr(
+String convertstr(
 		void const* source,
 		utils::encoding_t const& senc,
 		utils::encoding_t const& denc )
@@ -101,7 +101,7 @@ utils::String convertstr(
 	{
 		throw std::runtime_error( "encoding failure" );
 	}
-	utils::Ref< utils::DataBuffer > db = utils::DataBuffer::create(
+	Ref< DataBuffer > db = DataBuffer::create(
 		translation.destresult, translation.destresult, 0 );
 	translation.dest = db->m_data;
 	translation.destsize = db->m_capacity;
@@ -109,7 +109,7 @@ utils::String convertstr(
 	{
 		throw std::runtime_error( "encoding failure" );
 	}
-	return utils::String( db );
+	return String( db );
 }
 
 void writebeu16( uint16_t i, FILE* f )
@@ -302,7 +302,7 @@ int main( int argc, char const** argv )
 			trimpath( GetCommandLineW() ),
 			utils::encoding::utf16,
 			utils::encoding::utf8 ) );
-	utils::String outputpath = configset.string( "output", 0 );
+	String outputpath = configset.string( "output", 0 );
 	FILE* output;
 	if( outputpath )
 	{
@@ -332,7 +332,7 @@ int main( int argc, char const** argv )
 		CheckWinError();
 	}
 	SelectObject( hdc, hbitmap );
-	utils::String fontname = configset.string( "face", 0 );
+	String fontname = configset.string( "face", 0 );
 	if( fontname )
 	{
 		fontname = convertstr(

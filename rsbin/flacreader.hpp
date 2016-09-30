@@ -1,10 +1,10 @@
 #pragma once
 
 #include <rsbin/memoryio.hpp>
-#include <utils/string.hpp>
-#include <utils/databuffer.hpp>
-#include <utils/ref.hpp>
-#include <utils/refobject.hpp>
+#include <common/string.hpp>
+#include <common/databuffer.hpp>
+#include <common/ref.hpp>
+#include <common/refobject.hpp>
 #include <common.hpp>
 #include <flac/stream_decoder.h>
 #include <cinttypes>
@@ -12,18 +12,18 @@
 namespace rsbin
 {
 	R_CLASS( name = flacreader )
-	class FlacReader: public utils::RefObject
+	class FlacReader: public RefObject
 	{
 	private:
 		int m_bitdepth;
 		int m_channels;
 		int m_samplerate;
 		FLAC__StreamDecoder* m_decoder;
-		utils::Ref< MemoryIo > m_source;
+		Ref< MemoryIo > m_source;
 		uint64_t m_sourcepos;
-		utils::Ref< utils::DataBuffer > m_target;
+		Ref< DataBuffer > m_target;
 		size_t m_totalsamples;
-		utils::String m_error;
+		String m_error;
 
 		static void error_callback(
 			const FLAC__StreamDecoder* decoder,
@@ -60,7 +60,7 @@ namespace rsbin
 		R_METHOD() int getbitdepth() NOEXCEPT { return m_bitdepth; }
 		R_METHOD() int getchannels() NOEXCEPT { return m_channels; }
 		R_METHOD() int getsamplerate() NOEXCEPT { return m_samplerate; }
-		R_METHOD( addref ) utils::DataBuffer* getdata() NOEXCEPT
+		R_METHOD( addref ) DataBuffer* getdata() NOEXCEPT
 			{ return m_target; }
 		R_METHOD() bool isfinished() NOEXCEPT { return true; }
 	};

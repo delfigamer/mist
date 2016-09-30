@@ -1,10 +1,10 @@
 #pragma once
 
 #include <rsbin/pngcommon.hpp>
-#include <utils/string.hpp>
-#include <utils/ref.hpp>
-#include <utils/refobject.hpp>
-#include <utils/databuffer.hpp>
+#include <common/string.hpp>
+#include <common/ref.hpp>
+#include <common/refobject.hpp>
+#include <common/databuffer.hpp>
 #include <common.hpp>
 #include <png/png.hpp>
 #include <csetjmp>
@@ -13,7 +13,7 @@
 namespace rsbin
 {
 	R_CLASS( name = pngreader )
-	class PngReader: public utils::RefObject
+	class PngReader: public RefObject
 	{
 	private:
 		int m_format;
@@ -21,10 +21,10 @@ namespace rsbin
 		uint32_t m_width;
 		uint32_t m_height;
 		ptrdiff_t m_stride;
-		utils::Ref< utils::DataBuffer > m_data;
+		Ref< DataBuffer > m_data;
 		png_structp m_png;
 		png_infop m_info;
-		utils::String m_error;
+		String m_error;
 		jmp_buf m_jmpbuf;
 
 		static void error_handler( png_structp png, png_const_charp msg );
@@ -51,7 +51,7 @@ namespace rsbin
 		R_METHOD() bool isfinished() NOEXCEPT { return m_finished; }
 		R_METHOD() uint32_t getwidth() NOEXCEPT { return m_width; }
 		R_METHOD() uint32_t getheight() NOEXCEPT { return m_height; }
-		R_METHOD( addref ) utils::DataBuffer* getdata() NOEXCEPT
+		R_METHOD( addref ) DataBuffer* getdata() NOEXCEPT
 		{
 			return m_data;
 		}

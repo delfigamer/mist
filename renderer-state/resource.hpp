@@ -1,6 +1,6 @@
 #pragma once
 
-#include <utils/refobject.hpp>
+#include <common/refobject.hpp>
 #include <common.hpp>
 #include <atomic>
 #include <cinttypes>
@@ -8,7 +8,7 @@
 namespace graphics
 {
 	R_CLASS( name = resource )
-	class Resource: public utils::RefObject
+	class Resource: public RefObject
 	{
 	protected:
 		std::atomic< size_t > m_lastframe;

@@ -1,6 +1,6 @@
 #include <rsbin/flacwriter.hpp>
 #include <rsbin/flaccommon.hpp>
-#include <utils/strexception.hpp>
+#include <common/strexception.hpp>
 #include <stdexcept>
 
 namespace rsbin
@@ -83,7 +83,7 @@ namespace rsbin
 
 	FlacWriter::FlacWriter(
 		int bitdepth, int channels, int samplerate,
-		utils::DataBuffer* data )
+		DataBuffer* data )
 		: m_bitdepth( bitdepth )
 		, m_channels( channels )
 		, m_samplerate( samplerate )
@@ -124,7 +124,7 @@ namespace rsbin
 			FLAC__stream_encoder_delete( m_encoder );
 			if( m_error )
 			{
-				throw utils::StrException( m_error );
+				throw StrException( m_error );
 			}
 			else
 			{
@@ -137,7 +137,7 @@ namespace rsbin
 			FLAC__stream_encoder_delete( m_encoder );
 			if( m_error )
 			{
-				throw utils::StrException( m_error );
+				throw StrException( m_error );
 			}
 			else
 			{
@@ -159,7 +159,7 @@ namespace rsbin
 			FLAC__stream_encoder_delete( m_encoder );
 			if( m_error )
 			{
-				throw utils::StrException( m_error );
+				throw StrException( m_error );
 			}
 			else
 			{

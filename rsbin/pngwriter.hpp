@@ -1,11 +1,11 @@
 #pragma once
 
 #include <rsbin/pngcommon.hpp>
-#include <utils/string.hpp>
+#include <common/string.hpp>
 #include <utils/cyclicbuffer.hpp>
-#include <utils/ref.hpp>
-#include <utils/refobject.hpp>
-#include <utils/databuffer.hpp>
+#include <common/ref.hpp>
+#include <common/refobject.hpp>
+#include <common/databuffer.hpp>
 #include <common.hpp>
 #include <png/png.hpp>
 #include <csetjmp>
@@ -14,7 +14,7 @@
 namespace rsbin
 {
 	R_CLASS( name = pngwriter )
-	class PngWriter: public utils::RefObject
+	class PngWriter: public RefObject
 	{
 	private:
 		int m_format;
@@ -23,11 +23,11 @@ namespace rsbin
 		uint32_t m_height;
 		ptrdiff_t m_stride;
 		uint32_t m_rowpos;
-		utils::Ref< utils::DataBuffer > m_data;
+		Ref< DataBuffer > m_data;
 		utils::CyclicBuffer m_buffer;
 		png_structp m_png;
 		png_infop m_info;
-		utils::String m_error;
+		String m_error;
 		jmp_buf m_jmpbuf;
 
 		static void error_handler(
@@ -46,14 +46,14 @@ namespace rsbin
 		PngWriter() = delete;
 		PngWriter(
 			bitmapformat format, uint32_t width, uint32_t height,
-			utils::DataBuffer* data );
+			DataBuffer* data );
 		~PngWriter();
 		PngWriter( PngWriter const& ) = delete;
 		PngWriter& operator=( PngWriter const& ) = delete;
 
 		R_METHOD() static PngWriter* create(
 			bitmapformat format, uint32_t width, uint32_t height,
-			utils::DataBuffer* data )
+			DataBuffer* data )
 		{
 			return new PngWriter( format, width, height, data );
 		}

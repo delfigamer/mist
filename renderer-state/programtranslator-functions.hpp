@@ -3,8 +3,8 @@
 #include <renderer-state/programtranslator.hpp>
 #include <renderer-state/programtranslator-base.hpp>
 #include <renderer-state/programtranslator-state.hpp>
-#include <utils/ref.hpp>
-#include <utils/refobject.hpp>
+#include <common/ref.hpp>
+#include <common/refobject.hpp>
 #include <tuple>
 #include <initializer_list>
 #include <vector>
@@ -35,19 +35,19 @@ namespace graphics
 
 		struct FunctionFactoryState
 		{
-			utils::Ref< Value >( *m_factory )(
+			Ref< Value >( *m_factory )(
 				TranslatorState* ts,
-				FunctionFactoryState const* fs, utils::Ref< Value > const* args );
-			utils::String m_fname;
+				FunctionFactoryState const* fs, Ref< Value > const* args );
+			String m_fname;
 			int m_rettype;
 			std::vector< int > m_argpos;
 
 			FunctionFactoryState(
-				utils::Ref< Value >( *factory )(
+				Ref< Value >( *factory )(
 					TranslatorState* ts,
 					FunctionFactoryState const* fs,
-					utils::Ref< Value > const* args ),
-				utils::String const& fname,
+					Ref< Value > const* args ),
+				String const& fname,
 				int rettype,
 				std::initializer_list< int > argpos )
 				: m_factory( factory )
@@ -60,50 +60,50 @@ namespace graphics
 
 		struct Value_Function: Value
 		{
-			std::vector< utils::Ref< Value > > m_args;
-			utils::String m_fname;
+			std::vector< Ref< Value > > m_args;
+			String m_fname;
 			size_t m_id;
 			bool m_defined;
 
 			Value_Function(
 				TranslatorState* ts,
-				FunctionFactoryState const* fs, utils::Ref< Value > const* args );
-			virtual utils::Ref< StringBuilder > getexpression(
-				utils::Ref< StringBuilder >* defs );
-			virtual utils::Ref< StringBuilder > getstring(
-				utils::Ref< StringBuilder >* defs ) override;
-			static utils::Ref< Value > factory(
+				FunctionFactoryState const* fs, Ref< Value > const* args );
+			virtual Ref< StringBuilder > getexpression(
+				Ref< StringBuilder >* defs );
+			virtual Ref< StringBuilder > getstring(
+				Ref< StringBuilder >* defs ) override;
+			static Ref< Value > factory(
 				TranslatorState* ts,
-				FunctionFactoryState const* fs, utils::Ref< Value > const* args );
+				FunctionFactoryState const* fs, Ref< Value > const* args );
 		};
 
 		struct Value_Unary: Value_Function
 		{
 			Value_Unary(
 				TranslatorState* ts,
-				FunctionFactoryState const* fs, utils::Ref< Value > const* args );
-			virtual utils::Ref< StringBuilder > getexpression(
-				utils::Ref< StringBuilder >* defs ) override;
-			static utils::Ref< Value > factory(
+				FunctionFactoryState const* fs, Ref< Value > const* args );
+			virtual Ref< StringBuilder > getexpression(
+				Ref< StringBuilder >* defs ) override;
+			static Ref< Value > factory(
 				TranslatorState* ts,
-				FunctionFactoryState const* fs, utils::Ref< Value > const* args );
+				FunctionFactoryState const* fs, Ref< Value > const* args );
 		};
 
 		struct Value_Binary: Value_Function
 		{
 			Value_Binary(
 				TranslatorState* ts,
-				FunctionFactoryState const* fs, utils::Ref< Value > const* args );
-			virtual utils::Ref< StringBuilder > getexpression(
-				utils::Ref< StringBuilder >* defs ) override;
-			static utils::Ref< Value > factory(
+				FunctionFactoryState const* fs, Ref< Value > const* args );
+			virtual Ref< StringBuilder > getexpression(
+				Ref< StringBuilder >* defs ) override;
+			static Ref< Value > factory(
 				TranslatorState* ts,
-				FunctionFactoryState const* fs, utils::Ref< Value > const* args );
+				FunctionFactoryState const* fs, Ref< Value > const* args );
 		};
 
 		Value_Function::Value_Function(
 			TranslatorState* ts,
-			FunctionFactoryState const* fs, utils::Ref< Value > const* args )
+			FunctionFactoryState const* fs, Ref< Value > const* args )
 			: m_fname( fs->m_fname )
 			, m_id( ts->generateid() )
 		{
@@ -116,8 +116,8 @@ namespace graphics
 			}
 		}
 
-		utils::Ref< StringBuilder > Value_Function::getexpression(
-			utils::Ref< StringBuilder >* defs )
+		Ref< StringBuilder > Value_Function::getexpression(
+			Ref< StringBuilder >* defs )
 		{
 			if( m_args.size() == 0 )
 			{
@@ -140,19 +140,19 @@ namespace graphics
 			}
 		}
 
-		utils::String idtostring( size_t id )
+		String idtostring( size_t id )
 		{
 			char buf[ 32 ];
 			snprintf( buf, sizeof( buf ), "i_%" PRIuPTR, id );
-			return utils::String( buf );
+			return String( buf );
 		}
 
-		utils::Ref< StringBuilder > Value_Function::getstring(
-			utils::Ref< StringBuilder >* defs )
+		Ref< StringBuilder > Value_Function::getstring(
+			Ref< StringBuilder >* defs )
 		{
 			if( m_usecount > 1 )
 			{
-				utils::String idstr = idtostring( m_id );
+				String idstr = idtostring( m_id );
 				if( !m_defined )
 				{
 					auto expr = getexpression( defs );
@@ -169,54 +169,54 @@ namespace graphics
 			}
 		}
 
-		utils::Ref< Value > Value_Function::factory(
+		Ref< Value > Value_Function::factory(
 			TranslatorState* ts,
-			FunctionFactoryState const* fs, utils::Ref< Value > const* args )
+			FunctionFactoryState const* fs, Ref< Value > const* args )
 		{
-			return utils::Ref< Value_Function >::create( ts, fs, args );
+			return Ref< Value_Function >::create( ts, fs, args );
 		}
 
 		Value_Unary::Value_Unary(
 			TranslatorState* ts,
-			FunctionFactoryState const* fs, utils::Ref< Value > const* args )
+			FunctionFactoryState const* fs, Ref< Value > const* args )
 			: Value_Function( ts, fs, args )
 		{
 		}
 
-		utils::Ref< StringBuilder > Value_Unary::getexpression(
-			utils::Ref< StringBuilder >* defs )
+		Ref< StringBuilder > Value_Unary::getexpression(
+			Ref< StringBuilder >* defs )
 		{
 			return StringBuilder::construct(
 				"(", m_fname, m_args[ 0 ]->getstring( defs ), ")" );
 		}
 
-		utils::Ref< Value > Value_Unary::factory(
+		Ref< Value > Value_Unary::factory(
 			TranslatorState* ts,
-			FunctionFactoryState const* fs, utils::Ref< Value > const* args )
+			FunctionFactoryState const* fs, Ref< Value > const* args )
 		{
-			return utils::Ref< Value_Unary >::create( ts, fs, args );
+			return Ref< Value_Unary >::create( ts, fs, args );
 		}
 
 		Value_Binary::Value_Binary(
 			TranslatorState* ts,
-			FunctionFactoryState const* fs, utils::Ref< Value > const* args )
+			FunctionFactoryState const* fs, Ref< Value > const* args )
 			: Value_Function( ts, fs, args )
 		{
 		}
 
-		utils::Ref< StringBuilder > Value_Binary::getexpression(
-			utils::Ref< StringBuilder >* defs )
+		Ref< StringBuilder > Value_Binary::getexpression(
+			Ref< StringBuilder >* defs )
 		{
 			return StringBuilder::construct(
 				"(", m_args[ 0 ]->getstring( defs ), m_fname,
 				m_args[ 1 ]->getstring( defs ), ")" );
 		}
 
-		utils::Ref< Value > Value_Binary::factory(
+		Ref< Value > Value_Binary::factory(
 			TranslatorState* ts,
-			FunctionFactoryState const* fs, utils::Ref< Value > const* args )
+			FunctionFactoryState const* fs, Ref< Value > const* args )
 		{
-			return utils::Ref< Value_Binary >::create( ts, fs, args );
+			return Ref< Value_Binary >::create( ts, fs, args );
 		}
 
 		// back-end-dependent

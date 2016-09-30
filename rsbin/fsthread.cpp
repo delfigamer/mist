@@ -1,5 +1,5 @@
 #include <rsbin/fsthread.hpp>
-#include <utils/strexception.hpp>
+#include <common/strexception.hpp>
 #include <utils/console.hpp>
 #include <stdexcept>
 #include <exception>
@@ -14,7 +14,7 @@ namespace rsbin
 		m_mainqueue.store( &mainqueue, std::memory_order_release );
 		try
 		{
-			utils::Ref< IoTask > currenttask;
+			Ref< IoTask > currenttask;
 			while( !m_terminate.load( std::memory_order_relaxed ) )
 			{
 				if( highqueue.peek( &currenttask ) )
@@ -63,16 +63,8 @@ namespace rsbin
 
 	FsThreadClass::~FsThreadClass()
 	{
-		finalize();
-	}
-
-	void FsThreadClass::finalize()
-	{
-		if( !m_terminate.load( std::memory_order_relaxed ) )
-		{
-			m_terminate.store( true, std::memory_order_relaxed );
-			m_thread.join();
-		}
+		m_terminate.store( true, std::memory_order_relaxed );
+		m_thread.join();
 	}
 
 	void FsThreadClass::pushhigh( IoTask* task )
@@ -97,5 +89,5 @@ namespace rsbin
 		mq->push( task );
 	}
 
-	utils::Singleton< FsThreadClass > FsThread;
+	FsThreadClass* FsThread;
 }

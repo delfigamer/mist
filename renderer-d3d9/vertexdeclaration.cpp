@@ -18,7 +18,7 @@ namespace graphics
 				if( elems[ i ].attribute < 0 ||
 					elems[ i ].attribute >= Limits::AttributeCount )
 				{
-					throw utils::StrException(
+					throw StrException(
 						"invalid attribute index %i for element %i",
 						elems[ i ].attribute, i );
 				}
@@ -26,13 +26,13 @@ namespace graphics
 					elems[ i ].format >=
 						int( vertexelementformat::invalid ) )
 				{
-					throw utils::StrException(
+					throw StrException(
 						"invalid format %i for element %i",
 						elems[ i ].format, i );
 				}
 				if( attrused[ elems[ i ].attribute ] )
 				{
-					throw utils::StrException(
+					throw StrException(
 						"duplicate attribute index %i at element %i",
 						elems[ i ].attribute, i );
 				}
@@ -60,7 +60,7 @@ namespace graphics
 	{
 		if( !m_vertexdeclaration )
 		{
-			utils::DataBuffer* data = m_data;
+			DataBuffer* data = m_data;
 			std::atomic_thread_fence( std::memory_order_acquire );
 			VertexDeclElement* elems = ( VertexDeclElement* )data->m_data;
 			size_t elemcount = data->m_length / sizeof( VertexDeclElement );
@@ -84,7 +84,7 @@ namespace graphics
 	}
 
 	VertexDeclaration::VertexDeclaration(
-		utils::DataBuffer* data, size_t vertexsize )
+		DataBuffer* data, size_t vertexsize )
 		: m_vertexdeclaration( 0 )
 		, m_vertexsize( vertexsize )
 	{

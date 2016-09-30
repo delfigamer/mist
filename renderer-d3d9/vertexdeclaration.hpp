@@ -1,8 +1,8 @@
 #pragma once
 
 #include <renderer-d3d9/resource.hpp>
-#include <utils/databuffer.hpp>
-#include <utils/ref.hpp>
+#include <common/databuffer.hpp>
+#include <common/ref.hpp>
 #include <common.hpp>
 #include <d3d9.h>
 #include <cinttypes>
@@ -46,14 +46,14 @@ R_END()
 	{
 	private:
 		IDirect3DVertexDeclaration9* m_vertexdeclaration;
-		utils::Ref< utils::DataBuffer > m_data;
+		Ref< DataBuffer > m_data;
 		size_t m_vertexsize;
 
 	protected:
 		virtual void doadvance() override;
 
 	public:
-		VertexDeclaration( utils::DataBuffer* data, size_t vertexsize );
+		VertexDeclaration( DataBuffer* data, size_t vertexsize );
 		virtual ~VertexDeclaration() override;
 		VertexDeclaration( VertexDeclaration const& ) = delete;
 		VertexDeclaration& operator=( VertexDeclaration const& ) = delete;
@@ -61,7 +61,7 @@ R_END()
 		bool bind( size_t* vertexsize );
 
 		R_METHOD() static VertexDeclaration* create(
-			utils::DataBuffer* data, size_t vertexsize )
+			DataBuffer* data, size_t vertexsize )
 		{
 			return new VertexDeclaration( data, vertexsize );
 		}

@@ -3,8 +3,8 @@
 #include <renderer-state/programtranslator.hpp>
 #include <renderer-state/programtranslator-base.hpp>
 #include <renderer-state/programtranslator-state.hpp>
-#include <utils/ref.hpp>
-#include <utils/refobject.hpp>
+#include <common/ref.hpp>
+#include <common/refobject.hpp>
 #include <tuple>
 #include <initializer_list>
 #include <vector>
@@ -16,19 +16,19 @@ namespace graphics
 	{
 		struct Value_Swizzle: Value
 		{
-			utils::Ref< Value > m_arg;
+			Ref< Value > m_arg;
 			int m_parts[ 4 ];
 
 			Value_Swizzle(
 				TranslatorState* ts,
-				utils::Ref< Value > const& arg, int const* parts );
-			virtual utils::Ref< StringBuilder > getstring(
-				utils::Ref< StringBuilder >* defs ) override;
+				Ref< Value > const& arg, int const* parts );
+			virtual Ref< StringBuilder > getstring(
+				Ref< StringBuilder >* defs ) override;
 		};
 
 		Value_Swizzle::Value_Swizzle(
 			TranslatorState* ts,
-			utils::Ref< Value > const& arg, int const* parts )
+			Ref< Value > const& arg, int const* parts )
 			: m_arg( arg )
 		{
 			int maxpart;
@@ -63,10 +63,10 @@ namespace graphics
 			arg->m_usecount += 1;
 		}
 
-		static utils::String const swizzle_indices[] = { "x", "y", "z", "w" };
+		static String const swizzle_indices[] = { "x", "y", "z", "w" };
 
-		utils::Ref< StringBuilder > Value_Swizzle::getstring(
-			utils::Ref< StringBuilder >* defs )
+		Ref< StringBuilder > Value_Swizzle::getstring(
+			Ref< StringBuilder >* defs )
 		{
 			switch( m_type )
 			{

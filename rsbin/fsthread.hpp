@@ -1,11 +1,10 @@
 #pragma once
 
 #include <rsbin/iotask.hpp>
-#include <utils/mpscqueue.hpp>
-#include <utils/singleton.hpp>
-#include <utils/string.hpp>
-#include <utils/refobject.hpp>
-#include <utils/ref.hpp>
+#include <common/mpscqueue.hpp>
+#include <common/string.hpp>
+#include <common/refobject.hpp>
+#include <common/ref.hpp>
 #include <common.hpp>
 #include <thread>
 #include <atomic>
@@ -15,7 +14,7 @@ namespace rsbin
 	class FsThreadClass
 	{
 	private:
-		typedef utils::MPSCQueue< utils::Ref< IoTask > > queue_t;
+		typedef MPSCQueue< Ref< IoTask > > queue_t;
 
 	private:
 		std::atomic< bool > m_terminate;
@@ -30,11 +29,10 @@ namespace rsbin
 		~FsThreadClass();
 		FsThreadClass( FsThreadClass const& ) = delete;
 		FsThreadClass& operator=( FsThreadClass const& ) = delete;
-		void finalize();
 
 		void pushhigh( IoTask* task );
 		void pushmain( IoTask* task );
 	};
 
-	extern utils::Singleton< FsThreadClass > FsThread;
+	extern FsThreadClass* FsThread;
 }

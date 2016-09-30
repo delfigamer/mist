@@ -1,7 +1,7 @@
 #pragma once
 
-#include <utils/strexception.hpp>
-#include <utils/string.hpp>
+#include <common/strexception.hpp>
+#include <common/string.hpp>
 #include <common.hpp>
 #include <windows.h>
 #include <cmath>
@@ -50,7 +50,7 @@ namespace graphics
 			}
 			else
 			{
-				throw utils::StrException( "invalid %s value", name );
+				throw StrException( "invalid %s value", name );
 			}
 		}
 

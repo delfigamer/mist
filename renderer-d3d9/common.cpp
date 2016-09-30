@@ -63,7 +63,7 @@ namespace graphics
 					buffer, sizeof( buffer ),
 					"Direct3D error: %#x", uint32_t( hr ) );
 			}
-			throw utils::StrException(
+			throw StrException(
 				"[%48s:%24s@%4i]\t%s", filename, function, line, buffer );
 		}
 	}

@@ -5,7 +5,7 @@
 #endif
 
 #include <renderer-d3d9/shape.hpp>
-#include <utils/ref.hpp>
+#include <common/ref.hpp>
 #include <d3d9.h>
 #include <windows.h>
 
@@ -15,7 +15,7 @@ namespace graphics
 	{
 	private:
 		HWND m_hwnd;
-		utils::Ref< graphics::Shape > m_shape;
+		Ref< graphics::Shape > m_shape;
 
 	public:
 		Display( HWND hwnd );

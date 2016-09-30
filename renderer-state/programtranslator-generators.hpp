@@ -3,9 +3,9 @@
 #include <renderer-state/programtranslator.hpp>
 #include <renderer-state/programtranslator-base.hpp>
 #include <renderer-state/programtranslator-state.hpp>
-#include <utils/ref.hpp>
-#include <utils/databuffer.hpp>
-#include <utils/refobject.hpp>
+#include <common/ref.hpp>
+#include <common/databuffer.hpp>
+#include <common/refobject.hpp>
 #include <cstdio>
 #include <cstdarg>
 
@@ -19,8 +19,8 @@ namespace graphics
 
 			Value_Attribute( TranslatorState* ts, int index );
 			// back-end-dependent
-			virtual utils::Ref< StringBuilder > getstring(
-				utils::Ref< StringBuilder >* defs ) override;
+			virtual Ref< StringBuilder > getstring(
+				Ref< StringBuilder >* defs ) override;
 		};
 
 		struct Value_Texture: Value
@@ -29,8 +29,8 @@ namespace graphics
 
 			Value_Texture( TranslatorState* ts, int index );
 			// back-end-dependent
-			virtual utils::Ref< StringBuilder > getstring(
-				utils::Ref< StringBuilder >* defs ) override;
+			virtual Ref< StringBuilder > getstring(
+				Ref< StringBuilder >* defs ) override;
 		};
 
 		struct Value_Literal: Value
@@ -39,8 +39,8 @@ namespace graphics
 
 			Value_Literal(
 				int type, float const* vb, float const* ve );
-			virtual utils::Ref< StringBuilder > getstring(
-				utils::Ref< StringBuilder >* defs ) override;
+			virtual Ref< StringBuilder > getstring(
+				Ref< StringBuilder >* defs ) override;
 		};
 
 		Value_Attribute::Value_Attribute( TranslatorState* ts, int index )
@@ -64,15 +64,15 @@ namespace graphics
 			m_type = type;
 		}
 
-		utils::String floattostring( float f )
+		String floattostring( float f )
 		{
 			char buf[ 32 ];
 			snprintf( buf, sizeof( buf ), "%.8e", f );
-			return utils::String( buf );
+			return String( buf );
 		}
 
-		utils::Ref< StringBuilder > Value_Literal::getstring(
-			utils::Ref< StringBuilder >* defs )
+		Ref< StringBuilder > Value_Literal::getstring(
+			Ref< StringBuilder >* defs )
 		{
 			auto sb = StringBuilder::construct(
 				typestr[ m_type ], "(", floattostring( m_elements[ 0 ] ) );

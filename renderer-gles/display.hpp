@@ -5,7 +5,7 @@
 #endif
 
 #include <renderer-gles/shape.hpp>
-#include <utils/ref.hpp>
+#include <common/ref.hpp>
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 #include <osapi.hpp>
@@ -20,7 +20,7 @@ namespace graphics
 		EGLDisplay m_display;
 		EGLSurface m_surface;
 		EGLContext m_context;
-		utils::Ref< graphics::Shape > m_shape;
+		Ref< graphics::Shape > m_shape;
 
 		void initialize();
 		void finalize();

@@ -1,5 +1,5 @@
 #include <utils/console.hpp>
-#include <utils/strexception.hpp>
+#include <common/strexception.hpp>
 #include <utils/encoding.hpp>
 #include <osapi.hpp>
 #include <cstdio>
@@ -375,5 +375,5 @@ namespace utils
 		}
 	}
 
-	utils::Singleton< ConsoleClass > Console;
+	ConsoleClass* Console;
 }

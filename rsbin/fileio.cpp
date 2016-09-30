@@ -1,7 +1,7 @@
 #include <rsbin/fileio.hpp>
 #include <rsbin/fsthread.hpp>
 #include <rsbin/iotask.hpp>
-#include <utils/ref.hpp>
+#include <common/ref.hpp>
 #include <utils/path.hpp>
 #include <osapi.hpp>
 #include <thread>
@@ -32,7 +32,7 @@ namespace rsbin
 	class FileIoTask: public IoTask
 	{
 	public:
-		utils::Ref< FileIo > m_target;
+		Ref< FileIo > m_target;
 		uint64_t m_offset;
 		size_t m_length;
 		uint8_t* m_buffer;
@@ -261,7 +261,7 @@ namespace rsbin
 		{
 			throw std::runtime_error( "invalid file mode" );
 		}
-		utils::Ref< utils::Path > upath = utils::Path::create( path );
+		Ref< utils::Path > upath = utils::Path::create( path );
 		FileParameters* fp = &fp_map[ int( mode ) ];
 #if defined( _WIN32 ) || defined( _WIN64 )
 		m_handle = ( void* )CreateFileW(

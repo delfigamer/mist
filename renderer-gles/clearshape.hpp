@@ -1,7 +1,7 @@
 #pragma once
 
 #include <renderer-gles/shape.hpp>
-#include <utils/flaglock.hpp>
+#include <common/flaglock.hpp>
 #include <common.hpp>
 #include <atomic>
 #include <mutex>
@@ -13,7 +13,7 @@ namespace graphics
 	class ClearShape: public Shape
 	{
 	private:
-		typedef utils::FlagLock mutex_t;
+		typedef FlagLock mutex_t;
 		typedef std::lock_guard< mutex_t > lock_t;
 		struct color_t
 		{

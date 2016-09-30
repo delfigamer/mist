@@ -1,8 +1,8 @@
 #pragma once
 
 #include <renderer-d3d9/vertexbuffer.hpp>
-#include <utils/databuffer.hpp>
-#include <utils/ref.hpp>
+#include <common/databuffer.hpp>
+#include <common/ref.hpp>
 #include <common.hpp>
 #include <atomic>
 
@@ -12,7 +12,7 @@ namespace graphics
 	class StaticVertexBuffer: public VertexBuffer
 	{
 	private:
-		utils::Ref< utils::DataBuffer > m_data;
+		Ref< DataBuffer > m_data;
 
 	protected:
 		virtual void doadvance() override;
@@ -28,7 +28,7 @@ namespace graphics
 			return new StaticVertexBuffer( vd );
 		}
 
-		R_METHOD() void assign( utils::DataBuffer* data ) NOEXCEPT
+		R_METHOD() void assign( DataBuffer* data ) NOEXCEPT
 		{
 			std::atomic_thread_fence( std::memory_order_release );
 			m_data = data;

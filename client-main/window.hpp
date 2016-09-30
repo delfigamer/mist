@@ -2,9 +2,9 @@
 
 #include <client-main/windowinfo.hpp>
 #include <client-main/event.hpp>
-#include <utils/mpscqueue.hpp>
+#include <common/mpscqueue.hpp>
 #include <utils/configset.hpp>
-#include <utils/ref.hpp>
+#include <common/ref.hpp>
 #include <utils/console.hpp>
 #if defined( _WIN32 ) || defined( _WIN64 )
 #include <windows.h>
@@ -38,7 +38,7 @@ namespace window
 #elif defined( __ANDROID__ )
 		android_app* app;
 #endif
-		utils::String cmdline;
+		String cmdline;
 	};
 
 	R_CLASS( name = window )
@@ -102,7 +102,7 @@ namespace window
 		utils::ConfigSet m_mainconfig;
 		graphics::Display* m_display;
 		std::thread m_luathread;
-		utils::MPSCQueue< Event > m_eventqueue;
+		MPSCQueue< Event > m_eventqueue;
 		bool m_silent;
 		WindowInfo m_info;
 		int m_fpscounter;

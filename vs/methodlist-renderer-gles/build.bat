@@ -4,6 +4,7 @@ cd %~1..
 call lua ^
 	-e "compactffi=false fileprefix=[[build\%2\renderer-gles\methodlist]] structname=[[renderer_gles_methodlist]]" ^
 	"bind.lua" ^
+	"renderer-state\programtranslator.hpp" ^
 	"renderer-state\resource.hpp" ^
 	"renderer-state\shape.hpp" ^
 	"renderer-state\shapegroup.hpp" ^

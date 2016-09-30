@@ -6,7 +6,7 @@ namespace graphics
 {
 	void StaticVertexBuffer::doadvance()
 	{
-		utils::Ref< utils::DataBuffer > data = std::move( m_data );
+		Ref< DataBuffer > data = std::move( m_data );
 		if( data )
 		{
 			std::atomic_thread_fence( std::memory_order_acquire );

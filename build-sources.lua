@@ -20,6 +20,57 @@ local sources = {
 --------------------------------------------------------------------------------
 	{
 		type = 'native',
+		name = 'common/databuffer',
+		headeronly = true,
+		use = 'client-console;client-main;renderer-d3d9;renderer-gles',
+		methodlist = 'client-console;client-main',
+	},
+	{
+		type = 'native',
+		name = 'common/flaglock',
+		headeronly = true,
+		use = 'client-console;client-main;renderer-d3d9;renderer-gles',
+	},
+	{
+		type = 'native',
+		name = 'common/mpsclist',
+		headeronly = true,
+		use = 'client-console;client-main;renderer-d3d9;renderer-gles',
+	},
+	{
+		type = 'native',
+		name = 'common/mpscqueue',
+		headeronly = true,
+		use = 'client-console;client-main;renderer-d3d9;renderer-gles',
+	},
+	{
+		type = 'native',
+		name = 'common/ref',
+		headeronly = true,
+		use = 'client-console;client-main;renderer-d3d9;renderer-gles',
+	},
+	{
+		type = 'native',
+		name = 'common/refobject',
+		headeronly = true,
+		use = 'client-console;client-main;renderer-d3d9;renderer-gles',
+		methodlist = 'client-console;client-main',
+	},
+	{
+		type = 'native',
+		name = 'common/strexception',
+		headeronly = true,
+		use = 'client-console;client-main;renderer-d3d9;renderer-gles',
+	},
+	{
+		type = 'native',
+		name = 'common/string',
+		headeronly = true,
+		use = 'client-console;client-main;renderer-d3d9;renderer-gles',
+	},
+--------------------------------------------------------------------------------
+	{
+		type = 'native',
 		name = 'utils/cbase',
 		use = 'client-console;client-main',
 		methodlist = 'client-console;client-main',
@@ -42,70 +93,14 @@ local sources = {
 	},
 	{
 		type = 'native',
-		name = 'utils/databuffer',
-		headeronly = true,
-		use = 'client-console;client-main;renderer-d3d9;renderer-gles',
-		methodlist = 'client-console;client-main',
-	},
-	{
-		type = 'native',
 		name = 'utils/encoding',
 		use = 'client-console;client-main',
 		methodlist = 'client-console;client-main',
 	},
 	{
 		type = 'native',
-		name = 'utils/flaglock',
-		headeronly = true,
-		use = 'client-console;client-main;renderer-d3d9;renderer-gles',
-	},
-	{
-		type = 'native',
-		name = 'utils/mpsclist',
-		headeronly = true,
-		use = 'client-console;client-main;renderer-d3d9;renderer-gles',
-	},
-	{
-		type = 'native',
-		name = 'utils/mpscqueue',
-		headeronly = true,
-		use = 'client-console;client-main;renderer-d3d9;renderer-gles',
-	},
-	{
-		type = 'native',
 		name = 'utils/path',
 		use = 'client-console;client-main',
-	},
-	{
-		type = 'native',
-		name = 'utils/ref',
-		headeronly = true,
-		use = 'client-console;client-main;renderer-d3d9;renderer-gles',
-	},
-	{
-		type = 'native',
-		name = 'utils/refobject',
-		headeronly = true,
-		use = 'client-console;client-main;renderer-d3d9;renderer-gles',
-		methodlist = 'client-console;client-main',
-	},
-	{
-		type = 'native',
-		name = 'utils/singleton',
-		headeronly = true,
-		use = 'client-console;client-main',
-	},
-	{
-		type = 'native',
-		name = 'utils/strexception',
-		headeronly = true,
-		use = 'client-console;client-main;renderer-d3d9;renderer-gles',
-	},
-	{
-		type = 'native',
-		name = 'utils/string',
-		headeronly = true,
-		use = 'client-console;client-main;renderer-d3d9;renderer-gles',
 	},
 --------------------------------------------------------------------------------
 	{

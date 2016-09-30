@@ -2,7 +2,7 @@
 
 #include <client-console/windowinfo.hpp>
 #include <utils/configset.hpp>
-#include <utils/ref.hpp>
+#include <common/ref.hpp>
 #include <common.hpp>
 #include <lua/lua.hpp>
 #include <ctime>
@@ -11,7 +11,7 @@ namespace window
 {
 	struct WindowCreationData
 	{
-		utils::String cmdline;
+		String cmdline;
 	};
 
 	R_CLASS( name = window )
@@ -19,7 +19,7 @@ namespace window
 	{
 	private:
 		utils::ConfigSet m_mainconfig;
-		utils::String m_cmdline;
+		String m_cmdline;
 		lua_State* m_lstate;
 		WindowInfo m_info;
 		void initialize();

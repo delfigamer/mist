@@ -1,6 +1,6 @@
 #pragma once
 
-#include <utils/string.hpp>
+#include <common/string.hpp>
 #include <common.hpp>
 #include <lua/lua.hpp>
 #include <cinttypes>

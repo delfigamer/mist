@@ -1,35 +1,35 @@
 #pragma once
 
 #include <renderer-state/programtranslator.hpp>
-#include <utils/string.hpp>
-#include <utils/ref.hpp>
-#include <utils/refobject.hpp>
+#include <common/string.hpp>
+#include <common/ref.hpp>
+#include <common/refobject.hpp>
 #include <cstring>
 
 namespace graphics
 {
 	namespace programtranslator
 	{
-		struct StringBuilder: utils::RefObject
+		struct StringBuilder: RefObject
 		{
-			utils::Ref< StringBuilder > m_prefix;
-			utils::String m_center;
-			utils::Ref< StringBuilder > m_suffix;
+			Ref< StringBuilder > m_prefix;
+			String m_center;
+			Ref< StringBuilder > m_suffix;
 
-			StringBuilder( utils::Ref< StringBuilder > prefix,
-				utils::String center, utils::Ref< StringBuilder > suffix );
+			StringBuilder( Ref< StringBuilder > prefix,
+				String center, Ref< StringBuilder > suffix );
 			size_t getlength();
 			size_t write( uint8_t* buffer, size_t bufsize );
 			template< typename F, typename S, typename... T >
-			static utils::Ref< StringBuilder > construct(
+			static Ref< StringBuilder > construct(
 				F&& first, S&& sedond, T&&... args );
-			static utils::Ref< StringBuilder > construct( utils::String str );
-			static utils::Ref< StringBuilder > construct( StringBuilder* sb );
-			static utils::Ref< StringBuilder > construct();
+			static Ref< StringBuilder > construct( String str );
+			static Ref< StringBuilder > construct( StringBuilder* sb );
+			static Ref< StringBuilder > construct();
 		};
 
-		StringBuilder::StringBuilder( utils::Ref< StringBuilder > prefix,
-			utils::String center, utils::Ref< StringBuilder > suffix )
+		StringBuilder::StringBuilder( Ref< StringBuilder > prefix,
+			String center, Ref< StringBuilder > suffix )
 			: m_prefix( prefix )
 			, m_center( center )
 			, m_suffix( suffix )
@@ -81,31 +81,31 @@ namespace graphics
 		}
 
 		template< typename F, typename S, typename... T >
-		utils::Ref< StringBuilder > StringBuilder::construct(
+		Ref< StringBuilder > StringBuilder::construct(
 			F&& first, S&& second, T&&... args )
 		{
 			auto left = construct( std::forward< F >( first ) );
 			auto right = construct(
 				std::forward< S >( second ), std::forward< T >( args )... );
-			return utils::Ref< StringBuilder >::create(
+			return Ref< StringBuilder >::create(
 				left, nullptr, right );
 		}
 
-		utils::Ref< StringBuilder > StringBuilder::construct( utils::String str )
+		Ref< StringBuilder > StringBuilder::construct( String str )
 		{
-			return utils::Ref< StringBuilder >::create(
+			return Ref< StringBuilder >::create(
 				nullptr, str, nullptr );
 		}
 
-		utils::Ref< StringBuilder > StringBuilder::construct( StringBuilder* sb )
+		Ref< StringBuilder > StringBuilder::construct( StringBuilder* sb )
 		{
-			return utils::Ref< StringBuilder >::create(
+			return Ref< StringBuilder >::create(
 				nullptr, nullptr, sb );
 		}
 
-		utils::Ref< StringBuilder > StringBuilder::construct()
+		Ref< StringBuilder > StringBuilder::construct()
 		{
-			return utils::Ref< StringBuilder >::create(
+			return Ref< StringBuilder >::create(
 				nullptr, nullptr, nullptr );
 		}
 
@@ -125,15 +125,15 @@ namespace graphics
 		}
 
 		// back-end-dependent
-		extern utils::String const typestr[];
+		extern String const typestr[];
 
-		struct Value: utils::RefObject
+		struct Value: RefObject
 		{
 			int m_type;
 			int m_usecount = 0;
 
-			virtual utils::Ref< StringBuilder > getstring(
-				utils::Ref< StringBuilder >* defs ) = 0;
+			virtual Ref< StringBuilder > getstring(
+				Ref< StringBuilder >* defs ) = 0;
 		};
 	}
 }

@@ -5,8 +5,8 @@
 // #include <renderer-d3d9/indexbuffer.hpp>
 // #include <renderer-d3d9/program.hpp>
 // #include <renderer-d3d9/texture.hpp>
-#include <utils/ref.hpp>
-#include <utils/flaglock.hpp>
+#include <common/ref.hpp>
+#include <common/flaglock.hpp>
 #include <common.hpp>
 #include <mutex>
 
@@ -53,14 +53,14 @@ namespace graphics
 	class PrimitiveShape: public Shape
 	{
 	private:
-		typedef utils::FlagLock mutex_t;
+		typedef FlagLock mutex_t;
 		typedef std::lock_guard< mutex_t > lock_t;
 
 	private:
-		utils::Ref< VertexBuffer > m_vertexbuffer;
-		// utils::Ref< IndexBuffer > m_indexbuffer;
-		// utils::Ref< Program > m_program;
-		// utils::Ref< Texture > m_textures[ 8 ];
+		Ref< VertexBuffer > m_vertexbuffer;
+		// Ref< IndexBuffer > m_indexbuffer;
+		// Ref< Program > m_program;
+		// Ref< Texture > m_textures[ 8 ];
 		std::atomic< int > m_type;
 		int m_blendsf;
 		int m_blenddf;

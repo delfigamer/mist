@@ -1,6 +1,6 @@
 #include <rsbin/common.hpp>
 #include <utils/path.hpp>
-#include <utils/ref.hpp>
+#include <common/ref.hpp>
 #if defined( _WIN32 ) || defined( _WIN64 )
 #include <osapi.hpp>
 #else
@@ -12,7 +12,7 @@ namespace rsbin
 {
 	bool Common::isfileavailable( char const* path )
 	{
-		utils::Ref< utils::Path > upath = utils::Path::create( path );
+		Ref< utils::Path > upath = utils::Path::create( path );
 #if defined( _WIN32 ) || defined( _WIN64 )
 		return GetFileAttributesW( upath->combine() ) != INVALID_FILE_ATTRIBUTES;
 #else

@@ -25,6 +25,7 @@
     <ClCompile Include="..\..\renderer-gles\display.cpp" />
     <ClCompile Include="..\..\renderer-gles\interface.cpp" />
     <ClCompile Include="..\..\renderer-gles\primitiveshape.cpp" />
+    <ClCompile Include="..\..\renderer-gles\programtranslator.cpp" />
     <ClCompile Include="..\..\renderer-gles\resource.cpp" />
     <ClCompile Include="..\..\renderer-gles\shape.cpp" />
     <ClCompile Include="..\..\renderer-gles\shapegroup.cpp" />
@@ -48,6 +49,15 @@
     <ClInclude Include="..\..\renderer-state\context-cpp.hpp" />
     <ClInclude Include="..\..\renderer-state\interface.hpp" />
     <ClInclude Include="..\..\renderer-state\interface-cpp.hpp" />
+    <ClInclude Include="..\..\renderer-state\programtranslator.hpp" />
+    <ClInclude Include="..\..\renderer-state\programtranslator-cpp.hpp" />
+    <ClInclude Include="..\..\renderer-state\programtranslator-base.hpp" />
+    <ClInclude Include="..\..\renderer-state\programtranslator-functions.hpp" />
+    <ClInclude Include="..\..\renderer-state\programtranslator-generators.hpp" />
+    <ClInclude Include="..\..\renderer-state\programtranslator-shaders.hpp" />
+    <ClInclude Include="..\..\renderer-state\programtranslator-state.hpp" />
+    <ClInclude Include="..\..\renderer-state\programtranslator-step.hpp" />
+    <ClInclude Include="..\..\renderer-state\programtranslator-swizzles.hpp" />
     <ClInclude Include="..\..\renderer-state\resource.hpp" />
     <ClInclude Include="..\..\renderer-state\resource-cpp.hpp" />
     <ClInclude Include="..\..\renderer-state\shape.hpp" />
@@ -61,6 +71,7 @@
     <ClInclude Include="..\..\renderer-gles\gl2.hpp" />
     <ClInclude Include="..\..\renderer-gles\interface.hpp" />
     <ClInclude Include="..\..\renderer-gles\primitiveshape.hpp" />
+    <ClInclude Include="..\..\renderer-gles\programtranslator.hpp" />
     <ClInclude Include="..\..\renderer-gles\resource.hpp" />
     <ClInclude Include="..\..\renderer-gles\shape.hpp" />
     <ClInclude Include="..\..\renderer-gles\shapegroup.hpp" />

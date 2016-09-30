@@ -2,10 +2,10 @@
 
 #include <renderer-state/programtranslator.hpp>
 #include <renderer-state/programtranslator-base.hpp>
-#include <utils/strexception.hpp>
-#include <utils/databuffer.hpp>
-#include <utils/ref.hpp>
-#include <utils/refobject.hpp>
+#include <common/strexception.hpp>
+#include <common/databuffer.hpp>
+#include <common/ref.hpp>
+#include <common/refobject.hpp>
 #include <vector>
 #include <stdexcept>
 #include <cinttypes>
@@ -16,9 +16,9 @@ namespace graphics
 	{
 		struct TranslatorState
 		{
-			utils::Ref< utils::DataBuffer > m_input;
+			Ref< DataBuffer > m_input;
 			size_t m_position = 0;
-			std::vector< utils::Ref< Value > > m_stack;
+			std::vector< Ref< Value > > m_stack;
 			size_t m_lastid = 0;
 			bool m_attributeused[ 8 ];
 			bool m_textureused[ 8 ];
@@ -28,15 +28,15 @@ namespace graphics
 			uint32_t const* nextptr();
 			programtoken nexttoken();
 			float nextfloat();
-			utils::Ref< Value > const& peek( size_t depth );
-			utils::Ref< Value > pop();
-			void push( utils::Ref< Value > const& value );
+			Ref< Value > const& peek( size_t depth );
+			Ref< Value > pop();
+			void push( Ref< Value > const& value );
 			size_t generateid();
 		};
 
 		void TranslatorState::error( char const* msg )
 		{
-			throw utils::StrException( "%s at %#x", msg, m_position );
+			throw StrException( "%s at %#x", msg, m_position );
 		}
 
 		bool TranslatorState::iseof()
@@ -66,7 +66,7 @@ namespace graphics
 			return *pfloat;
 		}
 
-		utils::Ref< Value > const& TranslatorState::peek( size_t depth )
+		Ref< Value > const& TranslatorState::peek( size_t depth )
 		{
 			if( depth >= m_stack.size() )
 			{
@@ -75,18 +75,18 @@ namespace graphics
 			return m_stack[ m_stack.size() - depth - 1 ];
 		}
 
-		utils::Ref< Value > TranslatorState::pop()
+		Ref< Value > TranslatorState::pop()
 		{
 			if( m_stack.empty() )
 			{
 				error( "stack is empty" );
 			}
-			utils::Ref< Value > value = std::move( m_stack.back() );
+			Ref< Value > value = std::move( m_stack.back() );
 			m_stack.pop_back();
 			return value;
 		}
 
-		void TranslatorState::push( utils::Ref< Value > const& value )
+		void TranslatorState::push( Ref< Value > const& value )
 		{
 			m_stack.push_back( value );
 		}

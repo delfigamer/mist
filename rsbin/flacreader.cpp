@@ -1,5 +1,5 @@
 #include <rsbin/flacreader.hpp>
-#include <utils/strexception.hpp>
+#include <common/strexception.hpp>
 #include <stdexcept>
 #include <cstring>
 
@@ -125,12 +125,12 @@ namespace rsbin
 					FLAC__stream_decoder_get_total_samples( decoder );
 				if( samples != 0 )
 				{
-					reader->m_target = utils::DataBuffer::create(
+					reader->m_target = DataBuffer::create(
 						0, samples * reader->m_channels * 4, 0 );
 				}
 				else
 				{
-					reader->m_target = utils::DataBuffer::create(
+					reader->m_target = DataBuffer::create(
 						0, frame->header.blocksize * reader->m_channels * 4, 0 );
 				}
 			}
@@ -138,7 +138,7 @@ namespace rsbin
 				* reader->m_channels * 4
 				> reader->m_target->m_capacity )
 			{
-				reader->m_target = utils::DataBuffer::create(
+				reader->m_target = DataBuffer::create(
 					reader->m_target->m_length, reader->m_target->m_capacity * 2,
 					reader->m_target->m_data );
 			}
@@ -222,7 +222,7 @@ namespace rsbin
 			FLAC__stream_decoder_delete( m_decoder );
 			if( m_error )
 			{
-				throw utils::StrException( m_error );
+				throw StrException( m_error );
 			}
 			else
 			{

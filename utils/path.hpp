@@ -1,8 +1,8 @@
 #pragma once
 
-#include <utils/databuffer.hpp>
-#include <utils/ref.hpp>
-#include <utils/refobject.hpp>
+#include <common/databuffer.hpp>
+#include <common/ref.hpp>
+#include <common/refobject.hpp>
 #include <common.hpp>
 
 namespace utils

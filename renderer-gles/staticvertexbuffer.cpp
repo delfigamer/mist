@@ -7,7 +7,7 @@ namespace graphics
 {
 	void StaticVertexBuffer::doadvance()
 	{
-		utils::Ref< utils::DataBuffer > data = std::move( m_data );
+		Ref< DataBuffer > data = std::move( m_data );
 		if( data )
 		{
 			if( !m_vertexbuffer )

@@ -185,7 +185,7 @@ namespace graphics
 
 	void Display::paint()
 	{
-		utils::Ref< graphics::Shape > shape = m_shape;
+		Ref< graphics::Shape > shape = m_shape;
 		if( shape )
 		{
 			Context::DrawnFrame += 1;

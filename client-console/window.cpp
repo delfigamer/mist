@@ -1,7 +1,7 @@
 #include <client-console/window.hpp>
 #include <client-console/luainit.hpp>
 #include <client-console/methodlist.hpp>
-#include <utils/strexception.hpp>
+#include <common/strexception.hpp>
 #include <utils/encoding.hpp>
 #include <utils/console.hpp>
 #include <osapi.hpp>
@@ -38,20 +38,20 @@ namespace window
 		snprintf(
 			StrBuffer, sizeof( StrBuffer ),
 			"[%s : %s @ %i] %s", file, function, line, msg );
-		throw utils::StrException( StrBuffer );
+		throw StrException( StrBuffer );
 	}
 
 #define CriticalError_m( msg ) CriticalError( \
 	__FILE__, __FUNCTION__, __LINE__, msg )
 
-	utils::String lua_throwerror( lua_State* L )
+	String lua_throwerror( lua_State* L )
 	{
 		lua_getglobal( L, "tostring" );
 		lua_insert( L, -2 );
 		lua_pcall( L, 1, 1, 0 );
-		utils::String message( lua_tostring( L, -1 ) );
+		String message( lua_tostring( L, -1 ) );
 		lua_pop( L, 1 );
-		throw utils::StrException( message );
+		throw StrException( message );
 	}
 
 	Window::Window( WindowCreationData const& wcd )
