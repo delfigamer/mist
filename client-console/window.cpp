@@ -1,35 +1,16 @@
 #include <client-console/window.hpp>
 #include <client-console/luainit.hpp>
 #include <client-console/methodlist.hpp>
-#include <common/strexception.hpp>
+#include <utils/configset.hpp>
 #include <utils/encoding.hpp>
 #include <utils/console.hpp>
+#include <common/strexception.hpp>
 #include <osapi.hpp>
 #include <cstdlib>
 #include <cstdio>
 
-#if defined( _MSC_VER )
-#include <cstdarg>
-static int snprintf( char* buffer, int buflen, char const* format, ... )
-{
-	va_list arg;
-	va_start( arg, format );
-	int result = vsnprintf_s( buffer, buflen, buflen, format, arg );
-	va_end( arg );
-	return result;
-}
-#endif
-
 namespace window
 {
-#if defined( _WIN32 ) || defined( _WIN64 )
-#define PLATFORM "win"
-#elif defined(__ANDROID__)
-#define PLATFORM "android"
-#endif
-#define MAINCONFIG_PATH PATH_START "main.lc"
-#define MAINCONFIG_STR "_PLATFORM = '" PLATFORM "'; _CONSOLE = true; _PATH = [[" PATH_START "]]"
-
 	void CriticalError(
 		char const* file, char const* function, int line,
 		char const* msg )
@@ -55,11 +36,8 @@ namespace window
 	}
 
 	Window::Window( WindowCreationData const& wcd )
-		: m_mainconfig( MAINCONFIG_PATH, MAINCONFIG_STR )
-		, m_cmdline( wcd.cmdline )
-		, m_lstate( 0 )
+		: m_lstate( 0 )
 	{
-		m_mainconfig.runcmd( m_cmdline );
 		initialize();
 	}
 
@@ -78,7 +56,6 @@ namespace window
 	void Window::initialize()
 	{
 		m_info.window = this;
-		m_info.configset = &m_mainconfig;
 		m_info.acceleratorinput = false;
 		m_info.pointinput = false;
 		m_info.keyboardinput = false;

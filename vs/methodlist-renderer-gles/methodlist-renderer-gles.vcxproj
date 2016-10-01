@@ -27,7 +27,7 @@
     </CustomBuild>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{4BB6D47A-C72E-4074-AA49-07AFF88C93B6}</ProjectGuid>
+    <ProjectGuid>{2E7124D6-3DDD-45BD-B883-14063380C8E3}</ProjectGuid>
     <RootNamespace>methodlistrenderergles</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />

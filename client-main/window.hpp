@@ -3,7 +3,6 @@
 #include <client-main/windowinfo.hpp>
 #include <client-main/event.hpp>
 #include <common/mpscqueue.hpp>
-#include <utils/configset.hpp>
 #include <common/ref.hpp>
 #include <utils/console.hpp>
 #if defined( _WIN32 ) || defined( _WIN64 )
@@ -38,7 +37,6 @@ namespace window
 #elif defined( __ANDROID__ )
 		android_app* app;
 #endif
-		String cmdline;
 	};
 
 	R_CLASS( name = window )
@@ -99,7 +97,6 @@ namespace window
 		void handle_sensor( ASensorEvent* event );
 #endif
 	private:
-		utils::ConfigSet m_mainconfig;
 		graphics::Display* m_display;
 		std::thread m_luathread;
 		MPSCQueue< Event > m_eventqueue;

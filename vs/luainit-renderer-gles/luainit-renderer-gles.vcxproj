@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{DC113DD8-DF33-47BD-947C-A88F0E83BE1A}</ProjectGuid>
+    <ProjectGuid>{FC9DBF11-55D1-4F50-85A2-3B6CB21D6D37}</ProjectGuid>
     <RootNamespace>luainitrenderergles</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />

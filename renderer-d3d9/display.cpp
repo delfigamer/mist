@@ -25,7 +25,7 @@ namespace graphics
 			D3DFMT_D24S8,
 			0,
 			0,
-			getconfig_boolean( "vsync" ) ?
+			getconfig_boolean( "vsync", false ) ?
 				D3DPRESENT_INTERVAL_ONE :
 				D3DPRESENT_INTERVAL_IMMEDIATE,
 		};

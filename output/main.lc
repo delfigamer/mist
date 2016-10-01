@@ -1,15 +1,6 @@
-if _CONSOLE then
-	index = 'index-cmd'
-else
-	index = 'index-test'
-	silent = false
-	if _PLATFORM == 'win' then
-		windowsize={1280, 720}
-	end
-end
-
-
--- renderer = 'renderer-d3d9'
-renderer = 'renderer-gles'
+index_silent = 'index-cmd'
+index = 'index-test'
+windowsize={1280, 720}
+renderer = ({'renderer-d3d9', 'renderer-gles'})[2]
 vsync = false
 tpslimit = 0

@@ -4,11 +4,6 @@
 
 struct client_console_methodlist_t;
 
-namespace utils
-{
-	class ConfigSet;
-}
-
 namespace window
 {
 	class Window;
@@ -17,7 +12,6 @@ R_STRUCT( name = windowinfo_t )
 	struct WindowInfo
 	{
 		Window* window;
-		utils::ConfigSet* configset;
 		bool acceleratorinput;
 		bool pointinput;
 		bool keyboardinput;

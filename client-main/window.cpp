@@ -1,23 +1,16 @@
 #include <client-main/window.hpp>
 #include <client-main/methodlist.hpp>
 #include <client-main/luainit.hpp>
-#include <common/strexception.hpp>
+#include <utils/configset.hpp>
 #include <utils/encoding.hpp>
 #include <utils/cbase.hpp>
+#include <common/strexception.hpp>
 #include <osapi.hpp>
 #include <cstdlib>
 #include <cstdio>
 
 namespace window
 {
-#if defined( _WIN32 ) || defined( _WIN64 )
-#define PLATFORM "win"
-#elif defined(__ANDROID__)
-#define PLATFORM "android"
-#endif
-#define MAINCONFIG_PATH PATH_START "main.lc"
-#define MAINCONFIG_STR "_PLATFORM = '" PLATFORM "'; _PATH = [[" PATH_START "]]"
-
 	void CriticalError(
 		char const* file, char const* function, int line,
 		char const* msg )
@@ -35,8 +28,6 @@ namespace window
 #if defined( _WIN32 ) || defined( _WIN64 )
 	wchar_t const* Window::ClassName = L"mainwindow";
 	wchar_t const* Window::WindowCaption = L"Main window";
-
-	int const DefaultWindowSize[] = { 640, 480 };
 
 	static bool Errored = false;
 
@@ -159,13 +150,11 @@ namespace window
 		: m_hwnd( 0 )
 		, m_terminated( false )
 		, m_renderermodule( 0 )
-		, m_mainconfig( MAINCONFIG_PATH, MAINCONFIG_STR )
 		, m_finishrequired( false )
 		, m_finished( false )
 	{
 		memset( &m_pointstate, 0, sizeof( m_pointstate ) );
-		m_mainconfig.runcmd( wcd.cmdline );
-		m_silent = m_mainconfig.boolean( "silent", false );
+		m_silent = utils::MainConf->boolean( "silent", false );
 		m_fpscounter = 0;
 		m_tpscounter = 0;
 		m_fpstime = 0x7fffffff;
@@ -213,12 +202,12 @@ namespace window
 			RECT WindowRect = {
 				0,
 				0,
-				LONG( m_mainconfig.integer(
+				LONG( utils::MainConf->integer(
 					"windowsize[1] or windowsize.x",
-					DefaultWindowSize[ 0 ] ) ),
-				LONG( m_mainconfig.integer(
+					640 ) ),
+				LONG( utils::MainConf->integer(
 					"windowsize[2] or windowsize.y",
-					DefaultWindowSize[ 1 ] ) ) };
+					480 ) ) };
 			if( !AdjustWindowRect(
 				&WindowRect, WindowStyle, false ) )
 			{
@@ -393,13 +382,11 @@ namespace window
 
 	Window::Window( WindowCreationData const& wcd )
 		: m_app( wcd.app )
-		, m_mainconfig( MAINCONFIG_PATH, MAINCONFIG_STR )
 		, m_lstateready( false )
 		, m_finishrequired( false )
 		, m_finished( false )
 	{
-		m_mainconfig.runcmd( wcd.cmdline );
-		m_silent = m_mainconfig.boolean( "silent", false );
+		m_silent = utils::MainConf->boolean( "silent", false );
 		if( !m_silent )
 		{
 			m_app->userData = this;
@@ -495,13 +482,12 @@ namespace window
 	void Window::initialize()
 	{
 		m_info.window = this;
-		m_info.configset = &m_mainconfig;
 		m_info.silent = m_silent;
 		m_info.client_methodlist = &client_main_methodlist;
 		if( !m_silent )
 		{
 #if defined( _WIN32 ) || defined( _WIN64 )
-			String rpath = m_mainconfig.string( "renderer" );
+			String rpath = utils::MainConf->string( "renderer", nullptr );
 			Ref< DataBuffer > wrpath = utf8toutf16( rpath );
 			m_renderermodule = LoadLibraryW( ( wchar_t* )wrpath->m_data );
 			if( !m_renderermodule )
@@ -540,7 +526,6 @@ namespace window
 			m_info.pointinput = true;
 			m_info.keyboardinput = true;
 #elif defined( __ANDROID__ )
-			// m_display.initialize( m_mainconfig, m_app );
 			m_info.acceleratorinput = false;
 			m_info.pointinput = true;
 			m_info.keyboardinput = false;

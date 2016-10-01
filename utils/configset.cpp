@@ -1,10 +1,12 @@
 #include <utils/configset.hpp>
 #include <utils/console.hpp>
+#include <cstring>
 
-namespace utils {
-	ConfigSet::ConfigSet( char const* filename, char const* init )
-		: m_lstate( luaL_newstate() )
+namespace utils
+{
+	ConfClass::ConfClass( char const* filename, char const* init )
 	{
+		m_lstate = luaL_newstate();
 		if( init )
 		{
 			if( luaL_loadstring( m_lstate, init ) != 0 )
@@ -38,7 +40,7 @@ namespace utils {
 		lua_settop( m_lstate, 0 );
 	}
 
-	ConfigSet::~ConfigSet()
+	ConfClass::~ConfClass()
 	{
 		lua_close( m_lstate );
 	}
@@ -75,9 +77,9 @@ namespace utils {
 		}
 
 		template< typename T >
-		T accessor( lua_State* L, char const* expr, T const& def )
+		bool accessor( lua_State* L, char const* expr, T* value )
 		{
-			T result = def;
+			bool result = false;
 			lua_pushstring( L, "return " );
 			lua_pushstring( L, expr );
 			lua_concat( L, 2 );
@@ -92,47 +94,99 @@ namespace utils {
 			{
 				if( lua_pcall( L, 0, 1, 0 ) == 0 )
 				{
-					if( lua_isnil( L, -1 ) )
+					if( !lua_isnil( L, -1 ) )
 					{
-						result = def;
+						*value = lua_get< T >( L, -1 );
+						result = true;
 					}
-					else
-					{
-						result = lua_get< T >( L, -1 );
-					}
-				}
-				else
-				{
-					result = def;
 				}
 			}
 			lua_settop( L, 0 );
 			return result;
 		}
+
+		template< typename T >
+		T accessor_def( lua_State* L, char const* expr, T const& def )
+		{
+			T value;
+			if( accessor< T >( L, expr, &value ) )
+			{
+				return value;
+			}
+			else
+			{
+				return def;
+			}
+		}
 	}
 
-	ptrdiff_t ConfigSet::integer( char const* expr, ptrdiff_t def ) const
+	bool ConfClass::binteger( char const* expr, ptrdiff_t* value ) const
 	{
-		return int( accessor< ptrdiff_t >( m_lstate, expr, def ) );
+		return accessor< ptrdiff_t >( m_lstate, expr, value );
 	}
 
-	double ConfigSet::number( char const* expr, double def ) const
+	bool ConfClass::bnumber( char const* expr, double* value ) const
 	{
-		return accessor< double >( m_lstate, expr, def );
+		return accessor< double >( m_lstate, expr, value );
 	}
 
-	String ConfigSet::string(
-		char const* expr, String const& def ) const
+	bool ConfClass::bstring( char const* expr, String* value ) const
 	{
-		return accessor< String >( m_lstate, expr, def );
+		return accessor< String >( m_lstate, expr, value );
 	}
 
-	bool ConfigSet::boolean( char const* expr, bool def ) const
+	bool ConfClass::bboolean( char const* expr, bool* value ) const
 	{
-		return accessor< bool >( m_lstate, expr, def );
+		return accessor< bool >( m_lstate, expr, value );
 	}
 
-	void ConfigSet::runcmd( char const* expr )
+	bool ConfClass::stringbuf(
+		char const* expr, char* buffer, size_t* length ) const
+	{
+		String value;
+		if( bstring( expr, &value ) )
+		{
+			if( length )
+			{
+				if( buffer )
+				{
+					size_t clen = value.getlength();
+					if( clen <= *length )
+					{
+						memcpy( buffer, value.getchars(), clen );
+					}
+				}
+				*length = value.getlength();
+			}
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	ptrdiff_t ConfClass::integer( char const* expr, ptrdiff_t def ) const
+	{
+		return accessor_def< ptrdiff_t >( m_lstate, expr, def );
+	}
+
+	double ConfClass::number( char const* expr, double def ) const
+	{
+		return accessor_def< double >( m_lstate, expr, def );
+	}
+
+	String ConfClass::string( char const* expr, String const& def ) const
+	{
+		return accessor_def< String >( m_lstate, expr, def );
+	}
+
+	bool ConfClass::boolean( char const* expr, bool def ) const
+	{
+		return accessor_def< bool >( m_lstate, expr, def );
+	}
+
+	void ConfClass::runcmd( char const* expr )
 	{
 		if( luaL_loadstring( m_lstate, expr ) != 0 )
 		{
@@ -150,27 +204,5 @@ namespace utils {
 		lua_settop( m_lstate, 0 );
 	}
 
-	size_t ConfigSet::lstring(
-		char const* expr, char* buffer, size_t buflen ) const
-	{
-		String str = string( expr );
-		if( !str )
-		{
-			return 0;
-		}
-		size_t strlen = str.getlength();
-		if( buffer )
-		{
-			if( buflen > strlen + 1 )
-			{
-				buflen = strlen + 1;
-			}
-			memcpy( buffer, str.getchars(), buflen );
-		}
-		else
-		{
-			buflen = strlen;
-		}
-		return buflen;
-	}
+	ConfClass* MainConf;
 }

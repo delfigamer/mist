@@ -4,11 +4,11 @@ cd %~1..
 call lua ^
 	-e "compactffi=false fileprefix=[[build\%2\client-console\methodlist]] structname=[[client_console_methodlist]]" ^
 	"bind.lua" ^
+	"common\databuffer.hpp" ^
+	"common\refobject.hpp" ^
 	"utils\cbase.hpp" ^
 	"utils\configset.hpp" ^
-	"utils\databuffer.hpp" ^
 	"utils\encoding.hpp" ^
-	"utils\refobject.hpp" ^
 	"rsbin\common.hpp" ^
 	"rsbin\fileio.hpp" ^
 	"rsbin\flaccommon.hpp" ^

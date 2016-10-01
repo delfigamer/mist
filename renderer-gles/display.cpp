@@ -124,7 +124,7 @@ namespace graphics
 			throw std::runtime_error( "failed to set current EGL context" );
 		}
 
-		eglSwapInterval( m_display, getconfig_boolean( "vsync" ) ? 1 : 0 );
+		eglSwapInterval( m_display, getconfig_boolean( "vsync", false ) ? 1 : 0 );
 
 		eglQuerySurface( m_display, m_surface, EGL_WIDTH, &WindowInfo->width );
 		eglQuerySurface( m_display, m_surface, EGL_HEIGHT, &WindowInfo->height );

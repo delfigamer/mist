@@ -36,14 +36,14 @@
   <ItemGroup>
     <ClInclude Include="..\..\common.hpp" />
     <ClInclude Include="..\..\osapi.hpp" />
-    <ClInclude Include="..\..\utils\databuffer.hpp" />
-    <ClInclude Include="..\..\utils\flaglock.hpp" />
-    <ClInclude Include="..\..\utils\mpsclist.hpp" />
-    <ClInclude Include="..\..\utils\mpscqueue.hpp" />
-    <ClInclude Include="..\..\utils\ref.hpp" />
-    <ClInclude Include="..\..\utils\refobject.hpp" />
-    <ClInclude Include="..\..\utils\strexception.hpp" />
-    <ClInclude Include="..\..\utils\string.hpp" />
+    <ClInclude Include="..\..\common\databuffer.hpp" />
+    <ClInclude Include="..\..\common\flaglock.hpp" />
+    <ClInclude Include="..\..\common\mpsclist.hpp" />
+    <ClInclude Include="..\..\common\mpscqueue.hpp" />
+    <ClInclude Include="..\..\common\ref.hpp" />
+    <ClInclude Include="..\..\common\refobject.hpp" />
+    <ClInclude Include="..\..\common\strexception.hpp" />
+    <ClInclude Include="..\..\common\string.hpp" />
     <ClInclude Include="..\..\renderer-state\common.hpp" />
     <ClInclude Include="..\..\renderer-state\context.hpp" />
     <ClInclude Include="..\..\renderer-state\context-cpp.hpp" />

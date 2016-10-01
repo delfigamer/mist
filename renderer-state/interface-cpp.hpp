@@ -55,80 +55,95 @@ namespace graphics
 		}
 	}
 
+#define PROTECTED_CALL_RA( func, rt, ... ) \
+	rt ret; \
+	if( WindowInfo->client_methodlist->func( \
+		__VA_ARGS__, &ret ) ) \
+	{ \
+		return ret; \
+	} \
+	else \
+	{ \
+		char const* error; \
+		WindowInfo->client_methodlist->cbase_geterror( &error ); \
+		throw StrException( "%s", error ); \
+	}
+
+	namespace
+	{
+		bool mainconf_linteger( char const* expr, ptrdiff_t* value )
+		{
+			PROTECTED_CALL_RA( mainconf_linteger, bool, expr, value )
+		}
+
+		bool mainconf_lnumber( char const* expr, double* value )
+		{
+			PROTECTED_CALL_RA( mainconf_lnumber, bool, expr, value )
+		}
+
+		bool mainconf_stringbuf( char const* expr, char* buffer, size_t* length )
+		{
+			PROTECTED_CALL_RA( mainconf_lstringbuf, bool, expr, buffer, length )
+		}
+
+		bool mainconf_lboolean( char const* expr, bool* value )
+		{
+			PROTECTED_CALL_RA( mainconf_lboolean, bool, expr, value )
+		}
+	}
+
 	ptrdiff_t getconfig_integer( char const* expr, ptrdiff_t def )
 	{
-		ptrdiff_t ret;
-		if( WindowInfo->client_methodlist->configset_integer(
-			WindowInfo->configset, expr, def, &ret ) )
+		ptrdiff_t value;
+		if( mainconf_linteger( expr, &value ) )
 		{
-			return ret;
+			return value;
 		}
 		else
 		{
-			char const* error;
-			WindowInfo->client_methodlist->cbase_geterror( &error );
-			throw StrException( "%s", error );
+			return def;
 		}
 	}
 
 	double getconfig_number( char const* expr, double def )
 	{
-		double ret;
-		if( WindowInfo->client_methodlist->configset_number(
-			WindowInfo->configset, expr, def, &ret ) )
+		double value;
+		if( mainconf_lnumber( expr, &value ) )
 		{
-			return ret;
+			return value;
 		}
 		else
 		{
-			char const* error;
-			WindowInfo->client_methodlist->cbase_geterror( &error );
-			throw StrException( "%s", error );
-		}
-	}
-
-	size_t getconfig_lstring( char const* expr, void* buffer, size_t buflen )
-	{
-		size_t ret;
-		if( WindowInfo->client_methodlist->configset_lstring(
-			WindowInfo->configset, expr, ( char* )buffer, buflen, &ret ) )
-		{
-			return ret;
-		}
-		else
-		{
-			char const* error;
-			WindowInfo->client_methodlist->cbase_geterror( &error );
-			throw StrException( "%s", error );
+			return def;
 		}
 	}
 
 	String getconfig_string( char const* expr, String const& def )
 	{
-		size_t len = getconfig_lstring( expr, 0, 0 );
-		if( len == 0 )
+		size_t length;
+		if( mainconf_stringbuf( expr, 0, &length ) )
+		{
+			auto payload = DataBuffer::create( length + 1, length + 1, 0 );
+			mainconf_stringbuf( expr, ( char* )payload->m_data, &length );
+			payload->m_data[ length ] = 0;
+			return String( std::move( payload ) );
+		}
+		else
 		{
 			return def;
 		}
-		auto payload = DataBuffer::create( len, len, 0 );
-		payload->m_length =
-			getconfig_lstring( expr, payload->m_data, payload->m_capacity );
-		return String( std::move( payload ) );
 	}
 
 	bool getconfig_boolean( char const* expr, bool def )
 	{
-		bool ret;
-		if( WindowInfo->client_methodlist->configset_boolean(
-			WindowInfo->configset, expr, def, &ret ) )
+		bool value;
+		if( mainconf_lboolean( expr, &value ) )
 		{
-			return ret;
+			return value;
 		}
 		else
 		{
-			char const* error;
-			WindowInfo->client_methodlist->cbase_geterror( &error );
-			throw StrException( "%s", error );
+			return def;
 		}
 	}
 
