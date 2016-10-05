@@ -55,6 +55,7 @@
     <ClInclude Include="..\..\utils\cyclicbuffer.hpp" />
     <ClInclude Include="..\..\utils\encoding.hpp" />
     <ClInclude Include="..\..\utils\path.hpp" />
+    <ClInclude Include="..\..\utils\pathparse.hpp" />
     <ClInclude Include="..\..\rsbin\common.hpp" />
     <ClInclude Include="..\..\rsbin\fileio.hpp" />
     <ClInclude Include="..\..\rsbin\flaccommon.hpp" />

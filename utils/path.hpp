@@ -4,9 +4,11 @@
 #include <common/ref.hpp>
 #include <common/refobject.hpp>
 #include <common.hpp>
+#include <utils/console.hpp>
 
 namespace utils
 {
+	R_CLASS( name = path )
 	class Path: public RefObject
 	{
 	public:
@@ -18,8 +20,10 @@ namespace utils
 
 	private:
 		Ref< DataBuffer > m_target;
-		Ref< Path > m_base;
 		Ref< DataBuffer > m_result;
+
+	public:
+		Ref< Path > m_base;
 
 	public:
 		Path() = delete;
@@ -33,5 +37,12 @@ namespace utils
 
 	public:
 		static Ref< Path > create( void const* path );
+		static void initialize();
+
+		R_METHOD() void test( void const* path )
+		{
+			Ref< Path > p = create( path );
+			LOG( "%ls", p->combine() );
+		}
 	};
 }

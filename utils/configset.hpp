@@ -23,15 +23,15 @@ namespace utils
 		ConfClass( ConfClass const& ) = delete;
 		ConfClass& operator=( ConfClass const& ) = delete;
 
-		bool binteger( char const* expr, ptrdiff_t* result ) const;
-		bool bnumber( char const* expr, double* result ) const;
-		bool bstring( char const* expr, String* result ) const;
-		bool bboolean( char const* expr, bool* result ) const;
-		bool stringbuf( char const* expr, char* buffer, size_t* length ) const;
-		ptrdiff_t integer( char const* expr, ptrdiff_t def ) const;
-		double number( char const* expr, double def ) const;
-		String string( char const* expr, String const& def ) const;
-		bool boolean( char const* expr, bool result ) const;
+		bool binteger( char const* expr, ptrdiff_t* result );
+		bool bnumber( char const* expr, double* result );
+		bool bstring( char const* expr, String* result );
+		bool bboolean( char const* expr, bool* result );
+		bool stringbuf( char const* expr, char* buffer, size_t* length );
+		ptrdiff_t integer( char const* expr, ptrdiff_t def );
+		double number( char const* expr, double def );
+		String string( char const* expr, String const& def );
+		bool boolean( char const* expr, bool result );
 		void runcmd( char const* expr );
 
 		R_METHOD() static bool linteger(

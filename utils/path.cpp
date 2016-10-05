@@ -1,8 +1,9 @@
 #include <utils/path.hpp>
-#if defined( _WIN32 ) || defined( _WIN64 )
-#include <utils/encoding.hpp>
-#endif
+#include <utils/pathparse.hpp>
+#include <utils/configset.hpp>
 #include <osapi.hpp>
+#include <map>
+#include <string>
 #include <cstring>
 
 namespace utils
@@ -73,18 +74,21 @@ namespace utils
 		return ( char_t const* )m_result->m_data;
 	}
 
-	static Path* getdefaultbase()
+	namespace
 	{
-		static Ref< Path > defaultbase;
-		if( !defaultbase )
+		std::map< std::string, Ref< Path > > rootmap;
+		Ref< Path > defaultbase;
+
+		Ref< Path > rootpath( char const* path )
 		{
 #if defined( _WIN32 ) || defined( _WIN64 )
-			int cwdlength = GetFullPathNameW( PATH_START_W, 0, 0, 0 );
+			Ref< DataBuffer > wpath = intern( ( uint8_t const* )path, 0 );
+			int cwdlength = GetFullPathNameW( LPCWSTR( wpath->m_data ), 0, 0, 0 );
 			Ref< DataBuffer > db = DataBuffer::create( 0, cwdlength * 2 + 10, 0 );
 			uint8_t* data = db->m_data;
 			memcpy( data, L"\\\\\?\\", 8 );
-			cwdlength = GetFullPathNameW( PATH_START_W, cwdlength + 1,
-				LPWSTR( data + 8 ), 0 );
+			cwdlength = GetFullPathNameW(
+				LPCWSTR( wpath->m_data ), cwdlength + 1, LPWSTR( data + 8 ), 0 );
 			wchar_t* buf = ( wchar_t* )data;
 			if( buf[ cwdlength + 3 ] == '\\' )
 			{
@@ -94,168 +98,111 @@ namespace utils
 			{
 				db->m_length = cwdlength * 2 + 8;
 			}
-			defaultbase = Ref< Path >::create( db, nullptr );
-			defaultbase->combine();
+			return Ref< Path >::create( db, nullptr );
 #else
-			static char const path[] = PATH_START;
+			size_t length = strlen( path );
+			while(
+				path[ length - 1 ] <= 32 ||
+				path[ length - 1 ] == '/' ||
+				path[ length - 1 ] == '\\' )
+			{
+				length -= 1;
+			}
 			Ref< DataBuffer > db = DataBuffer::create(
-				sizeof( path ) - 2, sizeof( path ) - 2, path );
-			defaultbase = Ref< Path >::create( db, nullptr );
+				length, length, path );
+			return Ref< Path >::create( db, nullptr );
 #endif
 		}
-		return defaultbase;
-	}
-#if defined( _WIN32 ) || defined( _WIN64 )
-	static Ref< DataBuffer > intern( uint8_t const* str, size_t length )
-	{
-		translation_t translation =
-		{
-			&encoding::utf8,
-			&encoding::utf16,
-			str,
-			0,
-			length,
-			0,
-			0,
-		};
-		if( translatestr( &translation ) != translateresult::success )
-		{
-			throw std::runtime_error( "invalid UTF-8 string" );
-		}
-		Ref< DataBuffer > db = DataBuffer::create(
-			translation.destresult, translation.destresult, 0 );
-		translation.dest = db->m_data;
-		translation.destsize = translation.destresult;
-		if( translatestr( &translation ) != translateresult::success )
-		{
-			throw std::runtime_error( "invalid UTF-8 string" );
-		}
-		return db;
 	}
 
-	static Ref< DataBuffer > intern( uint16_t const* str, size_t length )
+	void Path::initialize()
 	{
-		return DataBuffer::create( length * 2, length * 2, str );
-	}
-#else
-	static Ref< DataBuffer > intern( uint8_t const* str, int length )
-	{
-		return DataBuffer::create( length, length, str );
-	}
-#endif
-	template< typename char_t >
-	static size_t findsep( char_t const* str )
-	{
-		for( char_t const* ch = str; true; ++ch )
+		defaultbase = rootpath( PATH_START );
+		size_t count = MainConf->integer( "#path", 0 );
+		for( size_t i = 1; i <= count; ++i )
 		{
-			if( *ch == 0 || *ch == '\\' || *ch == '/' )
+			String nameexpr = String::format( "path[%llu][1]", i );
+			String targetexpr = String::format( "path[%llu][2]", i );
+			String name = MainConf->string( nameexpr, nullptr );
+			String target = MainConf->string( targetexpr, nullptr );
+			if( name && target )
 			{
-				return ch - str;
+				Ref< Path > path = rootpath( target );
+				rootmap.emplace( name.getchars(), path );
 			}
 		}
 	}
 
-	template< typename char_t >
-	static char_t const* skipsep( char_t const* str )
+	namespace
 	{
-		while( *str != 0 && ( *str <= 32 || *str == '\\' || *str == '/' ) )
+		template< typename char_t >
+		void pointmove(
+			Ref< Path >* pcurrent, char_t const* point, size_t length )
 		{
-			++str;
-		}
-		return str;
-	}
-
-	template< typename char_t >
-	static bool trim( char_t const** pstr, size_t* plength )
-	{
-		char_t const* str = *pstr;
-		size_t length = *plength;
-		for( size_t i = 0; i < length; ++i )
-		{
-			if( str[ i ] > 32 )
+			if( !point )
 			{
-				str = str + i;
-				length = length - i;
-				goto left_pass;
+			}
+			else if( point[ 0 ] == '.' && length == 1 )
+			{
+			}
+			else if( point[ 0 ] == '.' && point[ 1 ] == '.' && length == 2 )
+			{
+				*pcurrent = ( *pcurrent )->m_base;
+				if( !*pcurrent )
+				{
+					throw std::runtime_error( "invalid path" );
+				}
+			}
+			else
+			{
+				*pcurrent = Ref< Path >::create(
+					intern( point, length ), *pcurrent );
 			}
 		}
-		return false;
-	left_pass:
-		for( size_t i = length - 1; i >= 0; --i )
-		{
-			if( str[ i ] > 32 )
-			{
-				*pstr = str;
-				*plength = i + 1;
-				return true;
-			}
-		}
-		return false;
 	}
 
 	Ref< Path > Path::create( void const* path )
 	{
-		Ref< Path > current = getdefaultbase();
+		Ref< Path > current;
 		uint8_t const* pathb = ( uint8_t const* )path;
 #if defined( _WIN32 ) || defined( _WIN64 )
 		if( pathb[ 0 ] == 0xff && pathb[ 1 ] == 0xfe )
 		{
-			uint16_t const* pathh = skipsep( ( uint16_t const* )( pathb + 2 ) );
-			while( pathh[ 0 ] != 0 )
+			uint16_t const* pathh = ( uint16_t const* )( pathb + 2 );
+			uint16_t const* point;
+			size_t length = 0;
+			while( nextpoint( &pathh, &point, &length ) )
 			{
-				uint16_t const* partstr = pathh;
-				size_t partlen = findsep( pathh );
-				pathh = skipsep( pathh + partlen );
-				if( trim( &partstr, &partlen ) )
-				{
-					if( partstr[ 0 ] == '.' && partlen == 1 )
-					{
-					}
-					else if(
-						partstr[ 0 ] == '.' && partstr[ 1 ] == '.' && partlen == 2 )
-					{
-						current = current->m_base;
-						if( !current )
-						{
-							throw std::runtime_error( "invalid path" );
-						}
-					}
-					else
-					{
-						current = Ref< Path >::create(
-							intern( partstr, partlen ), current );
-					}
-				}
+				pointmove( &current, point, length );
 			}
 			return current;
 		}
 #endif
-		pathb = skipsep( pathb );
-		while( pathb[ 0 ] != 0 )
+		uint8_t const* point;
+		size_t length;
+		nextpoint( &pathb, &point, &length );
+		if( point )
 		{
-			uint8_t const* partstr = pathb;
-			size_t partlen = findsep( pathb );
-			pathb = skipsep( pathb + partlen );
-			if( trim( &partstr, &partlen ) )
+			std::string pointstd(
+				( char const* )point, ( char const* )point + length );
+			auto it = rootmap.find( pointstd );
+			if( it != rootmap.end() )
 			{
-				if( partstr[ 0 ] == '.' && partlen == 1 )
-				{
-				}
-				else if(
-					partstr[ 0 ] == '.' && partstr[ 1 ] == '.' && partlen == 2 )
-				{
-					current = current->m_base;
-					if( !current )
-					{
-						throw std::runtime_error( "invalid path" );
-					}
-				}
-				else
-				{
-					current = Ref< Path >::create(
-						intern( partstr, partlen ), current );
-				}
+				current = it->second;
 			}
+			else
+			{
+				current = defaultbase;
+				pointmove( &current, point, length );
+			}
+		}
+		else
+		{
+			current = defaultbase;
+		}
+		while( nextpoint( &pathb, &point, &length ) )
+		{
+			pointmove( &current, point, length );
 		}
 		return current;
 	}

@@ -1,5 +1,8 @@
 #pragma once
 
+#include <common/string.hpp>
+#include <common/ref.hpp>
+#include <common/databuffer.hpp>
 #include <common.hpp>
 #include <cinttypes>
 
@@ -92,6 +95,13 @@ R_END()
 	};
 
 	translateresult translatestr( translation_t* translation );
+	Ref< DataBuffer > translatebuffer(
+		encoding_t const* senc, encoding_t const* denc,
+		void const* source, size_t sourcesize = 0 );
+	Ref< DataBuffer > translatebuffer(
+		encoding_t const* senc, encoding_t const* denc, DataBuffer* source );
+	Ref< DataBuffer > translatestring(
+		encoding_t const* denc, String const& source );
 
 	R_CLASS( name = encoding )
 	struct Encoding

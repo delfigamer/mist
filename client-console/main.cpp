@@ -1,5 +1,6 @@
 #include <client-console/window.hpp>
 #include <rsbin/fsthread.hpp>
+#include <utils/path.hpp>
 #include <utils/configset.hpp>
 #include <utils/console.hpp>
 #include <osapi.hpp>
@@ -101,6 +102,7 @@ int main( int argc, char const** argv )
 {
 	utils::Console = new utils::ConsoleClass();
 	utils::MainConf = new utils::ConfClass( MAINCONF_PATH, MAINCONF_STR );
+	utils::Path::initialize();
 	rsbin::FsThread = new rsbin::FsThreadClass();
 	LOG( "~ Console application start" );
 	window::WindowCreationData wcd;

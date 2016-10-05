@@ -56,7 +56,6 @@ namespace
 #if defined( _WIN32 ) || defined( _WIN64 )
 #define PATH_START "..\\"
 #define PATH_SEP "\\"
-#define PATH_START_W L"..\\"
 #elif defined( __ANDROID__ )
 #define PATH_START "/storage/sdcard0/Android/data/me.sheimi.sgit/files/repo/mist/output/"
 #define PATH_SEP "/"

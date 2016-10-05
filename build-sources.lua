@@ -101,6 +101,13 @@ local sources = {
 		type = 'native',
 		name = 'utils/path',
 		use = 'client-console;client-main',
+		methodlist = 'client-console;client-main',
+	},
+	{
+		type = 'native',
+		name = 'utils/pathparse',
+		headeronly = true,
+		use = 'client-console;client-main',
 	},
 --------------------------------------------------------------------------------
 	{

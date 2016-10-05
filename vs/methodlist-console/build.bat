@@ -9,6 +9,7 @@ call lua ^
 	"utils\cbase.hpp" ^
 	"utils\configset.hpp" ^
 	"utils\encoding.hpp" ^
+	"utils\path.hpp" ^
 	"rsbin\common.hpp" ^
 	"rsbin\fileio.hpp" ^
 	"rsbin\flaccommon.hpp" ^

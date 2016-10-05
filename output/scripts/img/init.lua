@@ -1,8 +1,7 @@
-local modname, target = ...
+local modname = ...
 
 return package.modulepack{
 	prefix = modname .. '.',
-	target = target,
 	names = {
 		'add',
 		'addscaled',

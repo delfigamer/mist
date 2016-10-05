@@ -1,3 +1,7 @@
+path = {
+	{'assetsources', _PATH .. '../assetsources'},
+	{'build', _PATH .. '../build'},
+}
 index_silent = 'index-cmd'
 index = 'index-test'
 windowsize={1280, 720}

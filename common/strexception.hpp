@@ -31,14 +31,8 @@ inline StrException::StrException( char const* format, ... )
 {
 	va_list vl;
 	va_start( vl, format );
-	int bufsize = vsnprintf( 0, 0, format, vl );
+	m_message = String::format( format, vl );
 	va_end( vl );
-	va_start( vl, format );
-	Ref< DataBuffer > buffer = DataBuffer::create( 0, bufsize + 1, 0 );
-	buffer->m_length = 1 + vsnprintf(
-		( char* )buffer->m_data, buffer->m_capacity, format, vl );
-	va_end( vl );
-	m_message.m_payload = buffer;
 }
 
 inline StrException::StrException( String const& message )

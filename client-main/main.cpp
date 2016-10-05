@@ -1,5 +1,6 @@
 #include <client-main/window.hpp>
 #include <rsbin/fsthread.hpp>
+#include <utils/path.hpp>
 #include <utils/configset.hpp>
 #include <utils/console.hpp>
 #include <osapi.hpp>
@@ -109,6 +110,7 @@ void android_main( android_app* app )
 #endif
 	utils::Console = new utils::ConsoleClass();
 	utils::MainConf = new utils::ConfClass( MAINCONF_PATH, MAINCONF_STR );
+	utils::Path::initialize();
 	rsbin::FsThread = new rsbin::FsThreadClass();
 	LOG( "~ Application start" );
 	window::WindowCreationData wcd;

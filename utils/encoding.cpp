@@ -561,6 +561,48 @@ namespace utils
 		return resultcode;
 	}
 
+	Ref< DataBuffer > translatebuffer(
+		encoding_t const* senc, encoding_t const* denc,
+		void const* source, size_t sourcesize )
+	{
+		translation_t translation = {
+			senc,
+			denc,
+			source,
+			0,
+			sourcesize,
+			0,
+			0xfffd,
+		};
+		translatestr( &translation );
+		Ref< DataBuffer > db = DataBuffer::create(
+			translation.destresult, translation.destresult, 0 );
+		translation.dest = db->m_data;
+		translation.sourcesize = translation.sourceresult;
+		translation.destsize = db->m_capacity;
+		utils::translatestr( &translation );
+		return db;
+	}
+
+	Ref< DataBuffer > translatebuffer(
+		encoding_t const* senc, encoding_t const* denc, DataBuffer* source )
+	{
+		return translatebuffer( senc, denc, source->m_data, source->m_length );
+	}
+
+	Ref< DataBuffer > translatestring(
+		encoding_t const* denc, String const& source )
+	{
+		if( source )
+		{
+			return translatebuffer( &encoding::utf8, denc, source.m_payload );
+		}
+		else
+		{
+			return translatebuffer( &encoding::utf8, denc, "", 1 );
+		}
+	}
+
 	encoding_t const* Encoding::getencoding( int index )
 	{
 		if(

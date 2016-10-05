@@ -5,6 +5,8 @@
 #include <common.hpp>
 #include <atomic>
 #include <utility>
+#include <cstdarg>
+#include <cstdio>
 #include <cstring>
 #include <cinttypes>
 
@@ -29,6 +31,9 @@ public:
 	size_t getlength() const NOEXCEPT;
 	const char* getchars() const NOEXCEPT;
 	void setchars( const char* newchars, size_t length = 0 );
+
+	static String vformat( const char* fmt, va_list vl );
+	static String format( const char* fmt, ... );
 };
 
 inline String::String()
@@ -123,4 +128,24 @@ inline void String::setchars( const char* newchars, size_t length )
 	payload->m_length = length + 1;
 	std::atomic_thread_fence( std::memory_order_release );
 	m_payload = payload;
+}
+
+inline String String::vformat( char const* fmt, va_list vl )
+{
+	va_list vl2;
+	va_copy( vl2, vl );
+	size_t bufsize = vsnprintf( 0, 0, fmt, vl );
+	Ref< DataBuffer > buffer = DataBuffer::create( 0, bufsize + 1, 0 );
+	buffer->m_length = 1 + vsnprintf(
+		( char* )buffer->m_data, buffer->m_capacity, fmt, vl2 );
+	return String( buffer );
+}
+
+inline String String::format( char const* fmt, ... )
+{
+	va_list vl;
+	va_start( vl, fmt );
+	String result = vformat( fmt, vl );
+	va_end( vl );
+	return result;
 }

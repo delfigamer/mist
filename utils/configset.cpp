@@ -1,12 +1,55 @@
 #include <utils/configset.hpp>
 #include <utils/console.hpp>
+#if defined( _WIN32 ) || defined( _WIN64 )
+#include <utils/encoding.hpp>
+#elif defined( __ANDROID__ )
+#endif
+#include <common/databuffer.hpp>
+#include <common/ref.hpp>
+#include <osapi.hpp>
 #include <cstring>
 
 namespace utils
 {
+	int lua_getenv( lua_State* L )
+	{
+#if defined( _WIN32 ) || defined( _WIN64 )
+		char const* name = lua_tostring( L, 1 );
+		Ref< DataBuffer > wname = translatebuffer(
+			&encoding::utf8, &encoding::utf16, name );
+		int buflen = GetEnvironmentVariableW( LPCWSTR( wname->m_data ), 0, 0 );
+		if( buflen == 0 )
+		{
+			lua_pushstring( L, "" );
+			return 1;
+		}
+		Ref< DataBuffer > wvalue = DataBuffer::create(
+			buflen * 2 + 2, buflen * 2 + 2, 0 );
+		buflen = GetEnvironmentVariableW(
+			LPCWSTR( wname->m_data ), LPWSTR( wvalue->m_data ), buflen + 1 );
+		Ref< DataBuffer > value = translatebuffer(
+			&encoding::utf16, &encoding::utf8, wvalue );
+		lua_pushstring( L, ( char const* )value->m_data );
+		return 1;
+#elif defined( __ANDROID__ )
+		ASSERT( false );
+#endif
+	}
+
+	char const* luadef_envsub =
+		"function envsub(str)"
+			"return string.gsub(str, '%%(.-)%%', getenv)"
+		"end";
+
 	ConfClass::ConfClass( char const* filename, char const* init )
 	{
 		m_lstate = luaL_newstate();
+		lua_pushcfunction( m_lstate, &luaopen_string );
+		lua_call( m_lstate, 0, 0 );
+		lua_pushcfunction( m_lstate, &lua_getenv );
+		lua_setglobal( m_lstate, "getenv" );
+		luaL_loadstring( m_lstate, luadef_envsub );
+		lua_call( m_lstate, 0, 0 );
 		if( init )
 		{
 			if( luaL_loadstring( m_lstate, init ) != 0 )
@@ -120,28 +163,28 @@ namespace utils
 		}
 	}
 
-	bool ConfClass::binteger( char const* expr, ptrdiff_t* value ) const
+	bool ConfClass::binteger( char const* expr, ptrdiff_t* value )
 	{
 		return accessor< ptrdiff_t >( m_lstate, expr, value );
 	}
 
-	bool ConfClass::bnumber( char const* expr, double* value ) const
+	bool ConfClass::bnumber( char const* expr, double* value )
 	{
 		return accessor< double >( m_lstate, expr, value );
 	}
 
-	bool ConfClass::bstring( char const* expr, String* value ) const
+	bool ConfClass::bstring( char const* expr, String* value )
 	{
 		return accessor< String >( m_lstate, expr, value );
 	}
 
-	bool ConfClass::bboolean( char const* expr, bool* value ) const
+	bool ConfClass::bboolean( char const* expr, bool* value )
 	{
 		return accessor< bool >( m_lstate, expr, value );
 	}
 
 	bool ConfClass::stringbuf(
-		char const* expr, char* buffer, size_t* length ) const
+		char const* expr, char* buffer, size_t* length )
 	{
 		String value;
 		if( bstring( expr, &value ) )
@@ -166,22 +209,22 @@ namespace utils
 		}
 	}
 
-	ptrdiff_t ConfClass::integer( char const* expr, ptrdiff_t def ) const
+	ptrdiff_t ConfClass::integer( char const* expr, ptrdiff_t def )
 	{
 		return accessor_def< ptrdiff_t >( m_lstate, expr, def );
 	}
 
-	double ConfClass::number( char const* expr, double def ) const
+	double ConfClass::number( char const* expr, double def )
 	{
 		return accessor_def< double >( m_lstate, expr, def );
 	}
 
-	String ConfClass::string( char const* expr, String const& def ) const
+	String ConfClass::string( char const* expr, String const& def )
 	{
 		return accessor_def< String >( m_lstate, expr, def );
 	}
 
-	bool ConfClass::boolean( char const* expr, bool def ) const
+	bool ConfClass::boolean( char const* expr, bool def )
 	{
 		return accessor_def< bool >( m_lstate, expr, def );
 	}
