@@ -76,17 +76,11 @@ local function translate(source, target)
 end
 
 translate(
-	'vs/client-console/client-console-template.vcxproj',
-	'vs/client-console/client-console.vcxproj')
-translate(
 	'vs/client-main/client-main-template.vcxproj',
 	'vs/client-main/client-main.vcxproj')
 translate(
 	'vs/luac/luac-template.vcxproj',
 	'vs/luac/luac.vcxproj')
-translate(
-	'vs/luainit-console/luainit-console-template.vcxproj',
-	'vs/luainit-console/luainit-console.vcxproj')
 translate(
 	'vs/luainit-main/luainit-main-template.vcxproj',
 	'vs/luainit-main/luainit-main.vcxproj')
@@ -96,12 +90,6 @@ translate(
 translate(
 	'vs/luainit-renderer-gles/luainit-renderer-gles-template.vcxproj',
 	'vs/luainit-renderer-gles/luainit-renderer-gles.vcxproj')
-translate(
-	'vs/methodlist-console/methodlist-console-template.vcxproj',
-	'vs/methodlist-console/methodlist-console.vcxproj')
-translate(
-	'vs/methodlist-console/build-template.bat',
-	'vs/methodlist-console/build.bat')
 translate(
 	'vs/methodlist-main/methodlist-main-template.vcxproj',
 	'vs/methodlist-main/methodlist-main.vcxproj')

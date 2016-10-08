@@ -156,9 +156,7 @@ namespace window
 		memset( &m_pointstate, 0, sizeof( m_pointstate ) );
 		m_silent = utils::MainConf->boolean( "silent", false );
 		m_fpscounter = 0;
-		m_tpscounter = 0;
 		m_fpstime = 0x7fffffff;
-		m_tpstime = 0x7fffffff;
 		if( !m_silent )
 		{
 			m_wndclass.style = CS_VREDRAW | CS_HREDRAW;
@@ -256,7 +254,7 @@ namespace window
 					DispatchMessageW( &message );
 				}
 			}
-			if( m_silent  || m_finishrequired
+			if( m_finishrequired
 				|| m_finished.load( std::memory_order_relaxed ) )
 			{
 				finalize();
@@ -452,31 +450,32 @@ namespace window
 
 	static Ref< DataBuffer > utf8toutf16( String str )
 	{
-		utils::translation_t translation = {
-			&utils::encoding::utf8,
-			&utils::encoding::utf16,
-			str.getchars(),
-			0,
-			0,
-			0,
-			0xfffd,
-		};
-		if( utils::translatestr( &translation ) !=
-			utils::translateresult::success )
-		{
-			throw std::runtime_error( "cannot translate a utf-8 string" );
-		}
-		Ref< DataBuffer > db = DataBuffer::create(
-			translation.destresult, translation.destresult, 0 );
-		translation.dest = db->m_data;
-		translation.sourcesize = translation.sourceresult;
-		translation.destsize = db->m_capacity;
-		if( utils::translatestr( &translation ) !=
-			utils::translateresult::success )
-		{
-			throw std::runtime_error( "cannot translate a utf-8 string" );
-		}
-		return std::move( db );
+		// utils::translation_t translation = {
+			// &utils::encoding::utf8,
+			// &utils::encoding::utf16,
+			// str.getchars(),
+			// 0,
+			// 0,
+			// 0,
+			// 0xfffd,
+		// };
+		// if( utils::translatestr( &translation ) !=
+			// utils::translateresult::success )
+		// {
+			// throw std::runtime_error( "cannot translate a utf-8 string" );
+		// }
+		// Ref< DataBuffer > db = DataBuffer::create(
+			// translation.destresult, translation.destresult, 0 );
+		// translation.dest = db->m_data;
+		// translation.sourcesize = translation.sourceresult;
+		// translation.destsize = db->m_capacity;
+		// if( utils::translatestr( &translation ) !=
+			// utils::translateresult::success )
+		// {
+			// throw std::runtime_error( "cannot translate a utf-8 string" );
+		// }
+		// return std::move( db );
+		return utils::translatestring( &utils::encoding::utf16, str );
 	}
 
 	void Window::initialize()
@@ -537,6 +536,8 @@ namespace window
 			m_info.height = 0;
 			m_info.texelsoffset = 0;
 			m_info.texeltoffset = 0;
+			m_info.renderer_methodlist = 0;
+			m_info.renderer_module = 0;
 			m_info.acceleratorinput = false;
 			m_info.pointinput = false;
 			m_info.keyboardinput = false;
@@ -550,11 +551,14 @@ namespace window
 		closelstate();
 		if( !m_silent )
 		{
+#if defined( _WIN32 ) || defined( _WIN64 )
 			if( m_renderer_display_destroy && m_display )
 			{
 				m_renderer_display_destroy( m_display );
 			}
 			FreeLibrary( m_renderermodule );
+#elif defined( __ANDROID__ )
+#endif
 		}
 	}
 
@@ -579,7 +583,7 @@ namespace window
 			char buffer[ 256 ];
 			snprintf(
 				buffer, sizeof( buffer ),
-				"FPS=%.3i; TPS=%.3i", m_fps, m_tps );
+				"FPS=%.3i", m_fps );
 			SetWindowText( m_hwnd, buffer );
 #endif
 		}
@@ -636,7 +640,6 @@ namespace window
 	{
 		m_luathread = std::thread( &Window::luathreadfunc, this );
 		m_timeoffset = clock();
-		m_tpstime = clock() + CLOCKS_PER_SEC;
 	}
 
 	void Window::closelstate()

@@ -183,13 +183,11 @@ table.append(targets, {
 })
 
 local methodlist_items = {
-	['client-console'] = {},
 	['client-main'] = {},
 	['renderer-d3d9'] = {},
 	['renderer-gles'] = {},
 }
 for i, target in ipairs{
-	'client-console',
 	'client-main',
 	'renderer-d3d9',
 	'renderer-gles',
@@ -239,7 +237,6 @@ for i, target in ipairs{
 end
 
 for i, target in ipairs{
-	'client-console',
 	'client-main',
 } do
 	table.append(targets, {
@@ -344,10 +341,6 @@ for i, target in ipairs{
 end
 
 local target_items = {
-	['client-console'] = {
-		builddir .. '/client-console/luainit.o',
-		builddir .. '/client-console/methodlist.o',
-	},
 	['client-main'] = {
 		builddir .. '/client-main/luainit.o',
 		builddir .. '/client-main/methodlist.o',
@@ -362,20 +355,6 @@ local target_items = {
 	},
 }
 
-table.append(targets, {
-	build = build_exe,
-	target = outputdir .. '/client-console.exe',
-	items = target_items['client-console'],
-	libraries = {
-		'luajit-' .. platform,
-		'png-' .. platform,
-		'z',
-		'libFLAC_dynamic',
-	},
-	dependencies = {
-		outputdir .. '/libFLAC_dynamic.dll',
-	},
-})
 table.append(targets, {
 	build = build_exe,
 	target = outputdir .. '/client-main.exe',
@@ -434,7 +413,6 @@ end
 table.append(targets, {
 	target = 'all',
 	dependencies = {
-		outputdir .. '/client-console.exe',
 		outputdir .. '/client-main.exe',
 		outputdir .. '/renderer-d3d9.dll',
 		outputdir .. '/renderer-gles.dll',
@@ -449,7 +427,6 @@ table.append(targets, {
 		builddir,
 	},
 	files = {
-		outputdir .. '/client-console.exe',
 		outputdir .. '/client-main.exe',
 		outputdir .. '/renderer-d3d9.dll',
 		outputdir .. '/renderer-gles.dll',

@@ -103,9 +103,7 @@ namespace window
 		bool m_silent;
 		WindowInfo m_info;
 		int m_fpscounter;
-		int m_tpscounter;
 		int m_fps;
-		int m_tps;
 		clock_t m_timeoffset;
 		clock_t m_fpstime;
 		clock_t m_tpstime;
