@@ -3,9 +3,7 @@
 #define R_ENUM( ... )
 #define R_STRUCT( ... )
 #define R_CLASS( ... )
-#define R_EXTERNAL( ... )
 #define R_METHOD( ... )
-#define R_TYPE( ... )
 #define R_EMIT( ... )
 #define R_END( ... )
 
@@ -18,10 +16,12 @@
 #define ATTRIBUTE __attribute__
 #endif
 
+#if defined( MIST_DEBUG )
 #include <cstdio>
 #include <cstdlib>
 inline void ASSERT_POS(
-	char const* file, int line, bool cond, char const* msg = "assertion failed" )
+	char const* file, int line, bool cond,
+	char const* msg = "assertion failed" )
 {
 	if( !cond )
 	{
@@ -30,6 +30,9 @@ inline void ASSERT_POS(
 	}
 }
 #define ASSERT( ... ) ASSERT_POS( __FILE__, __LINE__, ##__VA_ARGS__ )
+#else
+#define ASSERT( ... )
+#endif
 
 #if defined( _MSC_VER )
 extern "C" __declspec( dllimport ) int __cdecl vsnprintf( char*, size_t, char const*, char* );

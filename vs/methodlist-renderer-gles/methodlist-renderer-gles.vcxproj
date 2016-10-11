@@ -22,7 +22,7 @@
     <CustomBuild Include="build.bat">
       <FileType>Document</FileType>
       <Command>call %(FullPath) "$(SolutionDir)" vs120-$(Platform)-$(Configuration)</Command>
-      <AdditionalInputs>$(SolutionDir)..\renderer-state\programtranslator.hpp;$(SolutionDir)..\renderer-state\resource.hpp;$(SolutionDir)..\renderer-state\shape.hpp;$(SolutionDir)..\renderer-state\shapegroup.hpp;$(SolutionDir)..\renderer-gles\clearshape.hpp;$(SolutionDir)..\renderer-gles\common.hpp;$(SolutionDir)..\renderer-gles\primitiveshape.hpp;$(SolutionDir)..\renderer-gles\staticvertexbuffer.hpp;$(SolutionDir)..\renderer-gles\vertexbuffer.hpp;$(SolutionDir)..\renderer-gles\vertexdeclaration.hpp</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\renderer-state\programtranslator.hpp;$(SolutionDir)..\renderer-state\resource.hpp;$(SolutionDir)..\renderer-state\shape.hpp;$(SolutionDir)..\renderer-state\shapegroup.hpp;$(SolutionDir)..\renderer-gles\clearshape.hpp;$(SolutionDir)..\renderer-gles\common.hpp;$(SolutionDir)..\renderer-gles\primitiveshape.hpp;$(SolutionDir)..\renderer-gles\program.hpp;$(SolutionDir)..\renderer-gles\staticvertexbuffer.hpp;$(SolutionDir)..\renderer-gles\vertexbuffer.hpp;$(SolutionDir)..\renderer-gles\vertexdeclaration.hpp</AdditionalInputs>
       <Outputs>$(OutDir)methodlist.hpp;$(OutDir)methodlist.cpp;$(OutDir)methodlist.lua</Outputs>
     </CustomBuild>
   </ItemGroup>

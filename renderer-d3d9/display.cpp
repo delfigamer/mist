@@ -29,15 +29,17 @@ namespace graphics
 				D3DPRESENT_INTERVAL_ONE :
 				D3DPRESENT_INTERVAL_IMMEDIATE,
 		};
-		Context::D3D = Direct3DCreate9( D3D_SDK_VERSION );
+		Context::D3D.possess( Direct3DCreate9( D3D_SDK_VERSION ) );
 		if( !Context::D3D )
 		{
 			throw std::runtime_error( "Direct3DCreate9 failed" );
 		}
+		IDirect3DDevice9* device = 0;
 		checkerror( Context::D3D->CreateDevice(
 			D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, m_hwnd,
 			D3DCREATE_FPU_PRESERVE | D3DCREATE_SOFTWARE_VERTEXPROCESSING,
-			&presentparameters, &Context::Device ) );
+			&presentparameters, &device ) );
+		Context::Device.possess( device );
 		WindowInfo->width = presentparameters.BackBufferWidth;
 		WindowInfo->height = presentparameters.BackBufferHeight;
 		WindowInfo->texelsoffset = 0.5;
@@ -50,9 +52,9 @@ namespace graphics
 	Display::~Display()
 	{
 		m_shape = nullptr;
-		Context::cleanup();
-		RELEASE( Context::Device );
-		RELEASE( Context::D3D );
+		Context::rundeferred();
+		Context::Device = nullptr;
+		Context::D3D = nullptr;
 	}
 
 	void Display::paint()
@@ -77,7 +79,7 @@ namespace graphics
 				0xff4c4c4c, 0, 0 ) );
 		}
 		checkerror( Context::Device->Present( 0, 0, 0, 0 ) );
-		Context::cleanup();
+		Context::rundeferred();
 	}
 
 	void Display::setshape( Shape* nv )

@@ -25,6 +25,7 @@
     <ClCompile Include="..\..\renderer-gles\display.cpp" />
     <ClCompile Include="..\..\renderer-gles\interface.cpp" />
     <ClCompile Include="..\..\renderer-gles\primitiveshape.cpp" />
+    <ClCompile Include="..\..\renderer-gles\program.cpp" />
     <ClCompile Include="..\..\renderer-gles\programtranslator.cpp" />
     <ClCompile Include="..\..\renderer-gles\resource.cpp" />
     <ClCompile Include="..\..\renderer-gles\shape.cpp" />
@@ -71,6 +72,7 @@
     <ClInclude Include="..\..\renderer-gles\gl2.hpp" />
     <ClInclude Include="..\..\renderer-gles\interface.hpp" />
     <ClInclude Include="..\..\renderer-gles\primitiveshape.hpp" />
+    <ClInclude Include="..\..\renderer-gles\program.hpp" />
     <ClInclude Include="..\..\renderer-gles\programtranslator.hpp" />
     <ClInclude Include="..\..\renderer-gles\resource.hpp" />
     <ClInclude Include="..\..\renderer-gles\shape.hpp" />

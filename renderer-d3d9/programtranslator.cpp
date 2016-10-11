@@ -1,4 +1,5 @@
 #include <renderer-d3d9/programtranslator.hpp>
+#include <renderer-d3d9/common.hpp>
 
 #include <renderer-state/programtranslator-cpp.hpp>
 

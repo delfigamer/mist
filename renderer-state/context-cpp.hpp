@@ -1,27 +1,28 @@
 #pragma once
 
 #include <renderer-state/resource.hpp>
+#include <utility>
 
 namespace graphics
 {
 	namespace Context
 	{
-		std::atomic< size_t > DrawnFrame( 0 );
-		MPSCQueue< Resource* > Dead;
+		std::atomic< size_t > DrawnFrame( 1 );
+		MPSCQueue< method_t > Deferred;
 		void* CurrentVertexDeclaration;
 		void* CurrentVertexBuffer;
 
-		void markdead( Resource* res )
+		void defer( void( *func )( void* ), void* ud, RefObject* target )
 		{
-			Dead.push( res );
+			Deferred.push( func, ud, target );
 		}
 
-		void cleanup()
+		void rundeferred()
 		{
-			Resource* res;
-			while( Dead.pop( &res ) )
+			method_t method;
+			while( Deferred.pop( &method ) )
 			{
-				delete res;
+				method.func( method.ud );
 			}
 		}
 	}

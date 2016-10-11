@@ -14,16 +14,13 @@ namespace graphics
 	}
 
 	VertexBuffer::VertexBuffer()
-		: m_vertexdeclaration( nullptr )
-		, m_vertexbuffer( 0 )
-		, m_buffercapacity( 0 )
+		: m_buffercapacity( 0 )
 		, m_buffersize( 0 )
 	{
 	}
 
 	VertexBuffer::~VertexBuffer()
 	{
-		RELEASE( m_vertexbuffer );
 	}
 
 	bool VertexBuffer::bind( size_t* vertexcount, VertexDeclaration** pvd )

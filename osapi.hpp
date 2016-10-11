@@ -43,7 +43,7 @@ namespace
 		if( buflen == 0 )
 		{
 			throw StrException(
-				"[%73s:%4i]\tWin32 error %i", file, line, lasterror );
+				"[%73s:%4i]\tWin32 error %lu", file, line, lasterror );
 		}
 		throw StrException( "[%73s:%4i]\t%s", file, line, buffer );
 #elif defined ( __ANDROID__ )

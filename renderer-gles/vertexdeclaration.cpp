@@ -18,7 +18,7 @@ namespace graphics
 					elems[ i ].attribute >= Limits::AttributeCount )
 				{
 					throw StrException(
-						"invalid attribute index %i for element %i",
+						"invalid attribute index %i for element %" PRIiPTR,
 						elems[ i ].attribute, i );
 				}
 				if( elems[ i ].format < 0 ||
@@ -26,13 +26,13 @@ namespace graphics
 						int( vertexelementformat::invalid ) )
 				{
 					throw StrException(
-						"invalid format %i for element %i",
+						"invalid format %i for element %" PRIiPTR,
 						elems[ i ].format, i );
 				}
 				if( attrused[ elems[ i ].attribute ] )
 				{
 					throw StrException(
-						"duplicate attribute index %i at element %i",
+						"duplicate attribute index %i at element %" PRIiPTR,
 						elems[ i ].attribute, i );
 				}
 				attrused[ elems[ i ].attribute ] = true;

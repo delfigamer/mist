@@ -60,8 +60,11 @@ namespace rsbin
 		R_METHOD() int getbitdepth() NOEXCEPT { return m_bitdepth; }
 		R_METHOD() int getchannels() NOEXCEPT { return m_channels; }
 		R_METHOD() int getsamplerate() NOEXCEPT { return m_samplerate; }
-		R_METHOD( addref ) DataBuffer* getdata() NOEXCEPT
-			{ return m_target; }
+		R_METHOD() DataBuffer* getdata() NOEXCEPT
+		{
+			::addref( m_target );
+			return m_target;
+		}
 		R_METHOD() bool isfinished() NOEXCEPT { return true; }
 	};
 }

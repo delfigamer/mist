@@ -11,6 +11,7 @@ call lua ^
 	"renderer-d3d9\clearshape.hpp" ^
 	"renderer-d3d9\common.hpp" ^
 	"renderer-d3d9\primitiveshape.hpp" ^
+	"renderer-d3d9\program.hpp" ^
 	"renderer-d3d9\staticvertexbuffer.hpp" ^
 	"renderer-d3d9\vertexbuffer.hpp" ^
 	"renderer-d3d9\vertexdeclaration.hpp"

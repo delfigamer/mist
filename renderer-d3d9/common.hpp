@@ -2,6 +2,7 @@
 
 #include <renderer-d3d9/context.hpp>
 #include <renderer-d3d9/interface.hpp>
+#include <renderer-d3d9/comref.hpp>
 
 /*
 R_EMIT( typename =
@@ -45,19 +46,6 @@ namespace graphics
 {
 	void checkerror_pos(
 		char const* filename, char const* function, int line, HRESULT hr );
-
-	namespace
-	{
-		template< typename T >
-		void RELEASE( T*& ref )
-		{
-			if( ref )
-			{
-				ref->Release();
-				ref = 0;
-			}
-		}
-	}
 
 	extern int const AttributeUsageTable[ Limits::AttributeCount ][ 2 ];
 }

@@ -11,6 +11,7 @@ call lua ^
 	"renderer-gles\clearshape.hpp" ^
 	"renderer-gles\common.hpp" ^
 	"renderer-gles\primitiveshape.hpp" ^
+	"renderer-gles\program.hpp" ^
 	"renderer-gles\staticvertexbuffer.hpp" ^
 	"renderer-gles\vertexbuffer.hpp" ^
 	"renderer-gles\vertexdeclaration.hpp"

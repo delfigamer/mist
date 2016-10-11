@@ -1,6 +1,5 @@
 #pragma once
 
-#include <common/refobject.hpp>
 #include <common.hpp>
 #include <atomic>
 #include <stdexcept>
@@ -120,10 +119,7 @@ template< typename T >
 Ref< T >::~Ref() NOEXCEPT
 {
 	T* oldref = m_ref.exchange( nullptr, std::memory_order_relaxed );
-	if( oldref )
-	{
-		oldref->release();
-	}
+	release( oldref );
 }
 
 template< typename T >
@@ -131,10 +127,7 @@ T* Ref< T >::possess( std::nullptr_t ) NOEXCEPT
 {
 	T* oldref;
 	oldref = m_ref.exchange( nullptr, std::memory_order_relaxed );
-	if( oldref )
-	{
-		oldref->release();
-	}
+	release( oldref );
 	return oldref;
 }
 
@@ -143,10 +136,7 @@ template< typename U > T* Ref< T >::possess( U* ref ) NOEXCEPT
 {
 	T* oldref;
 	oldref = m_ref.exchange( ref, std::memory_order_relaxed );
-	if( oldref )
-	{
-		oldref->release();
-	}
+	release( oldref );
 	return oldref;
 }
 
@@ -154,25 +144,16 @@ template< typename T >
 T* Ref< T >::assign( std::nullptr_t ) NOEXCEPT
 {
 	T* oldref = m_ref.exchange( nullptr, std::memory_order_relaxed );
-	if( oldref )
-	{
-		oldref->release();
-	}
+	release( oldref );
 	return oldref;
 }
 
 template< typename T >
 template< typename U > T* Ref< T >::assign( U* ref ) NOEXCEPT
 {
-	if( ref )
-	{
-		ref->addref();
-	}
+	addref( ref );
 	T* oldref = m_ref.exchange( ref, std::memory_order_relaxed );
-	if( oldref )
-	{
-		oldref->release();
-	}
+	release( oldref );
 	return oldref;
 }
 

@@ -5,6 +5,6 @@ path = {
 index_silent = 'index-cmd'
 index = 'index-test'
 windowsize={1280, 720}
-renderer = ({'renderer-d3d9', 'renderer-gles'})[2]
+renderer = ({'renderer-d3d9', 'renderer-gles'})[1]
 vsync = false
 tpslimit = 0

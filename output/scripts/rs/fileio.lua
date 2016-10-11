@@ -12,5 +12,6 @@ local modetable = {
 }
 
 function fileio:init(path, mode)
+	assert_arg(1, path, 'string')
 	iowrapper.init(self, hostfileio:create(path, modetable[mode] or mode))
 end

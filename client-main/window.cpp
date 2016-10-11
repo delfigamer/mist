@@ -71,55 +71,64 @@ namespace window
 	LRESULT Window::WindowProc(
 		UINT uMsg, WPARAM wParam, LPARAM lParam )
 	{
-		switch( uMsg )
+		try
 		{
-		case WM_DESTROY:
-			pushevent( EventName::close );
+			switch( uMsg )
+			{
+			case WM_DESTROY:
+				pushevent( EventName::close );
+				m_finishrequired = true;
+				// PostQuitMessage( 0 );
+				return 0;
+			case WM_PAINT:
+				paint();
+				return 0;
+			case WM_KEYDOWN:
+				pushevent( EventName::keydown, int( wParam ) );
+				return 0;
+			case WM_KEYUP:
+				pushevent( EventName::keyup, int( wParam ) );
+				return 0;
+			case WM_CHAR:
+				pushevent( EventName::character, int( wParam ) );
+				return 0;
+			case WM_MOUSEMOVE:
+				pointmove( 0, true, lParam );
+				pointmove( 1, ( wParam & MK_LBUTTON ) != 0, lParam );
+				pointmove( 2, ( wParam & MK_RBUTTON ) != 0, lParam );
+				pointmove( 3, ( wParam & MK_MBUTTON ) != 0, lParam );
+				return 0;
+			case WM_LBUTTONDOWN:
+				pointmove( 1, true, lParam );
+				return 0;
+			case WM_RBUTTONDOWN:
+				pointmove( 2, true, lParam );
+				return 0;
+			case WM_MBUTTONDOWN:
+				pointmove( 3, true, lParam );
+				return 0;
+			case WM_LBUTTONUP:
+				pointmove( 1, false, lParam );
+				return 0;
+			case WM_RBUTTONUP:
+				pointmove( 2, false, lParam );
+				return 0;
+			case WM_MBUTTONUP:
+				pointmove( 3, false, lParam );
+				return 0;
+			case WM_ACTIVATE:
+				pushevent( EventName::focus,
+					wParam == WA_ACTIVE || wParam == WA_CLICKACTIVE );
+				return 0;
+			default:
+				return DefWindowProcW( m_hwnd, uMsg, wParam, lParam );
+			}
+		}
+		catch( std::exception const& e )
+		{
+			LOG( "! %s", e.what() );
 			m_finishrequired = true;
-			// PostQuitMessage( 0 );
 			return 0;
-		case WM_PAINT:
-			paint();
-			return 0;
-		case WM_KEYDOWN:
-			pushevent( EventName::keydown, int( wParam ) );
-			return 0;
-		case WM_KEYUP:
-			pushevent( EventName::keyup, int( wParam ) );
-			return 0;
-		case WM_CHAR:
-			pushevent( EventName::character, int( wParam ) );
-			return 0;
-		case WM_MOUSEMOVE:
-			pointmove( 0, true, lParam );
-			pointmove( 1, ( wParam & MK_LBUTTON ) != 0, lParam );
-			pointmove( 2, ( wParam & MK_RBUTTON ) != 0, lParam );
-			pointmove( 3, ( wParam & MK_MBUTTON ) != 0, lParam );
-			return 0;
-		case WM_LBUTTONDOWN:
-			pointmove( 1, true, lParam );
-			return 0;
-		case WM_RBUTTONDOWN:
-			pointmove( 2, true, lParam );
-			return 0;
-		case WM_MBUTTONDOWN:
-			pointmove( 3, true, lParam );
-			return 0;
-		case WM_LBUTTONUP:
-			pointmove( 1, false, lParam );
-			return 0;
-		case WM_RBUTTONUP:
-			pointmove( 2, false, lParam );
-			return 0;
-		case WM_MBUTTONUP:
-			pointmove( 3, false, lParam );
-			return 0;
-		case WM_ACTIVATE:
-			pushevent( EventName::focus,
-				wParam == WA_ACTIVE || wParam == WA_CLICKACTIVE );
-			return 0;
-		default:
-			return DefWindowProcW( m_hwnd, uMsg, wParam, lParam );
 		}
 	}
 

@@ -50,6 +50,10 @@ namespace rsbin
 			return new FlacWriter( bitdepth, channels, samplerate, data );
 		}
 		R_METHOD() bool isfinished() NOEXCEPT { return true; }
-		R_METHOD( addref ) MemoryIo* getbuffer() NOEXCEPT { return m_target; }
+		R_METHOD() MemoryIo* getbuffer() NOEXCEPT
+		{
+			::addref( m_target );
+			return m_target;
+		}
 	};
 }

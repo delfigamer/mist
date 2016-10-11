@@ -19,10 +19,11 @@ namespace graphics
 		}
 	}
 
-	void translateprogram( DataBuffer* input, ProgramSource* output )
+	void translateprogram(
+		DataBuffer* source, Ref< DataBuffer >* vsrc, Ref< DataBuffer >* fsrc )
 	{
 		programtranslator::TranslatorState ts;
-		ts.m_input = input;
+		ts.m_input = source;
 		memset( ts.m_attributeused, 0, sizeof( ts.m_attributeused ) );
 		ts.m_attributeused[ 0 ] = true;
 		memset( ts.m_textureused, 0, sizeof( ts.m_textureused ) );
@@ -33,7 +34,7 @@ namespace graphics
 		Ref< programtranslator::StringBuilder > vsh;
 		Ref< programtranslator::StringBuilder > fsh;
 		programtranslator::makeshaders( &ts, &vsh, &fsh );
-		output->m_vertexsource = programtranslator::buildstring( vsh );
-		output->m_fragmentsource = programtranslator::buildstring( fsh );
+		*vsrc = programtranslator::buildstring( vsh );
+		*fsrc = programtranslator::buildstring( fsh );
 	}
 }

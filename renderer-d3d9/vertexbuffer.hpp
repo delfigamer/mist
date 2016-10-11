@@ -14,7 +14,7 @@ namespace graphics
 	{
 	protected:
 		Ref< VertexDeclaration > m_vertexdeclaration;
-		IDirect3DVertexBuffer9* m_vertexbuffer;
+		Ref< IDirect3DVertexBuffer9 > m_vertexbuffer;
 		size_t m_buffercapacity;
 		size_t m_buffersize;
 

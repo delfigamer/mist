@@ -179,7 +179,7 @@ namespace graphics
 	Display::~Display()
 	{
 		m_shape = nullptr;
-		Context::cleanup();
+		Context::rundeferred();
 		finalize();
 	}
 
@@ -200,7 +200,7 @@ namespace graphics
 			checkerror();
 		}
 		eglSwapBuffers( m_display, m_surface );
-		Context::cleanup();
+		Context::rundeferred();
 	}
 
 	void Display::setshape( Shape* nv )

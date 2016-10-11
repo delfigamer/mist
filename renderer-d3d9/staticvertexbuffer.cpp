@@ -12,15 +12,16 @@ namespace graphics
 			std::atomic_thread_fence( std::memory_order_acquire );
 			if( !m_vertexbuffer || m_buffercapacity != data->m_capacity )
 			{
-				RELEASE( m_vertexbuffer );
+				IDirect3DVertexBuffer9* vertexbuffer = 0;
 				m_buffercapacity = data->m_capacity;
 				checkerror( Context::Device->CreateVertexBuffer(
 					UINT( m_buffercapacity ),
 					D3DUSAGE_WRITEONLY,
 					0,
 					D3DPOOL_DEFAULT,
-					&m_vertexbuffer,
+					&vertexbuffer,
 					0 ) );
+				m_vertexbuffer.possess( vertexbuffer );
 			}
 			m_buffersize = data->m_length;
 			void* vertices;

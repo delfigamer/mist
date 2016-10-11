@@ -45,7 +45,7 @@ R_END()
 	class VertexDeclaration: public Resource
 	{
 	private:
-		IDirect3DVertexDeclaration9* m_vertexdeclaration;
+		Ref< IDirect3DVertexDeclaration9 > m_vertexdeclaration;
 		Ref< DataBuffer > m_data;
 		size_t m_vertexsize;
 

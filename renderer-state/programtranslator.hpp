@@ -491,32 +491,6 @@ namespace graphics
 		discard_7 = 0x826,
 	};
 
-	struct ProgramSource
-	{
-		Ref< DataBuffer > m_vertexsource;
-		Ref< DataBuffer > m_fragmentsource;
-	};
-
-	void translateprogram( DataBuffer* input, ProgramSource* output );
-
-	R_CLASS()
-	struct TranslatorTest
-	{
-		ProgramSource m_output;
-
-		R_METHOD() static TranslatorTest* create( DataBuffer* input )
-		{
-			TranslatorTest* self = new TranslatorTest;
-			translateprogram( input, &self->m_output );
-			return self;
-		}
-		R_METHOD( addref ) DataBuffer* getvertexsource()
-		{
-			return m_output.m_vertexsource;
-		}
-		R_METHOD( addref ) DataBuffer* getfragmentsource()
-		{
-			return m_output.m_fragmentsource;
-		}
-	};
+	void translateprogram(
+		DataBuffer* source, Ref< DataBuffer >* vsrc, Ref< DataBuffer >* fsrc );
 }

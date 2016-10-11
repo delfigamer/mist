@@ -3,7 +3,7 @@
 #include <renderer-gles/shape.hpp>
 #include <renderer-gles/vertexbuffer.hpp>
 // #include <renderer-gles/indexbuffer.hpp>
-// #include <renderer-gles/program.hpp>
+#include <renderer-gles/program.hpp>
 // #include <renderer-gles/texture.hpp>
 #include <common/ref.hpp>
 #include <common/flaglock.hpp>
@@ -59,7 +59,7 @@ namespace graphics
 	private:
 		Ref< VertexBuffer > m_vertexbuffer;
 		// Ref< IndexBuffer > m_indexbuffer;
-		// Ref< Program > m_program;
+		Ref< Program > m_program;
 		// Ref< Texture > m_textures[ 8 ];
 		std::atomic< int > m_type;
 		int m_blendsf;
@@ -67,11 +67,6 @@ namespace graphics
 		int m_blendop;
 		mutex_t m_mutex;
 		float m_matrix[ 16 ];
-
-		unsigned int m_vsh;
-		unsigned int m_fsh;
-		unsigned int m_program;
-		int m_matrixindex;
 
 	protected:
 		virtual void doadvance() override;
@@ -91,9 +86,9 @@ namespace graphics
 			return new PrimitiveShape( type, sourceblend, destblend, blendmethod );
 		}
 		R_METHOD() void setvertexbuffer( VertexBuffer* value );
-		// R _METHOD() void setindexbuffer( IndexBuffer* value );
-		// R _METHOD() void setprogram( Program* value );
-		// R _METHOD() void settexture( int index, Texture* texture );
+		// R_METHOD() void setindexbuffer( IndexBuffer* value );
+		R_METHOD() void setprogram( Program* value );
+		// R_METHOD() void settexture( int index, Texture* texture );
 		R_METHOD() void setmatrix( float const* value );
 	};
 }

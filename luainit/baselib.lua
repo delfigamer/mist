@@ -155,6 +155,13 @@ function _G.assert(value, errstr, pos)
 		errstr or 'assertion failure', pos and (pos == 0 and 0 or pos+1) or 2)
 end
 
+function _G.assert_arg(index, value, exptype)
+	if type(value) ~= exptype then
+		error(string.format('bad argument #%i to \'%s\' (%s expected, got %s)',
+			index, debug.getinfo(2, 'n').name, exptype, type(value)))
+	end
+end
+
 errobj_meta = {}
 
 errobj_meta.__exception = true

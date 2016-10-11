@@ -214,6 +214,7 @@ namespace graphics
 		{
 			auto vsh = StringBuilder::construct(
 				"// built from a mistsh bytecode\n"
+				"precision highp float;\n"
 				"uniform mat4 worldviewmatrix;\n" );
 			for( int i = 0; i < 8; ++i )
 			{
@@ -257,7 +258,8 @@ namespace graphics
 			Ref< Value > const& value )
 		{
 			auto fsh = StringBuilder::construct(
-				"// built from a mistsh bytecode\n" );
+				"// built from a mistsh bytecode\n"
+				"precision highp float;\n" );
 			for( int i = 0; i < 8; ++i )
 			{
 				if( ts->m_attributeused[ i ] )
@@ -284,7 +286,7 @@ namespace graphics
 			fsh = StringBuilder::construct(
 				fsh,
 				vdefs,
-				"gl_Color = ",
+				"gl_FragColor = ",
 				vstr,
 				";\n"
 				"}\n" );

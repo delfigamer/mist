@@ -19,7 +19,7 @@ namespace graphics
 					elems[ i ].attribute >= Limits::AttributeCount )
 				{
 					throw StrException(
-						"invalid attribute index %i for element %i",
+						"invalid attribute index %i for element %" PRIiPTR,
 						elems[ i ].attribute, i );
 				}
 				if( elems[ i ].format < 0 ||
@@ -27,13 +27,13 @@ namespace graphics
 						int( vertexelementformat::invalid ) )
 				{
 					throw StrException(
-						"invalid format %i for element %i",
+						"invalid format %i for element %" PRIiPTR,
 						elems[ i ].format, i );
 				}
 				if( attrused[ elems[ i ].attribute ] )
 				{
 					throw StrException(
-						"duplicate attribute index %i at element %i",
+						"duplicate attribute index %i at element %" PRIiPTR,
 						elems[ i ].attribute, i );
 				}
 				attrused[ elems[ i ].attribute ] = true;
@@ -77,16 +77,17 @@ namespace graphics
 					AttributeUsageTable[ elems[ i ].attribute ][ 1 ];
 			}
 			d3delems[ elemcount ] = D3DDECL_END();
+			IDirect3DVertexDeclaration9* vertexdeclaration = 0;
 			checkerror( Context::Device->CreateVertexDeclaration(
 				d3delems,
-				&m_vertexdeclaration ) );
+				&vertexdeclaration ) );
+			m_vertexdeclaration.possess( vertexdeclaration );
 		}
 	}
 
 	VertexDeclaration::VertexDeclaration(
 		DataBuffer* data, size_t vertexsize )
-		: m_vertexdeclaration( 0 )
-		, m_vertexsize( vertexsize )
+		: m_vertexsize( vertexsize )
 	{
 		validatedecldata( data->m_length, data->m_data );
 		std::atomic_thread_fence( std::memory_order_release );
@@ -95,7 +96,6 @@ namespace graphics
 
 	VertexDeclaration::~VertexDeclaration()
 	{
-		RELEASE( m_vertexdeclaration );
 	}
 
 	bool VertexDeclaration::bind( size_t* vertexsize )

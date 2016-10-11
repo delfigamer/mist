@@ -32,7 +32,9 @@ public:
 	const char* getchars() const NOEXCEPT;
 	void setchars( const char* newchars, size_t length = 0 );
 
+	ATTRIBUTE(( __format__( gnu_printf, 1, 0 ) ))
 	static String vformat( const char* fmt, va_list vl );
+	ATTRIBUTE(( __format__( gnu_printf, 1, 2 ) ))
 	static String format( const char* fmt, ... );
 };
 
@@ -134,10 +136,11 @@ inline String String::vformat( char const* fmt, va_list vl )
 {
 	va_list vl2;
 	va_copy( vl2, vl );
-	size_t bufsize = vsnprintf( 0, 0, fmt, vl );
+	size_t bufsize = vsnprintf( 0, 0, fmt, vl2 );
+	va_end( vl2 );
 	Ref< DataBuffer > buffer = DataBuffer::create( 0, bufsize + 1, 0 );
 	buffer->m_length = 1 + vsnprintf(
-		( char* )buffer->m_data, buffer->m_capacity, fmt, vl2 );
+		( char* )buffer->m_data, buffer->m_capacity, fmt, vl );
 	return String( buffer );
 }
 

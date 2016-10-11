@@ -6,7 +6,7 @@ namespace graphics
 {
 	namespace Context
 	{
-		IDirect3D9* D3D = 0;
-		IDirect3DDevice9* Device = 0;
+		Ref< IDirect3D9 > D3D;
+		Ref< IDirect3DDevice9 > Device;
 	}
 }

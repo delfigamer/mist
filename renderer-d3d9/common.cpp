@@ -69,8 +69,8 @@ namespace graphics
 	}
 
 	int const AttributeUsageTable[ Limits::AttributeCount ][ 2 ] = {
-		{ D3DDECLUSAGE_POSITION, 0 },
-		{ D3DDECLUSAGE_COLOR, 0 },
+		{ D3DDECLUSAGE_TEXCOORD, 0 },
+		{ D3DDECLUSAGE_TEXCOORD, 1 },
 		{ D3DDECLUSAGE_TEXCOORD, 2 },
 		{ D3DDECLUSAGE_TEXCOORD, 3 },
 		{ D3DDECLUSAGE_TEXCOORD, 4 },

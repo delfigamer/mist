@@ -322,6 +322,12 @@ local sources = {
 	},
 	{
 		type = 'native',
+		name = 'renderer-d3d9/comref',
+		use = 'renderer-d3d9',
+		headeronly = true,
+	},
+	{
+		type = 'native',
 		name = 'renderer-d3d9/context',
 		use = 'renderer-d3d9',
 	},
@@ -338,6 +344,12 @@ local sources = {
 	{
 		type = 'native',
 		name = 'renderer-d3d9/primitiveshape',
+		use = 'renderer-d3d9',
+		methodlist = 'renderer-d3d9',
+	},
+	{
+		type = 'native',
+		name = 'renderer-d3d9/program',
 		use = 'renderer-d3d9',
 		methodlist = 'renderer-d3d9',
 	},
@@ -416,6 +428,12 @@ local sources = {
 	{
 		type = 'native',
 		name = 'renderer-gles/primitiveshape',
+		use = 'renderer-gles',
+		methodlist = 'renderer-gles',
+	},
+	{
+		type = 'native',
+		name = 'renderer-gles/program',
 		use = 'renderer-gles',
 		methodlist = 'renderer-gles',
 	},

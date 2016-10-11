@@ -15,6 +15,7 @@ namespace graphics
 
 	protected:
 		virtual void doadvance() = 0;
+		void deferadvance();
 
 	public:
 		Resource();

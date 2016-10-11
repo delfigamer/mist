@@ -14,6 +14,7 @@ private:
 
 public:
 	StrException();
+	ATTRIBUTE(( __format__( gnu_printf, 2, 3 ) ))
 	StrException( char const* format, ... );
 	StrException( String const& message );
 	StrException( StrException const& other );
@@ -31,7 +32,7 @@ inline StrException::StrException( char const* format, ... )
 {
 	va_list vl;
 	va_start( vl, format );
-	m_message = String::format( format, vl );
+	m_message = String::vformat( format, vl );
 	va_end( vl );
 }
 

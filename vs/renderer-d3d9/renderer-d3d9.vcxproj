@@ -25,6 +25,7 @@
     <ClCompile Include="..\..\renderer-d3d9\display.cpp" />
     <ClCompile Include="..\..\renderer-d3d9\interface.cpp" />
     <ClCompile Include="..\..\renderer-d3d9\primitiveshape.cpp" />
+    <ClCompile Include="..\..\renderer-d3d9\program.cpp" />
     <ClCompile Include="..\..\renderer-d3d9\programtranslator.cpp" />
     <ClCompile Include="..\..\renderer-d3d9\resource.cpp" />
     <ClCompile Include="..\..\renderer-d3d9\shape.cpp" />
@@ -66,10 +67,12 @@
     <ClInclude Include="..\..\renderer-state\shapegroup-cpp.hpp" />
     <ClInclude Include="..\..\renderer-d3d9\clearshape.hpp" />
     <ClInclude Include="..\..\renderer-d3d9\common.hpp" />
+    <ClInclude Include="..\..\renderer-d3d9\comref.hpp" />
     <ClInclude Include="..\..\renderer-d3d9\context.hpp" />
     <ClInclude Include="..\..\renderer-d3d9\display.hpp" />
     <ClInclude Include="..\..\renderer-d3d9\interface.hpp" />
     <ClInclude Include="..\..\renderer-d3d9\primitiveshape.hpp" />
+    <ClInclude Include="..\..\renderer-d3d9\program.hpp" />
     <ClInclude Include="..\..\renderer-d3d9\programtranslator.hpp" />
     <ClInclude Include="..\..\renderer-d3d9\resource.hpp" />
     <ClInclude Include="..\..\renderer-d3d9\shape.hpp" />

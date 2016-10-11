@@ -36,7 +36,7 @@ namespace graphics
 
 		void TranslatorState::error( char const* msg )
 		{
-			throw StrException( "%s at %#x", msg, m_position );
+			throw StrException( "%s at %#" PRIxPTR, msg, m_position * 4 - 4 );
 		}
 
 		bool TranslatorState::iseof()

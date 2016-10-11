@@ -64,11 +64,11 @@ namespace graphics
 		// {
 			// ib->advance();
 		// }
-		// Program* pr = m_program;
-		// if( pr )
-		// {
-			// pr->advance();
-		// }
+		Program* pr = m_program;
+		if( pr )
+		{
+			pr->advance();
+		}
 		// for( int i = 0; i < 8; ++i )
 		// {
 			// Texture* t = m_textures[ i ];
@@ -113,8 +113,8 @@ namespace graphics
 	{
 		VertexBuffer* vb = m_vertexbuffer;
 		// IndexBuffer* ib = m_indexbuffer;
-		// Program* pr = m_program;
-		if( !vb )
+		Program* pr = m_program;
+		if( !vb || !pr )
 		{
 			return;
 		}
@@ -132,11 +132,10 @@ namespace graphics
 				// return;
 			// }
 		// }
-		// int worldmatrixpos;
-		// if( !pr->bind( &worldmatrixpos ) )
-		// {
-			// return;
-		// }
+		if( !pr->bind() )
+		{
+			return;
+		}
 		int ptype = m_type.load( std::memory_order_acquire );
 		checkerror( Context::Device->SetRenderState(
 			D3DRS_BLENDOP, m_blendop ) );
@@ -146,15 +145,9 @@ namespace graphics
 			D3DRS_DESTBLEND, m_blenddf ) );
 		{
 			lock_t lock( m_mutex );
-			checkerror( Context::Device->SetTransform(
-				D3DTS_WORLD, &m_matrix ) );
-			// checkerror( Context::Device->SetVertexShaderConstantF(
-				// worldmatrixpos, m_matrix.m[ 0 ], 4 ) );
+			checkerror( Context::Device->SetVertexShaderConstantF(
+				0, m_matrix.m[ 0 ], 4 ) );
 		}
-		checkerror( Context::Device->SetTextureStageState(
-			0, D3DTSS_COLOROP, D3DTOP_SELECTARG1 ) );
-		checkerror( Context::Device->SetTextureStageState(
-			0, D3DTSS_COLORARG1, D3DTA_DIFFUSE ) );
 		// checkerror( Context::Device->DrawIndexedPrimitive(
 			// D3DPRIMITIVETYPE( m_type ),
 			// 0,
@@ -165,7 +158,8 @@ namespace graphics
 		checkerror( Context::Device->DrawPrimitive(
 			D3DPRIMITIVETYPE( typetable[ ptype ] ),
 			0,
-			UINT( ( vertexcount - poffsettable[ ptype ] ) / pfactortable[ ptype ] ) ) );
+			UINT( ( vertexcount - poffsettable[ ptype ] )
+				/ pfactortable[ ptype ] ) ) );
 	}
 
 	void PrimitiveShape::setvertexbuffer( VertexBuffer* value )
@@ -178,10 +172,10 @@ namespace graphics
 		// m_indexbuffer = value;
 	// }
 
-	// void PrimitiveShape::setprogram( Program* value )
-	// {
-		// m_program = value;
-	// }
+	void PrimitiveShape::setprogram( Program* value )
+	{
+		m_program = value;
+	}
 
 	// void PrimitiveShape::settexture( int index, Texture* texture )
 	// {

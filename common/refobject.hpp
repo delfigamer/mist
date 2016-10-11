@@ -40,10 +40,6 @@ inline ptrdiff_t RefObject::addref() const NOEXCEPT
 
 inline ptrdiff_t RefObject::release() const NOEXCEPT
 {
-	if( !this )
-	{
-		return -1;
-	}
 	ptrdiff_t rc = m_refcount.fetch_sub( 1, std::memory_order_relaxed ) - 1;
 	if( rc == 0 )
 	{
@@ -91,6 +87,30 @@ inline RefObject& RefObject::operator=( RefObject&& other ) NOEXCEPT
 	return *this;
 }
 
+inline ptrdiff_t addref( RefObject* ro )
+{
+	if( ro )
+	{
+		return ro->addref();
+	}
+	else
+	{
+		return -1;
+	}
+}
+
+inline ptrdiff_t release( RefObject* ro )
+{
+	if( ro )
+	{
+		return ro->release();
+	}
+	else
+	{
+		return -1;
+	}
+}
+
 /*
 R_EMIT( target = lua_beforemethods )
 local function reference_addref(self)
@@ -100,9 +120,10 @@ local function reference_addref(self)
 end
 
 function refobject:release()
-	methodlist.refobject_release(self.ptr)
-	self.ptr = nil
-	return
+	if self.ptr ~= nil then
+		methodlist.refobject_release(self.ptr)
+		self.ptr = nil
+	end
 end
 R_END()
 */

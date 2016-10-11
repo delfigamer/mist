@@ -4,6 +4,26 @@
 
 namespace graphics
 {
+	namespace
+	{
+		void resource_advance( void* ud )
+		{
+			Resource* res = ( Resource* )ud;
+			res->advance();
+		}
+
+		void resource_delete( void* ud )
+		{
+			Resource* res = ( Resource* )ud;
+			delete res;
+		}
+	}
+
+	void Resource::deferadvance()
+	{
+		Context::defer( &resource_advance, this, this );
+	}
+
 	Resource::Resource()
 		: m_lastframe( 0 )
 	{
@@ -15,7 +35,7 @@ namespace graphics
 
 	void Resource::destroy()
 	{
-		Context::markdead( this );
+		Context::defer( &resource_delete, this, nullptr );
 	}
 
 	void Resource::advance()
