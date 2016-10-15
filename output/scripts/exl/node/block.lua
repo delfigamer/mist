@@ -16,19 +16,17 @@ function block:dobuild(pc)
 	end
 end
 
-function block:compile(block)
+function block:compile(stream)
 	for i, stat in ipairs(self.statements) do
-		block:writetoken{
-			op = 'ancillary',
-			args = {
-				{'string', 'comment'}, -- name
-				{'int', stat.spos.row}, -- row
-				{'int', stat.spos.col}, -- col
-				{'string', self.filename or '-'}, -- filename
-				{'string', ''} -- text
-			},
+		stream:append{
+			'ancillary',
+			{'string', 'comment'}, -- name
+			{'number', stat.spos.row}, -- row
+			{'number', stat.spos.col}, -- col
+			{'string', self.filename or '-'}, -- filename
+			{'string', ''}, -- text
 		}
-		stat:compile(block)
+		stat:compile(stream)
 	end
 end
 

@@ -83,20 +83,16 @@ function sfunction:dobuild(pc)
 end
 
 function sfunction:compile(stream)
-	stream:writetoken{
-		op = 'local_create',
-		args = {
-			{'ssa', 0}, -- value
-			{'local', self.symbol.id}, -- id
-		},
+	stream:append{
+		'local_create',
+		{'ssa', 0}, -- value
+		{'local', self.symbol.id}, -- id
 	}
 	local valname = self.value:rcompile(stream)
-	stream:writetoken{
-		op = 'move',
-		args = {
-			{'ssa', valname}, -- source
-			{'local', self.symbol.id}, -- target
-		},
+	stream:append{
+		'move',
+		{'ssa', valname}, -- source
+		{'local', self.symbol.id}, -- target
 	}
 end
 

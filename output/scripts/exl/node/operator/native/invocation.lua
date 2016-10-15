@@ -25,16 +25,15 @@ end
 
 function invnative:rcompile(stream)
 	if not self.retname then
-		local tokenargs = {}
+		local stat = {
+			self.operator.opcode,
+		}
 		for i, arg in ipairs(self.args) do
-			tokenargs[i] = {'ssa', arg:rcompile(stream)}
+			stat[i+1] = {'ssa', arg:rcompile(stream)}
 		end
 		self.retname = stream:genname()
-		table.append(tokenargs, {'ssa', self.retname})
-		stream:writetoken{
-			op = self.operator.opcode,
-			args = tokenargs,
-		}
+		table.append(stat, {'ssa', self.retname})
+		stream:append(stat)
 	end
 	return self.retname
 end

@@ -78,7 +78,7 @@ function escope:rcompile(stream)
 		return self.constvalue:rcompile(stream)
 	else
 		local name = self.value:rcompile(stream)
-		local fts = self.fulltype:getserial()
+		-- local fts = self.fulltype:getserial()
 		return name
 	end
 end

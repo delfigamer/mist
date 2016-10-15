@@ -68,12 +68,10 @@ end
 function slocal:compile(stream)
 	self.initop:rcompile(stream)
 	local value = self.itarget:rcompile(stream)
-	stream:writetoken{
-		op = 'local_create',
-		args = {
-			{'ssa', value}, -- value
-			{'local', self.symbol.id}, -- id
-		},
+	stream:append{
+		'local_create',
+		{'ssa', value}, -- value
+		{'local', self.symbol.id}, -- id
 	}
 end
 

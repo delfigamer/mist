@@ -1,5 +1,6 @@
 local modname = ...
 local util = package.modtable(modname)
+local ffi = require('ffi')
 local fileio = require('rs.fileio')
 local invoke = require('base.invoke')
 local iostream = require('rs.iostream')
@@ -55,6 +56,40 @@ function util.saveptype(ptype, object, path)
 	local io = fileio:create(path, 'w')
 	local stream = iostream:create(io)
 	invoke(ptype.write, ptype, object, stream)
+	stream:release()
+	io:release()
+end
+
+local function loadtextfile_c(stream)
+	local cbuf = ffi.new('char[0x10000]')
+	local parts = {}
+	while true do
+		local length = stream:read(0x10000, cbuf)
+		if length > 0 then
+			table.append(parts, ffi.string(cbuf, length))
+		end
+		if length < 0x10000 then
+			break
+		end
+	end
+	return table.concat(parts)
+end
+
+function util.loadtextfile(path)
+	local io = fileio:create(path, 'r')
+	local stream = iostream:create(io)
+	local text = invoke(loadtextfile_c, stream)
+	stream:release()
+	io:release()
+	return text
+end
+
+function util.savetextfile(text, path)
+	local io = fileio:create(path, 'w')
+	local stream = iostream:create(io)
+	if invoke(stream.write, stream, #text, text) ~= #text then
+		error('i/o failure')
+	end
 	stream:release()
 	io:release()
 end

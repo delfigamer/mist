@@ -1,11 +1,11 @@
 local modname = ...
 local ebase = require(modname, 2, 'base')
 local efunctionbase = ebase:module(modname)
-local bcblock
 local common
 local context
 local fulltype
 local functionti
+local ilstream
 
 function efunctionbase:init(pr)
 	ebase.init(self, pr)
@@ -45,7 +45,7 @@ end
 function efunctionbase:rcompile(stream)
 	if not self.retname then
 		self.retname = stream:genname()
-		local substream = bcblock:create()
+		local substream = ilstream:create()
 		for i, arg in ipairs(self.args) do
 			if not arg.brvalue and arg.blvalue then
 				arg.localdef:compile(substream)
@@ -55,30 +55,26 @@ function efunctionbase:rcompile(stream)
 			self.resultarg.localdef:compile(substream)
 		end
 		self.body:compile(substream)
-		substream:writetoken{
-			op = 'ancillary',
-			args = {
-				{'string', 'comment'}, -- name
-				{'int', self.body.epos.row}, -- row
-				{'int', self.body.epos.col}, -- col
-				{'string', self.body.filename or '-'}, -- filename
-				{'string', ''}, -- text
-			},
+		substream:append{
+			'ancillary',
+			{'string', 'comment'}, -- name
+			{'number', self.body.epos.row}, -- row
+			{'number', self.body.epos.col}, -- col
+			{'string', self.body.filename or '-'}, -- filename
+			{'string', ''}, -- text
 		}
-		local rettokenargs = {}
+		local rettokenargs = {'list'}
 		if self.resultarg then
-			rettokenargs[1] = {'local', self.resultarg.symbol.id}
+			rettokenargs[2] = {'local', self.resultarg.symbol.id}
 		end
 		for i, arg in ipairs(self.args) do
 			if arg.blvalue then
 				table.append(rettokenargs, {'local', arg.symbol.id})
 			end
 		end
-		substream:writetoken{
-			op = 'return',
-			args = {
-				{'list', items = rettokenargs}, -- values
-			},
+		substream:append{
+			'return',
+			rettokenargs, -- values
 		}
 		substream:compact()
 		local inargs = {}
@@ -87,19 +83,17 @@ function efunctionbase:rcompile(stream)
 				table.append(inargs, arg.symbol.id)
 			end
 		end
-		stream:writetoken{
-			op = 'move',
-			args = {
-				{'function', inargs, substream}, -- source
-				{'ssa', self.retname}, -- target
-			},
+		stream:append{
+			'move',
+			{'function', inargs, substream.body}, -- source
+			{'ssa', self.retname}, -- target
 		}
 	end
 	return self.retname
 end
 
-bcblock = require(modname, 4, 'bytecode.block')
 common = require(modname, 4, 'common')
 context = require(modname, 4, 'context')
 fulltype = require(modname, 4, 'fulltype')
 functionti = require(modname, 1, 'ti')
+ilstream = require(modname, 4, 'il.stream')

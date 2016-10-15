@@ -9,23 +9,19 @@ function symlocal:init(it)
 end
 
 function symlocal:lcompile(stream, source)
-	stream:writetoken{
-		op = 'move',
-		args = {
-			{'ssa', source}, -- source
-			{'local', self.id}, -- target
-		},
+	stream:append{
+		'move',
+		{'ssa', source}, -- source
+		{'local', self.id}, -- target
 	}
 end
 
 function symlocal:rcompile(stream)
 	local name = stream:genname()
-	stream:writetoken{
-		op = 'move',
-		args = {
-			{'local', self.id}, -- source
-			{'ssa', name}, -- target
-		},
+	stream:append{
+		'move',
+		{'local', self.id}, -- source
+		{'ssa', name}, -- target
 	}
 	return name
 end

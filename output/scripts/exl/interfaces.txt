@@ -45,7 +45,7 @@ node:
 	function build(context)
 
 object:
-	function defstring(line_prefix)
+	function defstring(string line_prefix)
 
 operator:
 	function init{defpos, deffile}
@@ -75,4 +75,3 @@ typeinfo:
 	function iseq(other: typeinfo): bool
 	function getserial(): string
 	function getcontext(): context?
-

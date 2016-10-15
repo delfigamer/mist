@@ -20,9 +20,9 @@ end
 function invfunctioncall:rcompile(stream)
 	if not self.retname then
 		local basename = self.base:rcompile(stream)
-		local args = {}
+		local args = {'list'}
 		for i, iarg in ipairs(self.inargs) do
-			args[i] = {'ssa', iarg:rcompile(stream)}
+			args[i+1] = {'ssa', iarg:rcompile(stream)}
 		end
 		local results = {}
 		if self.fulltype.rvalue then
@@ -34,17 +34,15 @@ function invfunctioncall:rcompile(stream)
 		for i, oarg in ipairs(self.outargs) do
 			table.append(results, stream:genname())
 		end
-		local resultargs = {}
+		local resultargs = {'list'}
 		for i, rarg in ipairs(results) do
 			table.append(resultargs, {'ssa', rarg})
 		end
-		stream:writetoken{
-			op = 'call',
-			args = {
-				{'ssa', basename}, -- function
-				{'list', items = args}, -- args
-				{'list', items = resultargs}, -- results
-			},
+		stream:append{
+			'call',
+			{'ssa', basename}, -- function
+			args, -- args
+			resultargs, -- results
 		}
 		for i, oarg in ipairs(self.outargs) do
 			if self.fulltype.rvalue then

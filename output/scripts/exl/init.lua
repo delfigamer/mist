@@ -86,7 +86,7 @@ function exl.deserializetype(str, start)
 	elseif first == 's' then
 		return am .. 'string', start + 1
 	elseif first == 'v' then
-		return am .. 'nil', start + 1
+		return am .. 'type nil', start + 1
 	else
 		local classname
 		classname, start = deserializeident(str, start)

@@ -47,13 +47,7 @@ protectglobaltable(true)
 
 local info = require('host.info')
 local configset = require('host.mainconf')
-local indexmodule
-if info.silent then
-	indexmodule = configset:string('index_silent')
-end
-if not indexmodule then
-	indexmodule = configset:string('index')
-end
+local indexmodule= configset:string('index')
 if not indexmodule then
 	error('index module required')
 end

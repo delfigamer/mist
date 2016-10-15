@@ -12,12 +12,10 @@ end
 
 function estring:rcompile(stream)
 	local name = stream:genname()
-	stream:writetoken{
-		op = 'move',
-		args = {
-			{'string', self.value}, -- source
-			{'ssa', name}, -- target
-		},
+	stream:append{
+		'move',
+		{'string', self.value}, -- source
+		{'ssa', name}, -- target
 	}
 	return name
 end

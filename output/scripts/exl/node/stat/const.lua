@@ -32,12 +32,10 @@ end
 
 function sconst:compile(stream)
 	local valname = self.value:rcompile(stream)
-	stream:writetoken{
-		op = 'local_create',
-		args = {
-			{'ssa', valname}, -- value
-			{'local', self.symbol.id}, -- id
-		},
+	stream:append{
+		'local_create',
+		{'ssa', valname}, -- value
+		{'local', self.symbol.id}, -- id
 	}
 end
 

@@ -9,29 +9,25 @@ function csymlocal:init(it)
 end
 
 function csymlocal:lcompile(stream, source, basename)
-	stream:writetoken{
-		op = 'move',
-		args = {
-			{'ssa', source}, -- source
-			{'member', -- target
-				{'ssa', basename},
-				self.id
-			},
+	stream:append{
+		'move',
+		{'ssa', source}, -- source
+		{'member', -- target
+			{'ssa', basename},
+			self.id
 		},
 	}
 end
 
 function csymlocal:rcompile(stream, basename)
 	local name = stream:genname()
-	stream:writetoken{
-		op = 'move',
-		args = {
-			{'member', -- source
-				{'ssa', basename},
-				self.id
-			},
-			{'ssa', name}, -- target
+	stream:append{
+		'move',
+		{'member', -- source
+			{'ssa', basename},
+			self.id
 		},
+		{'ssa', name}, -- target
 	}
 	return name
 end
