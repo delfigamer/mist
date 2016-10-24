@@ -18,15 +18,22 @@ end
 function listdefstring(list, lp, tab)
 	lp = lp or ''
 	tab = tab or '\t'
-	local lines = {
-		'{',
-	}
+	local itemstr = {}
+	local deep = false
 	for i, item in ipairs(list) do
 		local vstr = itemstring(item, lp, tab)
-		table.append(lines, lp .. tab .. vstr .. ',')
+		table.append(itemstr, vstr)
+		if type(item) == 'table' then
+			deep = true
+		end
 	end
-	table.append(lines, lp .. '}')
-	return table.concat(lines, '\n')
+	if deep then
+		return string.format('%s[\n%s%s]',
+			list[0] or '', lp..tab, table.concat(itemstr, ',\n'..lp..tab))
+	else
+		return string.format('%s[%s]',
+			list[0] or '', table.concat(itemstr, ','))
+	end
 end
 
 package.modtable(modname, listdefstring)

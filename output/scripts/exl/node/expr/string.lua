@@ -13,9 +13,9 @@ end
 function estring:rcompile(stream)
 	local name = stream:genname()
 	stream:append{
-		'move',
-		{'string', self.value}, -- source
-		{'ssa', name}, -- target
+		[0]='move',
+		{[0]='string', self.value}, -- source
+		{[0]='ssa', name}, -- target
 	}
 	return name
 end

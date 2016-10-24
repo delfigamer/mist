@@ -69,9 +69,9 @@ function slocal:compile(stream)
 	self.initop:rcompile(stream)
 	local value = self.itarget:rcompile(stream)
 	stream:append{
-		'local_create',
-		{'ssa', value}, -- value
-		{'local', self.symbol.id}, -- id
+		[0]='local_create',
+		{[0]='ssa', value}, -- value
+		{[0]='local', self.symbol.id}, -- id
 	}
 end
 

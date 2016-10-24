@@ -17,7 +17,7 @@ function context:get(sname)
 	if self.cache[sname] then
 		return self.cache[sname]
 	else
-		return {'ssa', sname}
+		return {[0]='ssa', sname}
 	end
 end
 
@@ -38,32 +38,32 @@ function context:getssacount(id)
 	return self.ssacount[id] or 0
 end
 
-local nop_token = {'ancillary'}
+local nop_token = {[0]='ancillary'}
 
-local function count_uses(context, block)
-	for i, token in ipairs(block.body) do
-		local opinfo = stat.ops[token[1]]
+local function count_uses(context, stream)
+	for i, token in ipairs(stream.trace) do
+		local opinfo = stat.ops[token[0]]
 		for i, arginfo in ipairs(opinfo.args) do
-			local arg = token[i+1]
+			local arg = token[i]
 			if arginfo.role == 'input' then
-				if arg[1] == 'ssa' and arg[2] ~= 0 then
-					context:incssacount(arg[2])
-				elseif arg[1] == 'member' then
-					if arg[2][1] == 'ssa' and arg[2][2] ~= 0 then
-						context:incssacount(arg[2][2])
+				if arg[0] == 'ssa' and arg[1] ~= 0 then
+					context:incssacount(arg[1])
+				elseif arg[0] == 'member' then
+					if arg[1][0] == 'ssa' and arg[1][1] ~= 0 then
+						context:incssacount(arg[1][1])
 					end
-				elseif arg[1] == 'list' then
-					for i = 2, #arg do
+				elseif arg[0] == 'list' then
+					for i = 1, #arg do
 						local item = arg[i]
-						if item[1] == 'ssa' and item[2] ~= 0 then
-							context:incssacount(item[2])
+						if item[0] == 'ssa' and item[1] ~= 0 then
+							context:incssacount(item[1])
 						end
 					end
 				end
 			elseif arginfo.role == 'output' then
-				if arg[1] == 'member' then
-					if arg[2][1] == 'ssa' and arg[2][2] ~= 0 then
-						context:incssacount(arg[2][2])
+				if arg[0] == 'member' then
+					if arg[1][0] == 'ssa' and arg[1][0] ~= 0 then
+						context:incssacount(arg[1][1])
 					end
 				end
 			end
@@ -71,90 +71,90 @@ local function count_uses(context, block)
 	end
 end
 
-local function remove_nop(block)
+local function remove_nop(stream)
 	local ti = 1
-	for si = 1, #block.body do
-		local token = block.body[si]
-		if token[1] ~= 'ancillary' or #token > 1 then
-			block.body[ti] = token
+	for si = 1, #stream.trace do
+		local token = stream.trace[si]
+		if token[0] ~= 'ancillary' or #token > 0 then
+			stream.trace[ti] = token
 			ti = ti + 1
 		end
 	end
-	for i = ti, #block.body do
-		block.body[i] = nil
+	for i = ti, #stream.trace do
+		stream.trace[i] = nil
 	end
 end
 
-local function compact(block)
+local function compact(stream)
 	local context = context:create()
-	count_uses(context, block)
-	for tokenindex, token in ipairs(block.body) do
-		local opinfo = stat.ops[token[1]]
+	count_uses(context, stream)
+	for tokenindex, token in ipairs(stream.trace) do
+		local opinfo = stat.ops[token[0]]
 		for argindex, arginfo in ipairs(opinfo.args) do
-			local arg = token[argindex+1]
+			local arg = token[argindex]
 			if arginfo.role == 'input' then
-				if arg[1] == 'ssa' and arg[2] ~= 0 then
-					token[argindex+1] = context:get(arg[2])
-				elseif arg[1] == 'member' then
-					if arg[2][1] == 'ssa' and arg[2][2] ~= 0 then
-						arg[2] = context:get(arg[2])
+				if arg[0] == 'ssa' and arg[1] ~= 0 then
+					token[argindex] = context:get(arg[1])
+				elseif arg[0] == 'member' then
+					if arg[1][0] == 'ssa' and arg[1][1] ~= 0 then
+						arg[1] = context:get(arg[1])
 					end
-				elseif arg[1] == 'list' then
-					for i = 2, #arg do
+				elseif arg[0] == 'list' then
+					for i = 1, #arg do
 						local item = arg[i]
-						if item[1] == 'ssa' and item[2] ~= 0 then
-							arg[i] = context:get(item[2])
+						if item[0] == 'ssa' and item[1] ~= 0 then
+							arg[i] = context:get(item[1])
 						end
 					end
 				end
 			elseif arginfo.role == 'output' then
-				if arg[1] == 'member' then
-					if arg[2][1] == 'ssa' and arg[2][2] ~= 0 then
-						arg[2] = context:get(arg[2])
+				if arg[0] == 'member' then
+					if arg[1][0] == 'ssa' and arg[1][1] ~= 0 then
+						arg[1] = context:get(arg[1])
 					end
 				end
 			end
-			if token[1] == 'move' then
-				local target = token[3]
-				if target[1] == 'ssa'
-					and context:getssacount(target[2]) <= 1
+			if token[0] == 'move' then
+				local target = token[2]
+				if target[0] == 'ssa'
+					and context:getssacount(target[1]) <= 1
 				then
-					context:set(target[2], token[2])
-					block.body[tokenindex] = nop_token
+					context:set(target[1], token[1])
+					stream.trace[tokenindex] = nop_token
 				end
 			end
 		end
 	end
 	context:clear()
-	for tokenindex = #block.body, 1, -1 do
-		local token = block.body[tokenindex]
-		local opinfo = stat.ops[token[1]]
+	for tokenindex = #stream.trace, 1, -1 do
+		local token = stream.trace[tokenindex]
+		local opinfo = stat.ops[token[0]]
 		for argindex, arginfo in ipairs(opinfo.args) do
-			local arg = token[argindex+1]
+			local arg = token[argindex]
 			if arginfo.role == 'output' then
-				if arg[1] == 'ssa' and arg[2] ~= 0 then
-					token[argindex+1] = context:get(arg[2])
-				elseif arg[1] == 'list' then
-					for i = 2, #arg do
+				if arg[0] == 'ssa' and arg[1] ~= 0 then
+					token[argindex] = context:get(arg[1])
+				elseif arg[0] == 'list' then
+					for i = 1, #arg do
 						local item = arg[i]
-						if item[1] == 'ssa' and item[2] ~= 0 then
-							arg[i] = context:get(item[2])
+						if item[0] == 'ssa' and item[1] ~= 0 then
+							arg[i] = context:get(item[1])
 						end
 					end
 				end
 			end
-			if token[1] == 'move' then
-				local source = token[2]
-				if source[1] == 'ssa'
-					and context:getssacount(source.value) == 1
+			if token[0] == 'move' then
+				local source = token[1]
+				if source[0] == 'ssa'
+					and context:getssacount(source[1]) == 1
 				then
-					context:set(source[2], token[3])
-					block.body[tokenindex] = nop_token
+					context:set(source[1], token[2])
+					stream.trace[tokenindex] = nop_token
 				end
 			end
 		end
 	end
-	remove_nop(block)
+	remove_nop(stream)
 end
 
 package.modtable(modname, compact)

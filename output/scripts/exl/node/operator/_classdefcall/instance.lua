@@ -14,12 +14,10 @@ function classcalloi:rcompile(stream)
 	if self.retname == nil then
 		local base = self.base:rcompile(stream)
 		self.retname = stream:genname()
-		stream:writetoken{
-			op = 'instantiate',
-			args = {
-				{'ssa', base}, -- class
-				{'ssa', self.retname}, -- target
-			},
+		stream:append{
+			[0]='instantiate',
+			{[0]='ssa', base}, -- class
+			{[0]='ssa', self.retname}, -- target
 		}
 	end
 	return self.retname

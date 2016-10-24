@@ -56,24 +56,24 @@ function efunctionbase:rcompile(stream)
 		end
 		self.body:compile(substream)
 		substream:append{
-			'ancillary',
-			{'string', 'comment'}, -- name
-			{'number', self.body.epos.row}, -- row
-			{'number', self.body.epos.col}, -- col
-			{'string', self.body.filename or '-'}, -- filename
-			{'string', ''}, -- text
+			[0]='ancillary',
+			{[0]='string', 'comment'}, -- name
+			{[0]='number', self.body.epos.row}, -- row
+			{[0]='number', self.body.epos.col}, -- col
+			{[0]='string', self.body.filename or '-'}, -- filename
+			{[0]='string', ''}, -- text
 		}
-		local rettokenargs = {'list'}
+		local rettokenargs = {[0]='list'}
 		if self.resultarg then
-			rettokenargs[2] = {'local', self.resultarg.symbol.id}
+			rettokenargs[1] = {[0]='local', self.resultarg.symbol.id}
 		end
 		for i, arg in ipairs(self.args) do
 			if arg.blvalue then
-				table.append(rettokenargs, {'local', arg.symbol.id})
+				table.append(rettokenargs, {[0]='local', arg.symbol.id})
 			end
 		end
 		substream:append{
-			'return',
+			[0]='return',
 			rettokenargs, -- values
 		}
 		substream:compact()
@@ -84,9 +84,9 @@ function efunctionbase:rcompile(stream)
 			end
 		end
 		stream:append{
-			'move',
-			{'function', inargs, substream.body}, -- source
-			{'ssa', self.retname}, -- target
+			[0]='move',
+			{[0]='function', inargs, substream.trace}, -- source
+			{[0]='ssa', self.retname}, -- target
 		}
 	end
 	return self.retname

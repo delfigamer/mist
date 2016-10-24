@@ -26,13 +26,13 @@ end
 function invnative:rcompile(stream)
 	if not self.retname then
 		local stat = {
-			self.operator.opcode,
+			[0]=self.operator.opcode,
 		}
 		for i, arg in ipairs(self.args) do
-			stat[i+1] = {'ssa', arg:rcompile(stream)}
+			stat[i] = {[0]='ssa', arg:rcompile(stream)}
 		end
 		self.retname = stream:genname()
-		table.append(stat, {'ssa', self.retname})
+		table.append(stat, {[0]='ssa', self.retname})
 		stream:append(stat)
 	end
 	return self.retname

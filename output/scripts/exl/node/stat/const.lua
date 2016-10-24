@@ -33,9 +33,9 @@ end
 function sconst:compile(stream)
 	local valname = self.value:rcompile(stream)
 	stream:append{
-		'local_create',
-		{'ssa', valname}, -- value
-		{'local', self.symbol.id}, -- id
+		[0]='local_create',
+		{[0]='ssa', valname}, -- value
+		{[0]='local', self.symbol.id}, -- id
 	}
 end
 

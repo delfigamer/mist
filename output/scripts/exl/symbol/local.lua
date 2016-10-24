@@ -10,18 +10,18 @@ end
 
 function symlocal:lcompile(stream, source)
 	stream:append{
-		'move',
-		{'ssa', source}, -- source
-		{'local', self.id}, -- target
+		[0]='move',
+		{[0]='ssa', source}, -- source
+		{[0]='local', self.id}, -- target
 	}
 end
 
 function symlocal:rcompile(stream)
 	local name = stream:genname()
 	stream:append{
-		'move',
-		{'local', self.id}, -- source
-		{'ssa', name}, -- target
+		[0]='move',
+		{[0]='local', self.id}, -- source
+		{[0]='ssa', name}, -- target
 	}
 	return name
 end

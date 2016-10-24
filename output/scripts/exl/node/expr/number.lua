@@ -14,9 +14,9 @@ end
 function enumber:rcompile(stream)
 	local name = stream:genname()
 	stream:append{
-		'move',
-		{'number', self.value}, -- source
-		{'ssa', name}, -- target
+		[0]='move',
+		{[0]='number', self.value}, -- source
+		{[0]='ssa', name}, -- target
 	}
 	return name
 end

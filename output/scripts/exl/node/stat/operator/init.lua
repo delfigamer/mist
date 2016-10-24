@@ -55,15 +55,15 @@ end
 
 function soperator:compile(stream)
 	stream:append{
-		'local_create',
-		{'ssa', 0}, -- value
-		{'local', self.symbol.id}, -- id
+		[0]='local_create',
+		{[0]='ssa', 0}, -- value
+		{[0]='local', self.symbol.id}, -- id
 	}
 	local valname = self.value:rcompile(stream)
 	stream:append{
-		'move',
-		{'ssa', valname}, -- source
-		{'local', self.symbol.id}, -- target
+		[0]='move',
+		{[0]='ssa', valname}, -- source
+		{[0]='local', self.symbol.id}, -- target
 	}
 end
 

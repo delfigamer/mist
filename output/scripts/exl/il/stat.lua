@@ -251,57 +251,57 @@ for i, opinfo in ipairs{
 	stat.ops[opinfo.name] = opinfo
 end
 
-function stat.argdefstring(self, lp, tab)
-	if type(self) == 'string' then
-		return string.format('~%q', self)
-	elseif type(self) == 'number' then
-		return string.format('~%s', common.dtos(self))
-	elseif self[1] == 'block' then
-		return string.format('{\n%s\n%s}',
-			stat.bodydefstring(self[2], lp .. tab, tab), lp)
-	elseif self[1] == 'function' then
-		return string.format('.function[%s] {\n%s\n%s}',
-			table.concat(self[2], ', '),
-			stat.bodydefstring(self[3], lp .. tab, tab), lp)
-	elseif self[1] == 'local' then
-		return common.identstring(self[2])
-	elseif self[1] == 'member' then
-		return string.format('%s.%s',
-			stat.argdefstring(self[2], lp .. tab, tab),
-			common.identstring(self[3]))
-	elseif self[1] == 'number' then
-		return common.dtos(self[2])
-	elseif self[1] == 'ssa' then
-		if self[2] == 0 then
-			return '.nil'
-		else
-			return string.format('.%i', self[2])
-		end
-	elseif self[1] == 'string' then
-		return string.format('%q', self[2])
-	elseif self[1] == 'list' then
-		local itemstr = {}
-		for i = 2, #self do
-			itemstr[i-1] = stat.argdefstring(self[i], lp, tab)
-		end
-		itemstr = table.concat(itemstr, ', ')
-		return string.format('[%s]', itemstr)
-	end
-end
+-- function stat.argdefstring(self, lp, tab)
+	-- if type(self) == 'string' then
+		-- return string.format('~%q', self)
+	-- elseif type(self) == 'number' then
+		-- return string.format('~%s', common.dtos(self))
+	-- elseif self[0] == 'trace' then
+		-- return string.format('{\n%s\n%s}',
+			-- stat.bodydefstring(self[1], lp .. tab, tab), lp)
+	-- elseif self[0] == 'function' then
+		-- return string.format('.function[%s] {\n%s\n%s}',
+			-- table.concat(self[1], ', '),
+			-- stat.bodydefstring(self[2], lp .. tab, tab), lp)
+	-- elseif self[0] == 'local' then
+		-- return common.identstring(self[1])
+	-- elseif self[0] == 'member' then
+		-- return string.format('%s.%s',
+			-- stat.argdefstring(self[1], lp .. tab, tab),
+			-- common.identstring(self[2]))
+	-- elseif self[0] == 'number' then
+		-- return common.dtos(self[1])
+	-- elseif self[0] == 'ssa' then
+		-- if self[1] == 0 then
+			-- return '.nil'
+		-- else
+			-- return string.format('.%i', self[1])
+		-- end
+	-- elseif self[0] == 'string' then
+		-- return string.format('%q', self[1])
+	-- elseif self[0] == 'list' then
+		-- local itemstr = {}
+		-- for i = 1, #self do
+			-- itemstr[i] = stat.argdefstring(self[i], lp, tab)
+		-- end
+		-- itemstr = table.concat(itemstr, ', ')
+		-- return string.format('[%s]', itemstr)
+	-- end
+-- end
 
-function stat.statdefstring(self, lp, tab)
-	local argstr = {}
-	for i = 2, #self do
-		argstr[i-1] = stat.argdefstring(self[i], lp, tab)
-	end
-	argstr = table.concat(argstr, ', ')
-	return string.format('%s %s', self[1], argstr)
-end
+-- function stat.statdefstring(self, lp, tab)
+	-- local argstr = {}
+	-- for i = 1, #self do
+		-- argstr[i] = stat.argdefstring(self[i], lp, tab)
+	-- end
+	-- argstr = table.concat(argstr, ', ')
+	-- return string.format('%s %s', self[0], argstr)
+-- end
 
-function stat.bodydefstring(self, lp, tab)
-	local lines = {}
-	for i, st in ipairs(self) do
-		lines[i] = lp .. stat.statdefstring(st, lp, tab)
-	end
-	return table.concat(lines, '\n')
-end
+-- function stat.bodydefstring(self, lp, tab)
+	-- local lines = {}
+	-- for i, st in ipairs(self) do
+		-- lines[i] = lp .. stat.statdefstring(st, lp, tab)
+	-- end
+	-- return table.concat(lines, '\n')
+-- end

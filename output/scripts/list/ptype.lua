@@ -41,6 +41,7 @@ local function readitem(stream)
 end
 
 function listptype:write(instance, stream)
+	scalars.string:write(instance[0] or '', stream)
 	scalars.int:write(#instance, stream)
 	for i = 1, #instance do
 		writeitem(instance[i], stream)
@@ -48,8 +49,9 @@ function listptype:write(instance, stream)
 end
 
 function listptype:read(stream)
-	local length = scalars.int:read(stream)
 	local instance = {}
+	instance[0] = scalars.string:read(stream)
+	local length = scalars.int:read(stream)
 	for i = 1, length do
 		instance[i] = readitem(stream)
 	end

@@ -19,12 +19,12 @@ end
 function block:compile(stream)
 	for i, stat in ipairs(self.statements) do
 		stream:append{
-			'ancillary',
-			{'string', 'comment'}, -- name
-			{'number', stat.spos.row}, -- row
-			{'number', stat.spos.col}, -- col
-			{'string', self.filename or '-'}, -- filename
-			{'string', ''}, -- text
+			[0]='ancillary',
+			{[0]='string', 'comment'}, -- name
+			{[0]='number', stat.spos.row}, -- row
+			{[0]='number', stat.spos.col}, -- col
+			{[0]='string', self.filename or '-'}, -- filename
+			{[0]='string', ''}, -- text
 		}
 		stat:compile(stream)
 	end

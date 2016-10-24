@@ -28,10 +28,10 @@ function eclassdef:rcompile(stream)
 	if not self.retname then
 		self.retname = stream:genname()
 		stream:append{
-			'newclass',
-			{'ssa', 0}, -- parent
-			{'string', self.classinfo:getclassname()}, -- classname
-			{'ssa', self.retname}, -- target
+			[0]='newclass',
+			{[0]='ssa', 0}, -- parent
+			{[0]='string', self.classinfo:getclassname()}, -- classname
+			{[0]='ssa', self.retname}, -- target
 		}
 	end
 	return self.retname

@@ -4,9 +4,9 @@ local stream = object:module(modname)
 local ldefstring = require('list.defstring')
 local compact = require(modname, 1, 'compact')
 
-function stream:init(body)
+function stream:init(trace)
 	self.lastname = 0
-	self.body = body or {}
+	self.trace = trace or {}
 end
 
 function stream:genname()
@@ -15,7 +15,7 @@ function stream:genname()
 end
 
 function stream:append(t)
-	table.append(self.body, t)
+	table.append(self.trace, t)
 end
 
 function stream:compact()
@@ -23,5 +23,5 @@ function stream:compact()
 end
 
 function stream:defstring(lp)
-	return ldefstring(self.body, lp)
+	return ldefstring(self.trace, lp)
 end

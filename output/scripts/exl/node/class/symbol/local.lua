@@ -10,10 +10,10 @@ end
 
 function csymlocal:lcompile(stream, source, basename)
 	stream:append{
-		'move',
-		{'ssa', source}, -- source
-		{'member', -- target
-			{'ssa', basename},
+		[0]='move',
+		{[0]='ssa', source}, -- source
+		{[0]='member', -- target
+			{[0]='ssa', basename},
 			self.id
 		},
 	}
@@ -22,12 +22,12 @@ end
 function csymlocal:rcompile(stream, basename)
 	local name = stream:genname()
 	stream:append{
-		'move',
-		{'member', -- source
-			{'ssa', basename},
+		[0]='move',
+		{[0]='member', -- source
+			{[0]='ssa', basename},
 			self.id
 		},
-		{'ssa', name}, -- target
+		{[0]='ssa', name}, -- target
 	}
 	return name
 end
