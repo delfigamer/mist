@@ -63,7 +63,7 @@ function efunctionbase:rcompile(stream)
 			{[0]='string', self.body.filename or '-'}, -- filename
 			{[0]='string', ''}, -- text
 		}
-		local rettokenargs = {[0]='list'}
+		local rettokenargs = {}
 		if self.resultarg then
 			rettokenargs[1] = {[0]='local', self.resultarg.symbol.id}
 		end

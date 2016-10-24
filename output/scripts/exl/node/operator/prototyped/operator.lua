@@ -15,11 +15,8 @@ function opprototyped:invoke(it)
 		return
 	end
 	local castargs = {}
-	local maxrank = 0
 	for i, aarg in ipairs(self.args) do
-		local barg = it.args[i]:getfulltype()
-		local arank
-		castargs[i], arank = ecast:castvalue{
+		castargs[i] = ecast:castvalue{
 			context = it.context,
 			spos = it.spos,
 			epos = it.epos,
@@ -31,9 +28,6 @@ function opprototyped:invoke(it)
 		if not castargs[i] then
 			return
 		end
-		if arank > maxrank then
-			maxrank = arank
-		end
 	end
 	return self.invocationclass:create{
 		context = it.context,
@@ -43,7 +37,6 @@ function opprototyped:invoke(it)
 		operator = self,
 		args = castargs,
 		fulltype = self.retfulltype,
-		maxrank = maxrank,
 	}
 end
 

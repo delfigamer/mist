@@ -16,8 +16,7 @@ function opassign:invoke(it)
 	local rv = it.args[2]
 	local lft = lv:getfulltype()
 	local rft = rv:getfulltype()
-	local rank
-	rv, rank = ecast:castvalue{
+	rv = ecast:castvalue{
 		context = it.context,
 		spos = it.spos,
 		epos = it.epos,
@@ -37,7 +36,6 @@ function opassign:invoke(it)
 		context = it.context,
 		args = {lv, rv},
 		ti = lft.ti,
-		rank = rank,
 	}
 end
 

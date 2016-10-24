@@ -20,7 +20,7 @@ end
 function invfunctioncall:rcompile(stream)
 	if not self.retname then
 		local basename = self.base:rcompile(stream)
-		local args = {[0]='list'}
+		local args = {}
 		for i, iarg in ipairs(self.inargs) do
 			args[i] = {[0]='ssa', iarg:rcompile(stream)}
 		end
@@ -34,7 +34,7 @@ function invfunctioncall:rcompile(stream)
 		for i, oarg in ipairs(self.outargs) do
 			table.append(results, stream:genname())
 		end
-		local resultargs = {[0]='list'}
+		local resultargs = {}
 		for i, rarg in ipairs(results) do
 			table.append(resultargs, {[0]='ssa', rarg})
 		end

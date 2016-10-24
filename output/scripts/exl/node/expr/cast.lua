@@ -9,89 +9,87 @@ function ecast:init(it)
 	self.base = it.base
 	self.fulltype = it.target
 	self.context = it.context
-	local baseft = self.base:getfulltype()
-	local targetft = self.fulltype
-	self.rank = 0
-	if targetft.lvalue then
-		self.lsource = common.createnode{
-			name = 'expr.dummy',
-			spos = self.spos,
-			epos = self.epos,
-			filename = self.filename,
-			fulltype = fulltype:create(targetft.ti, false, true),
-		}
-		self.lassignment = common.createnode{
-			name = 'expr.invoke',
-			opname = 'cast',
-			spos = self.spos,
-			epos = self.epos,
-			filename = self.filename,
-			args = {
-				self.base,
-				self.lsource,
-			},
-			binternal = true,
-		}
-		self.lassignment:build(self.context)
-		if self.lassignment.bfailed then
+	self.baseft = self.base:getfulltype()
+	self.targetft = self.fulltype
+	self.btrivial = self.baseft.ti:iseq(self.targetft.ti)
+	if not self.btrivial then
+		if it.binternal then
 			self.bfailed = true
 			return
 		end
-		local rank = self.lassignment.invocation:getcastrank()
-		if rank > self.rank then
-			self.rank = rank
+		if self.targetft.lvalue then
+			self.lsource = common.createnode{
+				name = 'expr.dummy',
+				spos = self.spos,
+				epos = self.epos,
+				filename = self.filename,
+				fulltype = fulltype:create(self.targetft.ti, false, true),
+			}
+			self.lassignment = common.createnode{
+				name = 'expr.invoke',
+				opname = 'cast',
+				spos = self.spos,
+				epos = self.epos,
+				filename = self.filename,
+				args = {
+					self.base,
+					self.lsource,
+				},
+				binternal = true,
+			}
+			self.lassignment:build(self.context)
+			if self.lassignment.bfailed then
+				self.bfailed = true
+				return
+			end
 		end
-	end
-	if targetft.rvalue then
-		self.rtarget = common.createnode{
-			name = 'expr.dummy',
-			spos = self.spos,
-			epos = self.epos,
-			filename = self.filename,
-			fulltype = fulltype:create(targetft.ti, true, false),
-		}
-		self.rassignment = common.createnode{
-			name = 'expr.invoke',
-			opname = 'cast',
-			spos = self.spos,
-			epos = self.epos,
-			filename = self.filename,
-			args = {
-				self.rtarget,
-				self.base,
-			},
-			binternal = true,
-		}
-		self.rassignment:build(self.context)
-		if self.rassignment.bfailed then
-			self.bfailed = true
-			return
-		end
-		local rank = self.rassignment.invocation:getcastrank()
-		if rank > self.rank then
-			self.rank = rank
+		if self.targetft.rvalue then
+			self.rtarget = common.createnode{
+				name = 'expr.dummy',
+				spos = self.spos,
+				epos = self.epos,
+				filename = self.filename,
+				fulltype = fulltype:create(self.targetft.ti, true, false),
+			}
+			self.rassignment = common.createnode{
+				name = 'expr.invoke',
+				opname = 'cast',
+				spos = self.spos,
+				epos = self.epos,
+				filename = self.filename,
+				args = {
+					self.rtarget,
+					self.base,
+				},
+				binternal = true,
+			}
+			self.rassignment:build(self.context)
+			if self.rassignment.bfailed then
+				self.bfailed = true
+				return
+			end
 		end
 	end
 end
 
 function ecast:lcompile(stream, source)
-	-- if self.bsimplecast then
-		-- self.base:lcompile(stream, source)
-	-- else
+	if self.btrivial then
+		self.base:lcompile(stream, source)
+	else
 		self.lsource:lcompile(stream, source)
 		self.lassignment:rcompile(stream)
-	-- end
+	end
 end
 
 function ecast:rcompile(stream)
 	if not self.retname then
-		-- if self.bsimplecast then
-			-- self.retname = self.base:rcompile(stream)
-		-- else
+		if self.btrivial then
+			self.retname = self.base:rcompile(stream)
+		else
 			local base = self.base:rcompile(stream)
 			self.rassignment:rcompile(stream)
 			self.retname = self.rtarget:rcompile(stream)
-		-- end
+		end
 	end
 	return self.retname
 end
@@ -130,29 +128,47 @@ function ecast:castvalue(it)
 	if targetft.rvalue and not baseft.rvalue then
 		return
 	end
-	local rlrank
-	-- if it.binternal then
-		-- rlrank = 0
-	-- else
-		if baseft.lvalue and not targetft.lvalue then
-			rlrank = 1
-		elseif baseft.rvalue and not targetft.rvalue then
-			rlrank = 2
-		else
-			rlrank = 0
-		end
-	-- end
-	if baseft.ti:iseq(targetft.ti) then
-		-- log(baseft, targetft, rlrank)
-		return it.base, rlrank
+	local expr = ecast:create(it)
+	if not expr.bfailed then
+		return expr
 	end
-	if not it.binternal then
-		local expr = ecast:create(it)
-		if not expr.bfailed then
-			-- log(baseft, targetft, expr.rank)
-			return expr, expr.rank + rlrank
+end
+
+function ecast:prefcompare(other)
+	if self.btrivial and not other.btrivial then
+		return 1
+	end
+	if not self.btrivial and other.btrivial then
+		return -1
+	end
+	if not self.btrivial and not other.btrivial then
+		local lcomp = 0
+		local rcomp = 0
+		if self.lassignment and other.lassignment then
+			lcomp = self.lassignment:prefcompare(other.lassignment)
+		end
+		if self.rassignment and other.rassignment then
+			rcomp = self.rassignment:prefcompare(other.rassignment)
+		end
+		if lcomp < 0 and rcomp <= 0 or lcomp <= 0 and rcomp < 0 then
+			return -1
+		elseif lcomp > 0 and rcomp >= 0 or lcomp >= 0 and rcomp > 0 then
+			return 1
 		end
 	end
+	if self.targetft.rvalue and not other.targetft.rvalue then
+		return 1
+	end
+	if not self.targetft.rvalue and other.targetft.rvalue then
+		return -1
+	end
+	if self.targetft.lvalue and not other.targetft.lvalue then
+		return 1
+	end
+	if not self.targetft.lvalue and other.targetft.lvalue then
+		return -1
+	end
+	return 0
 end
 
 common = require(modname, 3, 'common')

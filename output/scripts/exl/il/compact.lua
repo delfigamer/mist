@@ -52,7 +52,7 @@ local function count_uses(context, stream)
 					if arg[1][0] == 'ssa' and arg[1][1] ~= 0 then
 						context:incssacount(arg[1][1])
 					end
-				elseif arg[0] == 'list' then
+				elseif arg[0] == nil then
 					for i = 1, #arg do
 						local item = arg[i]
 						if item[0] == 'ssa' and item[1] ~= 0 then
@@ -99,7 +99,7 @@ local function compact(stream)
 					if arg[1][0] == 'ssa' and arg[1][1] ~= 0 then
 						arg[1] = context:get(arg[1])
 					end
-				elseif arg[0] == 'list' then
+				elseif arg[0] == nil then
 					for i = 1, #arg do
 						local item = arg[i]
 						if item[0] == 'ssa' and item[1] ~= 0 then
@@ -134,7 +134,7 @@ local function compact(stream)
 			if arginfo.role == 'output' then
 				if arg[0] == 'ssa' and arg[1] ~= 0 then
 					token[argindex] = context:get(arg[1])
-				elseif arg[0] == 'list' then
+				elseif arg[0] == nil then
 					for i = 1, #arg do
 						local item = arg[i]
 						if item[0] == 'ssa' and item[1] ~= 0 then

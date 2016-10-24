@@ -30,7 +30,7 @@ invocation:
 		operator,
 	}
 	function getoperator(): operator
-	function getrank(): int
+	function prefcompare(invocation other): int
 
 node:
 	< object

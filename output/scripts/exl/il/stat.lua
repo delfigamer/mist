@@ -279,7 +279,7 @@ end
 		-- end
 	-- elseif self[0] == 'string' then
 		-- return string.format('%q', self[1])
-	-- elseif self[0] == 'list' then
+	-- elseif self[0] == nil then
 		-- local itemstr = {}
 		-- for i = 1, #self do
 			-- itemstr[i] = stat.argdefstring(self[i], lp, tab)

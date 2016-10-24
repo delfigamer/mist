@@ -1,23 +1,11 @@
+	operator init(out number n)
+		n = 0
+	end
 	local number i = 10 -- _l_c_a
 	local number j = 20 -- _l_c_b
 	local string s = 'kl' -- _l_c_c
-	operator cast(out string s, number n) -- _l_c_d
-		s = '0'
+	function f(out number)
 	end
-	operator cast(out number n, string s) -- _l_c_e
-		n = 0
-	end
-	function myfunc(number a): number -- _l_c_f
-		result = a
-	end
-	function myfunc(inout number a): number -- _l_c_g
-		result = a
-	end
-	-- function myfunc(string a): number -- _l_c_h
-	-- 	result = a
-	-- end
-	-- function myfunc(inout string a): number -- _l_c_i
-	-- 	result = a
-	-- end
-	j = myfunc(1) + myfunc(i) + myfunc('12') + myfunc(s)
+
+	f(i)
 end

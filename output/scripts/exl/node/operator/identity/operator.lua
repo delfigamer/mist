@@ -7,7 +7,6 @@ package.modtable(modname, opidentity)
 local invidentity
 
 function opidentity:invoke(it)
-	log('-')
 	if #it.args ~= 1 then
 		return
 	end

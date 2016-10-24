@@ -26,30 +26,45 @@ function einvoke:init(pr)
 	self.binternal = pr.binternal
 end
 
+local function candidate_consider(list, impl)
+	local removed = {}
+	for i = 1, #list do
+		local pc = list[i]:prefcompare(impl)
+		if pc > 0 then
+			return
+		elseif pc < 0 then
+			removed[i] = true
+		end
+	end
+	local ti = 1
+	for i = 1, #list do
+		if not removed[i] then
+			list[ti] = list[i]
+			ti = ti + 1
+		end
+	end
+	for i = ti, #list do
+		list[i] = nil
+	end
+	table.append(list, impl)
+end
+
 local function tryresolve(self, context, visitedcontexts, protostr)
 	if not context or visitedcontexts[context] then
 		return
 	end
 	visitedcontexts[context] = true
-	local candidates
-	local rank
+	local candidates = {}
 	local oplist = context:getoperatorlist(self.opname)
 	for i, operator in ipairs(oplist) do
 		local impl = operator:invoke(self)
 		if impl then
-			local irank = impl:getmaxrank()
-			-- log(self, i, operator, irank)
-			if irank == rank then
-				table.append(candidates, impl)
-			elseif not rank or irank < rank then
-				candidates = {impl}
-				rank = irank
-			end
+			candidate_consider(candidates, impl)
 		end
 	end
-	if candidates and #candidates == 1 then
+	if #candidates == 1 then
 		return candidates[1]
-	elseif candidates and #candidates > 1 then
+	elseif #candidates > 1 then
 		local candstr = {}
 		for i, item in ipairs(candidates) do
 			local operator = item:getoperator()
@@ -63,12 +78,6 @@ local function tryresolve(self, context, visitedcontexts, protostr)
 				'possible candidates are:\n' ..
 				table.concat(candstr, '\n'),
 			self)
-	end
-	local impl = tryresolve(self, context.parent, visitedcontexts, protostr)
-	if impl then
-		return impl
-	else
-		return tryresolve(self, context.outer, visitedcontexts, protostr)
 	end
 end
 
@@ -90,19 +99,27 @@ function einvoke:dobuild(pc)
 	self.context = pc
 	local visitedcontexts = {}
 	self.invocation = tryresolve(self, pc, visitedcontexts, protostr)
-	if not self.invocation then
-		for i, arg in ipairs(proto) do
-			local context = arg.ti:getcontext()
-			self.invocation = tryresolve(self, context, visitedcontexts, protostr)
-			if self.invocation then
-				break
-			end
+	if self.invocation then
+		goto invocationfound
+	end
+	for i, arg in ipairs(proto) do
+		local context = arg.ti:getcontext()
+		self.invocation = tryresolve(self, context, visitedcontexts, protostr)
+		if self.invocation then
+			goto invocationfound
 		end
 	end
-	if self.invocation then
-		self.constvalue = self.invocation:getconstvalue()
-		self.fulltype = self.invocation:getfulltype()
-	else
+	do
+		local current = pc.parent
+		while current do
+			self.invocation = tryresolve(self, current, visitedcontexts, protostr)
+			if self.invocation then
+				goto invocationfound
+			end
+			current = current.parent
+		end
+	end
+	do
 		if self.binternal then
 			self.bfailed = true
 		else
@@ -110,7 +127,11 @@ function einvoke:dobuild(pc)
 				'cannot resolve ' .. protostr,
 				self)
 		end
+		return
 	end
+::invocationfound::
+	self.constvalue = self.invocation:getconstvalue()
+	self.fulltype = self.invocation:getfulltype()
 end
 
 function einvoke:lcompile(stream, source)
@@ -124,6 +145,13 @@ function einvoke:rcompile(stream)
 		local name = self.invocation:rcompile(stream)
 		return name
 	end
+end
+
+function einvoke:prefcompare(other)
+	if not other['#'..modname] then
+		return 0
+	end
+	return self.invocation:prefcompare(other.invocation)
 end
 
 function einvoke:defstring(lp)

@@ -51,6 +51,9 @@ end
 function listptype:read(stream)
 	local instance = {}
 	instance[0] = scalars.string:read(stream)
+	if #instance[0] == 0 then
+		instance[0] = nil
+	end
 	local length = scalars.int:read(stream)
 	for i = 1, length do
 		instance[i] = readitem(stream)

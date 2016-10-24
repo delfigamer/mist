@@ -18,4 +18,8 @@ function invassign:rcompile(stream)
 	return self.retname
 end
 
+function invbase:prefcompare(other)
+	return self.args[2]:prefcompare(other.arg[2])
+end
+
 fulltype = require(modname, 4, 'fulltype')

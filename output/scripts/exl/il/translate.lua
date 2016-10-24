@@ -77,7 +77,7 @@ function translate_value(arg, context)
 end
 
 local function translate_vlist(arg, context)
-	assert_arghead(arg, 'list')
+	assert_arghead(arg, nil)
 	local tlist = {}
 	for i, item in ipairs(arg) do
 		tlist[i] = translate_value(item, context)
