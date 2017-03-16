@@ -31,8 +31,8 @@ namespace graphics
 		{
 			programtranslator::step( &ts );
 		}
-		Ref< programtranslator::StringBuilder > vsh;
-		Ref< programtranslator::StringBuilder > fsh;
+		Ref< StringBuilder > vsh;
+		Ref< StringBuilder > fsh;
 		programtranslator::makeshaders( &ts, &vsh, &fsh );
 		*vsrc = programtranslator::buildstring( vsh );
 		*fsrc = programtranslator::buildstring( fsh );

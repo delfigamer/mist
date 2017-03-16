@@ -14,7 +14,7 @@ function efunctionbase:init(pr)
 	self.rettype = pr.rettype
 	if self.rettype then
 		self.resultarg = common.createnode{
-			name = 'expr.function.arg',
+			name = 'expr.function.argdef',
 			spos = self.rettype.spos,
 			epos = self.rettype.epos,
 			filename = self.rettype.filename,
@@ -57,11 +57,10 @@ function efunctionbase:rcompile(stream)
 		self.body:compile(substream)
 		substream:append{
 			[0]='ancillary',
-			{[0]='string', 'comment'}, -- name
-			{[0]='number', self.body.epos.row}, -- row
-			{[0]='number', self.body.epos.col}, -- col
-			{[0]='string', self.body.filename or '-'}, -- filename
-			{[0]='string', ''}, -- text
+			'position', -- name
+			self.body.epos.row, -- row
+			self.body.epos.col, -- col
+			self.body.filename or '-', -- filename
 		}
 		local rettokenargs = {}
 		if self.resultarg then
@@ -96,4 +95,4 @@ common = require(modname, 4, 'common')
 context = require(modname, 4, 'context')
 fulltype = require(modname, 4, 'fulltype')
 functionti = require(modname, 1, 'ti')
-ilstream = require(modname, 4, 'il.stream')
+-- ilstream = require(modname, 4, 'il.stream')

@@ -221,8 +221,7 @@ function format.method_luabody(ent)
 	end
 	echo('\n')
 	if ent.meta.addref then
-		error(string.format('addref %s', ent.flname))
-		-- echo('\t\treference_addref(result[0])\n')
+		echo('\t\treference_addref(result[0])\n')
 	end
 	echo('\t\treturn')
 	if ent.rettype.type == 'classbox' then
@@ -231,6 +230,8 @@ function format.method_luabody(ent)
 	elseif ent.rettype.type ~= 'void' then
 		if ent.meta.stringwrap then
 			echo(' result[0] ~= nil and ffi.string(result[0])')
+		elseif ent.meta.gc then
+			echo(' result[0] ~= nil and ffi.gc(result[0], ', ent.meta.gc, ')')
 		else
 			echo(' result[0]')
 		end

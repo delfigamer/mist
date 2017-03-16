@@ -4,24 +4,24 @@ local einvoke = ebase:module(modname)
 local common
 
 local binary = {
-	add = '+',
-	adda = '+=',
+	plus = '+',
+	addto = '+=',
 	assign = '=',
-	concat = '..',
-	div = '/',
-	mul = '*',
-	sub = '-',
-	suba = '-=',
+	join = '..',
+	divide = '/',
+	times = '*',
+	subtract = '-',
+	subtractfrom = '-=',
 }
 
 local unary = {
-	identity = '+',
-	negate = '-',
+	plus = '+',
+	minus = '-',
 }
 
 function einvoke:init(pr)
 	ebase.init(self, pr)
-	self.opname = pr.opname
+	self.target = pr.target
 	self.args = pr.args
 	self.binternal = pr.binternal
 end
@@ -93,7 +93,7 @@ function einvoke:dobuild(pc)
 	for i, arg in ipairs(proto) do
 		table.append(protostr, arg:defstring(''))
 	end
-	protostr = string.format('operator %s(%s)',
+	protostr = string.format('%s[%s]',
 		self.opname,
 		table.concat(protostr, ', '))
 	self.context = pc
@@ -155,30 +155,34 @@ function einvoke:prefcompare(other)
 end
 
 function einvoke:defstring(lp)
-	if binary[self.opname] and #self.args == 2 then
+	if binary[self.target] and #self.args == 2 then
 		return string.format('(%s %s %s)',
 			self.args[1]:defstring(lp .. self.lpindent),
-			binary[self.opname],
+			binary[self.target],
 			self.args[2]:defstring(lp .. self.lpindent))
-	elseif unary[self.opname] and #self.args == 1 then
+	elseif unary[self.target] and #self.args == 1 then
 		return string.format('(%s %s)',
-			unary[self.opname],
+			unary[self.target],
 			self.args[1]:defstring(lp .. self.lpindent))
-	elseif self.opname == 'call' and #self.args > 0 then
-		local argstr = {}
-		for i = 2, #self.args do
-			argstr[i-1] = self.args[i]:defstring(lp .. self.lpindent)
+	elseif self.target == 'invoke' and #self.args > 0 then
+		-- check if base is a single identifier
+		local basestr = self.args[1]:defstring(lp .. self.lpindent)
+		if not string.match(basestr, '^[a-zA-Z_][a-zA-Z0-9]*$') then
+			local argstr = {}
+			for i = 2, #self.args do
+				argstr[i-1] = self.args[i]:defstring(lp .. self.lpindent)
+			end
+			return string.format('%s[%s]',
+				basestr,
+				table.concat(argstr, ', '))
 		end
-		return string.format('%s(%s)',
-			self.args[1]:defstring(lp .. self.lpindent),
-			table.concat(argstr, ', '))
 	end
 	local argstr = {}
 	for i, arg in ipairs(self.args) do
 		argstr[i] = arg:defstring(lp .. self.lpindent)
 	end
-	return string.format('invoke %s(%s)',
-		self.opname,
+	return string.format('%s[%s]',
+		common.identstring(self.target),
 		table.concat(argstr, ', '))
 end
 

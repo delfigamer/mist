@@ -7,7 +7,7 @@ local functionti
 
 function efunctiontypev:init(pr)
 	etypedef.init(self, pr)
-	self.args = pr.args
+	self.argdefs = pr.argdefs
 	self.rettype = pr.rettype
 end
 

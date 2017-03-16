@@ -97,7 +97,7 @@ local function compact(stream)
 					token[argindex] = context:get(arg[1])
 				elseif arg[0] == 'member' then
 					if arg[1][0] == 'ssa' and arg[1][1] ~= 0 then
-						arg[1] = context:get(arg[1])
+						arg[1] = context:get(arg[1][1])
 					end
 				elseif arg[0] == nil then
 					for i = 1, #arg do
@@ -110,7 +110,7 @@ local function compact(stream)
 			elseif arginfo.role == 'output' then
 				if arg[0] == 'member' then
 					if arg[1][0] == 'ssa' and arg[1][1] ~= 0 then
-						arg[1] = context:get(arg[1])
+						arg[1] = context:get(arg[1][1])
 					end
 				end
 			end

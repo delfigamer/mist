@@ -3,6 +3,7 @@
 
 /output/bin-*
 /output/flow
+/output/test*
 *.flac
 
 # Object files

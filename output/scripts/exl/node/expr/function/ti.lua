@@ -5,10 +5,10 @@ local common
 
 function functionti:init(pr)
 	baseti.init(self, pr)
-	self.args = pr.args
+	self.argdefs = pr.argdefs
 	self.rettype = pr.rettype
 	local aser = {}
-	for i, arg in ipairs(self.args) do
+	for i, arg in ipairs(self.argdefs) do
 		local ti = arg.typev:gettivalue()
 		local am = arg.blvalue and (
 				arg.brvalue and 'B' or 'L'
@@ -61,17 +61,17 @@ function functionti:iseq(other)
 end
 
 function functionti:defstring(lp)
-	local argstr = {}
-	for i, arg in ipairs(self.args) do
-		argstr[i] = arg:defstring(lp .. self.lpindent)
+	local argdefstr = {}
+	for i, argdef in ipairs(self.argdefs) do
+		argdefstr[i] = argdef:defstring(lp .. self.lpindent)
 	end
 	if self.rettype then
-		return string.format('type function(%s): %s',
-			table.concat(argstr, ', '),
+		return string.format('type function[%s] : %s',
+			table.concat(argdefstr, ', '),
 			self.rettype:defstring(lp .. self.lpindent))
 	else
-		return string.format('type function(%s)',
-			table.concat(argstr, ', '))
+		return string.format('type function[%s]',
+			table.concat(argdefstr, ', '))
 	end
 end
 

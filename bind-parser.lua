@@ -73,9 +73,9 @@ local function parse_enum(filename, nsprefix, item)
 end
 
 local function parse_parentstr(input)
-	return string.match(input, '^:%s*public%s+(%S*)') or
-		string.match(input, '^:%s*private%s+(%S*)') or
-		string.match(input, '^:%s*(%S*)')
+	return string.match(input, '^:%s*public%s+([a-zA-Z0-9_:]*)') or
+		string.match(input, '^:%s*private%s+([a-zA-Z0-9_:]*)') or
+		string.match(input, '^:%s*([a-zA-Z0-9_:]*)')
 end
 
 local function parse_class(filename, nsprefix, item)

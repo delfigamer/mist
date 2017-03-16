@@ -1,6 +1,7 @@
 local modname = ...
 local object = require('base.object')
 local fmat = object:module(modname)
+local databuffer = require('host.databuffer')
 local ffi = require('ffi')
 
 fmat.headertype = ffi.typeof[[
@@ -14,10 +15,13 @@ fmat.headertype = ffi.typeof[[
 
 function fmat:init(header)
 	self.header = self.headertype(header)
-	local datatype = ffi.typeof('float[$][$][$]', header.height, header.width, header.planes)
-	self.data = datatype()
+	local datatype = ffi.typeof('$*',
+		ffi.typeof('float[$][$]', header.width, header.planes))
+	self.datasize = header.width * header.height * header.planes *
+		ffi.sizeof('float')
+	self.buffer = databuffer:create(self.datasize, self.datasize)
+	self.data = datatype(self.buffer:getdata())
 	self.celltype = ffi.typeof('float[$]', header.planes)
-	self.datasize = header.width * header.height * header.planes * ffi.sizeof('float')
 end
 
 function fmat:spawn(width, height, planes)

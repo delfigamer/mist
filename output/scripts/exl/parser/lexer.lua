@@ -20,7 +20,7 @@ exl tokens:
 	symbols and digraphs - each one is a distinct type
 
 	'newline' - internal token, is not returned by lexer.obtaintoken
-	instead, token:islinestart of the next one returns true
+	instead, token.bislinestart of the next one is true
 
 comments and blanks are ignored
 ]]
@@ -33,10 +33,8 @@ lexer.keyword = table.makeset{
 	'function',
 	'in',
 	'inout',
-	'invoke',
 	'local',
 	'nil',
-	'operator',
 	'out',
 	'type',
 	'unit',
@@ -86,7 +84,7 @@ local function obtaincharacter(stream, char)
 		return true
 	else
 		stream:ungetc(c)
-		stream:error(char..' expected', stream:getpos())
+		stream:error(char .. ' expected', stream:getpos())
 	end
 end
 
@@ -265,14 +263,6 @@ local function obtainword(stream)
 	else
 		return token:create('identifier', word, spos, stream:getpos())
 	end
-end
-
-local function skipinvalidnumber(stream)
-	local ch
-	repeat
-		ch = stream:getc()
-	until not letterordigit[ch] and ch ~= '.'
-	stream:ungetc(ch)
 end
 
 local function obtainnumber_base(
@@ -534,6 +524,7 @@ tokentable['/'] = obtaindigraph_gen('/=')
 tokentable['~'] = obtaindigraph_gen('~=')
 tokentable['#'] = obtainsymbol
 tokentable[','] = obtainsymbol
+
 tokentable[''] = function(stream)
 	local pos = stream:getpos()
 	return token:create('eof', nil, pos, pos)
@@ -547,7 +538,7 @@ function lexer.obtaintoken(stream)
 		if tfunc then
 			stream:ungetc(ch)
 			local token = tfunc(stream)
-			if token and token:gettype() == 'newline' then
+			if token and token.type == 'newline' then
 				bislinestart = true
 			elseif token then
 				token.bislinestart = bislinestart

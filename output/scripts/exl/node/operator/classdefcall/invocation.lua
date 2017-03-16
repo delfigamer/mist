@@ -1,16 +1,16 @@
 local modname = ...
-local baseoi = require(modname, 2, 'base.instance')
-local classcalloi = baseoi:module(modname)
+local invbase = require(modname, 2, 'base.invocation')
+local invclasscall = invbase:module(modname)
 local fulltype
 
-function classcalloi:init(pr)
-	baseoi.init(self, pr)
-	self.context = pr.context
+function invclasscall:init(pr)
+	invbase.init(self, pr)
+	-- self.context = pr.context
 	self.base = pr.base
 	self.fulltype = fulltype:create(pr.ti, false, true)
 end
 
-function classcalloi:rcompile(stream)
+function invclasscall:rcompile(stream)
 	if self.retname == nil then
 		local base = self.base:rcompile(stream)
 		self.retname = stream:genname()

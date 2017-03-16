@@ -8,7 +8,7 @@ function symlocal:init(it)
 	self.id = it.context:genid()
 end
 
-function symlocal:lcompile(stream, source)
+function symlocal:lcompile(stream, source, basename)
 	stream:append{
 		[0]='move',
 		{[0]='ssa', source}, -- source
@@ -16,7 +16,7 @@ function symlocal:lcompile(stream, source)
 	}
 end
 
-function symlocal:rcompile(stream)
+function symlocal:rcompile(stream, basename)
 	local name = stream:genname()
 	stream:append{
 		[0]='move',

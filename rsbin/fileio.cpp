@@ -376,7 +376,7 @@ namespace rsbin
 	IoTask* FileIo::startread(
 		uint64_t offset, size_t length, void* buffer, bool promote )
 	{
-		FileIoTask* task = new FileIoTask;
+		auto task = Ref< FileIoTask >::create();
 		if( length < BlockingReadThreshold && offset + length <= m_viewsize )
 		{
 			memcpy(
@@ -385,7 +385,7 @@ namespace rsbin
 				length );
 			task->m_result = length;
 			task->m_finished.store( true, std::memory_order_release );
-			return task;
+			return task.detach();
 		}
 		task->m_target = this;
 		task->m_offset = offset;
@@ -400,13 +400,13 @@ namespace rsbin
 		{
 			FsThread->pushmain( task );
 		}
-		return task;
+		return task.detach();
 	}
 
 	IoTask* FileIo::startwrite(
 		uint64_t offset, size_t length, void const* buffer, bool promote )
 	{
-		FileIoTask* task = new FileIoTask;
+		auto task = Ref< FileIoTask >::create();
 		task->m_target = this;
 		task->m_offset = offset;
 		task->m_length = length;
@@ -420,12 +420,12 @@ namespace rsbin
 		{
 			FsThread->pushmain( task );
 		}
-		return task;
+		return task.detach();
 	}
 
 	void FileIo::setsize( uint64_t size )
 	{
-		FileIoTask* task = new FileIoTask;
+		auto task = Ref< FileIoTask >::create();
 		task->m_target = this;
 		task->m_offset = size;
 		task->m_length = 0;
@@ -436,6 +436,5 @@ namespace rsbin
 		{
 			std::this_thread::yield();
 		}
-		task->release();
 	}
 }

@@ -18,7 +18,7 @@ public:
 	{
 		DataBuffer* db;
 		db = ( DataBuffer* )operator new(
-			sizeof( DataBuffer ) - sizeof( uint8_t[ 8 ] ) + capacity );
+			offsetof( DataBuffer, m_data ) + capacity );
 		try
 		{
 			new( db )DataBuffer( length, capacity, data );

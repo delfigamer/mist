@@ -9,9 +9,9 @@ function classinfo:init(it)
 	object.init(self, it)
 	self.outercontext = it.context
 	self.classname = it.classname
-	local namespace = it.context:getnamespace()
-	if namespace then
-		self.classname = namespace .. '.' .. self.classname
+	local nameprefix = it.context:getnameprefix()
+	if nameprefix then
+		self.classname = nameprefix .. self.classname
 	end
 	self.parent = it.parent
 	self.context = classcontext:create(nil, it.context)

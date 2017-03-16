@@ -29,7 +29,9 @@ function sclass:dobuild(pc)
 		constvalue = self.value,
 	}
 	pc:setsymbol(self.classname, self.symbol, self)
-	self.body:build(self.value.classinfo:getcontext())
+	local classcontext = self.value.classinfo:getcontext()
+	classcontext.symtarget = self.symbol
+	self.body:build(classcontext)
 end
 
 function sclass:compile(stream)

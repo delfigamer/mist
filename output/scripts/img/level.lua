@@ -1,6 +1,10 @@
 local modname = ...
 local fmat = require('img.fmat')
 
+local function clampf(c)
+	return (math.abs(c) - math.abs(c-1) + 1) * 0.5
+end
+
 local function level(it)
 	local ifmat = it[1]
 	local ifactor = it.ifactor or 1
@@ -11,12 +15,16 @@ local function level(it)
 	local ogamma = it.ogamma or 1
 	local gamma = ogamma / igamma
 	local ofmat = fmat:create(ifmat.header)
-	for x = 0, ofmat.header.width - 1 do
-		for y = 0, ofmat.header.height - 1 do
+	for y = 0, ofmat.header.height - 1 do
+		for x = 0, ofmat.header.width - 1 do
 			for p = 0, ofmat.header.planes - 1 do
-				ofmat.data[y][x][p] =
+				local value =
 					math.pow((ifmat.data[y][x][p] - ioffset) / ifactor, gamma)
-					* ofactor + ooffset
+						* ofactor + ooffset
+				if it.clamp then
+					value = clampf(value)
+				end
+				ofmat.data[y][x][p] = value
 			end
 		end
 	end

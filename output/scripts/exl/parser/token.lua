@@ -9,26 +9,6 @@ function token:init(type, content, spos, epos)
 	self.epos = epos
 end
 
-function token:gettype()
-	return self.type
-end
-
-function token:getcontent()
-	return self.content
-end
-
-function token:getspos()
-	return self.spos
-end
-
-function token:getepos()
-	return self.epos
-end
-
-function token:islinestart()
-	return self.bislinestart
-end
-
 function token:defstring(lp)
 	local contentstr
 	if type(self.content) == 'string' then

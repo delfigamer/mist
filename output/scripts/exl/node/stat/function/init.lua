@@ -11,18 +11,18 @@ local symfunctor
 function sfunction:init(pr)
 	node.init(self, pr)
 	self.targetname = pr.targetname
-	self.args = pr.args
+	self.argdefs = pr.argdefs
 	self.rettype = pr.rettype
 	self.body = pr.body
-	self.value = common.createnode{
-		name = 'expr.function',
-		spos = self.spos,
-		epos = self.epos,
-		filename = self.filename,
-		args = self.args,
-		rettype = self.rettype,
-		body = self.body,
-	}
+	-- self.value = common.createnode{
+		-- name = 'expr.function',
+		-- spos = self.spos,
+		-- epos = self.epos,
+		-- filename = self.filename,
+		-- args = self.args,
+		-- rettype = self.rettype,
+		-- body = self.body,
+	-- }
 end
 
 function sfunction:dobuild(pc)
@@ -97,21 +97,21 @@ function sfunction:compile(stream)
 end
 
 function sfunction:defstring(lp)
-	local argstr = {}
-	for i, arg in ipairs(self.args) do
-		argstr[i] = arg:defstring(lp .. self.lpindent)
+	local argdefstr = {}
+	for i, argdef in ipairs(self.argdefs) do
+		argdefstr[i] = argdef:defstring(lp .. self.lpindent)
 	end
 	if self.rettype then
-		return string.format('function %s(%s): %s%s\n%send',
+		return string.format('function %s[%s] : %s%s\n%send',
 			common.identstring(self.targetname),
-			table.concat(argstr, ', '),
+			table.concat(argdefstr, ', '),
 			self.rettype:defstring(lp .. self.lpindent),
 			self.body:defstring(lp .. self.lpindent),
 			lp)
 	else
-		return string.format('function %s(%s)%s\n%send',
+		return string.format('function %s[%s]%s\n%send',
 			common.identstring(self.targetname),
-			table.concat(argstr, ', '),
+			table.concat(argdefstr, ', '),
 			self.body:defstring(lp .. self.lpindent),
 			lp)
 	end

@@ -2,14 +2,12 @@ local modname = ...
 local syntax = package.modtable(modname)
 local common = require(modname, 2, 'common')
 
-local createnode = common.createnode
-
 local function acquiretoken(ts, type, blinestart)
 	local token = ts:gett()
-	if token:gettype() ~= type
-		or blinestart ~= nil and token:islinestart() ~= blinestart
+	if token.type ~= type
+		or blinestart ~= nil and token.bislinestart ~= blinestart
 	then
-		ts:error(type..' expected', token:getspos(), token:getepos())
+		ts:error(type .. ' expected', token.spos)
 	else
 		return token
 	end
@@ -19,16 +17,47 @@ local function acquirenode(ts, func, name)
 	local node = func(ts)
 	if not node then
 		local token = ts:peekt()
-		ts:error(name..' expected', token:getspos())
+		ts:error(name .. ' expected', token.spos)
 	else
 		return node
+	end
+end
+
+local function getname(ts, lead, strict)
+	local name = {}
+	lead = lead or ts:gett()
+	local token = lead
+	if token.type == '.' then
+		name.global = true
+		token = ts:gett()
+	end
+	while token.type == 'identifier' then
+		table.append(name, token.content)
+		name.epos = token.epos
+		token = ts:gett()
+		if token.type == '.' then
+			token = ts:gett()
+		else
+			ts:ungett(token)
+		end
+	end
+	ts:ungett(token)
+	if #name == 0 then
+		if name.global or strict then
+			ts:error('name expected', token.spos)
+		else
+			return
+		end
+	else
+		name.spos = lead.spos
+		return name
 	end
 end
 
 local function selector_gen(table, default)
 	return function(ts, ...)
 		local lead = ts:gett()
-		local func = table[lead:gettype()]
+		local func = table[lead.type]
 		if func then
 			return func(ts, lead, ...)
 		else
@@ -43,250 +72,229 @@ local function selector_gen(table, default)
 end
 
 local kwset_end = {
-	['end'] = true,
-}
+	['end'] = true}
 
 syntax.expr = {}
 
 syntax.expr.element = {}
 
 syntax.expr.element['number'] = function(ts, lead)
-	return createnode{
+	return common.createnode{
 		name = 'expr.number',
-		spos = lead:getspos(),
-		epos = lead:getepos(),
+		spos = lead.spos,
+		epos = lead.epos,
 		filename = ts.filename,
-		value = lead:getcontent(),
-	}
+		value = lead.content}
 end
 
 syntax.expr.element['string'] = function(ts, lead)
-	return createnode{
+	return common.createnode{
 		name = 'expr.string',
-		spos = lead:getspos(),
-		epos = lead:getepos(),
+		spos = lead.spos,
+		epos = lead.epos,
 		filename = ts.filename,
-		value = lead:getcontent(),
-	}
+		value = lead.content}
 end
 
 syntax.expr.element['nil'] = function(ts, lead)
-	return createnode{
+	return common.createnode{
 		name = 'expr.nil',
-		spos = lead:getspos(),
-		epos = lead:getepos(),
-		filename = ts.filename,
-	}
+		spos = lead.spos,
+		epos = lead.epos,
+		filename = ts.filename}
 end
 
 syntax.expr.element['identifier'] = function(ts, lead)
-	return createnode{
-		name = 'expr.identifier',
-		spos = lead:getspos(),
-		epos = lead:getepos(),
-		filename = ts.filename,
-		targetname = lead:getcontent(),
-	}
+	local target = getname(ts, lead)
+	local token = ts:peekt()
+	if token.type == '[' then
+		ts:gett()
+		token = ts:peekt()
+		if token.type == ']' then
+			ts:gett()
+			return common.createnode{
+				name = 'expr.invoke',
+				target = lead.content,
+				spos = lead.spos,
+				epos = token.epos,
+				filename = ts.filename,
+				args = {}}
+		end
+		local args = {}
+		while true do
+			local arg = acquirenode(ts, syntax.expr.main, 'argument')
+			if arg then
+				table.append(args, arg)
+			end
+			token = ts:gett()
+			if token.type == ']' then
+				break
+			elseif token.type ~= ',' then
+				ts:error('] expected', token.spos)
+			end
+		end
+		return common.createnode{
+			name = 'expr.invoke',
+			target = lead.content,
+			spos = lead.spos,
+			epos = token.epos,
+			filename = ts.filename,
+			args = args}
+	else
+		return common.createnode{
+			name = 'expr.identifier',
+			spos = lead.spos,
+			epos = lead.epos,
+			filename = ts.filename,
+			targetname = lead.content}
+	end
 end
 
 syntax.expr.element['('] = function(ts, lead)
 	local value = acquirenode(ts, syntax.expr.main, 'expression')
 	local et = acquiretoken(ts, ')')
-	return createnode{
+	return common.createnode{
 		name = 'expr.subexpression',
-		spos = lead:getspos(),
-		epos = et:getepos(),
+		spos = lead.spos,
+		epos = et.epos,
 		filename = ts.filename,
-		value = value,
-	}
+		value = value}
 end
 
-syntax.farg = function(ts)
-	local node, target, lvalue, rvalue
+syntax.argdef = function(ts)
+	local node, target, lvalue, rvalue, lead
 	local token = ts:gett()
-	if token:gettype() == 'in' then
+	lead = token
+	if token.type == 'in' then
 		lvalue, rvalue = false, true
-	elseif token:gettype() == 'out' then
+		token = ts:gett()
+	elseif token.type == 'out' then
 		lvalue, rvalue = true, false
-	elseif token:gettype() == 'inout' then
+		token = ts:gett()
+	elseif token.type == 'inout' then
 		lvalue, rvalue = true, true
+		token = ts:gett()
 	else
-		ts:ungett(token)
 		lvalue, rvalue = false, true
 	end
-	local typev = acquirenode(ts, syntax.expr.main, 'type')
-	target = ts:gett()
-	if target:gettype() == ',' or target:gettype() == ')' then
-		ts:ungett(target)
-		return createnode{
-			name = 'expr.function.arg',
-			spos = typev.spos,
+	local targetname, value, typev
+	if token.type == 'identifier' then
+		targetname = token.content
+		token = ts:gett()
+	end
+	if token.type == '=' then
+		value = acquirenode(ts, syntax.expr.main, 'expression')
+		token = ts:gett()
+	end
+	if token.type == ':' then
+		typev = acquirenode(ts, syntax.expr.main, 'type')
+	else
+		ts:error('type expected', token.spos)
+	end
+	token = ts:gett()
+	if token.type == ',' or token.type == ']' then
+		ts:ungett(token)
+		return common.createnode{
+			name = 'expr.function.argdef',
+			spos = lead.spos,
 			epos = typev.epos,
 			filename = ts.filename,
 			lvalue = lvalue,
 			rvalue = rvalue,
-			typev = typev,
-		}
-	elseif target:gettype() == 'identifier' then
-		node = createnode{
-			name = 'expr.function.arg',
-			spos = typev.spos,
-			epos = target:getepos(),
-			filename = ts.filename,
-			lvalue = lvalue,
-			rvalue = rvalue,
-			typev = typev,
-			target = target:getcontent(),
-		}
-		local nt = ts:gett()
-		if nt:gettype() == ',' or nt:gettype() == ')' then
-			ts:ungett(nt)
-			return node
-		else
-			ts:error(') expected', nt:getspos())
-		end
+			target = targetname,
+			value = value,
+			typev = typev}
 	else
-		ts:error('identifier expected', target:getspos())
+		ts:error('] expected', nt.spos)
 	end
 end
 
-function syntax.farglist(ts)
-	local lead = acquiretoken(ts, '(', false)
+function syntax.argdeflist(ts)
+	local lead = acquiretoken(ts, '[', false)
 	local nt = ts:peekt()
-	if nt:gettype() == ')' then
+	if nt.type == ']' then
 		ts:gett()
 		return {}
 	end
-	local args = {}
+	local argdefs = {}
 	while true do
-		local arg = syntax.farg(ts)
-		table.append(args, arg)
+		local argdef = syntax.argdef(ts)
+		table.append(argdefs, argdef)
 		nt = ts:gett()
-		if nt:gettype() == ')' then
+		if nt.type == ']' then
 			break
-		elseif nt:gettype() ~= ',' then
-			ts:error(') expected', nt:getspos())
+		elseif nt.type ~= ',' then
+			ts:error('] expected', nt.spos)
 		end
 	end
-	return args
+	return argdefs
 end
 
 syntax.expr.element['function'] = function(ts, lead)
-	local args = acquirenode(ts, syntax.farglist, 'arglist')
+	local argdefs = acquirenode(ts, syntax.argdeflist, 'arglist')
 	local rettype
 	local token = ts:gett()
-	if token:gettype() == ':' then
+	if token.type == ':' then
 		rettype = acquirenode(ts, syntax.expr.main, 'return type')
 	else
 		ts:ungett(token)
 	end
 	local body = syntax.block(ts, 'block', syntax.stat.main, kwset_end)
 	token = ts:gett()
-	return createnode{
+	return common.createnode{
 		name = 'expr.function',
-		spos = lead:getspos(),
-		epos = token:getepos(),
+		spos = lead.spos,
+		epos = token.epos,
 		filename = ts.filename,
-		args = args,
+		argdefs = argdefs,
 		rettype = rettype,
-		body = body,
-	}
-end
-
-syntax.expr.element['invoke'] = function(ts, lead)
-	local opname = acquiretoken(ts, 'identifier')
-	local token = acquiretoken(ts, '(', false)
-	token = ts:peekt()
-	if token:gettype() == ')' then
-		ts:gett()
-		return createnode{
-			name = 'expr.invoke',
-			opname = opname:getcontent(),
-			spos = lead:getspos(),
-			epos = token:getepos(),
-			filename = ts.filename,
-			args = {},
-		}
-	end
-	local args = {}
-	while true do
-		local arg = acquirenode(ts, syntax.expr.main, 'argument')
-		table.append(args, arg)
-		token = ts:gett()
-		if token:gettype() == ')' then
-			break
-		elseif token:gettype() ~= ',' then
-			ts:error(') expected', token:getspos())
-		end
-	end
-	return createnode{
-		name = 'expr.invoke',
-		opname = opname:getcontent(),
-		spos = lead:getspos(),
-		epos = token:getepos(),
-		filename = ts.filename,
-		args = args,
-	}
+		body = body}
 end
 
 syntax.expr.type = {}
 
 syntax.expr.type['function'] = function(ts, nlead, lead)
-	local arglist = acquirenode(ts, syntax.farglist, 'arglist')
+	local argdefs = acquirenode(ts, syntax.argdeflist, 'argument list')
 	local rettype
 	local token = ts:gett()
-	if token:gettype() == ':' then
+	if token.type == ':' then
 		rettype = acquirenode(ts, syntax.expr.main, 'return type')
 	else
 		ts:ungett(token)
 	end
-	if rettype then
-		return createnode{
-			name = 'expr.function.typev',
-			spos = lead:getspos(),
-			epos = rettype.epos,
-			filename = ts.filename,
-			args = arglist,
-			rettype = rettype,
-		}
-	else
-		return createnode{
-			name = 'expr.function.typev',
-			spos = lead:getspos(),
-			epos = arglist.epos,
-			filename = ts.filename,
-			args = arglist,
-		}
-	end
+	return common.createnode{
+		name = 'expr.function.typev',
+		spos = lead.spos,
+		epos = rettype.epos,
+		filename = ts.filename,
+		argdefs = argdefs,
+		rettype = rettype}
 end
 
 syntax.expr.type.expr = function(ts, lead)
 	local expr = acquirenode(ts, syntax.expr.unary, 'expression')
-	return createnode{
+	return common.createnode{
 		name = 'expr.typeof',
-		spos = lead:getspos(),
+		spos = lead.spos,
 		epos = expr.epos,
 		filename = ts.filename,
-		expression = expr,
-	}
+		expression = expr}
 end
 
 syntax.expr.element['type'] = selector_gen(
-	syntax.expr.type, syntax.expr.type.expr)
+	syntax.expr.type,syntax.expr.type.expr)
 
 syntax.expr.element['main'] = selector_gen(syntax.expr.element)
 
 local unaryname = {
-	['+'] = 'identity',
-	['-'] = 'negate',
-	['!'] = 'bnot',
-}
+	['+'] = 'plus',
+	['-'] = 'minus'}
 
 syntax.expr.unary = function(ts)
 	local prefixes = {}
 	while true do
 		local sign = ts:gett()
-		if not unaryname[sign:gettype()] then
+		if not unaryname[sign.type] then
 			ts:ungett(sign)
 			break
 		end
@@ -298,35 +306,33 @@ syntax.expr.unary = function(ts)
 	local result = acquirenode(ts, syntax.expr.element.main, 'element')
 	for i = #prefixes, 1, -1 do
 		local sign = prefixes[i]
-		result = createnode{
+		result = common.createnode{
 			name = 'expr.invoke',
-			opname = unaryname[sign:gettype()],
-			spos = sign:getspos(),
+			target = unaryname[sign.type],
+			spos = sign.spos,
 			epos = result.epos,
 			filename = ts.filename,
-			args = {result},
-		}
+			args = {result}}
 	end
 	return result
 end
 
 syntax.expr.suffix = {}
 
-syntax.expr.suffix['('] = function(ts, lead, base)
-	if lead:islinestart() then
-		return
-	end
+syntax.expr.suffix['['] = function(ts, lead, base)
+	-- if lead.bislinestart then
+		-- return
+	-- end
 	local token = ts:peekt()
-	if token:gettype() == ')' then
+	if token.type == ']' then
 		ts:gett()
-		return createnode{
+		return common.createnode{
 			name = 'expr.invoke',
-			opname = 'call',
+			target = 'invoke',
 			spos = base.spos,
-			epos = token:getepos(),
+			epos = token.epos,
 			filename = ts.filename,
-			args = {base},
-		}
+			args = {base}}
 	end
 	local args = {base}
 	while true do
@@ -335,49 +341,48 @@ syntax.expr.suffix['('] = function(ts, lead, base)
 			table.append(args, arg)
 		end
 		token = ts:gett()
-		if token:gettype() == ')' then
+		if token.type == ']' then
 			break
-		elseif token:gettype() ~= ',' then
-			ts:error(') expected', token:getspos())
+		elseif token.type ~= ',' then
+			ts:error('] expected', token.spos)
 		end
 	end
-	return createnode{
+	return common.createnode{
 		name = 'expr.invoke',
-		opname = 'call',
+		target = 'invoke',
 		spos = base.spos,
-		epos = token:getepos(),
+		epos = token.epos,
 		filename = ts.filename,
-		args = args,
-	}
+		args = args}
 end
 
-syntax.expr.suffix['.'] = function(ts, lead, base)
-	local index = acquiretoken(ts, 'identifier')
-	return createnode{
-		name = 'expr.scope',
-		spos = base.spos,
-		epos = index:getepos(),
-		filename = ts.filename,
-		base = base,
-		index = index:getcontent(),
-	}
-end
+-- syntax.expr.suffix['.'] = function(ts, lead, base)
+	-- local index = acquiretoken(ts, 'identifier')
+	-- return common.createnode{
+		-- name = 'expr.scope',
+		-- spos = base.spos,
+		-- epos = index.epos,
+		-- filename = ts.filename,
+		-- base = base,
+		-- index = index.content,
+	-- }
+-- end
 
 syntax.expr.suffix['as'] = function(ts, lead, base)
 	local token = ts:gett()
 	local lvalue, rvalue
-	if token:gettype() == 'in' then
+	if token.type == 'in' then
 		lvalue, rvalue = false, true
-	elseif token:gettype() == 'out' then
+	elseif token.type == 'out' then
 		lvalue, rvalue = true, false
-	elseif token:gettype() == 'inout' then
+	elseif token.type == 'inout' then
 		lvalue, rvalue = true, true
 	else
 		lvalue, rvalue = false, true
 		ts:ungett(token)
 	end
 	local typev = acquirenode(ts, syntax.expr.unary, 'identifier')
-	return createnode{
+	return common.createnode{
 		name = 'expr.cast',
 		spos = base.spos,
 		epos = typev.epos,
@@ -397,7 +402,7 @@ syntax.expr.suffix.main = function(ts)
 	end
 	while true do
 		local token = ts:gett()
-		local func = syntax.expr.suffix[token:gettype()]
+		local func = syntax.expr.suffix[token.type]
 		if func then
 			local value = func(ts, token, base)
 			if value then
@@ -414,21 +419,20 @@ syntax.expr.suffix.main = function(ts)
 end
 
 local binaryname = {
-	['..'] = 'concat',
+	['..'] = 'join',
 
-	['*'] = 'mul',
-	['/'] = 'div',
+	['*'] = 'times',
+	['/'] = 'divide',
 
-	['+'] = 'add',
-	['-'] = 'sub',
+	['+'] = 'plus',
+	['-'] = 'subtract',
 
-	['~'] = 'bxor',
-	['=='] = 'eq',
-	['~='] = 'neq',
+	['=='] = 'equal',
+	['~='] = 'unequal',
 
 	['='] = 'assign',
-	['+='] = 'adda',
-	['-='] = 'suba',
+	['+='] = 'addto',
+	['-='] = 'subtractfrom',
 }
 
 local function binary_gen(first, next, ...)
@@ -440,19 +444,18 @@ local function binary_gen(first, next, ...)
 		end
 		while true do
 			local sign = ts:gett()
-			if not set[sign:gettype()] then
+			if not set[sign.type] then
 				ts:ungett(sign)
 				break
 			end
 			local rs = acquirenode(ts, next, 'element')
-			result = createnode{
+			result = common.createnode{
 				name = 'expr.invoke',
-				opname = binaryname[sign:gettype()],
+				target = binaryname[sign.type],
 				spos = result.spos,
 				epos = rs.epos,
 				filename = ts.filename,
-				args = {result, rs},
-			}
+				args = {result, rs}}
 		end
 		return result
 	end
@@ -468,25 +471,24 @@ local function rbinary_gen(first, next, ...)
 		local slist = {}
 		while true do
 			local sign = ts:gett()
-			if not set[sign:gettype()] then
+			if not set[sign.type] then
 				ts:ungett(sign)
 				break
 			end
 			local rs = acquirenode(ts, next, 'element')
 			local i = table.append(elist, rs)
-			slist[i-1] = sign:gettype()
+			slist[i-1] = sign.type
 		end
 		local result = elist[#elist]
 		for i = #elist-1, 1, -1 do
 			local ls = elist[i]
-			result = createnode{
+			result = common.createnode{
 				name = 'expr.invoke',
-				opname = binaryname[slist[i]],
+				target = binaryname[slist[i]],
 				spos = ls.spos,
 				epos = result.epos,
 				filename = ts.filename,
-				args = {ls, result},
-			}
+				args = {ls, result}}
 		end
 		return result
 	end
@@ -508,116 +510,103 @@ end
 
 syntax.stat = {}
 
-syntax.stat['class'] = function(ts, lead)
-	local classname = acquiretoken(ts, 'identifier')
-	local parent
-	local token = ts:gett()
-	if token:gettype() == ':' then
-		parent = acquirenode(ts, syntax.expr.main, 'parent')
-	else
-		ts:ungett(token)
-	end
-	local body = syntax.block(
-		ts, 'class.body', syntax.class.member.main, kwset_end)
-	token = ts:gett()
-	return createnode{
-		name = 'stat.class',
-		spos = lead:getspos(),
-		epos = token:getepos(),
-		filename = ts.filename,
-		classname = classname:getcontent(),
-		parent = parent,
-		body = body,
-	}
-end
+-- syntax.stat['class'] = function(ts, lead)
+	-- local classname = acquiretoken(ts, 'identifier')
+	-- local parent
+	-- local token = ts:gett()
+	-- if token.type == ':' then
+		-- parent = acquirenode(ts, syntax.expr.main, 'parent')
+	-- else
+		-- ts:ungett(token)
+	-- end
+	-- local body = syntax.block(
+		-- ts, 'class.body', syntax.class.member.main, kwset_end)
+	-- token = ts:gett()
+	-- return common.createnode{
+		-- name = 'stat.class',
+		-- spos = lead.spos,
+		-- epos = token.epos,
+		-- filename = ts.filename,
+		-- classname = classname.content,
+		-- parent = parent,
+		-- body = body,
+	-- }
+-- end
 
 syntax.stat['const'] = function(ts, lead)
 	local targetname = acquiretoken(ts, 'identifier')
 	local sign = acquiretoken(ts, '=')
 	local value = acquirenode(ts, syntax.expr.main, 'expression')
-	return createnode{
+	return common.createnode{
 		name = 'stat.const',
-		spos = lead:getspos(),
+		spos = lead.spos,
 		epos = value.epos,
 		filename = ts.filename,
-		targetname = targetname:getcontent(),
-		value = value,
-	}
+		targetname = targetname.content,
+		value = value}
 end
 
 syntax.stat['function'] = function(ts, lead)
 	local targetname = acquiretoken(ts, 'identifier')
-	local args = acquirenode(ts, syntax.farglist, 'arglist')
+	local argdefs = acquirenode(ts, syntax.argdeflist, 'arglist')
 	local rettype
 	local token = ts:gett()
-	if token:gettype() == ':' then
+	if token.type == ':' then
 		rettype = acquirenode(ts, syntax.expr.main, 'return type')
 	else
 		ts:ungett(token)
 	end
 	local body = syntax.block(ts, 'block', syntax.stat.main, kwset_end)
 	token = ts:gett()
-	return createnode{
+	return common.createnode{
 		name = 'stat.function',
-		spos = lead:getspos(),
-		epos = token:getepos(),
+		spos = lead.spos,
+		epos = token.epos,
 		filename = ts.filename,
-		targetname = targetname:getcontent(),
-		args = args,
+		targetname = targetname.content,
+		argdefs = argdefs,
 		rettype = rettype,
-		body = body,
-	}
-end
-
-syntax.stat['operator'] = function(ts, lead)
-	local opname = acquiretoken(ts, 'identifier')
-	local args = acquirenode(ts, syntax.farglist, 'arglist')
-	local rettype
-	local token = ts:gett()
-	if token:gettype() == ':' then
-		rettype = acquirenode(ts, syntax.expr.main, 'return type')
-	else
-		ts:ungett(token)
-	end
-	local body = syntax.block(ts, 'block', syntax.stat.main, kwset_end)
-	token = ts:gett()
-	return createnode{
-		name = 'stat.operator',
-		spos = lead:getspos(),
-		epos = token:getepos(),
-		filename = ts.filename,
-		opname = opname and opname:getcontent(),
-		args = args,
-		rettype = rettype,
-		body = body,
-	}
+		body = body}
 end
 
 syntax.stat['local'] = function(ts, lead)
-	local typev = acquirenode(ts, syntax.expr.main, 'type')
 	local targetname = acquiretoken(ts, 'identifier')
 	local sign = ts:gett()
-	if sign:gettype() ~= '=' then
-		ts:ungett(sign)
-		return createnode{
+	if sign.type == '=' then
+		local value = acquirenode(ts, syntax.expr.main, 'expression')
+		sign = ts:gett()
+		if sign.type == ':' then
+		local typev = acquirenode(ts, syntax.expr.main, 'type')
+			return common.createnode{
+				name = 'stat.local',
+				spos = lead.spos,
+				epos = value.epos,
+				filename = ts.filename,
+				targetname = targetname.content,
+				typev = typev,
+				value = value}
+		else
+			ts:ungett(sign)
+			return common.createnode{
+				name = 'stat.local',
+				spos = lead.spos,
+				epos = value.epos,
+				filename = ts.filename,
+				targetname = targetname.content,
+				value = value}
+		end
+	elseif sign.type == ':' then
+		local typev = acquirenode(ts, syntax.expr.main, 'type')
+		return common.createnode{
 			name = 'stat.local',
-			spos = lead:getspos(),
-			epos = targetname:getepos(),
+			spos = lead.spos,
+			epos = typev.epos,
 			filename = ts.filename,
-			typev = typev,
-			targetname = targetname:getcontent(),
-		}
+			targetname = targetname.content,
+			typev = typev}
+	else
+		ts:error('type or initializer expected', sign.spos)
 	end
-	local value = acquirenode(ts, syntax.expr.main, 'expression')
-	return createnode{
-		name = 'stat.local',
-		spos = lead:getspos(),
-		epos = value.epos,
-		filename = ts.filename,
-		typev = typev,
-		targetname = targetname:getcontent(),
-		value = value,
-	}
 end
 
 function syntax.stat.expr(ts)
@@ -625,26 +614,25 @@ function syntax.stat.expr(ts)
 	if not value then
 		return
 	end
-	return createnode{
+	return common.createnode{
 		name = 'stat.expression',
 		spos = value.spos,
 		epos = value.epos,
 		filename = ts.filename,
-		value = value,
-	}
+		value = value}
 end
 
 syntax.stat.main = selector_gen(syntax.stat, syntax.stat.expr)
 
 function syntax.block(ts, nodename, statparser, termtypes)
 	local token = ts:peekt()
-	local spos = token:getspos()
+	local spos = token.spos
 	local statements = {}
 	while true do
 		token = ts:peekt()
-		local ttype = token:gettype()
+		local ttype = token.type
 		if ttype == 'eof' then
-			ts:error('block end expected', token:getspos())
+			ts:error('block end expected', token.spos)
 		elseif termtypes[ttype] then
 			break
 		else
@@ -652,30 +640,43 @@ function syntax.block(ts, nodename, statparser, termtypes)
 			table.append(statements, stat)
 		end
 	end
-	return createnode{
+	return common.createnode{
 		name = nodename,
 		spos = spos,
-		epos = token:getspos(),
+		epos = token.spos,
 		filename = ts.filename,
-		statements = statements,
-	}
+		statements = statements}
 end
 
-syntax.class = {}
+-- syntax.class = {}
 
-syntax.class.member = {}
+-- syntax.class.member = {}
 
-syntax.class.member['local'] = function(ts, lead)
-	local typev = acquirenode(ts, syntax.expr.main, 'type')
-	local targetname = acquiretoken(ts, 'identifier')
-	return createnode{
-		name = 'class.member.local',
-		spos = lead:getspos(),
-		epos = targetname:getepos(),
-		filename = ts.filename,
-		typev = typev,
-		targetname = targetname:getcontent(),
-	}
-end
+-- syntax.class.member['const'] = function(ts, lead)
+	-- local targetname = acquiretoken(ts, 'identifier')
+	-- local sign = acquiretoken(ts, '=')
+	-- local value = acquirenode(ts, syntax.expr.main, 'expression')
+	-- return common.createnode{
+		-- name = 'class.member.const',
+		-- spos = lead.spos,
+		-- epos = targetname.epos,
+		-- filename = ts.filename,
+		-- targetname = targetname.content,
+		-- value = value,
+	-- }
+-- end
 
-syntax.class.member.main = selector_gen(syntax.class.member)
+-- syntax.class.member['local'] = function(ts, lead)
+	-- local typev = acquirenode(ts, syntax.expr.main, 'type')
+	-- local targetname = acquiretoken(ts, 'identifier')
+	-- return common.createnode{
+		-- name = 'class.member.local',
+		-- spos = lead.spos,
+		-- epos = targetname.epos,
+		-- filename = ts.filename,
+		-- typev = typev,
+		-- targetname = targetname.content,
+	-- }
+-- end
+
+-- syntax.class.member.main = selector_gen(syntax.class.member)

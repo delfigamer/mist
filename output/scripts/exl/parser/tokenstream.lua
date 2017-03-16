@@ -9,7 +9,6 @@ function tokenstream:init(istream, filename)
 	self.istream = istream
 	self.bufstream = bufstream:create(istream, filename)
 	self.buffer = {}
-	self.pos = self.bufstream:getpos()
 	self.filename = filename
 end
 
@@ -20,13 +19,11 @@ function tokenstream:gett()
 	else
 		token = lexer.obtaintoken(self.bufstream, self.env)
 	end
-	self.pos = token:getepos()
 	return token
 end
 
 function tokenstream:ungett(token)
 	table.append(self.buffer, token)
-	self.pos = token:getspos()
 end
 
 function tokenstream:peekt()
@@ -34,10 +31,6 @@ function tokenstream:peekt()
 		self.buffer[1] = lexer.obtaintoken(self.bufstream, self.env)
 	end
 	return self.buffer[#self.buffer]
-end
-
-function tokenstream:getpos()
-	return self.pos
 end
 
 function tokenstream:error(message, spos, epos)

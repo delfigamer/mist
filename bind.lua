@@ -16,6 +16,8 @@ local structname = _G.structname or error('global structname must be set')
 --   name = ...
 --   R_METHOD()
 --     name = ...
+--     addref
+--     gc
 --     stringwrap
 --     noluamethod
 -- R_EMIT() ... R_END()
@@ -152,7 +154,7 @@ local function register_entity(ent)
 		if ent.meta.typename then
 			for fcname, lname in
 				string.gmatch(ent.meta.typename,
-					'%s*([^|]*[^%s|])%s*|%s*([%a_][%w_]*)')
+					'%s*([^|)]*[^%s|)])%s*|%s*([^|)]*[^%s|)])')
 			do
 				local classfcname = string.match(fcname, '^class%s*(.*)')
 				if classfcname then

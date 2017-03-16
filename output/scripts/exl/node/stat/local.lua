@@ -77,14 +77,25 @@ end
 
 function slocal:defstring(lp)
 	if self.value then
-		return string.format('local %s %s = %s',
-			self.typev:defstring(lp .. self.lpindent),
-			common.identstring(self.targetname, lp .. self.lpindent),
-			self.value:defstring(lp .. self.lpindent))
+		if self.typev then
+			return string.format('local %s = %s : %s',
+				common.identstring(self.targetname),
+				self.value:defstring(lp .. self.lpindent),
+				self.typev:defstring(lp .. self.lpindent))
+		else
+			return string.format('local %s = %s',
+				common.identstring(self.targetname),
+				self.value:defstring(lp .. self.lpindent))
+		end
 	else
-		return string.format('local %s %s',
-			self.typev:defstring(lp .. self.lpindent),
-			common.identstring(self.targetname, lp .. self.lpindent))
+		if self.typev then
+			return string.format('local %s : %s',
+				common.identstring(self.targetname),
+				self.typev:defstring(lp .. self.lpindent))
+		else
+			return string.format('local %s',
+				common.identstring(self.targetname))
+		end
 	end
 end
 

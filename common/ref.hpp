@@ -30,6 +30,7 @@ public:
 	template< typename U > T* possess( U* ref ) NOEXCEPT;
 	T* assign( std::nullptr_t ) NOEXCEPT;
 	template< typename U > T* assign( U* ref ) NOEXCEPT;
+	T* detach() NOEXCEPT;
 	Ref< T >& operator=( std::nullptr_t ) NOEXCEPT;
 	template< typename U > Ref< T >& operator=( U* ref ) NOEXCEPT;
 	template< typename U > Ref< T >& operator=( Ref< U > const& other ) NOEXCEPT;
@@ -119,7 +120,10 @@ template< typename T >
 Ref< T >::~Ref() NOEXCEPT
 {
 	T* oldref = m_ref.exchange( nullptr, std::memory_order_relaxed );
-	release( oldref );
+	if( oldref )
+	{
+		oldref->Release();
+	}
 }
 
 template< typename T >
@@ -127,7 +131,10 @@ T* Ref< T >::possess( std::nullptr_t ) NOEXCEPT
 {
 	T* oldref;
 	oldref = m_ref.exchange( nullptr, std::memory_order_relaxed );
-	release( oldref );
+	if( oldref )
+	{
+		oldref->Release();
+	}
 	return oldref;
 }
 
@@ -136,7 +143,10 @@ template< typename U > T* Ref< T >::possess( U* ref ) NOEXCEPT
 {
 	T* oldref;
 	oldref = m_ref.exchange( ref, std::memory_order_relaxed );
-	release( oldref );
+	if( oldref )
+	{
+		oldref->Release();
+	}
 	return oldref;
 }
 
@@ -144,16 +154,32 @@ template< typename T >
 T* Ref< T >::assign( std::nullptr_t ) NOEXCEPT
 {
 	T* oldref = m_ref.exchange( nullptr, std::memory_order_relaxed );
-	release( oldref );
+	if( oldref )
+	{
+		oldref->Release();
+	}
 	return oldref;
 }
 
 template< typename T >
 template< typename U > T* Ref< T >::assign( U* ref ) NOEXCEPT
 {
-	addref( ref );
+	if( ref )
+	{
+		ref->AddRef();
+	}
 	T* oldref = m_ref.exchange( ref, std::memory_order_relaxed );
-	release( oldref );
+	if( oldref )
+	{
+		oldref->Release();
+	}
+	return oldref;
+}
+
+template< typename T >
+T* Ref< T >::detach() NOEXCEPT
+{
+	T* oldref = m_ref.exchange( nullptr, std::memory_order_relaxed );
 	return oldref;
 }
 
@@ -205,6 +231,7 @@ template< typename T >
 T& Ref< T >::operator*() const
 {
 	T* ref = m_ref.load( std::memory_order_relaxed );
+#if defined( MIST_DEBUG )
 	if( ref )
 	{
 		return *ref;
@@ -213,6 +240,9 @@ T& Ref< T >::operator*() const
 	{
 		throw std::runtime_error( "dereferencing an empty Ref" );
 	}
+#else
+	return *ref;
+#endif
 }
 
 template< typename T >

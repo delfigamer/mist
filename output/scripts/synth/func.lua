@@ -38,12 +38,52 @@ function func.wavegen(basefunc)
 	end
 end
 
-function func.lowpassgen(a, x)
-	assert(a)
+function func.timefactor(basef)
+	return 1/(2*math.pi*basef)
+end
+
+function func.inertialnode(t, x)
+	assert(t)
 	local x = x or 0
-	local aw = a*common.period
+	local aw = 1 - math.exp(-common.period/t)
 	return function(u)
 		x = x + (u - x)*aw
 		return x
+	end
+end
+
+function func.invinertialnode(t, x)
+	assert(t)
+	local x = x or 0
+	local aw = 1 - math.exp(-common.period/t)
+	return function(u)
+		local d = u - x
+		x = x + d*aw
+		return d
+	end
+end
+
+function func.lowpassfilter(cutoff)
+	return func.inertialnode(func.timefactor(cutoff))
+end
+
+function func.highpassfilter(cutoff)
+	return func.invinertialnode(func.timefactor(cutoff))
+end
+
+function func.resonantfilter(res, xi)
+	assert(res)
+	assert(xi)
+	local x1 = 0
+	local x2 = 0
+	local t = func.timefactor(res)
+	local k = 0.5*t/xi
+	local l = 2*t*xi
+	local aw1 = 1 - math.exp(-common.period/k)
+	local aw2 = common.period/l
+	return function(u)
+		x1 = x1 + aw1*(u - x1 - x2)
+		x2 = x1*aw2 + x2
+		return x1
 	end
 end

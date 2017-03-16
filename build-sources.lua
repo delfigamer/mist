@@ -67,6 +67,12 @@ local sources = {
 		headeronly = true,
 		use = 'client-main;renderer-d3d9;renderer-gles',
 	},
+	{
+		type = 'native',
+		name = 'common/stringbuilder',
+		headeronly = true,
+		use = 'client-main;renderer-d3d9;renderer-gles',
+	},
 --------------------------------------------------------------------------------
 	{
 		type = 'native',
@@ -107,6 +113,124 @@ local sources = {
 		name = 'utils/pathparse',
 		headeronly = true,
 		use = 'client-main',
+	},
+	{
+		type = 'native',
+		name = 'utils/sexpr',
+		use = 'client-main',
+		methodlist = 'client-main',
+	},
+--------------------------------------------------------------------------------
+	{
+		type = 'native',
+		name = 'exl/context',
+		use = 'client-main',
+		methodlist = 'client-main',
+	},
+	{
+		type = 'native',
+		name = 'exl/exlerror',
+		headeronly = true,
+		use = 'client-main',
+	},
+	{
+		type = 'native',
+		name = 'exl/func',
+		use = 'client-main',
+	},
+	{
+		type = 'native',
+		name = 'exl/luainterface',
+		use = 'client-main',
+		methodlist = 'client-main',
+	},
+	{
+		type = 'native',
+		name = 'exl/object',
+		use = 'client-main',
+		methodlist = 'client-main',
+	},
+	{
+		type = 'native',
+		name = 'exl/types',
+		headeronly = true,
+		use = 'client-main',
+	},
+----------------------------------------
+	{
+		type = 'native',
+		name = 'exl/node/base',
+		use = 'client-main',
+	},
+	{
+		type = 'native',
+		name = 'exl/node/block',
+		use = 'client-main',
+	},
+----------------------------------------
+	{
+		type = 'native',
+		name = 'exl/node/expr/base',
+		use = 'client-main',
+	},
+	{
+		type = 'native',
+		name = 'exl/node/expr/invoke',
+		use = 'client-main',
+	},
+	{
+		type = 'native',
+		name = 'exl/node/expr/name',
+		use = 'client-main',
+	},
+	{
+		type = 'native',
+		name = 'exl/node/expr/number',
+		use = 'client-main',
+	},
+	{
+		type = 'native',
+		name = 'exl/node/expr/string',
+		use = 'client-main',
+	},
+----------------------------------------
+	{
+		type = 'native',
+		name = 'exl/node/stat/const',
+		use = 'client-main',
+	},
+	{
+		type = 'native',
+		name = 'exl/node/stat/expression',
+		use = 'client-main',
+	},
+	{
+		type = 'native',
+		name = 'exl/node/stat/local',
+		use = 'client-main',
+	},
+----------------------------------------
+	{
+		type = 'native',
+		name = 'exl/parser/ast',
+		use = 'client-main',
+		methodlist = 'client-main',
+	},
+	{
+		type = 'native',
+		name = 'exl/parser/charstream',
+		use = 'client-main',
+	},
+	{
+		type = 'native',
+		name = 'exl/parser/exllexer',
+		use = 'client-main',
+	},
+	{
+		type = 'native',
+		name = 'exl/parser/exlparser',
+		use = 'client-main',
+		methodlist = 'client-main',
 	},
 --------------------------------------------------------------------------------
 	{
@@ -319,12 +443,6 @@ local sources = {
 		name = 'renderer-d3d9/common',
 		use = 'renderer-d3d9',
 		methodlist = 'renderer-d3d9',
-	},
-	{
-		type = 'native',
-		name = 'renderer-d3d9/comref',
-		use = 'renderer-d3d9',
-		headeronly = true,
 	},
 	{
 		type = 'native',

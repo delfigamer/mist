@@ -1,62 +1,62 @@
 local modname = ...
-local listptype = package.modtable(modname)
 local crc32 = require('crc32')
+local list = require('list')
 local scalars = require('rs.scalars')
 
-listptype.typename = 'list'
-listptype.typeid = crc32(listptype.typename)
-
-local function writeitem(item, stream)
-	local itype = type(item)
-	if itype == 'table' then
-		scalars.uint32:write(listptype.typeid, stream)
-		listptype:write(item, stream)
-	elseif itype == 'number' then
-		scalars.uint32:write(scalars.double.typeid, stream)
-		scalars.double:write(item, stream)
-	elseif itype == 'string' then
-		scalars.uint32:write(scalars.string.typeid, stream)
-		scalars.string:write(item, stream)
-	elseif itype == 'boolean' then
-		scalars.uint32:write(scalars.int32.typeid, stream)
-		scalars.string:write(item and 1 or 0, stream)
+local function listptype_write(self, it, stream)
+	local headindex = list.headindex(it, self.env)
+	if headindex < 0x40000000 then
+		scalars.uint32:write(headindex, stream)
+		scalars.uint32:write(list.getlength(it), stream)
+		for i, elem in list.elements(it) do
+			listptype_write(self, elem, stream)
+		end
+	elseif headindex == 0x40000000 then
+		scalars.uint32:write(0x40000000, stream)
+	elseif headindex == 0x50000000 then
+		scalars.uint32:write(0x50000000, stream)
+		scalars.double:write(list.asatom(it), stream)
+	elseif headindex == 0x60000000 then
+		scalars.uint32:write(0x60000000, stream)
+		scalars.uint32:write(list.asatom(it) and 1 or 0, stream)
+	elseif headindex == 0x70000000 then
+		scalars.uint32:write(0x70000000, stream)
+		scalars.string:write(list.asatom(it), stream)
 	else
 		error('invalid element type')
 	end
 end
 
-local function readitem(stream)
-	local typeid = scalars.uint32:read(stream)
-	if typeid == listptype.typeid then
-		return listptype:read(stream)
-	elseif typeid == scalars.double.typeid then
+local function listptype_read(self, stream)
+	local headindex = scalars.uint32:read(stream)
+	if headindex < 0x40000000 then
+		local it = {[0] = self.env:namestring(headindex)}
+		local length = scalars.uint32:read(stream)
+		for i = 1, length do
+			it[i] = listptype_write(self, stream)
+		end
+		return list.pack(it, self.env)
+	elseif headindex == 0x40000000 then
+		return nil
+	elseif headindex == 0x50000000 then
 		return scalars.double:read(stream)
-	elseif typeid == scalars.string.typeid then
+	elseif headindex == 0x60000000 then
+		return scalars.uint32:read(stream) ~= 0
+	elseif headindex == 0x70000000 then
 		return scalars.string:read(stream)
-	elseif typeid == scalars.int32.typeid then
-		return scalars.string:read(stream) ~= 0
 	else
 		error('invalid element type')
 	end
 end
 
-function listptype:write(instance, stream)
-	scalars.string:write(instance[0] or '', stream)
-	scalars.int:write(#instance, stream)
-	for i = 1, #instance do
-		writeitem(instance[i], stream)
-	end
+local function createlistptype(env, typename)
+	return {
+		typename = typename,
+		typeid = crc32(typename),
+		env = env,
+		write = listptype_write,
+		read = listptype_read,
+	}
 end
 
-function listptype:read(stream)
-	local instance = {}
-	instance[0] = scalars.string:read(stream)
-	if #instance[0] == 0 then
-		instance[0] = nil
-	end
-	local length = scalars.int:read(stream)
-	for i = 1, length do
-		instance[i] = readitem(stream)
-	end
-	return instance
-end
+package.modtable(modname, createlistptype)

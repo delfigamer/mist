@@ -2,7 +2,6 @@
 
 #include <renderer-d3d9/context.hpp>
 #include <renderer-d3d9/interface.hpp>
-#include <renderer-d3d9/comref.hpp>
 
 /*
 R_EMIT( typename =

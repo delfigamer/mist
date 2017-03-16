@@ -64,6 +64,7 @@ if not _G.toolchain or _G.toolchain == 'gcc' then
 				-c \z
 				-O2 \z
 				-Wall -Werror \z
+				-Wno-invalid-offsetof \z
 				' .. env.flaglist(env.incpath, '-I', env.path) .. '\z
 				' .. env.flaglist(t.incpath, '-I', env.path) .. '\z
 				' .. table.concat(macrostr) .. '\z

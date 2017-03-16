@@ -21,7 +21,7 @@ local function load_file(path)
 end
 
 local function load(it)
-	invoke(load_file, it[1])
+	return invoke(load_file, it[1])
 end
 
 package.modtable(modname, load)

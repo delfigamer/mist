@@ -8,10 +8,11 @@ local symlocal
 
 function farg:init(pr)
 	node.init(self, pr)
-	self.typev = pr.typev
-	self.target = pr.target
 	self.blvalue = pr.lvalue
 	self.brvalue = pr.rvalue
+	self.target = pr.target
+	self.value = pr.value
+	self.typev = pr.typev
 end
 
 function farg:dobuild(pc)
@@ -43,16 +44,21 @@ function farg:defstring(lp)
 			am = '<error> '
 		end
 	end
+	local targetstr
 	if self.target then
-		return string.format('%s%s %s',
-			am,
-			self.typev:defstring(lp .. self.lpindent),
-			common.identstring(self.target, lp .. self.lpindent))
+		targetstr = common.identstring(self.target) .. ' '
 	else
-		return string.format('%s%s',
-			am,
-			self.typev:defstring(lp .. self.lpindent))
+		targetstr = ''
 	end
+	local valuestr
+	if self.value then
+		valuestr = '= ' .. self.value:defstring(lp .. self.lpindent) .. ' '
+	else
+		valuestr = ''
+	end
+	return string.format('%s%s%s: %s',
+		am, targetstr, valuestr,
+		self.typev:defstring(lp .. self.lpindent))
 end
 
 common = require(modname, 4, 'common')

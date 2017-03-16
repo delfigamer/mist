@@ -49,6 +49,10 @@ function context:getnameprefix()
 	return self.nameprefix
 end
 
+function context:getsymtarget()
+	return self.symtarget
+end
+
 function context:genid()
 	self.lastid = self.lastid + 1
 	return string.format('%s_%s',

@@ -12,16 +12,16 @@ private:
 	mutable std::atomic< ptrdiff_t > m_refcount;
 
 public:
-	ptrdiff_t addref() const NOEXCEPT;
-	ptrdiff_t release() const NOEXCEPT;
+	ptrdiff_t AddRef() const NOEXCEPT;
+	ptrdiff_t Release() const NOEXCEPT;
 	ptrdiff_t refcount() const NOEXCEPT;
 	R_METHOD( name = addref, noluamethod ) void vaddref() const NOEXCEPT
 	{
-		addref();
+		AddRef();
 	}
 	R_METHOD( name = release, noluamethod ) void vrelease() const NOEXCEPT
 	{
-		release();
+		Release();
 	}
 	RefObject() NOEXCEPT;
 	RefObject( RefObject const& other ) NOEXCEPT;
@@ -32,13 +32,13 @@ public:
 	RefObject& operator=( RefObject&& other ) NOEXCEPT;
 };
 
-inline ptrdiff_t RefObject::addref() const NOEXCEPT
+inline ptrdiff_t RefObject::AddRef() const NOEXCEPT
 {
 	ptrdiff_t rc = m_refcount.fetch_add( 1, std::memory_order_relaxed ) + 1;
 	return rc;
 }
 
-inline ptrdiff_t RefObject::release() const NOEXCEPT
+inline ptrdiff_t RefObject::Release() const NOEXCEPT
 {
 	ptrdiff_t rc = m_refcount.fetch_sub( 1, std::memory_order_relaxed ) - 1;
 	if( rc == 0 )
@@ -87,35 +87,20 @@ inline RefObject& RefObject::operator=( RefObject&& other ) NOEXCEPT
 	return *this;
 }
 
-inline ptrdiff_t addref( RefObject* ro )
-{
-	if( ro )
-	{
-		return ro->addref();
-	}
-	else
-	{
-		return -1;
-	}
-}
-
-inline ptrdiff_t release( RefObject* ro )
-{
-	if( ro )
-	{
-		return ro->release();
-	}
-	else
-	{
-		return -1;
-	}
-}
-
 /*
 R_EMIT( target = lua_beforemethods )
 local function reference_addref(self)
 	if self ~= nil then
 		methodlist.refobject_addref(self)
+	end
+end
+
+function refobject:cast(ro)
+	if ro then
+		reference_addref(ro.ptr)
+		return self:new(ro.ptr)
+	else
+		return nil
 	end
 end
 

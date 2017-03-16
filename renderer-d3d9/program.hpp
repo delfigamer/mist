@@ -54,15 +54,13 @@ namespace graphics
 			return m_valid;
 		}
 
-		R_METHOD() DataBuffer* getbinary()
+		R_METHOD( addref ) DataBuffer* getbinary()
 		{
-			::addref( m_binary );
 			return m_binary;
 		}
 
-		R_METHOD() DataBuffer* getlog()
+		R_METHOD( addref ) DataBuffer* getlog()
 		{
-			::addref( m_log );
 			return m_log;
 		}
 

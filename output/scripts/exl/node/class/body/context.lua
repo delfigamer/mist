@@ -4,6 +4,7 @@ local classbodycontext = context:module(modname)
 
 function classbodycontext:init(parent)
 	context.init(self, parent)
+	self.symtarget = parent.symtarget
 end
 
 function classbodycontext:setsymbol(name, symbol, node)

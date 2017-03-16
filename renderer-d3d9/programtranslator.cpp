@@ -7,7 +7,7 @@ namespace graphics
 {
 	namespace programtranslator
 	{
-		String const typestr[] = {
+		char const* const typestr[] = {
 			"float",
 			"float2",
 			"float3",
