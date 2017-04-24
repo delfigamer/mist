@@ -5,7 +5,6 @@
 #include <common.hpp>
 #include <windows.h>
 #include <cmath>
-#include <cstdint>
 
 namespace graphics
 {

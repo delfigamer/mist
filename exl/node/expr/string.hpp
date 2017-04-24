@@ -3,7 +3,6 @@
 #include <exl/node/expr/base.hpp>
 #include <utils/sexpr.hpp>
 #include <common.hpp>
-#include <cinttypes>
 
 namespace exl
 {
@@ -13,10 +12,10 @@ namespace exl
 		Ref< DataBuffer > m_content;
 
 	public:
-		StringExpr();
 		StringExpr( utils::SExpr const& s );
 		~StringExpr();
 
-		virtual Ref< StringBuilder > getdefstring( size_t depth ) override;
+		virtual StringBuilder getdefstring( size_t depth ) override;
+		virtual void build( IContext* context ) override;
 	};
 }

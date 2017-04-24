@@ -4,22 +4,8 @@ local path = ...
 assert(path)
 
 local repl = {
-	{'utils/databuffer.hpp', 'common/databuffer.hpp'},
-	{'utils/flaglock.hpp', 'common/flaglock.hpp'},
-	{'utils/mpsclist.hpp', 'common/mpsclist.hpp'},
-	{'utils/mpscqueue.hpp', 'common/mpscqueue.hpp'},
-	{'utils/ref.hpp', 'common/ref.hpp'},
-	{'utils/refobject.hpp', 'common/refobject.hpp'},
-	{'utils/strexception.hpp', 'common/strexception.hpp'},
-	{'utils/string.hpp', 'common/string.hpp'},
-	{'utils::DataBuffer', 'DataBuffer'},
-	{'utils::FlagLock', 'FlagLock'},
-	{'utils::MPSCList', 'MPSCList'},
-	{'utils::MPSCQueue', 'MPSCQueue'},
-	{'utils::Ref', 'Ref'},
-	{'utils::RefObject', 'RefObject'},
-	{'utils::StrException', 'StrException'},
-	{'utils::String', 'String'},
+	{'#include <cinttypes>', ''},
+	{'#include <cstdint>', ''},
 }
 
 env.makepath('build/')

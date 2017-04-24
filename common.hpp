@@ -17,6 +17,7 @@
 #endif
 
 #if defined( MIST_DEBUG )
+#include <stdexcept>
 #include <cstdio>
 #include <cstdlib>
 inline void ASSERT_POS(
@@ -26,7 +27,7 @@ inline void ASSERT_POS(
 	if( !cond )
 	{
 		fprintf( stderr, "[%73s:%4i]\t%s\n", file, line, msg );
-		abort();
+		throw std::runtime_error( "assertion failed" );
 	}
 }
 #define ASSERT( ... ) ASSERT_POS( __FILE__, __LINE__, ##__VA_ARGS__ )
@@ -48,3 +49,5 @@ namespace
 	}
 }
 #endif
+
+#include <cinttypes>

@@ -7,7 +7,6 @@
 #include <common/databuffer.hpp>
 #include <common.hpp>
 #include <flac/stream_encoder.h>
-#include <cinttypes>
 
 namespace rsbin
 {
@@ -50,8 +49,9 @@ namespace rsbin
 			return new FlacWriter( bitdepth, channels, samplerate, data );
 		}
 		R_METHOD() bool isfinished() NOEXCEPT { return true; }
-		R_METHOD( addref ) MemoryIo* getbuffer() NOEXCEPT
+		R_METHOD() MemoryIo* getbuffer() NOEXCEPT
 		{
+			::addref( m_target );
 			return m_target;
 		}
 	};

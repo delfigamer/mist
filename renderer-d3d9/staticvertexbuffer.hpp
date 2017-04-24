@@ -12,14 +12,14 @@ namespace graphics
 	class StaticVertexBuffer: public VertexBuffer
 	{
 	private:
-		Ref< DataBuffer > m_data;
+		AtomicRef< DataBuffer > m_data;
 
 	protected:
 		virtual void doadvance() override;
 
 	public:
 		StaticVertexBuffer( VertexDeclaration* vd );
-		virtual ~StaticVertexBuffer() override;
+		~StaticVertexBuffer();
 		StaticVertexBuffer( StaticVertexBuffer const& ) = delete;
 		StaticVertexBuffer& operator=( StaticVertexBuffer const& ) = delete;
 
@@ -30,8 +30,7 @@ namespace graphics
 
 		R_METHOD() void assign( DataBuffer* data ) NOEXCEPT
 		{
-			std::atomic_thread_fence( std::memory_order_release );
-			m_data = data;
+			m_data.assign( data );
 		}
 	};
 }

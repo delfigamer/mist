@@ -5,20 +5,22 @@
 #include <utils/sexpr.hpp>
 #include <common.hpp>
 #include <vector>
-#include <cinttypes>
 
 namespace exl
 {
 	class ExpressionStat: public Node, public virtual IStatement
 	{
 	private:
-		Ref< IExpression > m_value;
+		Ref< IExpression > m_expr;
+		Ref< IValue > m_value;
 
 	public:
-		ExpressionStat();
 		ExpressionStat( utils::SExpr const& s );
 		~ExpressionStat();
 
-		virtual Ref< StringBuilder > getdefstring( size_t depth ) override;
+		virtual StringBuilder getdefstring( size_t depth ) override;
+		virtual void build( IContext* context ) override;
+		virtual void compilereserve( ILBody* body ) override;
+		virtual void compileemit( ILBody* body ) override;
 	};
 }

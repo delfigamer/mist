@@ -2,8 +2,6 @@
 
 #include <common.hpp>
 #include <atomic>
-#include <cstdio>
-#include <cinttypes>
 
 R_CLASS( name = refobject )
 class RefObject

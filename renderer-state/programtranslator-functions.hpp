@@ -9,6 +9,7 @@
 #include <initializer_list>
 #include <vector>
 #include <map>
+#include <cstring>
 
 namespace graphics
 {
@@ -38,7 +39,7 @@ namespace graphics
 			Ref< Value >( *m_factory )(
 				TranslatorState* ts,
 				FunctionFactoryState const* fs, Ref< Value > const* args );
-			String m_fname;
+			Ref< DataBuffer > m_fname;
 			int m_rettype;
 			std::vector< int > m_argpos;
 
@@ -47,7 +48,7 @@ namespace graphics
 					TranslatorState* ts,
 					FunctionFactoryState const* fs,
 					Ref< Value > const* args ),
-				String const& fname,
+				DataBuffer* fname,
 				int rettype,
 				std::initializer_list< int > argpos )
 				: m_factory( factory )
@@ -61,17 +62,15 @@ namespace graphics
 		struct Value_Function: Value
 		{
 			std::vector< Ref< Value > > m_args;
-			String m_fname;
+			Ref< DataBuffer > m_fname;
 			size_t m_id;
 			bool m_defined;
 
 			Value_Function(
 				TranslatorState* ts,
 				FunctionFactoryState const* fs, Ref< Value > const* args );
-			virtual Ref< StringBuilder > getexpression(
-				Ref< StringBuilder >* defs );
-			virtual Ref< StringBuilder > getstring(
-				Ref< StringBuilder >* defs ) override;
+			virtual StringBuilder getexpression( StringBuilder* defs );
+			virtual StringBuilder getstring( StringBuilder* defs ) override;
 			static Ref< Value > factory(
 				TranslatorState* ts,
 				FunctionFactoryState const* fs, Ref< Value > const* args );
@@ -82,8 +81,7 @@ namespace graphics
 			Value_Unary(
 				TranslatorState* ts,
 				FunctionFactoryState const* fs, Ref< Value > const* args );
-			virtual Ref< StringBuilder > getexpression(
-				Ref< StringBuilder >* defs ) override;
+			virtual StringBuilder getexpression( StringBuilder* defs ) override;
 			static Ref< Value > factory(
 				TranslatorState* ts,
 				FunctionFactoryState const* fs, Ref< Value > const* args );
@@ -94,8 +92,7 @@ namespace graphics
 			Value_Binary(
 				TranslatorState* ts,
 				FunctionFactoryState const* fs, Ref< Value > const* args );
-			virtual Ref< StringBuilder > getexpression(
-				Ref< StringBuilder >* defs ) override;
+			virtual StringBuilder getexpression( StringBuilder* defs ) override;
 			static Ref< Value > factory(
 				TranslatorState* ts,
 				FunctionFactoryState const* fs, Ref< Value > const* args );
@@ -116,52 +113,48 @@ namespace graphics
 			}
 		}
 
-		Ref< StringBuilder > Value_Function::getexpression(
-			Ref< StringBuilder >* defs )
+		StringBuilder Value_Function::getexpression( StringBuilder* defs )
 		{
 			if( m_args.size() == 0 )
 			{
-				return StringBuilder::construct(
-					m_fname, "()" );
+				return StringBuilder() << m_fname << "()"_db;
 			}
 			else
 			{
-				auto sb = StringBuilder::construct(
-					m_fname, "(", m_args[ 0 ]->getstring( defs ) );
+				StringBuilder sb;
+				sb << m_fname << "("_db << m_args[ 0 ]->getstring( defs );
 				auto it = ++m_args.begin();
 				auto eit = m_args.end();
 				for( ; it != eit; ++it )
 				{
-					sb = StringBuilder::construct(
-						sb, ",", ( *it )->getstring( defs ) );
+					sb << ","_db << ( *it )->getstring( defs );
 				}
-				return StringBuilder::construct(
-						sb, ")" );
+				sb << ")"_db;
+				return sb;
 			}
 		}
 
-		String idtostring( size_t id )
+		Ref< DataBuffer > idtostring( size_t id )
 		{
 			char buf[ 32 ];
-			snprintf( buf, sizeof( buf ), "i_%" PRIuPTR, id );
-			return String( buf );
+			int len = snprintf( buf, sizeof( buf ), "i_%" PRIuPTR, id );
+			return DataBuffer::create( len, buf );
 		}
 
-		Ref< StringBuilder > Value_Function::getstring(
-			Ref< StringBuilder >* defs )
+		StringBuilder Value_Function::getstring( StringBuilder* defs )
 		{
 			if( m_usecount > 1 )
 			{
-				String idstr = idtostring( m_id );
+				Ref< DataBuffer > idstr = idtostring( m_id );
 				if( !m_defined )
 				{
-					auto expr = getexpression( defs );
-					*defs = StringBuilder::construct( *defs,
-						typestr[ m_type ], " ", idstr,
-						"=", expr, ";\n" );
+					StringBuilder expr = getexpression( defs );
+					*defs
+						<< typestr[ m_type ] << " "_db << idstr << "="_db
+						<< expr << ";\n"_db;
 					m_defined = true;
 				}
-				return StringBuilder::construct( idstr );
+				return idstr;
 			}
 			else
 			{
@@ -183,11 +176,10 @@ namespace graphics
 		{
 		}
 
-		Ref< StringBuilder > Value_Unary::getexpression(
-			Ref< StringBuilder >* defs )
+		StringBuilder Value_Unary::getexpression( StringBuilder* defs )
 		{
-			return StringBuilder::construct(
-				"(", m_fname, m_args[ 0 ]->getstring( defs ), ")" );
+			return StringBuilder()
+				<< "("_db << m_fname << m_args[ 0 ]->getstring( defs ) << ")"_db;
 		}
 
 		Ref< Value > Value_Unary::factory(
@@ -204,12 +196,11 @@ namespace graphics
 		{
 		}
 
-		Ref< StringBuilder > Value_Binary::getexpression(
-			Ref< StringBuilder >* defs )
+		StringBuilder Value_Binary::getexpression( StringBuilder* defs )
 		{
-			return StringBuilder::construct(
-				"(", m_args[ 0 ]->getstring( defs ), m_fname,
-				m_args[ 1 ]->getstring( defs ), ")" );
+			return StringBuilder()
+				<< "("_db << m_args[ 0 ]->getstring( defs ) << m_fname
+				<< m_args[ 1 ]->getstring( defs ) << ")"_db;
 		}
 
 		Ref< Value > Value_Binary::factory(

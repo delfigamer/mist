@@ -1,33 +1,42 @@
 #include <exl/node/stat/expression.hpp>
 #include <exl/parser/ast.hpp>
 #include <exl/func.hpp>
+#include <exl/construct.hpp>
+#include <exl/format.hpp>
 
 namespace exl
 {
-	using utils::SExpr;
-
-	ExpressionStat::ExpressionStat()
-	{
-	}
-
 	ExpressionStat::ExpressionStat( utils::SExpr const& s )
 		: Node( s )
 	{
 		ASSERT( s.head == NodeHead::stat_expression );
 		ASSERT( s.list.size() == 2 );
-		m_value = constructexpression( s[ 2 ] );
+		m_expr = constructexpression( s[ 2 ] );
 	}
 
 	ExpressionStat::~ExpressionStat()
 	{
 	}
 
-	Ref< StringBuilder > ExpressionStat::getdefstring( size_t depth )
+	StringBuilder ExpressionStat::getdefstring( size_t depth )
 	{
-		if( !m_defstring )
-		{
-			m_defstring = m_value->getdefstring( depth );
-		}
-		return m_defstring;
+		return m_expr->getdefstring( depth );
+	}
+
+	void ExpressionStat::build( IContext* context )
+	{
+		m_expr->build( context );
+		m_value = m_expr->getvalue();
+		ASSERT( m_value );
+	}
+
+	void ExpressionStat::compilereserve( ILBody* body )
+	{
+	}
+
+	void ExpressionStat::compileemit( ILBody* body )
+	{
+		uint64_t reg = m_value->compileread( body );
+		releasereg( body, reg );
 	}
 }

@@ -30,9 +30,7 @@ namespace graphics
 
 	public:
 		ShapeGroup();
-		virtual ~ShapeGroup() override;
-		ShapeGroup( Shape const& ) = delete;
-		ShapeGroup& operator=( Shape const& ) = delete;
+		~ShapeGroup();
 
 		virtual void paint() override;
 
@@ -51,7 +49,6 @@ namespace graphics
 	class ShapeGroupEntry: public RefObject
 	{
 	private:
-		Ref< ShapeGroup > m_shapegroup;
 		ShapeGroup::ShapeList::Iterator m_iter;
 
 	public:

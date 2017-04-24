@@ -22,8 +22,7 @@ namespace graphics
 			Value_Swizzle(
 				TranslatorState* ts,
 				Ref< Value > const& arg, int const* parts );
-			virtual Ref< StringBuilder > getstring(
-				Ref< StringBuilder >* defs ) override;
+			virtual StringBuilder getstring( StringBuilder* defs ) override;
 		};
 
 		Value_Swizzle::Value_Swizzle(
@@ -63,38 +62,41 @@ namespace graphics
 			arg->m_usecount += 1;
 		}
 
-		static String const swizzle_indices[] = { "x", "y", "z", "w" };
+		static Ref< DataBuffer > const swizzle_indices[] = {
+			"x"_db,
+			"y"_db,
+			"z"_db,
+			"w"_db };
 
-		Ref< StringBuilder > Value_Swizzle::getstring(
-			Ref< StringBuilder >* defs )
+		StringBuilder Value_Swizzle::getstring( StringBuilder* defs )
 		{
 			switch( m_type )
 			{
 				case valuetype::float1:
-					return StringBuilder::construct(
-						"(", m_arg->getstring( defs ), ".",
-						swizzle_indices[ m_parts[ 0 ] ], ")" );
+					return StringBuilder()
+						<< "("_db << m_arg->getstring( defs ) << "."_db
+						<< swizzle_indices[ m_parts[ 0 ] ] << ")"_db;
 				case valuetype::float2:
-					return StringBuilder::construct(
-						"(", m_arg->getstring( defs ), ".",
-						swizzle_indices[ m_parts[ 0 ] ],
-						swizzle_indices[ m_parts[ 1 ] ], ")" );
+					return StringBuilder()
+						<< "("_db << m_arg->getstring( defs ) << "."_db
+						<< swizzle_indices[ m_parts[ 0 ] ]
+						<< swizzle_indices[ m_parts[ 1 ] ] << ")"_db;
 				case valuetype::float3:
-					return StringBuilder::construct(
-						"(", m_arg->getstring( defs ), ".",
-						swizzle_indices[ m_parts[ 0 ] ],
-						swizzle_indices[ m_parts[ 1 ] ],
-						swizzle_indices[ m_parts[ 2 ] ], ")" );
+					return StringBuilder()
+						<< "("_db << m_arg->getstring( defs ) << "."_db
+						<< swizzle_indices[ m_parts[ 0 ] ]
+						<< swizzle_indices[ m_parts[ 1 ] ]
+						<< swizzle_indices[ m_parts[ 2 ] ] << ")"_db;
 				case valuetype::float4:
-					return StringBuilder::construct(
-						"(", m_arg->getstring( defs ), ".",
-						swizzle_indices[ m_parts[ 0 ] ],
-						swizzle_indices[ m_parts[ 1 ] ],
-						swizzle_indices[ m_parts[ 2 ] ],
-						swizzle_indices[ m_parts[ 3 ] ], ")" );
+					return StringBuilder()
+						<< "("_db << m_arg->getstring( defs ) << "."_db
+						<< swizzle_indices[ m_parts[ 0 ] ]
+						<< swizzle_indices[ m_parts[ 1 ] ]
+						<< swizzle_indices[ m_parts[ 2 ] ]
+						<< swizzle_indices[ m_parts[ 3 ] ] << ")"_db;
 			}
 			ASSERT( false );
-			return StringBuilder::construct();
+			return nullptr;
 		}
 	}
 }

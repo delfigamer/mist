@@ -1,6 +1,7 @@
 #pragma once
 
 #include <common/string.hpp>
+#include <common/stringbuilder.hpp>
 #include <common/ref.hpp>
 #include <common.hpp>
 #include <exception>
@@ -17,6 +18,7 @@ public:
 	ATTRIBUTE(( __format__( gnu_printf, 2, 3 ) ))
 	StrException( char const* format, ... );
 	StrException( String const& message );
+	StrException( StringBuilder const& message );
 	StrException( StrException const& other );
 	StrException( StrException&& other );
 	StrException& operator=( StrException const& other );
@@ -39,6 +41,14 @@ inline StrException::StrException( char const* format, ... )
 inline StrException::StrException( String const& message )
 	: m_message( message )
 {
+}
+
+inline StrException::StrException( StringBuilder const& message )
+{
+	Ref< DataBuffer > buf = DataBuffer::create( message.getlength() + 1 );
+	uint8_t* ptr = message.write( buf->m_data );
+	ptr[ 0 ] = 0;
+	m_message.m_payload = buf;
 }
 
 inline StrException::StrException( StrException const& other )

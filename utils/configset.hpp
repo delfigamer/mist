@@ -3,7 +3,6 @@
 #include <common/string.hpp>
 #include <common.hpp>
 #include <lua/lua.hpp>
-#include <cinttypes>
 
 namespace utils
 {

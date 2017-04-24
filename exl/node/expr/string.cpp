@@ -1,14 +1,12 @@
 #include <exl/node/expr/string.hpp>
+#include <exl/value/string.hpp>
 #include <exl/parser/ast.hpp>
-#include <exl/func.hpp>
+#include <exl/construct.hpp>
+#include <exl/format.hpp>
 
 namespace exl
 {
 	using utils::SExpr;
-
-	StringExpr::StringExpr()
-	{
-	}
 
 	StringExpr::StringExpr( utils::SExpr const& s )
 		: Expression( s )
@@ -23,13 +21,15 @@ namespace exl
 	{
 	}
 
-	Ref< StringBuilder > StringExpr::getdefstring( size_t depth )
+	StringBuilder StringExpr::getdefstring( size_t depth )
 	{
-		if( !m_defstring )
-		{
-			m_defstring = StringBuilder::construct( "\"",
-				bytestostr( m_content ), "\"" );
-		}
-		return m_defstring;
+		StringBuilder defstring;
+		defstring << "\""_db << bytestostr( m_content ) << "\""_db;
+		return defstring;
+	}
+
+	void StringExpr::build( IContext* context )
+	{
+		m_value = Ref< StringValue >::create( m_content );
 	}
 }

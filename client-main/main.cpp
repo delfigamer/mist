@@ -76,8 +76,7 @@ String translateline( wchar_t const* wcmdline )
 	{
 		throw std::runtime_error( "cannot translate command line" );
 	}
-	Ref< DataBuffer > db = DataBuffer::create(
-		translation.destresult, translation.destresult, 0 );
+	Ref< DataBuffer > db = DataBuffer::create( translation.destresult );
 	translation.dest = db->m_data;
 	translation.sourcesize = translation.sourceresult;
 	translation.destsize = db->m_capacity;

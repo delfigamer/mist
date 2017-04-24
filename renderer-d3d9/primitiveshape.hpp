@@ -57,9 +57,9 @@ namespace graphics
 		typedef std::lock_guard< mutex_t > lock_t;
 
 	private:
-		Ref< VertexBuffer > m_vertexbuffer;
+		AtomicRef< VertexBuffer > m_vertexbuffer;
 		// Ref< IndexBuffer > m_indexbuffer;
-		Ref< Program > m_program;
+		AtomicRef< Program > m_program;
 		// Ref< Texture > m_textures[ 8 ];
 		std::atomic< int > m_type;
 		int m_blendsf;
@@ -74,7 +74,7 @@ namespace graphics
 	public:
 		PrimitiveShape(
 			int type, int sourceblend, int destblend, int blendmethod );
-		virtual ~PrimitiveShape() override;
+		~PrimitiveShape();
 		PrimitiveShape( PrimitiveShape const& ) = delete;
 		PrimitiveShape& operator=( PrimitiveShape const& ) = delete;
 

@@ -20,7 +20,7 @@ namespace graphics
 		EGLDisplay m_display;
 		EGLSurface m_surface;
 		EGLContext m_context;
-		Ref< graphics::Shape > m_shape;
+		AtomicRef< graphics::Shape > m_shape;
 
 		void initialize();
 		void finalize();

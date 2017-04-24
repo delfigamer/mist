@@ -1,17 +1,10 @@
 #pragma once
 
-#include <exl/exlerror.hpp>
+#include <exl/types.hpp>
 #include <common.hpp>
-#include <cinttypes>
 
 namespace exl
 {
-	struct TextPos
-	{
-		int row;
-		int col;
-	};
-
 	struct CharStream
 	{
 		uint8_t const* const* source;
@@ -29,15 +22,8 @@ namespace exl
 		int getc();
 		void ungetc();
 		ATTRIBUTE(( __noreturn__ ))
-		void error( char const* message, TextPos spos, TextPos epos )
-		{
-			throw ExlError(
-				message, spos.row, spos.col, epos.row, epos.col, filename );
-		}
+		void error( char const* message, TextPos spos, TextPos epos );
 		ATTRIBUTE(( __noreturn__ ))
-		void error( char const* message, TextPos pos )
-		{
-			throw ExlError( message, pos.row, pos.col, filename );
-		}
+		void error( char const* message, TextPos pos );
 	};
 }

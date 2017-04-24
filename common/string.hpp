@@ -8,7 +8,6 @@
 #include <cstdarg>
 #include <cstdio>
 #include <cstring>
-#include <cinttypes>
 
 class String
 {

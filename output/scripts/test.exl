@@ -1,3 +1,27 @@
-a=b+c
+const addto = function[inout a: number, b: number]
+	local c = a + b
+	a = c
+end
+const subtractfrom = function[inout a: number, b: number]
+	a = a - b
+end
+const fff = function[: number, : string]: number
+end
+
+const ca = 10
+local na = ca
+local nb = (na + 20)
+local ia = 0
+
+if ca then
+	local ia = 1
+	nb += ia
+elseif na then
+	local ia = 2
+	nb += ia
+else
+	local ia = 3
+	nb += ia
+end
 
 end

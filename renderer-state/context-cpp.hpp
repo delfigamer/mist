@@ -14,7 +14,7 @@ namespace graphics
 
 		void defer( void( *func )( void* ), void* ud, RefObject* target )
 		{
-			Deferred.push( func, ud, target );
+			Deferred.push( method_t{ func, ud, target } );
 		}
 
 		void rundeferred()

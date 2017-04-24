@@ -3,7 +3,6 @@
 #include <renderer-d3d9/shape.hpp>
 #include <common.hpp>
 #include <atomic>
-#include <cinttypes>
 
 namespace graphics
 {
@@ -21,7 +20,7 @@ namespace graphics
 
 	public:
 		ClearShape( bool ccolor, bool cdepth, bool cstencil );
-		virtual ~ClearShape() override;
+		~ClearShape();
 		ClearShape( ClearShape const& ) = delete;
 		ClearShape& operator=( ClearShape const& ) = delete;
 

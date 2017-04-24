@@ -45,6 +45,7 @@
     <ClInclude Include="..\..\common\refobject.hpp" />
     <ClInclude Include="..\..\common\strexception.hpp" />
     <ClInclude Include="..\..\common\string.hpp" />
+    <ClInclude Include="..\..\common\stringbuilder.hpp" />
     <ClInclude Include="..\..\renderer-state\common.hpp" />
     <ClInclude Include="..\..\renderer-state\context.hpp" />
     <ClInclude Include="..\..\renderer-state\context-cpp.hpp" />
@@ -67,7 +68,6 @@
     <ClInclude Include="..\..\renderer-state\shapegroup-cpp.hpp" />
     <ClInclude Include="..\..\renderer-d3d9\clearshape.hpp" />
     <ClInclude Include="..\..\renderer-d3d9\common.hpp" />
-    <ClInclude Include="..\..\renderer-d3d9\comref.hpp" />
     <ClInclude Include="..\..\renderer-d3d9\context.hpp" />
     <ClInclude Include="..\..\renderer-d3d9\display.hpp" />
     <ClInclude Include="..\..\renderer-d3d9\interface.hpp" />

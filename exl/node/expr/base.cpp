@@ -1,14 +1,8 @@
 #include <exl/node/expr/base.hpp>
-#include <exl/parser/ast.hpp>
-#include <exl/func.hpp>
 
 namespace exl
 {
 	using utils::SExpr;
-
-	Expression::Expression()
-	{
-	}
 
 	Expression::Expression( utils::SExpr const& s )
 		: Node( s )
@@ -17,5 +11,10 @@ namespace exl
 
 	Expression::~Expression()
 	{
+	}
+
+	Ref< IValue > Expression::getvalue()
+	{
+		return m_value;
 	}
 }

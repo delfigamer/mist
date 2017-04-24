@@ -7,7 +7,6 @@
 #include <memory>
 #include <stack>
 #include <vector>
-#include <cinttypes>
 
 namespace exl
 {
@@ -22,13 +21,17 @@ namespace exl
 		kwas,
 		kwclass,
 		kwconst,
+		kwelse,
+		kwelseif,
 		kwend,
 		kwfunction,
+		kwif,
 		kwin,
 		kwinout,
 		kwlocal,
 		kwnil,
 		kwout,
+		kwthen,
 		kwtype,
 		kwunit,
 
@@ -130,13 +133,12 @@ namespace exl
 		ATTRIBUTE(( __noreturn__ ))
 		void error( char const* message, TextPos spos, TextPos epos )
 		{
-			throw ExlError(
-				message, spos.row, spos.col, epos.row, epos.col, cs.filename );
+			cs.error( message, spos, epos );
 		}
 		ATTRIBUTE(( __noreturn__ ))
 		void error( char const* message, TextPos pos )
 		{
-			throw ExlError( message, pos.row, pos.col, cs.filename );
+			cs.error( message, pos );
 		}
 	};
 }

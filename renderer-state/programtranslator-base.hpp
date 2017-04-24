@@ -25,15 +25,14 @@ namespace graphics
 		}
 
 		// back-end-dependent
-		extern char const* const typestr[];
+		extern Ref< DataBuffer > const typestr[];
 
 		struct Value: RefObject
 		{
 			int m_type;
 			int m_usecount = 0;
 
-			virtual Ref< StringBuilder > getstring(
-				Ref< StringBuilder >* defs ) = 0;
+			virtual StringBuilder getstring( StringBuilder* defs ) = 0;
 		};
 	}
 }

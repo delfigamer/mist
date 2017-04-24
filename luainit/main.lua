@@ -45,7 +45,6 @@ end
 setfenv(1, _G)
 protectglobaltable(true)
 
-local info = require('host.info')
 local configset = require('host.mainconf')
 local indexmodule= configset:string('index')
 if not indexmodule then

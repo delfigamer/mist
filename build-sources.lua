@@ -123,14 +123,22 @@ local sources = {
 --------------------------------------------------------------------------------
 	{
 		type = 'native',
-		name = 'exl/context',
+		name = 'exl/construct',
 		use = 'client-main',
-		methodlist = 'client-main',
 	},
 	{
 		type = 'native',
-		name = 'exl/exlerror',
-		headeronly = true,
+		name = 'exl/context',
+		use = 'client-main',
+	},
+	{
+		type = 'native',
+		name = 'exl/error',
+		use = 'client-main',
+	},
+	{
+		type = 'native',
+		name = 'exl/format',
 		use = 'client-main',
 	},
 	{
@@ -148,7 +156,6 @@ local sources = {
 		type = 'native',
 		name = 'exl/object',
 		use = 'client-main',
-		methodlist = 'client-main',
 	},
 	{
 		type = 'native',
@@ -157,6 +164,23 @@ local sources = {
 		use = 'client-main',
 	},
 ----------------------------------------
+	{
+		type = 'native',
+		name = 'exl/il/translate',
+		use = 'client-main',
+		methodlist = 'client-main',
+	},
+----------------------------------------
+	{
+		type = 'native',
+		name = 'exl/node/argdef',
+		use = 'client-main',
+	},
+	{
+		type = 'native',
+		name = 'exl/node/argdeflist',
+		use = 'client-main',
+	},
 	{
 		type = 'native',
 		name = 'exl/node/base',
@@ -171,6 +195,16 @@ local sources = {
 	{
 		type = 'native',
 		name = 'exl/node/expr/base',
+		use = 'client-main',
+	},
+	{
+		type = 'native',
+		name = 'exl/node/expr/function',
+		use = 'client-main',
+	},
+	{
+		type = 'native',
+		name = 'exl/node/expr/functiontype',
 		use = 'client-main',
 	},
 	{
@@ -193,7 +227,23 @@ local sources = {
 		name = 'exl/node/expr/string',
 		use = 'client-main',
 	},
+	{
+		type = 'native',
+		name = 'exl/node/expr/subexpression',
+		use = 'client-main',
+	},
 ----------------------------------------
+	{
+		type = 'native',
+		name = 'exl/node/file/unit',
+		use = 'client-main',
+	},
+----------------------------------------
+	{
+		type = 'native',
+		name = 'exl/node/stat/conditional',
+		use = 'client-main',
+	},
 	{
 		type = 'native',
 		name = 'exl/node/stat/const',
@@ -202,6 +252,11 @@ local sources = {
 	{
 		type = 'native',
 		name = 'exl/node/stat/expression',
+		use = 'client-main',
+	},
+	{
+		type = 'native',
+		name = 'exl/node/stat/function',
 		use = 'client-main',
 	},
 	{
@@ -231,6 +286,143 @@ local sources = {
 		name = 'exl/parser/exlparser',
 		use = 'client-main',
 		methodlist = 'client-main',
+	},
+----------------------------------------
+	{
+		type = 'native',
+		name = 'exl/symbol/base',
+		use = 'client-main',
+	},
+	{
+		type = 'native',
+		name = 'exl/symbol/const',
+		use = 'client-main',
+	},
+	{
+		type = 'native',
+		name = 'exl/symbol/local',
+		use = 'client-main',
+	},
+----------------------------------------
+	{
+		type = 'native',
+		name = 'exl/system/context',
+		use = 'client-main',
+	},
+----------------------------------------
+	{
+		type = 'native',
+		name = 'exl/system/value/operator',
+		use = 'client-main',
+	},
+----------------------------------------
+	{
+		type = 'native',
+		name = 'exl/system/typeinfo/number',
+		use = 'client-main',
+	},
+	{
+		type = 'native',
+		name = 'exl/system/typeinfo/string',
+		use = 'client-main',
+	},
+	{
+		type = 'native',
+		name = 'exl/system/typeinfo/typedef',
+		use = 'client-main',
+	},
+----------------------------------------
+	{
+		type = 'native',
+		name = 'exl/system/operator/add',
+		use = 'client-main',
+	},
+	{
+		type = 'native',
+		name = 'exl/system/operator/assign',
+		use = 'client-main',
+	},
+	{
+		type = 'native',
+		name = 'exl/system/operator/binary',
+		use = 'client-main',
+	},
+	{
+		type = 'native',
+		name = 'exl/system/operator/join',
+		use = 'client-main',
+	},
+	{
+		type = 'native',
+		name = 'exl/system/operator/numberbinary',
+		use = 'client-main',
+	},
+	{
+		type = 'native',
+		name = 'exl/system/operator/subtract',
+		use = 'client-main',
+	},
+----------------------------------------
+	{
+		type = 'native',
+		name = 'exl/typeinfo/base',
+		use = 'client-main',
+	},
+	{
+		type = 'native',
+		name = 'exl/typeinfo/function',
+		use = 'client-main',
+	},
+----------------------------------------
+	{
+		type = 'native',
+		name = 'exl/value/base',
+		use = 'client-main',
+	},
+	{
+		type = 'native',
+		name = 'exl/value/function',
+		use = 'client-main',
+	},
+	{
+		type = 'native',
+		name = 'exl/value/functiontype',
+		use = 'client-main',
+	},
+	{
+		type = 'native',
+		name = 'exl/value/identitycast',
+		use = 'client-main',
+	},
+	{
+		type = 'native',
+		name = 'exl/value/literal',
+		use = 'client-main',
+	},
+	{
+		type = 'native',
+		name = 'exl/value/number',
+		use = 'client-main',
+	},
+	{
+		type = 'native',
+		name = 'exl/value/proxy',
+		use = 'client-main',
+	},
+	{
+		type = 'native',
+		name = 'exl/value/reference',
+		use = 'client-main',
+	},
+	{
+		type = 'native',
+		name = 'exl/value/string',
+		use = 'client-main',
+	},
+	{
+		type = 'native',
+		name = 'exl/value/typedef',
+		use = 'client-main',
 	},
 --------------------------------------------------------------------------------
 	{

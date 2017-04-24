@@ -459,31 +459,6 @@ namespace window
 
 	static Ref< DataBuffer > utf8toutf16( String str )
 	{
-		// utils::translation_t translation = {
-			// &utils::encoding::utf8,
-			// &utils::encoding::utf16,
-			// str.getchars(),
-			// 0,
-			// 0,
-			// 0,
-			// 0xfffd,
-		// };
-		// if( utils::translatestr( &translation ) !=
-			// utils::translateresult::success )
-		// {
-			// throw std::runtime_error( "cannot translate a utf-8 string" );
-		// }
-		// Ref< DataBuffer > db = DataBuffer::create(
-			// translation.destresult, translation.destresult, 0 );
-		// translation.dest = db->m_data;
-		// translation.sourcesize = translation.sourceresult;
-		// translation.destsize = db->m_capacity;
-		// if( utils::translatestr( &translation ) !=
-			// utils::translateresult::success )
-		// {
-			// throw std::runtime_error( "cannot translate a utf-8 string" );
-		// }
-		// return std::move( db );
 		return utils::translatestring( &utils::encoding::utf16, str );
 	}
 

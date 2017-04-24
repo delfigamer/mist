@@ -56,21 +56,38 @@ if not _G.toolchain or _G.toolchain == 'gcc' then
 				end
 			end
 		end
-		return
-			env.makepath(t.target) and
-			env.execute('g++ \z
-				-o "' .. env.path(t.target) .. '" \z
-				"' .. env.path(t.source) .. '" \z
-				-c \z
-				-O2 \z
-				-Wall -Werror \z
-				-Wno-invalid-offsetof \z
-				' .. env.flaglist(env.incpath, '-I', env.path) .. '\z
-				' .. env.flaglist(t.incpath, '-I', env.path) .. '\z
-				' .. table.concat(macrostr) .. '\z
-				-std=c++11 \z
-				-fvisibility=hidden \z
-				-pipe')
+		local copt =
+			'-O2 \z
+			-Wall -Werror \z
+			-Wno-invalid-offsetof \z
+			' .. env.flaglist(env.incpath, '-I', env.path) .. '\z
+			' .. env.flaglist(t.incpath, '-I', env.path) .. '\z
+			' .. table.concat(macrostr) .. '\z
+			-std=c++11 \z
+			-fvisibility=hidden \z
+			-pipe'
+		if t.asmfile then
+			return
+				env.makepath(t.target) and
+				env.execute('g++ \z
+					-o "' .. env.path(t.asmfile) .. '" \z
+					"' .. env.path(t.source) .. '" \z
+					-S \z
+					' .. copt) and
+				env.execute('g++ \z
+					-x assembler \z
+					-o "' .. env.path(t.target) .. '" \z
+					"' .. env.path(t.asmfile) .. '" \z
+					-c')
+		else
+			return
+				env.makepath(t.target) and
+				env.execute('g++ \z
+					-o "' .. env.path(t.target) .. '" \z
+					"' .. env.path(t.source) .. '" \z
+					-c \z
+					' .. copt)
+		end
 	end
 
 	function env.link(t)

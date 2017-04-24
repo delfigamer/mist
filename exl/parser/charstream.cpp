@@ -1,4 +1,6 @@
 #include <exl/parser/charstream.hpp>
+#include <exl/func.hpp>
+#include <common/strexception.hpp>
 
 namespace exl
 {
@@ -102,5 +104,21 @@ namespace exl
 				textpos.col -= 1;
 			}
 		}
+	}
+
+	void CharStream::error( char const* message, TextPos spos, TextPos epos )
+	{
+		throw StrException( "%s:%i:%i~%i:%i %s",
+			filename ? filename : "",
+			spos.row, spos.col, epos.row, epos.col,
+			message );
+	}
+
+	void CharStream::error( char const* message, TextPos pos )
+	{
+		throw StrException( "%s:%i:%i %s",
+			filename ? filename : "",
+			pos.row, pos.col,
+			message );
 	}
 }

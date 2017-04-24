@@ -7,7 +7,7 @@ namespace graphics
 {
 	void StaticVertexBuffer::doadvance()
 	{
-		Ref< DataBuffer > data = std::move( m_data );
+		Ref< DataBuffer > data = m_data.detachref();
 		if( data )
 		{
 			if( !m_vertexbuffer )
@@ -21,7 +21,6 @@ namespace graphics
 				checkerror();
 				Context::CurrentVertexBuffer = this;
 			}
-			std::atomic_thread_fence( std::memory_order_acquire );
 			if( !m_vertexbuffer || m_buffercapacity != data->m_capacity )
 			{
 				m_buffercapacity = data->m_capacity;
@@ -37,9 +36,8 @@ namespace graphics
 	}
 
 	StaticVertexBuffer::StaticVertexBuffer( VertexDeclaration* vd )
-		: m_data( nullptr )
 	{
-		m_vertexdeclaration = vd;
+		m_vertexdeclaration.assign( vd );
 	}
 
 	StaticVertexBuffer::~StaticVertexBuffer()

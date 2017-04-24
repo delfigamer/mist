@@ -9,6 +9,8 @@ namespace exl
 		{ NodeHead::fullname, "fullname" },
 		{ NodeHead::argdef, "argdef" },
 		{ NodeHead::argdeflist, "argdeflist" },
+		{ NodeHead::branch, "branch" },
+		{ NodeHead::block, "block" },
 		{ NodeHead::expr_nil, "expr.nil" },
 		{ NodeHead::expr_number, "expr.number" },
 		{ NodeHead::expr_string, "expr.string" },
@@ -23,7 +25,8 @@ namespace exl
 		{ NodeHead::stat_function, "stat.function" },
 		{ NodeHead::stat_local, "stat.local" },
 		{ NodeHead::stat_expression, "stat.expression" },
-		{ NodeHead::block, "block" },
+		{ NodeHead::stat_conditional, "stat.conditional" },
+		{ NodeHead::file_unit, "file.unit" },
 	}, 0 );
 
 	Ref< utils::SEContext > ASTContext( new utils::SEContext{

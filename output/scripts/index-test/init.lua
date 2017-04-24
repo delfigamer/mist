@@ -109,7 +109,7 @@ do
 		local bindb = index.program:getbinary()
 		if bindb then
 			log('binary available')
-			rsutil.saveptype(dbptype, bindb, 'program.bin')
+			rsutil.saveptype(dbptype, bindb, 'testprogram.bin')
 		end
 	end
 	index.program:clearcache()

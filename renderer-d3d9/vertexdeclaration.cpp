@@ -60,8 +60,7 @@ namespace graphics
 	{
 		if( !m_vertexdeclaration )
 		{
-			DataBuffer* data = m_data;
-			std::atomic_thread_fence( std::memory_order_acquire );
+			Ref< DataBuffer > data = m_data.detachref();
 			VertexDeclElement* elems = ( VertexDeclElement* )data->m_data;
 			size_t elemcount = data->m_length / sizeof( VertexDeclElement );
 			D3DVERTEXELEMENT9 d3delems[ 9 ];
@@ -90,8 +89,7 @@ namespace graphics
 		: m_vertexsize( vertexsize )
 	{
 		validatedecldata( data->m_length, data->m_data );
-		std::atomic_thread_fence( std::memory_order_release );
-		m_data = data;
+		m_data.assign( data );
 	}
 
 	VertexDeclaration::~VertexDeclaration()

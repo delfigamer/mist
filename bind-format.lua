@@ -221,7 +221,8 @@ function format.method_luabody(ent)
 	end
 	echo('\n')
 	if ent.meta.addref then
-		echo('\t\treference_addref(result[0])\n')
+		error('addref is deprecated (' .. ent.fcname .. ')')
+		-- echo('\t\treference_addref(result[0])\n')
 	end
 	echo('\t\treturn')
 	if ent.rettype.type == 'classbox' then

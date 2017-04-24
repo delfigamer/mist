@@ -9,7 +9,6 @@
 #include <common.hpp>
 #include <png/png.hpp>
 #include <csetjmp>
-#include <cinttypes>
 
 namespace rsbin
 {

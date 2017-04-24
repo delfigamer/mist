@@ -1,11 +1,11 @@
 #pragma once
 
+#include <exl/symbol/const.hpp>
 #include <exl/node/base.hpp>
 #include <exl/types.hpp>
 #include <utils/sexpr.hpp>
 #include <common.hpp>
 #include <vector>
-#include <cinttypes>
 
 namespace exl
 {
@@ -13,13 +13,19 @@ namespace exl
 	{
 	private:
 		identifier_t m_targetname;
-		Ref< IExpression > m_value;
+		Ref< IExpression > m_valueexpr;
+		Ref< IContext > m_context;
+		Ref< ConstSymbol > m_symbol;
+		Ref< IValue > m_value;
+		uint64_t m_register;
 
 	public:
-		ConstStat();
 		ConstStat( utils::SExpr const& s );
 		~ConstStat();
 
-		virtual Ref< StringBuilder > getdefstring( size_t depth ) override;
+		virtual StringBuilder getdefstring( size_t depth ) override;
+		virtual void build( IContext* context ) override;
+		virtual void compilereserve( ILBody* body ) override;
+		virtual void compileemit( ILBody* body ) override;
 	};
 }

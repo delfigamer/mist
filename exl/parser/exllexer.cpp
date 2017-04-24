@@ -18,14 +18,18 @@ namespace exl
 				{ { 'a', 's' }, ExlTokenType::kwas },
 				{ { 'c', 'l', 'a', 's', 's' }, ExlTokenType::kwclass },
 				{ { 'c', 'o', 'n', 's', 't' }, ExlTokenType::kwconst },
+				{ { 'e', 'l', 's', 'e' }, ExlTokenType::kwelse },
+				{ { 'e', 'l', 's', 'e', 'i', 'f' }, ExlTokenType::kwelseif },
 				{ { 'e', 'n', 'd' }, ExlTokenType::kwend },
 				{ { 'f', 'u', 'n', 'c', 't', 'i', 'o', 'n' },
 					ExlTokenType::kwfunction },
+				{ { 'i', 'f' }, ExlTokenType::kwif },
 				{ { 'i', 'n' }, ExlTokenType::kwin },
 				{ { 'i', 'n', 'o', 'u', 't' }, ExlTokenType::kwinout },
 				{ { 'l', 'o', 'c', 'a', 'l' }, ExlTokenType::kwlocal },
 				{ { 'n', 'i', 'l' }, ExlTokenType::kwnil },
 				{ { 'o', 'u', 't' }, ExlTokenType::kwout },
+				{ { 't', 'h', 'e', 'n' }, ExlTokenType::kwthen },
 				{ { 't', 'y', 'p', 'e' }, ExlTokenType::kwtype },
 				{ { 'u', 'n', 'i', 't' }, ExlTokenType::kwunit },
 			};
@@ -289,8 +293,7 @@ namespace exl
 			}
 			return tokenptr_t( new ExlToken(
 				ExlTokenType::string, spos, stream.textpos,
-				DataBuffer::create(
-					content.size(), content.size(), content.data() ) ) );
+				DataBuffer::create( content.size(), content.data() ) ) );
 		}
 
 		template< bool capture >
@@ -359,8 +362,7 @@ namespace exl
 			{
 				return tokenptr_t( new ExlToken(
 					ExlTokenType::string, spos, stream.textpos,
-					DataBuffer::create(
-						content.size(), content.size(), content.data() ) ) );
+					DataBuffer::create( content.size(), content.data() ) ) );
 			}
 			else
 			{
@@ -395,7 +397,7 @@ namespace exl
 			{
 				return tokenptr_t( new ExlToken(
 					ExlTokenType::identifier, spos, stream.textpos,
-					DataBuffer::create( word.size(), word.size(), word.data() ) ) );
+					DataBuffer::create( word.size(), word.data() ) ) );
 			}
 		}
 
@@ -758,7 +760,7 @@ namespace exl
 				}
 				return tokenptr_t( new ExlToken(
 					ExlTokenType::identifier, spos, stream.textpos,
-					DataBuffer::create( word.size(), word.size(), word.data() ) ) );
+					DataBuffer::create( word.size(), word.data() ) ) );
 			},
 			obtainword, //  65 'A'
 			obtainword, //  66 'B'
@@ -903,8 +905,7 @@ namespace exl
 		cs.tabsize = tabsize;
 		cs.textpos.col = 1;
 		cs.textpos.row = 1;
-		size_t fnlen = strlen( filename );
-		this->filename = DataBuffer::create( fnlen, fnlen, filename );
+		this->filename = DataBuffer::create( strlen( filename ), filename );
 	}
 
 	ExlTokenStream::~ExlTokenStream()

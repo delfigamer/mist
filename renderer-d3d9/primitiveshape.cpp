@@ -54,7 +54,7 @@ namespace graphics
 
 	void PrimitiveShape::doadvance()
 	{
-		VertexBuffer* vb = m_vertexbuffer;
+		Ref< VertexBuffer > vb = m_vertexbuffer.getref();
 		if( vb )
 		{
 			vb->advance();
@@ -64,7 +64,7 @@ namespace graphics
 		// {
 			// ib->advance();
 		// }
-		Program* pr = m_program;
+		Ref< Program > pr = m_program.getref();
 		if( pr )
 		{
 			pr->advance();
@@ -87,19 +87,9 @@ namespace graphics
 			blendftable, destblend, "destination blend factor" ) )
 		, m_blendop( TABLE_ASSERT(
 			blendoptable, blendmethod, "blend method" ) )
-#if !defined( _MSC_VER )
-		, m_matrix{
-			1, 0, 0, 0,
-			0, 1, 0, 0,
-			0, 0, 1, 0,
-			0, 0, 0, 1,
-		}
-#endif
 	{
-#if defined( _MSC_VER )
 		memset( &m_matrix, 0, sizeof( m_matrix ) );
 		m_matrix._11 = m_matrix._22 = m_matrix._33 = m_matrix._44 = 1;
-#endif
 		m_type.store( RANGE_ASSERT(
 				type, 0, int( primitivetype::invalid ), "primitive type" ),
 			std::memory_order_release );
@@ -111,10 +101,14 @@ namespace graphics
 
 	void PrimitiveShape::paint()
 	{
-		VertexBuffer* vb = m_vertexbuffer;
+		Ref< VertexBuffer > vb = m_vertexbuffer.getref();
+		if( !vb )
+		{
+			return;
+		}
 		// IndexBuffer* ib = m_indexbuffer;
-		Program* pr = m_program;
-		if( !vb || !pr )
+		Ref< Program > pr = m_program.getref();
+		if( !pr )
 		{
 			return;
 		}
@@ -164,7 +158,7 @@ namespace graphics
 
 	void PrimitiveShape::setvertexbuffer( VertexBuffer* value )
 	{
-		m_vertexbuffer = value;
+		m_vertexbuffer.assign( value );
 	}
 
 	// void PrimitiveShape::setindexbuffer( IndexBuffer* value )
@@ -174,7 +168,7 @@ namespace graphics
 
 	void PrimitiveShape::setprogram( Program* value )
 	{
-		m_program = value;
+		m_program.assign( value );
 	}
 
 	// void PrimitiveShape::settexture( int index, Texture* texture )

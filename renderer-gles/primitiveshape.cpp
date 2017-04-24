@@ -55,7 +55,7 @@ namespace graphics
 
 	void PrimitiveShape::doadvance()
 	{
-		VertexBuffer* vb = m_vertexbuffer;
+		Ref< VertexBuffer > vb = m_vertexbuffer.getref();
 		if( vb )
 		{
 			vb->advance();
@@ -65,7 +65,7 @@ namespace graphics
 		// {
 			// ib->advance();
 		// }
-		Program* pr = m_program;
+		Ref< Program > pr = m_program.getref();
 		if( pr )
 		{
 			pr->advance();
@@ -88,19 +88,9 @@ namespace graphics
 			blendftable, destblend, "destination blend factor" ) )
 		, m_blendop( TABLE_ASSERT(
 			blendoptable, blendmethod, "blend method" ) )
-#if !defined( _MSC_VER )
-		, m_matrix{
-			1, 0, 0, 0,
-			0, 1, 0, 0,
-			0, 0, 1, 0,
-			0, 0, 0, 1,
-		}
-#endif
 	{
-#if defined( _MSC_VER )
 		memset( &m_matrix, 0, sizeof( m_matrix ) );
 		m_matrix[ 0 ] = m_matrix[ 5 ] = m_matrix[ 10 ] = m_matrix[ 15 ] = 1;
-#endif
 		m_type.store( RANGE_ASSERT(
 				type, 0, int( primitivetype::invalid ), "primitive type" ),
 			std::memory_order_release );
@@ -112,10 +102,14 @@ namespace graphics
 
 	void PrimitiveShape::paint()
 	{
-		VertexBuffer* vb = m_vertexbuffer;
+		Ref< VertexBuffer > vb = m_vertexbuffer.getref();
+		if( !vb )
+		{
+			return;
+		}
 		// IndexBuffer* ib = m_indexbuffer;
-		Program* pr = m_program;
-		if( !vb || !pr )
+		Ref< Program > pr = m_program.getref();
+		if( !pr )
 		{
 			return;
 		}
@@ -147,20 +141,15 @@ namespace graphics
 		{
 			lock_t lock( m_mutex );
 			glUniformMatrix4fv( worldmatrixpos, 1, false, m_matrix );
+			checkerror();
 		}
-		// checkerror( Context::Device->DrawIndexedPrimitive(
-			// D3DPRIMITIVETYPE( m_type ),
-			// 0,
-			// 0,
-			// vertexcount,
-			// 0,
-			// indexcount / 3 ) );
 		glDrawArrays( typetable[ ptype ], 0, GLsizei( vertexcount ) );
+		checkerror();
 	}
 
 	void PrimitiveShape::setvertexbuffer( VertexBuffer* value )
 	{
-		m_vertexbuffer = value;
+		m_vertexbuffer.assign( value );
 	}
 
 	// void PrimitiveShape::setindexbuffer( IndexBuffer* value )
@@ -170,7 +159,7 @@ namespace graphics
 
 	void PrimitiveShape::setprogram( Program* value )
 	{
-		m_program = value;
+		m_program.assign( value );
 	}
 
 	// void PrimitiveShape::settexture( int index, Texture* texture )

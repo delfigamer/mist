@@ -4,7 +4,6 @@
 #include <common/ref.hpp>
 #include <common/refobject.hpp>
 #include <atomic>
-#include <cstdint>
 
 namespace graphics
 {
@@ -17,14 +16,6 @@ namespace graphics
 			void( *func )( void* );
 			void* ud;
 			Ref< RefObject > target;
-
-			method_t() = default;
-			method_t( void( *func )( void* ), void* ud, RefObject* target )
-				: func( func )
-				, ud( ud )
-				, target( target )
-			{
-			}
 		};
 
 		extern std::atomic< size_t > DrawnFrame;

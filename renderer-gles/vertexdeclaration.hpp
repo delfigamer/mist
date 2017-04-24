@@ -4,7 +4,6 @@
 #include <common/databuffer.hpp>
 #include <common/ref.hpp>
 #include <common.hpp>
-#include <cinttypes>
 
 namespace graphics
 {
@@ -54,7 +53,7 @@ R_END()
 		};
 
 	private:
-		Ref< DataBuffer > m_data;
+		AtomicRef< DataBuffer > m_data;
 		attriblayout_t m_layout[ 8 ];
 		int m_attribcount;
 		size_t m_vertexsize;
@@ -64,9 +63,7 @@ R_END()
 
 	public:
 		VertexDeclaration( DataBuffer* data, size_t vertexsize );
-		virtual ~VertexDeclaration() override;
-		VertexDeclaration( VertexDeclaration const& ) = delete;
-		VertexDeclaration& operator=( VertexDeclaration const& ) = delete;
+		~VertexDeclaration();
 
 		bool bind( size_t* vertexsize );
 

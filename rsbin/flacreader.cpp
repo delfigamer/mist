@@ -126,17 +126,18 @@ namespace rsbin
 				if( samples != 0 )
 				{
 					reader->m_target = DataBuffer::create(
-						0, samples * reader->m_channels * 4, 0 );
+						0, samples * reader->m_channels * 4, nullptr );
 				}
 				else
 				{
 					reader->m_target = DataBuffer::create(
-						0, frame->header.blocksize * reader->m_channels * 4, 0 );
+						0, frame->header.blocksize * reader->m_channels * 4,
+						nullptr );
 				}
 			}
-			if( ( reader->m_totalsamples + frame->header.blocksize )
-				* reader->m_channels * 4
-				> reader->m_target->m_capacity )
+			if( ( reader->m_totalsamples + frame->header.blocksize ) *
+					reader->m_channels * 4 >
+				reader->m_target->m_capacity )
 			{
 				reader->m_target = DataBuffer::create(
 					reader->m_target->m_length, reader->m_target->m_capacity * 2,

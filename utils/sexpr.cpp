@@ -212,7 +212,7 @@ namespace utils
 			else if( other.head >= 0x70000000 && other.head < 0x80000000 )
 			{
 				list.~vector();
-				new( &text )Ref< RefObject >( std::move( other.text ) );
+				new( &text )Ref< DataBuffer >( std::move( other.text ) );
 			}
 			else
 			{
@@ -245,7 +245,7 @@ namespace utils
 			}
 			else if( other.head >= 0x70000000 && other.head < 0x80000000 )
 			{
-				new( &text )Ref< RefObject >( std::move( other.text ) );
+				new( &text )Ref< DataBuffer >( std::move( other.text ) );
 			}
 			else
 			{

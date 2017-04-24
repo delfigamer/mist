@@ -10,9 +10,7 @@ namespace graphics
 	{
 	public:
 		Shape();
-		virtual ~Shape() override;
-		Shape( Shape const& ) = delete;
-		Shape& operator=( Shape const& ) = delete;
+		~Shape();
 
 		virtual void paint() = 0;
 	};

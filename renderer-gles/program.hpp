@@ -13,7 +13,7 @@ namespace graphics
 	{
 	private:
 		bool m_cache;
-		Ref< DataBuffer > m_source;
+		AtomicRef< DataBuffer > m_source;
 		Ref< DataBuffer > m_binary;
 		Ref< DataBuffer > m_log;
 		std::atomic< bool > m_ready;
@@ -27,18 +27,16 @@ namespace graphics
 		virtual void doadvance() override;
 
 	public:
-		Program( DataBuffer* binary, bool cache );
+		// Program( DataBuffer* binary, bool cache );
 		Program( DataBuffer* source, bool cache, int );
 		~Program();
-		Program( Program const& ) = delete;
-		Program& operator=( Program const& ) = delete;
 
 		bool bind( int* pmatrixindex );
 
-		R_METHOD() static Program* load( DataBuffer* binary, bool cache )
-		{
-			return new Program( binary, cache );
-		}
+		// R_METHOD() static Program* load( DataBuffer* binary, bool cache )
+		// {
+			// return new Program( binary, cache );
+		// }
 
 		R_METHOD() static Program* translate( DataBuffer* source, bool cache )
 		{
@@ -55,13 +53,15 @@ namespace graphics
 			return m_valid;
 		}
 
-		R_METHOD( addref ) DataBuffer* getbinary()
+		R_METHOD() DataBuffer* getbinary()
 		{
+			::addref( m_binary );
 			return m_binary;
 		}
 
-		R_METHOD( addref ) DataBuffer* getlog()
+		R_METHOD() DataBuffer* getlog()
 		{
+			::addref( m_log );
 			return m_log;
 		}
 

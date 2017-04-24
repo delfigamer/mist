@@ -2,7 +2,6 @@
 
 #include <common/refobject.hpp>
 #include <common.hpp>
-#include <cinttypes>
 
 namespace rsbin
 {

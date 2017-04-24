@@ -1,5 +1,4 @@
 #include <cstdio>
-#include <cinttypes>
 
 void printlineheader( FILE* fo )
 {

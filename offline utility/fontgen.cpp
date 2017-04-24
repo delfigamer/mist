@@ -7,7 +7,6 @@
 #include <fcntl.h>
 #include <stdexcept>
 #include <cstdio>
-#include <cinttypes>
 
 void CriticalWinError(
 	char const* file, char const* function, int line, char const* msg )
@@ -101,8 +100,7 @@ String convertstr(
 	{
 		throw std::runtime_error( "encoding failure" );
 	}
-	Ref< DataBuffer > db = DataBuffer::create(
-		translation.destresult, translation.destresult, 0 );
+	Ref< DataBuffer > db = DataBuffer::create( translation.destresult );
 	translation.dest = db->m_data;
 	translation.destsize = db->m_capacity;
 	if( utils::translatestr( &translation ) != utils::translate_success )

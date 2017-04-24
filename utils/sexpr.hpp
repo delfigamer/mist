@@ -8,7 +8,6 @@
 #include <vector>
 #include <initializer_list>
 #include <tuple>
-#include <cinttypes>
 
 // Head namespace:
 //          0 .. 0x3fffffff .list   compound expressions
@@ -147,7 +146,7 @@ R_END()
 			return head != 0x40000000;
 		}
 
-		SExpr& operator[]( size_t index )
+		SExpr& operator[]( ptrdiff_t index )
 		{
 			return list[ index-1 ];
 		}
@@ -221,9 +220,11 @@ R_END()
 			s->setlength( length );
 		}
 
-		R_METHOD( addref ) static DataBuffer* gettext( SExpr* s )
+		R_METHOD() static DataBuffer* gettext( SExpr* s )
 		{
-			return s->gettext();
+			DataBuffer* text = s->gettext();
+			::addref( text );
+			return text;
 		}
 
 		R_METHOD() static void settext( SExpr* s, DataBuffer* newtext )

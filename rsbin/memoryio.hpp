@@ -3,7 +3,6 @@
 #include <rsbin/io.hpp>
 #include <common.hpp>
 #include <vector>
-#include <cinttypes>
 
 namespace rsbin
 {

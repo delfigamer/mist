@@ -66,8 +66,8 @@ namespace graphics
 	{
 		if( m_attribcount == -1 )
 		{
-			DataBuffer* data = m_data;
-			std::atomic_thread_fence( std::memory_order_acquire );
+			Ref< DataBuffer > data = m_data.detachref();
+			ASSERT( data );
 			VertexDeclElement* elems = ( VertexDeclElement* )data->m_data;
 			size_t attribcount = data->m_length / sizeof( VertexDeclElement );
 			for( size_t i = 0; i < attribcount; ++i )
@@ -80,7 +80,6 @@ namespace graphics
 				m_layout[ i ].offset = ( void* )size_t( elems[ i ].offset );
 			}
 			m_attribcount = int( attribcount );
-			m_data = nullptr;
 		}
 	}
 
@@ -90,8 +89,7 @@ namespace graphics
 		, m_vertexsize( vertexsize )
 	{
 		validatedecldata( data->m_length, data->m_data );
-		std::atomic_thread_fence( std::memory_order_release );
-		m_data = data;
+		m_data.assign( data );
 	}
 
 	VertexDeclaration::~VertexDeclaration()

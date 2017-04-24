@@ -5,7 +5,6 @@
 #include <utils/sexpr.hpp>
 #include <common.hpp>
 #include <vector>
-#include <cinttypes>
 
 namespace exl
 {
@@ -19,6 +18,9 @@ namespace exl
 		Block( utils::SExpr const& s );
 		~Block();
 
-		virtual Ref< StringBuilder > getdefstring( size_t depth ) override;
+		virtual StringBuilder getdefstring( size_t depth ) override;
+		virtual void build( IContext* context ) override;
+		virtual void compilereserve( ILBody* body ) override;
+		virtual void compileemit( ILBody* body ) override;
 	};
 }

@@ -197,20 +197,11 @@ namespace exl
 			return node;
 		}
 
-		SExpr createname( char const* name )
+		SExpr createnamese( char const* name )
 		{
-			size_t namelen = strlen( name );
 			return
-				SExpr( NodeHead::expr_name, {
-					SExpr( NodeHead::textrange, {
-						SExpr::atom( 0 ),
-						SExpr::atom( 0 ),
-						SExpr::atom( 0 ),
-						SExpr::atom( 0 ),
-						SExpr::atom( Ref< DataBuffer >() ) } ),
-					SExpr( NodeHead::name, {
-						SExpr::atom( DataBuffer::create(
-							namelen, namelen, name ) ) } ) } );
+				SExpr( NodeHead::name, {
+					SExpr::atom( DataBuffer::create( strlen( name ), name ) ) } );
 		}
 
 		SExpr acquirename(
@@ -245,10 +236,10 @@ namespace exl
 
 		SExpr argdef( ExlTokenStream& ts )
 		{
-			TextPos spos;
 			bool lvalue;
 			bool rvalue;
 			std::unique_ptr< ExlToken > token = ts.gett();
+			TextPos spos = token->spos;
 			switch( token->type )
 			{
 			case ExlTokenType::kwin:
@@ -274,7 +265,6 @@ namespace exl
 				rvalue = true;
 			break;
 			}
-
 			SExpr targetname;
 			SExpr value;
 			SExpr typev;
@@ -374,7 +364,12 @@ namespace exl
 					std::move( name ) } );
 		}
 
-		std::set< ExlTokenType > termset_end{ ExlTokenType::kwend };
+		std::set< ExlTokenType > termset_end{
+			ExlTokenType::kwend };
+		std::set< ExlTokenType > termset_elseend{
+			ExlTokenType::kwelse,
+			ExlTokenType::kwelseif,
+			ExlTokenType::kwend };
 
 		SExpr expr_type_function(
 			ExlTokenStream& ts, std::unique_ptr< ExlToken >&& nlead,
@@ -567,8 +562,8 @@ namespace exl
 		}
 
 		std::map< ExlTokenType, SExpr > unaryname = {
-			{ ExlTokenType::plus, createname( "identity" ) },
-			{ ExlTokenType::minus, createname( "negate" ) },
+			{ ExlTokenType::plus, createnamese( "identity" ) },
+			{ ExlTokenType::minus, createnamese( "negate" ) },
 		};
 
 		SExpr expr_unary( ExlTokenStream& ts )
@@ -602,7 +597,14 @@ namespace exl
 							SExpr::atom( eposrow ),
 							SExpr::atom( eposcol ),
 							SExpr::atom( ts.filename ) } ),
-						unaryname[ sign->type ],
+						SExpr( NodeHead::expr_name, {
+							SExpr( NodeHead::textrange, {
+								SExpr::atom( sign->spos.row ),
+								SExpr::atom( sign->spos.col ),
+								SExpr::atom( sign->epos.row ),
+								SExpr::atom( sign->epos.col ),
+								SExpr::atom( ts.filename ) } ),
+							unaryname[ sign->type ] } ),
 						SExpr( 0, {
 							std::move( ret ) } ) } );
 				prefixes.pop();
@@ -758,7 +760,14 @@ namespace exl
 							SExpr::atom( rs[ 1 ][ 3 ].number ),
 							SExpr::atom( rs[ 1 ][ 4 ].number ),
 							SExpr::atom( ts.filename ) } ),
-						sit->second,
+						SExpr( NodeHead::expr_name, {
+							SExpr( NodeHead::textrange, {
+								SExpr::atom( sign->spos.row ),
+								SExpr::atom( sign->spos.col ),
+								SExpr::atom( sign->epos.row ),
+								SExpr::atom( sign->epos.col ),
+								SExpr::atom( ts.filename ) } ),
+							sit->second } ),
 						SExpr( 0, {
 							std::move( ret ),
 							std::move( rs ) } ) } );
@@ -791,7 +800,15 @@ namespace exl
 				}
 				SExpr rs = acquirenode( ts, next, "expression expected" );
 				elist.push( std::move( rs ) );
-				slist.push( sit->second );
+				slist.push(
+					SExpr( NodeHead::expr_name, {
+						SExpr( NodeHead::textrange, {
+							SExpr::atom( sign->spos.row ),
+							SExpr::atom( sign->spos.col ),
+							SExpr::atom( sign->epos.row ),
+							SExpr::atom( sign->epos.col ),
+							SExpr::atom( ts.filename ) } ),
+						sit->second } ) );
 			}
 			ret = std::move( elist.top() );
 			elist.pop();
@@ -822,7 +839,7 @@ namespace exl
 		SExpr expr_join( ExlTokenStream& ts )
 		{
 			static std::map< ExlTokenType, SExpr > signmap{
-					{ ExlTokenType::dotdot, createname( "join" ) },
+					{ ExlTokenType::dotdot, createnamese( "join" ) },
 				};
 			return expr_binary( ts, expr_suffix, expr_suffix, signmap );
 		}
@@ -830,8 +847,8 @@ namespace exl
 		SExpr expr_product( ExlTokenStream& ts )
 		{
 			static std::map< ExlTokenType, SExpr > signmap{
-					{ ExlTokenType::star, createname( "multiply" ) },
-					{ ExlTokenType::slash, createname( "divide" ) },
+					{ ExlTokenType::star, createnamese( "multiply" ) },
+					{ ExlTokenType::slash, createnamese( "divide" ) },
 				};
 			return expr_binary( ts, expr_join, expr_join, signmap );
 		}
@@ -839,8 +856,8 @@ namespace exl
 		SExpr expr_sum( ExlTokenStream& ts )
 		{
 			static std::map< ExlTokenType, SExpr > signmap{
-					{ ExlTokenType::plus, createname( "add" ) },
-					{ ExlTokenType::minus, createname( "subtract" ) },
+					{ ExlTokenType::plus, createnamese( "add" ) },
+					{ ExlTokenType::minus, createnamese( "subtract" ) },
 				};
 			return expr_binary( ts, expr_product, expr_product, signmap );
 		}
@@ -848,9 +865,9 @@ namespace exl
 		SExpr expr_assignment( ExlTokenStream& ts )
 		{
 			static std::map< ExlTokenType, SExpr > signmap{
-					{ ExlTokenType::equals, createname( "assign" ) },
-					{ ExlTokenType::plusequals, createname( "addto" ) },
-					{ ExlTokenType::minusequals, createname( "subtractfrom" ) },
+					{ ExlTokenType::equals, createnamese( "assign" ) },
+					{ ExlTokenType::plusequals, createnamese( "addto" ) },
+					{ ExlTokenType::minusequals, createnamese( "subtractfrom" ) },
 				};
 			return expr_rbinary( ts, expr_sum, expr_sum, signmap );
 		}
@@ -918,35 +935,82 @@ namespace exl
 		{
 			std::unique_ptr< ExlToken > token = acquiretoken(
 				ts, ExlTokenType::identifier, "identifier expected" );
-			TextPos spos = token->spos;
 			SExpr targetname = SExpr::atom( std::move( token->data ) );
+			double eposrow = token->epos.row;
+			double eposcol = token->epos.col;
 			SExpr value;
 			SExpr typev;
 			token = ts.gett();
 			if( token->type == ExlTokenType::equals )
 			{
 				value = acquirenode( ts, expr, "initializer expected" );
+				eposrow = value[ 1 ][ 3 ].number;
+				eposcol = value[ 1 ][ 4 ].number;
 				token = ts.gett();
 			}
 			if( token->type == ExlTokenType::colon )
 			{
 				typev = acquirenode( ts, expr, "type expected" );
+				eposrow = typev[ 1 ][ 3 ].number;
+				eposcol = typev[ 1 ][ 4 ].number;
 			}
 			else
 			{
-				ts.error( "type expected", token->spos );
+				ts.ungett( std::move( token ) );
 			}
 			return
 				SExpr( NodeHead::stat_local, {
 					SExpr( NodeHead::textrange, {
-						SExpr::atom( spos.row ),
-						SExpr::atom( spos.col ),
-						SExpr::atom( typev[ 1 ][ 3 ].number ),
-						SExpr::atom( typev[ 1 ][ 4 ].number ),
+						SExpr::atom( lead->spos.row ),
+						SExpr::atom( lead->spos.col ),
+						SExpr::atom( eposrow ),
+						SExpr::atom( eposcol ),
 						SExpr::atom( ts.filename ) } ),
 					std::move( targetname ),
 					std::move( value ),
 					std::move( typev ) } );
+		}
+
+		SExpr stat_conditional(
+			ExlTokenStream& ts, std::unique_ptr< ExlToken >&& lead )
+		{
+			std::unique_ptr< ExlToken > token;
+			SExpr branches( 0 );
+			while( true )
+			{
+				SExpr condition = acquirenode( ts, expr, "condition expected" );
+				token = acquiretoken(
+					ts, ExlTokenType::kwthen, "'then' expected" );
+				SExpr body = block( ts, NodeHead::block, stat, termset_elseend );
+				branches.append(
+					SExpr( NodeHead::branch, {
+						std::move( condition ),
+						std::move( body ) } ) );
+				token = ts.gett();
+				if( token->type == ExlTokenType::kwelse )
+				{
+					SExpr body = block( ts, NodeHead::block, stat, termset_end );
+					branches.append(
+						SExpr( NodeHead::branch, {
+							SExpr::atom(),
+							std::move( body ) } ) );
+					token = ts.gett();
+					break;
+				}
+				else if( token->type == ExlTokenType::kwend )
+				{
+					break;
+				}
+			}
+			return
+				SExpr( NodeHead::stat_conditional, {
+					SExpr( NodeHead::textrange, {
+						SExpr::atom( lead->spos.row ),
+						SExpr::atom( lead->spos.col ),
+						SExpr::atom( token->epos.row ),
+						SExpr::atom( token->epos.col ),
+						SExpr::atom( ts.filename ) } ),
+					std::move( branches ) } );
 		}
 
 		SExpr stat_expr( ExlTokenStream& ts )
@@ -980,6 +1044,9 @@ namespace exl
 
 			case ExlTokenType::kwlocal:
 				return stat_local( ts, std::move( lead ) );
+
+			case ExlTokenType::kwif:
+				return stat_conditional( ts, std::move( lead ) );
 
 			default:
 				ts.ungett( std::move( lead ) );
@@ -1018,6 +1085,22 @@ namespace exl
 						SExpr::atom( ts.filename ) } ),
 					std::move( statements ) } );
 		}
+
+		SExpr file( ExlTokenStream& ts )
+		{
+			SExpr body = parser::block(
+				ts, NodeHead::block, parser::stat, termset_end );
+			return
+				SExpr( NodeHead::file_unit, {
+					SExpr( NodeHead::textrange, {
+						SExpr::atom( body[ 1 ][ 1 ].number ),
+						SExpr::atom( body[ 1 ][ 2 ].number ),
+						SExpr::atom( body[ 1 ][ 3 ].number ),
+						SExpr::atom( body[ 1 ][ 4 ].number ),
+						SExpr::atom( ts.filename ) } ),
+					SExpr::atom(),
+					std::move( body ) } );
+		}
 	}
 
 	utils::SExpr* ExlParser::parse(
@@ -1025,8 +1108,6 @@ namespace exl
 		size_t partcount, char const* filename, int tabsize )
 	{
 		ExlTokenStream ts( source, sourcelengths, partcount, filename, tabsize );
-		utils::SExpr ret = parser::block( ts, NodeHead::block, parser::stat,
-			{ ExlTokenType::kwend } );
-		return new utils::SExpr( std::move( ret ) );
+		return new utils::SExpr( parser::file( ts ) );
 	}
 }

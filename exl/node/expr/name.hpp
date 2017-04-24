@@ -4,21 +4,21 @@
 #include <exl/types.hpp>
 #include <utils/sexpr.hpp>
 #include <common.hpp>
-#include <cinttypes>
 
 namespace exl
 {
 	class NameExpr: public Expression
 	{
 	private:
-		std::vector< identifier_t > m_parts;
+		name_t m_name;
 		bool m_fullname;
+		Ref< ISymbol > m_target;
 
 	public:
-		NameExpr();
 		NameExpr( utils::SExpr const& s );
 		~NameExpr();
 
-		virtual Ref< StringBuilder > getdefstring( size_t depth ) override;
+		virtual StringBuilder getdefstring( size_t depth ) override;
+		virtual void build( IContext* context ) override;
 	};
 }

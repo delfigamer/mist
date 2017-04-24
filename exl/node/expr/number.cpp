@@ -1,15 +1,12 @@
 #include <exl/node/expr/number.hpp>
+#include <exl/value/number.hpp>
 #include <exl/parser/ast.hpp>
-#include <exl/func.hpp>
+#include <exl/construct.hpp>
+#include <exl/format.hpp>
 
 namespace exl
 {
 	using utils::SExpr;
-
-	NumberExpr::NumberExpr()
-		: m_content( 0 )
-	{
-	}
 
 	NumberExpr::NumberExpr( utils::SExpr const& s )
 		: Expression( s )
@@ -24,12 +21,15 @@ namespace exl
 	{
 	}
 
-	Ref< StringBuilder > NumberExpr::getdefstring( size_t depth )
+	StringBuilder NumberExpr::getdefstring( size_t depth )
 	{
-		if( !m_defstring )
-		{
-			m_defstring = StringBuilder::construct( numtostr( m_content ) );
-		}
-		return m_defstring;
+		StringBuilder defstring;
+		defstring << numtostr( m_content );
+		return defstring;
+	}
+
+	void NumberExpr::build( IContext* context )
+	{
+		m_value = Ref< NumberValue >::create( m_content );
 	}
 }

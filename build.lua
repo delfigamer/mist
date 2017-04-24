@@ -19,16 +19,18 @@ local platform = {
 if _G.platform then
 	platform = platform[_G.platform] and _G.platform or error('unknown platform')
 else
-	platform = ({
-		['Windows-x86'] = 'win32',
-		['Windows-x64'] = 'win64',
-	})[ffi.os .. '-' .. ffi.arch] or error('unknown platform')
+	-- platform = ({
+		-- ['Windows-x86'] = 'win32',
+		-- ['Windows-x64'] = 'win64',
+	-- })[ffi.os .. '-' .. ffi.arch] or error('unknown platform')
+	platform = 'win64'
 end
 
 local configuration = {
 	['debug'] = {
 		tag = 'debug',
 		debug = true,
+		saveasm = true,
 		compilermacros = {
 			MIST_DEBUG = true,
 		},
@@ -36,6 +38,7 @@ local configuration = {
 	['release'] = {
 		tag = 'release',
 		debug = false,
+		saveasm = false,
 		compilermacros = {
 		},
 	},
@@ -126,6 +129,9 @@ local function build_cpp(entry)
 		source = entry.source,
 		incpath = builddir,
 		macros = configuration.compilermacros,
+		asmfile =
+			configuration.saveasm and
+			string.gsub(entry.target, '.[^.]*$', '.asm'),
 	}
 end
 

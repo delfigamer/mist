@@ -15,7 +15,7 @@ namespace graphics
 	{
 	private:
 		HWND m_hwnd;
-		Ref< graphics::Shape > m_shape;
+		AtomicRef< graphics::Shape > m_shape;
 
 	public:
 		Display( HWND hwnd );

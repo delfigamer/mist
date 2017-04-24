@@ -23,8 +23,7 @@ namespace utils
 			lua_pushstring( L, "" );
 			return 1;
 		}
-		Ref< DataBuffer > wvalue = DataBuffer::create(
-			buflen * 2 + 2, buflen * 2 + 2, 0 );
+		Ref< DataBuffer > wvalue = DataBuffer::create( buflen * 2 + 2 );
 		buflen = GetEnvironmentVariableW(
 			LPCWSTR( wname->m_data ), LPWSTR( wvalue->m_data ), buflen + 1 );
 		Ref< DataBuffer > value = translatebuffer(

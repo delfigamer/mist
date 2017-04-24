@@ -11,8 +11,7 @@ namespace graphics
 	{
 		Ref< DataBuffer > strtodb( char const* str )
 		{
-			size_t len = strlen( str );
-			return DataBuffer::create( len, len, str );
+			return DataBuffer::create( strlen( str ), str );
 		}
 
 		bool compileshader(
@@ -43,7 +42,7 @@ namespace graphics
 				{
 					size_t length = log->GetBufferSize();
 					void const* data = log->GetBufferPointer();
-					*plog = DataBuffer::create( length, length, data );
+					*plog = DataBuffer::create( length, data );
 				}
 				checkerror( hr );
 				*pbytecode = std::move( bytecode );
@@ -72,12 +71,12 @@ namespace graphics
 			Ref< ID3DXBuffer > fragmentbytecode;
 			void const* vbuffer;
 			void const* fbuffer;
-			if( m_source )
+			Ref< DataBuffer > source = m_source.detachref();
+			if( source )
 			{
-				std::atomic_thread_fence( std::memory_order_acquire );
 				Ref< DataBuffer > vsrc;
 				Ref< DataBuffer > fsrc;
-				translateprogram( m_source, &vsrc, &fsrc );
+				translateprogram( source, &vsrc, &fsrc );
 				if( !compileshader( vsrc, &m_log, &vertexbytecode, "vs_3_0" ) )
 				{
 					m_valid = false;
@@ -91,22 +90,22 @@ namespace graphics
 				vbuffer = vertexbytecode->GetBufferPointer();
 				fbuffer = fragmentbytecode->GetBufferPointer();
 			}
-			else if( m_binary )
-			{
-				std::atomic_thread_fence( std::memory_order_acquire );
-				if( m_binary->m_length < sizeof( uint32_t ) )
-				{
-					throw std::runtime_error( "invalid binary" );
-				}
-				uint32_t* pvsize = ( uint32_t* )m_binary->m_data;
-				size_t vsize = *pvsize;
-				if( m_binary->m_length < vsize + sizeof( uint32_t ) )
-				{
-					throw std::runtime_error( "invalid binary" );
-				}
-				vbuffer = m_binary->m_data + sizeof( uint32_t );
-				fbuffer = m_binary->m_data + vsize + sizeof( uint32_t );
-			}
+			// else if( m_binary )
+			// {
+				// std::atomic_thread_fence( std::memory_order_acquire );
+				// if( m_binary->m_length < sizeof( uint32_t ) )
+				// {
+					// throw std::runtime_error( "invalid binary" );
+				// }
+				// uint32_t* pvsize = ( uint32_t* )m_binary->m_data;
+				// size_t vsize = *pvsize;
+				// if( m_binary->m_length < vsize + sizeof( uint32_t ) )
+				// {
+					// throw std::runtime_error( "invalid binary" );
+				// }
+				// vbuffer = m_binary->m_data + sizeof( uint32_t );
+				// fbuffer = m_binary->m_data + vsize + sizeof( uint32_t );
+			// }
 			else
 			{
 				throw std::runtime_error( "shader source or binary required" );
@@ -129,7 +128,7 @@ namespace graphics
 					size_t vsize = vertexbytecode->GetBufferSize();
 					size_t fsize = fragmentbytecode->GetBufferSize();
 					size_t binsize = vsize + fsize + sizeof( uint32_t );
-					m_binary = DataBuffer::create( binsize, binsize, 0 );
+					m_binary = DataBuffer::create( binsize );
 					uint32_t* pvsize = ( uint32_t* )m_binary->m_data;
 					*pvsize = vsize;
 					memcpy(
@@ -154,24 +153,23 @@ namespace graphics
 		m_ready.store( true, std::memory_order_release );
 	}
 
-	Program::Program( DataBuffer* binary, bool cache )
-		: m_cache( cache )
-		, m_ready( false )
-	{
-		std::atomic_thread_fence( std::memory_order_release );
-		m_binary = binary;
-		if( cache )
-		{
-			deferadvance();
-		}
-	}
+	// Program::Program( DataBuffer* binary, bool cache )
+		// : m_cache( cache )
+		// , m_ready( false )
+	// {
+		// std::atomic_thread_fence( std::memory_order_release );
+		// m_binary = binary;
+		// if( cache )
+		// {
+			// deferadvance();
+		// }
+	// }
 
 	Program::Program( DataBuffer* source, bool cache, int )
 		: m_cache( cache )
 		, m_ready( false )
 	{
-		std::atomic_thread_fence( std::memory_order_release );
-		m_source = source;
+		m_source.assign( source );
 		if( cache )
 		{
 			deferadvance();
@@ -195,7 +193,6 @@ namespace graphics
 
 	void Program::clearcache()
 	{
-		m_source = nullptr;
 		m_binary = nullptr;
 		m_log = nullptr;
 	}

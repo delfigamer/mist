@@ -5,7 +5,6 @@
 #include <common.hpp>
 #include <atomic>
 #include <mutex>
-#include <cinttypes>
 
 namespace graphics
 {
@@ -35,9 +34,7 @@ namespace graphics
 
 	public:
 		ClearShape( bool ccolor, bool cdepth, bool cstencil );
-		virtual ~ClearShape() override;
-		ClearShape( ClearShape const& ) = delete;
-		ClearShape& operator=( ClearShape const& ) = delete;
+		~ClearShape();
 
 		virtual void paint() override;
 

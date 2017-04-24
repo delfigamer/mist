@@ -11,16 +11,16 @@ namespace graphics
 	namespace programtranslator
 	{
 		// back-end-dependent
-		Ref< StringBuilder > makeshaders_vsh(
+		StringBuilder makeshaders_vsh(
 			TranslatorState* ts );
-		Ref< StringBuilder > makeshaders_fsh(
+		StringBuilder makeshaders_fsh(
 			TranslatorState* ts,
 			Ref< Value > const& value );
 
 		void makeshaders(
 			TranslatorState* ts,
-			Ref< StringBuilder >* pvsh,
-			Ref< StringBuilder >* pfsh )
+			StringBuilder* pvsh,
+			StringBuilder* pfsh )
 		{
 			Ref< programtranslator::Value > value = ts->pop();
 			*pvsh = makeshaders_vsh( ts );

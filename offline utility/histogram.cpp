@@ -1,5 +1,4 @@
 #include <cstdio>
-#include <cinttypes>
 
 void printhistogram( FILE* f, FILE* fo, uint64_t begin, uint64_t end ) {
 	uint64_t count[ 256 ];

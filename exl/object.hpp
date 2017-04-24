@@ -3,11 +3,9 @@
 #include <exl/types.hpp>
 #include <common/refobject.hpp>
 #include <common.hpp>
-#include <cinttypes>
 
 namespace exl
 {
-	R_CLASS( name = exlobject )
 	class Object: public RefObject, public virtual IObject
 	{
 	public:

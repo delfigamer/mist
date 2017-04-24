@@ -2,7 +2,6 @@
 
 #include <utils/sexpr.hpp>
 #include <common.hpp>
-#include <cinttypes>
 
 namespace exl
 {

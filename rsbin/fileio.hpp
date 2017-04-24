@@ -3,7 +3,6 @@
 #include <rsbin/io.hpp>
 #include <common/string.hpp>
 #include <common.hpp>
-#include <cinttypes>
 
 namespace rsbin
 {

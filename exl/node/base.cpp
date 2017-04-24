@@ -3,14 +3,8 @@
 
 namespace exl
 {
-	using utils::SExpr;
-
 	Node::Node()
 	{
-		m_sposrow = 0;
-		m_sposcol = 0;
-		m_eposrow = 0;
-		m_eposcol = 0;
 	}
 
 	Node::Node( utils::SExpr const& s )
@@ -19,29 +13,24 @@ namespace exl
 		ASSERT( s.list.size() >= 1 );
 		ASSERT( s[ 1 ].head == NodeHead::textrange );
 		ASSERT( s[ 1 ].list.size() == 5 );
-		ASSERT( s[ 1 ][ 1 ].head == SExpr::head_number );
-		ASSERT( s[ 1 ][ 2 ].head == SExpr::head_number );
-		ASSERT( s[ 1 ][ 3 ].head == SExpr::head_number );
-		ASSERT( s[ 1 ][ 4 ].head == SExpr::head_number );
-		ASSERT( s[ 1 ][ 5 ].head == SExpr::head_text );
-		m_sposrow = s[ 1 ][ 1 ].number;
-		m_sposcol = s[ 1 ][ 2 ].number;
-		m_eposrow = s[ 1 ][ 3 ].number;
-		m_eposcol = s[ 1 ][ 4 ].number;
-		m_filename = s[ 1 ][ 5 ].text;
+		ASSERT( s[ 1 ][ 1 ].head == utils::SExpr::head_number );
+		ASSERT( s[ 1 ][ 2 ].head == utils::SExpr::head_number );
+		ASSERT( s[ 1 ][ 3 ].head == utils::SExpr::head_number );
+		ASSERT( s[ 1 ][ 4 ].head == utils::SExpr::head_number );
+		ASSERT( s[ 1 ][ 5 ].head == utils::SExpr::head_text );
+		m_textrange.spos.row = s[ 1 ][ 1 ].number;
+		m_textrange.spos.col = s[ 1 ][ 2 ].number;
+		m_textrange.epos.row = s[ 1 ][ 3 ].number;
+		m_textrange.epos.col = s[ 1 ][ 4 ].number;
+		m_textrange.filename = s[ 1 ][ 5 ].text;
 	}
 
 	Node::~Node()
 	{
 	}
 
-	void Node::gettextrange(
-		int* sr, int* sc, int* er, int* ec, Ref< DataBuffer >* filename )
+	TextRange Node::gettextrange()
 	{
-		*sr = m_sposrow;
-		*sc = m_sposcol;
-		*er = m_eposrow;
-		*ec = m_eposcol;
-		*filename = m_filename;
+		return m_textrange;
 	}
 }

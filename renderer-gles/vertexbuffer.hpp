@@ -5,7 +5,6 @@
 #include <common/databuffer.hpp>
 #include <common/ref.hpp>
 #include <common.hpp>
-#include <cinttypes>
 
 namespace graphics
 {
@@ -13,7 +12,7 @@ namespace graphics
 	class VertexBuffer: public Resource
 	{
 	protected:
-		Ref< VertexDeclaration > m_vertexdeclaration;
+		AtomicRef< VertexDeclaration > m_vertexdeclaration;
 		unsigned int m_vertexbuffer;
 		size_t m_buffercapacity;
 		size_t m_buffersize;
@@ -22,9 +21,7 @@ namespace graphics
 
 	public:
 		VertexBuffer();
-		virtual ~VertexBuffer() override;
-		VertexBuffer( VertexBuffer const& ) = delete;
-		VertexBuffer& operator=( VertexBuffer const& ) = delete;
+		~VertexBuffer();
 
 		bool bind( size_t* vertexcount, VertexDeclaration** pvd );
 	};

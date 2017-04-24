@@ -1,16 +1,65 @@
 #include <exl/luainterface.hpp>
+#include <exl/il/translate.hpp>
+#include <exl/system/context.hpp>
+#include <exl/construct.hpp>
+#include <exl/context.hpp>
 #include <exl/func.hpp>
 #include <cstring>
 
 namespace exl
 {
-	NodeContainer::NodeContainer( Ref< IBlock > const& node )
-		: m_node( node )
+	ContextContainer::ContextContainer(
+		char const* nameprefix, ContextContainer* parent )
+	{
+		name_t name;
+		if( nameprefix )
+		{
+			while( true )
+			{
+				char const* next = nameprefix + strcspn( nameprefix, "." );
+				name.emplace_back( nameprefix, next );
+				if( next[ 0 ] == '.' )
+				{
+					nameprefix = next + 1;
+				}
+				else
+				{
+					break;
+				}
+			}
+		}
+		m_context = Ref< Context >::create(
+			name, parent ? parent->m_context : nullptr );
+	}
+
+	ContextContainer::ContextContainer( Ref< IContext > const& context )
+		: m_context( context )
 	{
 	}
 
-	NodeContainer::NodeContainer( Ref< IBlock >&& node )
-		: m_node( std::move( node ) )
+	ContextContainer::ContextContainer( Ref< IContext >&& context )
+		: m_context( std::move( context ) )
+	{
+	}
+
+	ContextContainer::~ContextContainer()
+	{
+	}
+
+	DataBuffer* ContextContainer::getdefstring()
+	{
+		StringBuilder sb = m_context->getdefstring( 0 );
+		Ref< DataBuffer > defstring = sb.combine();
+		return defstring.detach();
+	}
+
+	ContextContainer* ContextContainer::getsystemcontext()
+	{
+		return new ContextContainer( exl::getsystemcontext() );
+	}
+
+	NodeContainer::NodeContainer( utils::SExpr const* s )
+		: m_node( constructfilenode( *s ) )
 	{
 	}
 
@@ -18,20 +67,36 @@ namespace exl
 	{
 	}
 
-	NodeContainer* NodeContainer::create( utils::SExpr const* s )
-	{
-		return new NodeContainer( constructblock( *s ) );
-	}
-
 	DataBuffer* NodeContainer::getdefstring()
 	{
-		if( !m_defstring )
-		{
-			Ref< StringBuilder > sb = m_node->getdefstring( 0 );
-			size_t len = sb->getlength();
-			m_defstring = DataBuffer::create( len, len, nullptr );
-			sb->write( m_defstring->m_data, len );
-		}
-		return m_defstring;
+		StringBuilder sb = m_node->getdefstring( 0 );
+		Ref< DataBuffer > defstring = sb.combine();
+		return defstring.detach();
+	}
+
+	void NodeContainer::build( ContextContainer* context )
+	{
+		m_node->build( context->m_context );
+	}
+
+	ModuleContainer* NodeContainer::compile()
+	{
+		ILModule& module = m_node->compile();
+		return new ModuleContainer( m_node, module );
+	}
+
+	ModuleContainer::ModuleContainer( IFileNode* node, ILModule& module )
+		: m_node( node )
+		, m_module( module )
+	{
+	}
+
+	ModuleContainer::~ModuleContainer()
+	{
+	}
+
+	utils::SExpr* ModuleContainer::translate()
+	{
+		return new utils::SExpr( translatemodule( m_module ) );
 	}
 }

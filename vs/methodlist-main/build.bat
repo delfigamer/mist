@@ -10,6 +10,11 @@ call lua ^
 	"utils\configset.hpp" ^
 	"utils\encoding.hpp" ^
 	"utils\path.hpp" ^
+	"utils\sexpr.hpp" ^
+	"exl\luainterface.hpp" ^
+	"exl\il\translate.hpp" ^
+	"exl\parser\ast.hpp" ^
+	"exl\parser\exlparser.hpp" ^
 	"rsbin\common.hpp" ^
 	"rsbin\fileio.hpp" ^
 	"rsbin\flaccommon.hpp" ^

@@ -93,8 +93,7 @@ namespace rsbin
 			reader->m_width *
 			formattable[ reader->m_format ].pixelstride;
 		size_t size = reader->m_stride * reader->m_height;
-		reader->m_data = DataBuffer::create(
-			size, size, 0 );
+		reader->m_data = DataBuffer::create( size );
 		memset( reader->m_data->m_data, 0, size );
 	}
 

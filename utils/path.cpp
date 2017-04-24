@@ -48,7 +48,7 @@ namespace utils
 			size += sizeof( char_t ) + current->m_target->m_length;
 			current = current->m_base;
 		}
-		m_result = DataBuffer::create( size, size, 0 );
+		m_result = DataBuffer::create( size );
 		uint8_t* data = m_result->m_data + size;
 		( ( char_t* )data )[ -1 ] = 0;
 		data -= sizeof( char_t ) + m_target->m_length;
@@ -84,7 +84,8 @@ namespace utils
 #if defined( _WIN32 ) || defined( _WIN64 )
 			Ref< DataBuffer > wpath = intern( ( uint8_t const* )path, 0 );
 			int cwdlength = GetFullPathNameW( LPCWSTR( wpath->m_data ), 0, 0, 0 );
-			Ref< DataBuffer > db = DataBuffer::create( 0, cwdlength * 2 + 10, 0 );
+			Ref< DataBuffer > db = DataBuffer::create(
+				0, cwdlength * 2 + 10, nullptr );
 			uint8_t* data = db->m_data;
 			memcpy( data, L"\\\\\?\\", 8 );
 			cwdlength = GetFullPathNameW(
@@ -108,8 +109,7 @@ namespace utils
 			{
 				length -= 1;
 			}
-			Ref< DataBuffer > db = DataBuffer::create(
-				length, length, path );
+			Ref< DataBuffer > db = DataBuffer::create( length, path );
 			return Ref< Path >::create( db, nullptr );
 #endif
 		}

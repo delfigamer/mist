@@ -3,7 +3,6 @@
 #include <utils/sexpr.hpp>
 #include <common/ref.hpp>
 #include <common.hpp>
-#include <cinttypes>
 
 namespace exl
 {
@@ -17,6 +16,8 @@ namespace exl
 			fullname = 0x103,
 			argdef = 0x104,
 			argdeflist = 0x105,
+			branch = 0x106,
+			block = 0x107,
 			expr_nil = 0x200,
 			expr_number = 0x201,
 			expr_string = 0x202,
@@ -31,7 +32,8 @@ namespace exl
 			stat_function = 0x301,
 			stat_local = 0x302,
 			stat_expression = 0x310,
-			block = 0x400,
+			stat_conditional = 0x320,
+			file_unit = 0x400,
 		};
 	}
 
@@ -41,12 +43,14 @@ namespace exl
 	R_CLASS( name = exlast )
 	struct AST
 	{
-		R_METHOD( addref ) static utils::SENameMap* getnamemap()
+		R_METHOD() static utils::SENameMap* getnamemap()
 		{
+			::addref( ASTNameMap );
 			return ASTNameMap;
 		}
-		R_METHOD( addref ) static utils::SEContext* getcontext()
+		R_METHOD() static utils::SEContext* getcontext()
 		{
+			::addref( ASTContext );
 			return ASTContext;
 		}
 	};

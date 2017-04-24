@@ -7,27 +7,20 @@
 #include <common/databuffer.hpp>
 #include <common/ref.hpp>
 #include <common.hpp>
-#include <cinttypes>
+#include <cstdarg>
 
 namespace exl
 {
 	class Node: public Object, public virtual INode
 	{
 	protected:
-		int m_sposrow;
-		int m_sposcol;
-		int m_eposrow;
-		int m_eposcol;
-		Ref< DataBuffer > m_filename;
-		Ref< StringBuilder > m_defstring;
+		TextRange m_textrange;
 
 	public:
 		Node();
 		Node( utils::SExpr const& s );
 		~Node();
 
-		virtual void gettextrange(
-			int* sr, int* sc, int* er, int* ec,
-			Ref< DataBuffer >* filename ) override;
+		virtual TextRange gettextrange() override;
 	};
 }

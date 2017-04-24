@@ -3,7 +3,6 @@
 #include <common/refobject.hpp>
 #include <common.hpp>
 #include <atomic>
-#include <cinttypes>
 
 namespace graphics
 {
@@ -19,7 +18,7 @@ namespace graphics
 
 	public:
 		Resource();
-		virtual ~Resource() override;
+		~Resource();
 		virtual void destroy() override;
 		Resource( Resource const& ) = delete;
 		Resource& operator=( Resource const& ) = delete;

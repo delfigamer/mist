@@ -3,7 +3,6 @@
 #include <client-main/windowinfo.hpp>
 #include <common/string.hpp>
 #include <common.hpp>
-#include <cstdint>
 
 #define LOG( format, ... ) \
 	graphics::logwrite( \

@@ -5,7 +5,6 @@
 #include <common/ref.hpp>
 #include <common.hpp>
 #include <d3d9.h>
-#include <cinttypes>
 
 namespace graphics
 {
@@ -46,7 +45,7 @@ R_END()
 	{
 	private:
 		Ref< IDirect3DVertexDeclaration9 > m_vertexdeclaration;
-		Ref< DataBuffer > m_data;
+		AtomicRef< DataBuffer > m_data;
 		size_t m_vertexsize;
 
 	protected:
@@ -54,7 +53,7 @@ R_END()
 
 	public:
 		VertexDeclaration( DataBuffer* data, size_t vertexsize );
-		virtual ~VertexDeclaration() override;
+		~VertexDeclaration();
 		VertexDeclaration( VertexDeclaration const& ) = delete;
 		VertexDeclaration& operator=( VertexDeclaration const& ) = delete;
 

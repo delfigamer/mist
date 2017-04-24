@@ -6,7 +6,7 @@ namespace graphics
 {
 	void VertexBuffer::doadvance()
 	{
-		VertexDeclaration* vd = m_vertexdeclaration;
+		Ref< VertexDeclaration > vd = m_vertexdeclaration.getref();
 		if( vd )
 		{
 			vd->advance();
@@ -25,7 +25,7 @@ namespace graphics
 
 	bool VertexBuffer::bind( size_t* vertexcount, VertexDeclaration** pvd )
 	{
-		VertexDeclaration* vd = m_vertexdeclaration;
+		Ref< VertexDeclaration > vd = m_vertexdeclaration.getref();
 		if( !vd || !m_vertexbuffer )
 		{
 			return false;

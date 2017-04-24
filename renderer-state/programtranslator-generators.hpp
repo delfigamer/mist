@@ -19,8 +19,7 @@ namespace graphics
 
 			Value_Attribute( TranslatorState* ts, int index );
 			// back-end-dependent
-			virtual Ref< StringBuilder > getstring(
-				Ref< StringBuilder >* defs ) override;
+			virtual StringBuilder getstring( StringBuilder* defs ) override;
 		};
 
 		struct Value_Texture: Value
@@ -29,18 +28,15 @@ namespace graphics
 
 			Value_Texture( TranslatorState* ts, int index );
 			// back-end-dependent
-			virtual Ref< StringBuilder > getstring(
-				Ref< StringBuilder >* defs ) override;
+			virtual StringBuilder getstring( StringBuilder* defs ) override;
 		};
 
 		struct Value_Literal: Value
 		{
 			std::vector< float > m_elements;
 
-			Value_Literal(
-				int type, float const* vb, float const* ve );
-			virtual Ref< StringBuilder > getstring(
-				Ref< StringBuilder >* defs ) override;
+			Value_Literal( int type, float const* vb, float const* ve );
+			virtual StringBuilder getstring( StringBuilder* defs ) override;
 		};
 
 		Value_Attribute::Value_Attribute( TranslatorState* ts, int index )
@@ -57,34 +53,31 @@ namespace graphics
 			ts->m_textureused[ index ] = true;
 		}
 
-		Value_Literal::Value_Literal(
-			int type, float const* vb, float const* ve )
+		Value_Literal::Value_Literal( int type, float const* vb, float const* ve )
 			: m_elements( vb, ve )
 		{
 			m_type = type;
 		}
 
-		String floattostring( float f )
+		Ref< DataBuffer > floattostring( float f )
 		{
 			char buf[ 32 ];
-			snprintf( buf, sizeof( buf ), "%.8e", f );
-			return String( buf );
+			int len = snprintf( buf, sizeof( buf ), "%.8e", f );
+			return DataBuffer::create( len, buf );
 		}
 
-		Ref< StringBuilder > Value_Literal::getstring(
-			Ref< StringBuilder >* defs )
+		StringBuilder Value_Literal::getstring( StringBuilder* defs )
 		{
-			auto sb = StringBuilder::construct(
-				typestr[ m_type ], "(", floattostring( m_elements[ 0 ] ) );
+			StringBuilder sb;
+			sb << typestr[ m_type ] << "("_db << floattostring( m_elements[ 0 ] );
 			auto it = ++m_elements.begin();
 			auto eit = m_elements.end();
 			for( ; it != eit; ++it )
 			{
-				sb = StringBuilder::construct(
-					sb, ",", floattostring( *it ) );
+				sb << ","_db << floattostring( *it );
 			}
-			return StringBuilder::construct(
-					sb, ")" );
+			sb << ")"_db;
+			return sb;
 		}
 	}
 }

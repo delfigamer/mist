@@ -5,21 +5,22 @@
 #include <utils/sexpr.hpp>
 #include <common.hpp>
 #include <vector>
-#include <cinttypes>
 
 namespace exl
 {
 	class InvokeExpr: public Expression
 	{
 	private:
+		bool m_simplename;
+		identifier_t m_name;
 		Ref< IExpression > m_target;
 		std::vector< Ref< IExpression > > m_args;
 
 	public:
-		InvokeExpr() = delete;
 		InvokeExpr( utils::SExpr const& s );
 		~InvokeExpr();
 
-		virtual Ref< StringBuilder > getdefstring( size_t depth ) override;
+		virtual StringBuilder getdefstring( size_t depth ) override;
+		virtual void build( IContext* context ) override;
 	};
 }

@@ -6,10 +6,9 @@ namespace graphics
 {
 	void StaticVertexBuffer::doadvance()
 	{
-		Ref< DataBuffer > data = std::move( m_data );
+		Ref< DataBuffer > data = m_data.detachref();
 		if( data )
 		{
-			std::atomic_thread_fence( std::memory_order_acquire );
 			if( !m_vertexbuffer || m_buffercapacity != data->m_capacity )
 			{
 				IDirect3DVertexBuffer9* vertexbuffer = 0;
@@ -42,9 +41,8 @@ namespace graphics
 	}
 
 	StaticVertexBuffer::StaticVertexBuffer( VertexDeclaration* vd )
-		: m_data( nullptr )
 	{
-		m_vertexdeclaration = vd;
+		m_vertexdeclaration.assign( vd );
 	}
 
 	StaticVertexBuffer::~StaticVertexBuffer()

@@ -31,8 +31,7 @@ namespace utils
 			{
 				throw std::runtime_error( "invalid UTF-8 string" );
 			}
-			Ref< DataBuffer > db = DataBuffer::create(
-				translation.destresult, translation.destresult, 0 );
+			Ref< DataBuffer > db = DataBuffer::create( translation.destresult );
 			translation.dest = db->m_data;
 			translation.destsize = translation.destresult;
 			if( translatestr( &translation ) != translateresult::success )
@@ -44,12 +43,12 @@ namespace utils
 
 		Ref< DataBuffer > intern( uint16_t const* str, size_t length )
 		{
-			return DataBuffer::create( length * 2, length * 2, str );
+			return DataBuffer::create( length * 2, str );
 		}
 #else
 		Ref< DataBuffer > intern( uint8_t const* str, int length )
 		{
-			return DataBuffer::create( length, length, str );
+			return DataBuffer::create( length, str );
 		}
 #endif
 		template< typename char_t >

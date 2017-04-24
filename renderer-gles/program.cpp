@@ -12,8 +12,7 @@ namespace graphics
 	{
 		Ref< DataBuffer > strtodb( char const* str )
 		{
-			size_t len = strlen( str );
-			return DataBuffer::create( len, len, str );
+			return DataBuffer::create( strlen( str ), str );
 		}
 
 		bool compileshader(
@@ -36,7 +35,7 @@ namespace graphics
 				int length;
 				glGetShaderiv( *psh, GL_INFO_LOG_LENGTH, &length );
 				checkerror();
-				*plog = DataBuffer::create( length, length, 0 );
+				*plog = DataBuffer::create( length );
 				glGetShaderInfoLog(
 					*psh, GLsizei( ( *plog )->m_capacity ),
 					0, ( char* )( *plog )->m_data );
@@ -80,7 +79,7 @@ namespace graphics
 				int length;
 				glGetProgramiv( *pprogram, GL_INFO_LOG_LENGTH, &length );
 				checkerror();
-				*plog = DataBuffer::create( length, length, 0 );
+				*plog = DataBuffer::create( length );
 				glGetProgramInfoLog(
 					*pprogram, GLsizei( ( *plog )->m_capacity ),
 					0, ( char* )( *plog )->m_data );
@@ -99,12 +98,12 @@ namespace graphics
 		}
 		try
 		{
-			if( m_source )
+			Ref< DataBuffer > source = m_source.detachref();
+			if( source )
 			{
-				std::atomic_thread_fence( std::memory_order_acquire );
 				Ref< DataBuffer > vsrc;
 				Ref< DataBuffer > fsrc;
-				translateprogram( m_source, &vsrc, &fsrc );
+				translateprogram( source, &vsrc, &fsrc );
 				if( !compileshader(
 					vsrc, &m_log, &m_vertexshader, GL_VERTEX_SHADER ) )
 				{
@@ -127,11 +126,6 @@ namespace graphics
 				m_matrixindex = glGetUniformLocation(
 					m_shaderprogram, "worldviewmatrix" );
 				checkerror();
-			}
-			else if( m_binary )
-			{
-				std::atomic_thread_fence( std::memory_order_acquire );
-				// not supported
 			}
 			else
 			{
@@ -159,17 +153,16 @@ namespace graphics
 		m_ready.store( true, std::memory_order_release );
 	}
 
-	Program::Program( DataBuffer* binary, bool cache )
-		: m_cache( cache )
-		, m_ready( false )
-	{
-		std::atomic_thread_fence( std::memory_order_release );
-		m_binary = binary;
-		if( cache )
-		{
-			deferadvance();
-		}
-	}
+	// Program::Program( DataBuffer* binary, bool cache )
+		// : m_cache( cache )
+		// , m_ready( false )
+	// {
+		// m_binary.assign( binary );
+		// if( cache )
+		// {
+			// deferadvance();
+		// }
+	// }
 
 	Program::Program( DataBuffer* source, bool cache, int )
 		: m_cache( cache )
@@ -179,8 +172,7 @@ namespace graphics
 		, m_shaderprogram( 0 )
 		, m_matrixindex( -1 )
 	{
-		std::atomic_thread_fence( std::memory_order_release );
-		m_source = source;
+		m_source.assign( source );
 		if( cache )
 		{
 			deferadvance();
@@ -217,7 +209,6 @@ namespace graphics
 
 	void Program::clearcache()
 	{
-		m_source = nullptr;
 		m_binary = nullptr;
 		m_log = nullptr;
 	}

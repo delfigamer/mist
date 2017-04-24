@@ -3,7 +3,6 @@
 #include <common/refobject.hpp>
 #include <common/ref.hpp>
 #include <common.hpp>
-#include <cinttypes>
 
 R_CLASS( name = databuffer )
 class DataBuffer: public RefObject
@@ -37,6 +36,21 @@ public:
 		return Ref< DataBuffer >( newinstance( length, capacity, data ), 0 );
 	}
 
+	static Ref< DataBuffer > create( size_t length, void const* data )
+	{
+		return Ref< DataBuffer >( newinstance( length, length, data ), 0 );
+	}
+
+	static Ref< DataBuffer > create( size_t length )
+	{
+		return Ref< DataBuffer >( newinstance( length, length, nullptr ), 0 );
+	}
+
+	static Ref< DataBuffer > create()
+	{
+		return Ref< DataBuffer >();
+	}
+
 private:
 	DataBuffer( size_t length, size_t capacity, void const* data )
 		: m_length( length )
@@ -67,3 +81,8 @@ public:
 	R_METHOD() void setlength( size_t length ) NOEXCEPT { m_length = length; }
 	R_METHOD() size_t getcapacity() NOEXCEPT { return m_capacity; }
 };
+
+inline Ref< DataBuffer > operator"" _db( char const* str, size_t len )
+{
+	return DataBuffer::create( len, str );
+}

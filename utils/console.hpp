@@ -3,7 +3,6 @@
 #include <common.hpp>
 #include <mutex>
 #include <cstdarg>
-#include <cinttypes>
 #if defined( getchar )
 #undef getchar
 #endif

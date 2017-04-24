@@ -178,14 +178,14 @@ namespace graphics
 
 	Display::~Display()
 	{
-		m_shape = nullptr;
+		m_shape.assign( nullptr );
 		Context::rundeferred();
 		finalize();
 	}
 
 	void Display::paint()
 	{
-		Ref< graphics::Shape > shape = m_shape;
+		Ref< graphics::Shape > shape = m_shape.getref();
 		if( shape )
 		{
 			Context::DrawnFrame += 1;
@@ -205,6 +205,6 @@ namespace graphics
 
 	void Display::setshape( Shape* nv )
 	{
-		m_shape = nv;
+		m_shape.assign( nv );
 	}
 }

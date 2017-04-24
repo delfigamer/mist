@@ -1,11 +1,11 @@
 #include <exl/node/block.hpp>
 #include <exl/parser/ast.hpp>
 #include <exl/func.hpp>
+#include <exl/construct.hpp>
+#include <exl/format.hpp>
 
 namespace exl
 {
-	using utils::SExpr;
-
 	Block::Block()
 	{
 	}
@@ -16,36 +16,57 @@ namespace exl
 		ASSERT( s.head == NodeHead::block );
 		ASSERT( s.list.size() == 2 );
 		ASSERT( s[ 2 ].head == 0 );
-		m_nodes.reserve( s[ 2 ].list.size() );
-		for( SExpr const& it: s[ 2 ].list )
-		{
-			Ref< IStatement > node = constructstatement( it );
-			m_nodes.push_back( std::move( node ) );
-		}
+		m_nodes = apply( s[ 2 ].list, constructstatement );
 	}
 
 	Block::~Block()
 	{
 	}
 
-	Ref< StringBuilder > Block::getdefstring( size_t depth )
+	StringBuilder Block::getdefstring( size_t depth )
 	{
-		if( !m_defstring )
+		return sbconcat(
+			m_nodes, depth, nullptr,
+			[]( IStatement* node, size_t depth )
+			{
+				return StringBuilder()
+					<< "\n"_db << lineprefix( depth )
+					<< node->getdefstring( depth );
+			} );
+	}
+
+	void Block::build( IContext* context )
+	{
+		for( Ref< IStatement >& node: m_nodes )
 		{
-			if( m_nodes.size() == 0 )
-			{
-				m_defstring = StringBuilder::construct( "" );
-			}
-			else
-			{
-				for( Ref< IStatement >& node: m_nodes )
-				{
-					m_defstring = StringBuilder::construct(
-						m_defstring, "\n", lineprefix( depth ),
-						node->getdefstring( depth ) );
-				}
-			}
+			node->build( context );
 		}
-		return m_defstring;
+	}
+
+	void Block::compilereserve( ILBody* body )
+	{
+		for( Ref< IStatement >& node: m_nodes )
+		{
+			node->compilereserve( body );
+		}
+	}
+
+	void Block::compileemit( ILBody* body )
+	{
+		for( Ref< IStatement >& node: m_nodes )
+		{
+			TextRange range = node->gettextrange();
+			std::unique_ptr< ILBreakpointNote > note( new ILBreakpointNote );
+				note->type = TokenType::breakpointnote;
+				note->pos = range.spos;
+				note->filename = range.filename;
+			appendtoken( body, std::move( note ) );
+			node->compileemit( body );
+		}
+		std::unique_ptr< ILBreakpointNote > note( new ILBreakpointNote );
+			note->type = TokenType::breakpointnote;
+			note->pos = m_textrange.epos;
+			note->filename = m_textrange.filename;
+		appendtoken( body, std::move( note ) );
 	}
 }

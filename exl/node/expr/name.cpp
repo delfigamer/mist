@@ -1,14 +1,14 @@
 #include <exl/node/expr/name.hpp>
+#include <exl/value/reference.hpp>
 #include <exl/parser/ast.hpp>
 #include <exl/func.hpp>
+#include <exl/construct.hpp>
+#include <exl/error.hpp>
+#include <exl/format.hpp>
 
 namespace exl
 {
 	using utils::SExpr;
-
-	NameExpr::NameExpr()
-	{
-	}
 
 	NameExpr::NameExpr( utils::SExpr const& s )
 		: Expression( s )
@@ -18,11 +18,7 @@ namespace exl
 		ASSERT( s[ 2 ].head == NodeHead::name ||
 			s[ 2 ].head == NodeHead::fullname );
 		ASSERT( s[ 2 ].list.size() >= 1 );
-		m_parts.reserve( s[ 2 ].list.size() );
-		for( SExpr const& it: s[ 2 ].list )
-		{
-			m_parts.push_back( constructidentifier( it ) );
-		}
+		m_name = apply( s[ 2 ].list, constructidentifier );
 		m_fullname = s[ 2 ].head == NodeHead::fullname;
 	}
 
@@ -30,29 +26,31 @@ namespace exl
 	{
 	}
 
-	Ref< StringBuilder > NameExpr::getdefstring( size_t depth )
+	StringBuilder NameExpr::getdefstring( size_t depth )
 	{
-		if( !m_defstring )
+		StringBuilder defstring;
+		if( m_fullname )
 		{
-			if( m_fullname )
+			defstring << "."_db;
+		}
+		defstring << nametostr( m_name );
+		return defstring;
+	}
+
+	void NameExpr::build( IContext* context )
+	{
+		if( !m_fullname && m_name.size() == 1 )
+		{
+			m_target = context->getsymbol( m_name[ 0 ] );
+			if( !m_target )
 			{
-				m_defstring = StringBuilder::construct(
-					".", identtostr( m_parts[ 0 ] ) );
-			}
-			else
-			{
-				m_defstring = StringBuilder::construct(
-					identtostr( m_parts[ 0 ] ) );
-			}
-			auto it = m_parts.begin();
-			auto eit = m_parts.end();
-			++it;
-			for( ; it != eit; ++it )
-			{
-				m_defstring = StringBuilder::construct(
-					m_defstring, ".", identtostr( *it ) );
+				undefinedsymbolerror( gettextrange(), m_name[ 0 ] );
 			}
 		}
-		return m_defstring;
+		else
+		{
+			nyierror( gettextrange(), __FILE__, __LINE__ );
+		}
+		m_value = Ref< ReferenceValue >::create( m_target );
 	}
 }

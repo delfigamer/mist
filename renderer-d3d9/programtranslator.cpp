@@ -7,15 +7,15 @@ namespace graphics
 {
 	namespace programtranslator
 	{
-		char const* const typestr[] = {
-			"float",
-			"float2",
-			"float3",
-			"float4",
-			"float2x2",
-			"float3x3",
-			"float4x4",
-			"sampler2D",
+		Ref< DataBuffer > const typestr[] = {
+			"float"_db,
+			"float2"_db,
+			"float3"_db,
+			"float4"_db,
+			"float2x2"_db,
+			"float3x3"_db,
+			"float4x4"_db,
+			"sampler2D"_db,
 		};
 
 		std::map< FunctionSignature, FunctionFactoryState > CreateFunctionMap()
@@ -33,17 +33,17 @@ namespace graphics
 			{
 				for( auto i : {
 					std::make_tuple(
-						programtoken::add, Value_Binary::factory, "+" ),
+						programtoken::add, Value_Binary::factory, "+"_db ),
 					std::make_tuple(
-						programtoken::subtract, Value_Binary::factory, "-" ),
+						programtoken::subtract, Value_Binary::factory, "-"_db ),
 					std::make_tuple(
-						programtoken::multiply, Value_Binary::factory, "*" ),
+						programtoken::multiply, Value_Binary::factory, "*"_db ),
 					std::make_tuple(
-						programtoken::divide, Value_Binary::factory, "/" ),
+						programtoken::divide, Value_Binary::factory, "/"_db ),
 					std::make_tuple(
-						programtoken::modulus, Value_Binary::factory, "%" ),
+						programtoken::modulus, Value_Binary::factory, "%"_db ),
 					std::make_tuple(
-						programtoken::power, Value_Function::factory, "pow" ),
+						programtoken::power, Value_Function::factory, "pow"_db ),
 				} )
 				{
 					auto token = std::get< 0 >( i );
@@ -67,12 +67,12 @@ namespace graphics
 					FunctionSignature(
 						programtoken::multiply, { valuetype::float1, type } ),
 					FunctionFactoryState(
-						Value_Function::factory, "mul", type, { 0, 1 } ) );
+						Value_Function::factory, "mul"_db, type, { 0, 1 } ) );
 				ret.emplace(
 					FunctionSignature(
 						programtoken::multiply, { type, valuetype::float1 } ),
 					FunctionFactoryState(
-						Value_Function::factory, "mul", type, { 0, 1 } ) );
+						Value_Function::factory, "mul"_db, type, { 0, 1 } ) );
 			}
 			for( auto i : {
 				std::make_tuple( valuetype::float2, valuetype::float2x2 ),
@@ -86,199 +86,179 @@ namespace graphics
 					FunctionSignature( programtoken::dot, { vectype, vectype } ),
 					FunctionFactoryState(
 						Value_Function::factory,
-						"dot", valuetype::float1, { 0, 1 } ) );
+						"dot"_db, valuetype::float1, { 0, 1 } ) );
 				ret.emplace(
 					FunctionSignature( programtoken::dot, { mattype, vectype } ),
 					FunctionFactoryState(
-						Value_Function::factory, "mul", vectype, { 0, 1 } ) );
+						Value_Function::factory, "mul"_db, vectype, { 0, 1 } ) );
 				ret.emplace(
 					FunctionSignature( programtoken::dot, { vectype, mattype } ),
 					FunctionFactoryState(
-						Value_Function::factory, "mul", vectype, { 0, 1 } ) );
+						Value_Function::factory, "mul"_db, vectype, { 0, 1 } ) );
 				ret.emplace(
 					FunctionSignature( programtoken::dot, { mattype, mattype } ),
 					FunctionFactoryState(
-						Value_Function::factory, "mul", mattype, { 0, 1 } ) );
+						Value_Function::factory, "mul"_db, mattype, { 0, 1 } ) );
 			}
 			ret.emplace(
 				FunctionSignature(
 					programtoken::cross, { valuetype::float3, valuetype::float3 } ),
 				FunctionFactoryState(
 					Value_Function::factory,
-					"cross", valuetype::float3, { 0, 1 } ) );
+					"cross"_db, valuetype::float3, { 0, 1 } ) );
 			ret.emplace(
 				FunctionSignature(
 					programtoken::sample,
 					{ valuetype::sampler2D, valuetype::float2 } ),
 				FunctionFactoryState(
 					Value_Function::factory,
-					"tex2D", valuetype::float4, { 0, 1 } ) );
+					"tex2D"_db, valuetype::float4, { 0, 1 } ) );
 			return ret;
 		}
 
-		Ref< StringBuilder > Value_Attribute::getstring(
-			Ref< StringBuilder >* defs )
+		StringBuilder Value_Attribute::getstring( StringBuilder* defs )
 		{
-			static String const attrstr[] = {
-				"attrs.a0",
-				"attrs.a1",
-				"attrs.a2",
-				"attrs.a3",
-				"attrs.a4",
-				"attrs.a5",
-				"attrs.a6",
-				"attrs.a7",
+			static Ref< DataBuffer > const attrstr[] = {
+				"attrs.a0"_db,
+				"attrs.a1"_db,
+				"attrs.a2"_db,
+				"attrs.a3"_db,
+				"attrs.a4"_db,
+				"attrs.a5"_db,
+				"attrs.a6"_db,
+				"attrs.a7"_db,
 			};
-			return StringBuilder::construct( attrstr[ m_index ] );
+			return attrstr[ m_index ];
 		}
 
-		Ref< StringBuilder > Value_Texture::getstring(
-			Ref< StringBuilder >* defs )
+		StringBuilder Value_Texture::getstring( StringBuilder* defs )
 		{
-			static String const texstr[] = {
-				"texture_0",
-				"texture_1",
-				"texture_2",
-				"texture_3",
-				"texture_4",
-				"texture_5",
-				"texture_6",
-				"texture_7",
+			static Ref< DataBuffer > const texstr[] = {
+				"texture_0"_db,
+				"texture_1"_db,
+				"texture_2"_db,
+				"texture_3"_db,
+				"texture_4"_db,
+				"texture_5"_db,
+				"texture_6"_db,
+				"texture_7"_db,
 			};
-			return StringBuilder::construct( texstr[ m_index ] );
+			return texstr[ m_index ];
 		}
 
-		String const attributevarstructstr[ 8 ] = {
-			"float4 a0:TEXCOORD0;\n",
-			"float4 a1:TEXCOORD1;\n",
-			"float4 a2:TEXCOORD2;\n",
-			"float4 a3:TEXCOORD3;\n",
-			"float4 a4:TEXCOORD4;\n",
-			"float4 a5:TEXCOORD5;\n",
-			"float4 a6:TEXCOORD6;\n",
-			"float4 a7:TEXCOORD7;\n",
+		Ref< DataBuffer > const attributevarstructstr[ 8 ] = {
+			"float4 a0:TEXCOORD0;\n"_db,
+			"float4 a1:TEXCOORD1;\n"_db,
+			"float4 a2:TEXCOORD2;\n"_db,
+			"float4 a3:TEXCOORD3;\n"_db,
+			"float4 a4:TEXCOORD4;\n"_db,
+			"float4 a5:TEXCOORD5;\n"_db,
+			"float4 a6:TEXCOORD6;\n"_db,
+			"float4 a7:TEXCOORD7;\n"_db,
 		};
-		String const attributeattrstructstr[ 8 ] = {
-			"float4 a0:TEXCOORD0;\n",
-			"float4 a1:TEXCOORD1;\n",
-			"float4 a2:TEXCOORD2;\n",
-			"float4 a3:TEXCOORD3;\n",
-			"float4 a4:TEXCOORD4;\n",
-			"float4 a5:TEXCOORD5;\n",
-			"float4 a6:TEXCOORD6;\n",
-			"float4 a7:TEXCOORD7;\n",
+		Ref< DataBuffer > const attributeattrstructstr[ 8 ] = {
+			"float4 a0:TEXCOORD0;\n"_db,
+			"float4 a1:TEXCOORD1;\n"_db,
+			"float4 a2:TEXCOORD2;\n"_db,
+			"float4 a3:TEXCOORD3;\n"_db,
+			"float4 a4:TEXCOORD4;\n"_db,
+			"float4 a5:TEXCOORD5;\n"_db,
+			"float4 a6:TEXCOORD6;\n"_db,
+			"float4 a7:TEXCOORD7;\n"_db,
 		};
-		String const attributeassignstr[ 8 ] = {
-			"vars.a0=attrs.a0;\n",
-			"vars.a1=attrs.a1;\n",
-			"vars.a2=attrs.a2;\n",
-			"vars.a3=attrs.a3;\n",
-			"vars.a4=attrs.a4;\n",
-			"vars.a5=attrs.a5;\n",
-			"vars.a6=attrs.a6;\n",
-			"vars.a7=attrs.a7;\n",
+		Ref< DataBuffer > const attributeassignstr[ 8 ] = {
+			"vars.a0=attrs.a0;\n"_db,
+			"vars.a1=attrs.a1;\n"_db,
+			"vars.a2=attrs.a2;\n"_db,
+			"vars.a3=attrs.a3;\n"_db,
+			"vars.a4=attrs.a4;\n"_db,
+			"vars.a5=attrs.a5;\n"_db,
+			"vars.a6=attrs.a6;\n"_db,
+			"vars.a7=attrs.a7;\n"_db,
 		};
-		String const texturedefstr[ 8 ] = {
-			"sampler2D texture_0:register(s0);\n",
-			"sampler2D texture_1:register(s1);\n",
-			"sampler2D texture_2:register(s2);\n",
-			"sampler2D texture_3:register(s3);\n",
-			"sampler2D texture_4:register(s4);\n",
-			"sampler2D texture_5:register(s5);\n",
-			"sampler2D texture_6:register(s6);\n",
-			"sampler2D texture_7:register(s7);\n",
+		Ref< DataBuffer > const texturedefstr[ 8 ] = {
+			"sampler2D texture_0:register(s0);\n"_db,
+			"sampler2D texture_1:register(s1);\n"_db,
+			"sampler2D texture_2:register(s2);\n"_db,
+			"sampler2D texture_3:register(s3);\n"_db,
+			"sampler2D texture_4:register(s4);\n"_db,
+			"sampler2D texture_5:register(s5);\n"_db,
+			"sampler2D texture_6:register(s6);\n"_db,
+			"sampler2D texture_7:register(s7);\n"_db,
 		};
 
-		Ref< StringBuilder > makeshaders_vsh(
+		StringBuilder makeshaders_vsh(
 			TranslatorState* ts )
 		{
-			auto vsh = StringBuilder::construct(
-				"// built from a mistsh bytecode\n"
-				"float4x4 worldviewmatrix:register(c0);\n"
-				"struct varyings_t{\n" );
+			StringBuilder vsh;
+			vsh <<
+				"// built from a mistsh bytecode\n"_db
+				"float4x4 worldviewmatrix:register(c0);\n"_db
+				"struct varyings_t{\n"_db;
 			for( int i = 0; i < 8; ++i )
 			{
 				if( ts->m_attributeused[ i ] )
 				{
-					vsh = StringBuilder::construct(
-						vsh,
-						attributevarstructstr[ i ] );
+					vsh << attributevarstructstr[ i ];
 				}
 			}
-			vsh = StringBuilder::construct(
-				vsh,
-				"};\n"
-				"struct attributes_t{\n" );
+			vsh <<
+				"};\n"_db
+				"struct attributes_t{\n"_db;
 			for( int i = 0; i < 8; ++i )
 			{
 				if( ts->m_attributeused[ i ] )
 				{
-					vsh = StringBuilder::construct(
-						vsh,
-						attributeattrstructstr[ i ] );
+					vsh << attributeattrstructstr[ i ];
 				}
 			}
-			vsh = StringBuilder::construct(
-				vsh,
-				"};\n"
-				"float4 main("
-					"in attributes_t attrs,out varyings_t vars):POSITION{\n" );
+			vsh <<
+				"};\n"_db
+				"float4 main("_db
+					"in attributes_t attrs,out varyings_t vars):POSITION{\n"_db;
 			for( int i = 0; i < 8; ++i )
 			{
 				if( ts->m_attributeused[ i ] )
 				{
-					vsh = StringBuilder::construct(
-						vsh,
-						attributeassignstr[ i ] );
+					vsh << attributeassignstr[ i ];
 				}
 			}
-			vsh = StringBuilder::construct(
-				vsh,
-				"return mul(worldviewmatrix,attrs.a0);\n"
-				"}\n" );
+			vsh <<
+				"return mul(worldviewmatrix,attrs.a0);\n"_db
+				"}\n"_db;
 			return vsh;
 		}
 
-		Ref< StringBuilder > makeshaders_fsh(
+		StringBuilder makeshaders_fsh(
 			TranslatorState* ts,
 			Ref< Value > const& value )
 		{
-			auto fsh = StringBuilder::construct(
-				"// built from a mistsh bytecode\n"
-				"struct varyings_t{\n" );
+			StringBuilder fsh;
+			fsh <<
+				"// built from a mistsh bytecode\n"_db
+				"struct varyings_t{\n"_db;
 			for( int i = 0; i < 8; ++i )
 			{
 				if( ts->m_attributeused[ i ] )
 				{
-					fsh = StringBuilder::construct(
-						fsh,
-						attributevarstructstr[ i ] );
+					fsh << attributevarstructstr[ i ];
 				}
 			}
-			fsh = StringBuilder::construct(
-				fsh,
-				"};\n" );
+			fsh << "};\n"_db;
 			for( int i = 0; i < 8; ++i )
 			{
 				if( ts->m_textureused[ i ] )
 				{
-					fsh = StringBuilder::construct(
-						fsh,
-						texturedefstr[ i ] );
+					fsh << texturedefstr[ i ];
 				}
 			}
-			fsh = StringBuilder::construct(
-				fsh,
-				"float4 main(in varyings_t attrs):COLOR0{\n" );
-			Ref< StringBuilder > vdefs;
-			auto vstr = value->getstring( &vdefs );
-			fsh = StringBuilder::construct(
-				fsh,
-				vdefs,
-				"return ",
-				vstr,
-				";\n"
-				"}\n" );
+			fsh << "float4 main(in varyings_t attrs):COLOR0{\n"_db;
+			StringBuilder vdefs;
+			StringBuilder vstr = value->getstring( &vdefs );
+			fsh
+				<< vdefs
+				<< "return "_db << vstr << ";\n"_db
+				"}\n"_db;
 			return fsh;
 		}
 	}

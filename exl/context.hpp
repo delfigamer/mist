@@ -5,29 +5,27 @@
 #include <common/stringbuilder.hpp>
 #include <common/ref.hpp>
 #include <common.hpp>
-#include <cinttypes>
+#include <map>
 
 namespace exl
 {
 	class Context: public Object, public virtual IContext
 	{
+	private:
+		name_t m_nameprefix;
+		Ref< IContext > m_parent;
+		std::map< identifier_t, Ref< ISymbol > > m_symbols;
+
 	public:
 		Context();
+		Context( name_t const& nameprefix, IContext* parent = nullptr );
+		Context( name_t&& nameprefix, IContext* parent = nullptr );
 		~Context();
 
-		virtual Ref< StringBuilder > getdefstring( size_t depth ) override;
-
-		// R_METHOD() static Context* create()
-		// {
-			// return new Context;
-		// }
-		// R_METHOD() DataBuffer* getdefstring()
-		// {
-			// Ref< StringBuilder > sb = getdefstring( 0 );
-			// size_t len = sb->getlength();
-			// Ref< DataBuffer > ret = DataBuffer::create( len, len, nullptr );
-			// sb->write( ret->m_data, len );
-			// return ret.detach();
-		// }
+		virtual StringBuilder getdefstring( size_t depth ) override;
+		virtual name_t const& getnameprefix() override;
+		virtual Ref< ISymbol > getsymbol( identifier_t const& name ) override;
+		virtual Ref< ISymbol > trysetsymbol(
+			identifier_t const& name, ISymbol* symbol ) override;
 	};
 }

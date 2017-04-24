@@ -8,7 +8,6 @@
 #include <common/refobject.hpp>
 #include <vector>
 #include <stdexcept>
-#include <cinttypes>
 
 namespace graphics
 {

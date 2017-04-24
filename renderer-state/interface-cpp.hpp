@@ -123,7 +123,7 @@ namespace graphics
 		size_t length;
 		if( mainconf_stringbuf( expr, 0, &length ) )
 		{
-			auto payload = DataBuffer::create( length + 1, length + 1, 0 );
+			auto payload = DataBuffer::create( length + 1 );
 			mainconf_stringbuf( expr, ( char* )payload->m_data, &length );
 			payload->m_data[ length ] = 0;
 			return String( std::move( payload ) );

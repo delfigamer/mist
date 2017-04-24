@@ -2,7 +2,8 @@ local modname = ...
 local index = package.modtable(modname)
 local databuffer = require('host.databuffer')
 local exlast = require('host.exlast')
--- local exlcontext = require('host.exlcontext')
+local exlcontext = require('host.exlcontext')
+local exlil = require('host.exlil')
 local exlnode = require('host.exlnode')
 local exlparser = require('host.exlparser')
 local ffi = require('ffi')
@@ -38,8 +39,10 @@ end
 
 -- while true do
 	do
-		local env = require('list.env'):create({
+		local astenv = require('list.env'):create({
 			}, exlast:getnamemap(), exlast:getcontext())
+		local ilenv = require('list.env'):create({
+			}, exlil:getnamemap(), exlil:getcontext())
 		local filename = 'scripts/test.exl'
 		local parts = invoke(readdata, filename)
 		local source = ffi.new('char const*[?]', #parts)
@@ -49,13 +52,19 @@ end
 			slens[i-1] = buf:getlength()
 		end
 		local se = exlparser:parse(source, slens, #parts, filename, 3)
-		local str = list.outputform(se, env)
-		rsutil.savetextfile(str, 'test.lua')
-		-- local context = exlcontext:create()
+		rsutil.savetextfile(list.outputform(se, astenv), 'testp.lua')
+		local systemcontext = exlcontext:getsystemcontext()
+		-- print(dbtostr(systemcontext:getdefstring()))
+		-- print()
+		local context = exlcontext:create('t.test', systemcontext)
 		local node = exlnode:create(se)
 		print(dbtostr(node:getdefstring()))
+		print()
+		node:build(context)
 		-- print(dbtostr(context:getdefstring()))
+		-- print()
+		local il = node:compile():translate()
+		rsutil.savetextfile(list.outputform(il, ilenv), 'testc.lua')
 	end
 	collectgarbage()
 -- end
-print()
