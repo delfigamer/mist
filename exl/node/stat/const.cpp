@@ -1,4 +1,5 @@
 #include <exl/node/stat/const.hpp>
+#include <exl/il/types.hpp>
 #include <exl/parser/ast.hpp>
 #include <exl/construct.hpp>
 #include <exl/func.hpp>
@@ -44,26 +45,10 @@ namespace exl
 		setsymbol( context, m_targetname, m_symbol );
 	}
 
-	void ConstStat::compilereserve( ILBody* body )
+	void ConstStat::compile( ILBody* body )
 	{
-		m_register = reservereg( body );
-		Ref< ITypeInfo > valuetype = m_value->getfulltype().type;
-		m_symbol->setregister( m_register );
-		std::unique_ptr< ILSymbolNote > note( new ILSymbolNote );
-			note->type = TokenType::symbolnote;
-			note->reg = m_register;
-			note->symboltype = SymbolType::symconst;
-			note->fullname = appendident(
-				m_context->getnameprefix(), m_targetname );
-			note->typeinfo = valuetype->getdefstring( 0 ).combine();
-			note->defpos = DefPos{ m_textrange.spos, m_textrange.filename };
-		body->notes.push_back( std::move( note ) );
-	}
-
-	void ConstStat::compileemit( ILBody* body )
-	{
-		uint64_t reg = m_value->compileread( body );
-		appendtoken( body, makeregassignment( m_register, reg ) );
-		releasereg( body, reg );
+		ILValue ilvalue;
+		m_value->compileread( body, ilvalue );
+		m_symbol->setvalue( ilvalue );
 	}
 }

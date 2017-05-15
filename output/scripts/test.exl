@@ -16,7 +16,7 @@ local ia = 0
 if ca then
 	local ia = 1
 	nb += ia
-elseif na then
+elseif na+10 then
 	local ia = 2
 	nb += ia
 else

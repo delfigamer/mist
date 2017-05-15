@@ -1,4 +1,5 @@
 #include <exl/value/reference.hpp>
+#include <exl/il/types.hpp>
 
 namespace exl
 {
@@ -22,13 +23,17 @@ namespace exl
 		return m_target->getconstvalue();
 	}
 
-	uint64_t ReferenceValue::compileread( ILBody* body )
+	void ReferenceValue::compileread( ILBody* body, ILValue& value )
 	{
-		return m_target->compileread( body, 0 );
+		ILValue nilv;
+		nilv.setnil();
+		m_target->compileread( body, nilv, value );
 	}
 
-	void ReferenceValue::compilewrite( ILBody* body, uint64_t value )
+	void ReferenceValue::compilewrite( ILBody* body, ILValue const& value )
 	{
-		m_target->compilewrite( body, 0, value );
+		ILValue nilv;
+		nilv.setnil();
+		m_target->compilewrite( body, nilv, value );
 	}
 }

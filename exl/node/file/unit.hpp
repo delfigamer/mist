@@ -1,6 +1,7 @@
 #pragma once
 
 #include <exl/node/base.hpp>
+#include <exl/il/types.hpp>
 #include <exl/types.hpp>
 #include <utils/sexpr.hpp>
 #include <common.hpp>
@@ -20,6 +21,7 @@ namespace exl
 
 		virtual StringBuilder getdefstring( size_t depth ) override;
 		virtual void build( IContext* context ) override;
-		virtual ILModule& compile() override;
+		virtual void compile() override;
+		virtual ILModule& getmodule() override;
 	};
 }

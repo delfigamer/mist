@@ -1,6 +1,7 @@
 #include <exl/node/stat/conditional.hpp>
 #include <exl/node/block.hpp>
 #include <exl/context.hpp>
+#include <exl/il/types.hpp>
 #include <exl/parser/ast.hpp>
 #include <exl/func.hpp>
 #include <exl/construct.hpp>
@@ -93,44 +94,30 @@ namespace exl
 		}
 	}
 
-	void ConditionalStat::compilereserve( ILBody* body )
-	{
-		for( auto& branch: m_branches )
-		{
-			branch.block->compilereserve( body );
-		}
-	}
-
-	void ConditionalStat::compileemit( ILBody* body )
+	void ConditionalStat::compile( ILBody* body )
 	{
 		ASSERT( !m_branches.empty() );
 		std::stack< ILBlock* > paths;
 		for( auto& branch: m_branches )
 		{
 			ILBlock* startblock = body->currentblock;
-			std::unique_ptr< ILValue > cond;
 			if( branch.condvalue )
 			{
-				uint64_t condreg = branch.condvalue->compileread( body );
-				releasereg( body, condreg );
-				createblock( body );
-				startblock->branches.push_back(
-					ILBranch{ makeregvalue( condreg ), body->currentblock } );
-				branch.block->compileemit( body );
+				ILBranch* ilbranch = startblock->appendbranch();
+				branch.condvalue->compileread( body, ilbranch->condition );
+				ilbranch->target = body->appendblock();
 				paths.push( body->currentblock );
 			}
-			else
-			{
-				branch.block->compileemit( body );
-			}
-			createblock( body );
-			startblock->branches.push_back(
-				ILBranch{ nullptr, body->currentblock } );
+			branch.block->compile( body );
+			ILBranch* ilbranch = startblock->appendbranch();
+			ilbranch->condition.setboolean( true );
+			ilbranch->target = body->appendblock();
 		}
 		while( !paths.empty() )
 		{
-			paths.top()->branches.push_back(
-				ILBranch{ nullptr, body->currentblock } );
+			ILBranch* ilbranch = paths.top()->appendbranch();
+			ilbranch->condition.setboolean( true );
+			ilbranch->target = body->currentblock;
 			paths.pop();
 		}
 	}

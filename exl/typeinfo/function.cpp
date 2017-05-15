@@ -24,7 +24,7 @@ namespace exl
 
 			virtual StringBuilder getdefstring( size_t depth ) override;
 			virtual Ref< IConstValue > getconstvalue() override;
-			virtual uint64_t compileread( ILBody* body ) override;
+			virtual void compileread( ILBody* body, ILValue& value ) override;
 		};
 
 		FunctionCall::FunctionCall(
@@ -64,62 +64,54 @@ namespace exl
 
 		struct outarg_t
 		{
-			uint64_t reg;
+			ILValue val;
 			IValue* arg;
 		};
 
-		uint64_t FunctionCall::compileread( ILBody* body )
+		void FunctionCall::compileread( ILBody* body, ILValue& result )
 		{
-			uint64_t result = 0;
-			uint64_t target = m_target->compileread( body );
-			std::vector< std::unique_ptr< ILValue > > inputs;
-			inputs.push_back( makeregvalue( target ) );
-			std::vector< std::unique_ptr< ILValue > > outputs;
-			std::stack< uint64_t > inargs;
+			ILValue target;
+			m_target->compileread( body, target );
+			std::vector< ILValue > inputs;
+			inputs.push_back( target );
+			std::vector< ILValue > outputs;
 			double_for( m_functiontype->argdefs(), m_args,
 				[ & ]( FullType const& argft, IValue* arg )
 				{
 					if( argft.readable )
 					{
-						uint64_t reg = arg->compileread( body );
-						inputs.push_back( makeregvalue( reg ) );
-						inargs.push( reg );
+						ILValue val;
+						arg->compileread( body, val );
+						inputs.push_back( val );
 					}
 				} );
-			while( !inargs.empty() )
-			{
-				releasereg( body, inargs.top() );
-				inargs.pop();
-			}
-			releasereg( body, target );
 			std::stack< outarg_t > outargs;
 			if( m_fulltype.readable )
 			{
-				result = reservereg( body );
-				outputs.push_back( makeregvalue( result ) );
+				body->newtemp( result );
+				outputs.push_back( result );
 			}
 			double_for( m_functiontype->argdefs(), m_args,
 				[ & ]( FullType const& argft, IValue* arg )
 				{
 					if( argft.writable )
 					{
-						uint64_t reg = reservereg( body );
-						outputs.push_back( makeregvalue( reg ) );
-						outargs.push( outarg_t{ reg, arg } );
+						ILValue val;
+						body->newtemp( val );
+						outputs.push_back( val );
+						outargs.push( outarg_t{ val, arg } );
 					}
 				} );
-			std::unique_ptr< ILOperator > op( new ILOperator );
-				op->type = TokenType::invoke;
-				op->inputs = std::move( inputs );
-				op->outputs = std::move( outputs );
-			appendtoken( body, std::move( op ) );
+			ILToken* op = body->appendtoken();
+			op->type = TokenType::invoke;
+			op->inputs = std::move( inputs );
+			op->outputs = std::move( outputs );
 			while( !outargs.empty() )
 			{
 				outarg_t& oa = outargs.top();
-				oa.arg->compilewrite( body, oa.reg );
+				oa.arg->compilewrite( body, oa.val );
 				outargs.pop();
 			}
-			return result;
 		}
 	}
 

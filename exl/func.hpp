@@ -14,16 +14,6 @@ namespace exl
 	Ref< ITypeInfo > gettypevalue( IExpression* expr );
 	void setsymbol(
 		IContext* context, identifier_t const& name, ISymbol* symbol );
-	void initilbody( ILBody* body );
-	uint64_t reservereg( ILBody* body );
-	void releasereg( ILBody* body, uint64_t reg );
-	void createblock( ILBody* body );
-	void appendtoken( ILBody* body, std::unique_ptr< ILToken >&& token );
-	std::unique_ptr< ILValue > makeregvalue( uint64_t reg );
-	std::unique_ptr< ILToken > makeregassignment(
-		uint64_t target, uint64_t source );
-	std::unique_ptr< ILToken > makeregassignment(
-		uint64_t target, std::unique_ptr< ILValue >&& source );
 
 	template< typename TS, typename TF >
 	auto apply(

@@ -52,11 +52,7 @@ namespace exl
 	{
 	}
 
-	void FunctionStat::compilereserve( ILBody* body )
-	{
-	}
-
-	void FunctionStat::compileemit( ILBody* body )
+	void FunctionStat::compile( ILBody* body )
 	{
 	}
 }

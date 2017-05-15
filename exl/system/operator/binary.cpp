@@ -18,24 +18,28 @@ namespace exl
 		return m_constvalue;
 	}
 
-	uint64_t InvBinary::compileread( ILBody* body )
+	void InvBinary::compileread( ILBody* body, ILValue& value )
 	{
 		if( m_constvalue )
 		{
-			return m_constvalue->compileread( body );
+			m_constvalue->compileread( body, value );
 		}
 		else
 		{
-			uint64_t areg = m_left->compileread( body );
-			uint64_t breg = m_right->compileread( body );
-			std::unique_ptr< ILOperator > op( new ILOperator );
-				op->type = m_operatortype;
-				op->inputs.push_back( makeregvalue( areg ) );
-				op->inputs.push_back( makeregvalue( breg ) );
-				op->outputs.push_back( makeregvalue( areg ) );
-			appendtoken( body, std::move( op ) );
-			releasereg( body, breg );
-			return areg;
+			ILValue aval;
+			m_left->compileread( body, aval );
+			ILValue bval;
+			m_right->compileread( body, bval );
+			ILValue rval;
+			body->newtemp( rval );
+			ILToken* op = body->appendtoken();
+			op->type = m_operatortype;
+			op->inputs.resize( 2 );
+			op->inputs[ 0 ] = aval;
+			op->inputs[ 1 ] = bval;
+			op->outputs.resize( 1 );
+			op->outputs[ 0 ] = rval;
+			value = rval;
 		}
 	}
 

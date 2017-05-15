@@ -703,6 +703,13 @@ namespace utils
 		return ret;
 	}
 
+	SExpr SExpr::atom( unsigned number )
+	{
+		SExpr ret( 0x50000000 );
+		ret.number = number;
+		return ret;
+	}
+
 	SExpr SExpr::atom( double number )
 	{
 		SExpr ret( 0x50000000 );

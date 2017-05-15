@@ -18,6 +18,6 @@ namespace exl
 		virtual StringBuilder getdefstring( size_t depth ) override;
 		virtual Ref< IConstValue > getconstvalue() override;
 		virtual void compilewrite(
-			ILBody* body, uint64_t base, uint64_t value ) override;
+			ILBody* body, ILValue const& base, ILValue const& value ) override;
 	};
 }

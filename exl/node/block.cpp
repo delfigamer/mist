@@ -1,4 +1,5 @@
 #include <exl/node/block.hpp>
+#include <exl/il/types.hpp>
 #include <exl/parser/ast.hpp>
 #include <exl/func.hpp>
 #include <exl/construct.hpp>
@@ -43,30 +44,27 @@ namespace exl
 		}
 	}
 
-	void Block::compilereserve( ILBody* body )
+	void Block::compile( ILBody* body )
 	{
-		for( Ref< IStatement >& node: m_nodes )
-		{
-			node->compilereserve( body );
-		}
-	}
-
-	void Block::compileemit( ILBody* body )
-	{
+		ILConst* fnconst = body->constants[ 0 ].get();
 		for( Ref< IStatement >& node: m_nodes )
 		{
 			TextRange range = node->gettextrange();
-			std::unique_ptr< ILBreakpointNote > note( new ILBreakpointNote );
-				note->type = TokenType::breakpointnote;
-				note->pos = range.spos;
-				note->filename = range.filename;
-			appendtoken( body, std::move( note ) );
-			node->compileemit( body );
+			ILToken* note = body->appendtoken();
+			note->type = TokenType::breakpoint;
+			note->inputs.resize( 4 );
+			note->inputs[ 0 ].setstring( 4, "line" );
+			note->inputs[ 1 ].setconstant( fnconst );
+			note->inputs[ 2 ].setnumber( range.spos.row );
+			note->inputs[ 3 ].setnumber( range.spos.col );
+			node->compile( body );
 		}
-		std::unique_ptr< ILBreakpointNote > note( new ILBreakpointNote );
-			note->type = TokenType::breakpointnote;
-			note->pos = m_textrange.epos;
-			note->filename = m_textrange.filename;
-		appendtoken( body, std::move( note ) );
+		ILToken* note = body->appendtoken();
+		note->type = TokenType::breakpoint;
+		note->inputs.resize( 4 );
+		note->inputs[ 0 ].setstring( 4, "line" );
+		note->inputs[ 1 ].setconstant( fnconst );
+		note->inputs[ 2 ].setnumber( m_textrange.epos.row );
+		note->inputs[ 3 ].setnumber( m_textrange.epos.col );
 	}
 }

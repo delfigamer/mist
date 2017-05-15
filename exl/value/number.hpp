@@ -15,7 +15,7 @@ namespace exl
 		~NumberValue();
 
 		virtual StringBuilder getdefstring( size_t depth ) override;
-		virtual uint64_t compileread( ILBody* body ) override;
+		virtual void compileread( ILBody* body, ILValue& value ) override;
 		virtual Ref< INumberValue > getnumbervalue() override;
 		virtual double getnumbercontent() override;
 	};

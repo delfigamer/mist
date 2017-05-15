@@ -1,6 +1,7 @@
 #pragma once
 
 #include <exl/object.hpp>
+#include <exl/il/types.hpp>
 #include <exl/types.hpp>
 #include <common.hpp>
 
@@ -11,7 +12,7 @@ namespace exl
 	protected:
 		DefPos m_defpos;
 		FullType m_fulltype;
-		uint64_t m_register;
+		ILValue m_value;
 
 	public:
 		Symbol( DefPos defpos );
@@ -19,10 +20,10 @@ namespace exl
 
 		virtual DefPos getdefpos() override;
 		virtual FullType getfulltype() override;
-		virtual void setregister( uint64_t reg ) override;
-		virtual uint64_t compileread(
-			ILBody* body, uint64_t base ) override;
+		virtual void setvalue( ILValue const& value ) override;
+		virtual void compileread(
+			ILBody* body, ILValue const& base, ILValue& value ) override;
 		virtual void compilewrite(
-			ILBody* body, uint64_t base, uint64_t value ) override;
+			ILBody* body, ILValue const& base, ILValue const& value ) override;
 	};
 }

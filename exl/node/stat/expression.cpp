@@ -1,4 +1,5 @@
 #include <exl/node/stat/expression.hpp>
+#include <exl/il/types.hpp>
 #include <exl/parser/ast.hpp>
 #include <exl/func.hpp>
 #include <exl/construct.hpp>
@@ -30,13 +31,9 @@ namespace exl
 		ASSERT( m_value );
 	}
 
-	void ExpressionStat::compilereserve( ILBody* body )
+	void ExpressionStat::compile( ILBody* body )
 	{
-	}
-
-	void ExpressionStat::compileemit( ILBody* body )
-	{
-		uint64_t reg = m_value->compileread( body );
-		releasereg( body, reg );
+		ILValue value;
+		m_value->compileread( body, value );
 	}
 }

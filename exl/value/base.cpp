@@ -1,4 +1,5 @@
 #include <exl/value/base.hpp>
+#include <exl/il/types.hpp>
 
 namespace exl
 {
@@ -21,12 +22,12 @@ namespace exl
 		return nullptr;
 	}
 
-	uint64_t Value::compileread( ILBody* body )
+	void Value::compileread( ILBody* body, ILValue& value )
 	{
-		return 0;
+		value.setnil();
 	}
 
-	void Value::compilewrite( ILBody* body, uint64_t value )
+	void Value::compilewrite( ILBody* body, ILValue const& value )
 	{
 		ASSERT( false );
 	}

@@ -109,54 +109,56 @@ namespace exl
 		return defstring;
 	}
 
-	uint64_t FunctionValue::compileread( ILBody* body )
+	void FunctionValue::compileread( ILBody* body, ILValue& result )
 	{
-		ILBody funcbody;
-		std::vector< uint64_t > arguments;
+		ILFunctionConst* fconst = body->appendconstant< ILFunctionConst >();
 		{
-			initilbody( &funcbody );
-			funcbody.depth = body->depth + 1;
+			fconst->type = ConstType::function;
+			fconst->body.reset( body );
+			ILStringConst* fnconst =
+				fconst->body.appendconstant< ILStringConst >();
+			fnconst->type = ConstType::string;
+			fnconst->string = m_body->gettextrange().filename;
 			double_for(
 				m_argdefs, m_argsymbols,
 				[ & ]( ArgDef& argdef, ISymbol* symbol )
 				{
-					uint64_t reg;
-					if( argdef.fulltype.readable )
+					ILSymbolDef* symboldef = fconst->body.appendsymbol();
+					if( argdef.named )
 					{
-						reg = reservereg( &funcbody );
-						arguments.push_back( reg );
+						symboldef->fullname = appendident(
+							m_subcontext->getnameprefix(), argdef.name );
 					}
 					else
 					{
-						reg = reservereg( &funcbody );
-						appendtoken( &funcbody, makeregassignment( reg, 0 ) );
+						symboldef->fullname = appendident(
+							m_subcontext->getnameprefix(),
+							anonymousident( argdef.defpos ) );
 					}
-					symbol->setregister( reg );
-					std::unique_ptr< ILSymbolNote > note( new ILSymbolNote );
-						note->type = TokenType::symbolnote;
-						note->reg = reg;
-						note->symboltype = SymbolType::symargument;
-						if( argdef.named )
-						{
-							note->fullname = appendident(
-								m_subcontext->getnameprefix(), argdef.name );
-						}
-						note->typeinfo =
-							argdef.fulltype.type->getdefstring( 0 ).combine();
-						note->defpos = argdef.defpos;
-					funcbody.notes.push_back( std::move( note ) );
+					symboldef->typeinfo =
+						argdef.fulltype.type->getdefstring( 0 ).combine();
+					symboldef->defpos = argdef.defpos;
+					ILValue ilvalue;
+					ilvalue.setvariable( symboldef->depth, symboldef->index );
+					if( argdef.fulltype.readable )
+					{
+						fconst->args.push_back( symboldef->index );
+					}
+					else
+					{
+						fconst->body.appendassignment( ilvalue );
+					}
+					if( argdef.fulltype.writable )
+					{
+						fconst->results.push_back( ilvalue );
+					}
+					symbol->setvalue( ilvalue );
 				} );
-			m_body->compilereserve( &funcbody );
-			m_body->compileemit( &funcbody );
-			funcbody.currentblock->branches.push_back(
-				ILBranch{ nullptr, funcbody.exitblock } );
+			m_body->compile( &fconst->body );
+			ILBranch* branch = fconst->body.currentblock->appendbranch();
+			branch->condition.setboolean( true );
+			branch->target = fconst->body.exitblock;
 		}
-		uint64_t ret = reservereg( body );
-		std::unique_ptr< ILFunctionValue > value( new ILFunctionValue );
-			value->type = ValueType::function;
-			value->args = std::move( arguments );
-			value->body = std::move( funcbody );
-		appendtoken( body, makeregassignment( ret, std::move( value ) ) );
-		return ret;
+		result.setconstant( fconst );
 	}
 }

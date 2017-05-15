@@ -34,7 +34,7 @@ namespace exl
 	}
 
 	void ConstSymbol::compilewrite(
-		ILBody* body, uint64_t base, uint64_t value )
+		ILBody* body, ILValue const& base, ILValue const& value )
 	{
 		ASSERT( false );
 	}

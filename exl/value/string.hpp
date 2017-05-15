@@ -15,7 +15,7 @@ namespace exl
 		~StringValue();
 
 		virtual StringBuilder getdefstring( size_t depth ) override;
-		virtual uint64_t compileread( ILBody* body ) override;
+		virtual void compileread( ILBody* body, ILValue& value ) override;
 		virtual Ref< IStringValue > getstringvalue() override;
 		virtual Ref< DataBuffer > getstringcontent() override;
 	};

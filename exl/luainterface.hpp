@@ -68,6 +68,7 @@ namespace exl
 		ModuleContainer( ModuleContainer const& other ) = delete;
 		ModuleContainer& operator=( ModuleContainer const& other ) = delete;
 
-		R_METHOD( gc = methodlist.sexpr_delete ) utils::SExpr* translate();
+		R_METHOD( gc = methodlist.sexpr_delete, name = export )
+		utils::SExpr* sexport();
 	};
 }

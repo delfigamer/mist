@@ -17,7 +17,7 @@ namespace exl
 
 		virtual FullType getfulltype() override;
 		virtual Ref< IConstValue > getconstvalue() override;
-		virtual uint64_t compileread( ILBody* body ) override;
-		virtual void compilewrite( ILBody* body, uint64_t value ) override;
+		virtual void compileread( ILBody* body, ILValue& value ) override;
+		virtual void compilewrite( ILBody* body, ILValue const& value ) override;
 	};
 }

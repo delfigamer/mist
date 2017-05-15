@@ -22,23 +22,20 @@ namespace exl
 		return m_fulltype;
 	}
 
-	void Symbol::setregister( uint64_t reg )
+	void Symbol::setvalue( ILValue const& value )
 	{
-		m_register = reg;
+		m_value = value;
 	}
 
-	uint64_t Symbol::compileread(
-		ILBody* body, uint64_t base )
+	void Symbol::compileread(
+		ILBody* body, ILValue const& base, ILValue& value )
 	{
-		uint64_t ret = reservereg( body );
-		appendtoken( body, makeregassignment( ret, m_register ) );
-		return ret;
+		value = m_value;
 	}
 
 	void Symbol::compilewrite(
-		ILBody* body, uint64_t base, uint64_t value )
+		ILBody* body, ILValue const& base, ILValue const& value )
 	{
-		appendtoken( body, makeregassignment( m_register, value ) );
-		releasereg( body, value );
+		body->appendassignment( m_value, value );
 	}
 }

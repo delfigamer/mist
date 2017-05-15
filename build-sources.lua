@@ -166,9 +166,14 @@ local sources = {
 ----------------------------------------
 	{
 		type = 'native',
-		name = 'exl/il/translate',
+		name = 'exl/il/export',
 		use = 'client-main',
 		methodlist = 'client-main',
+	},
+	{
+		type = 'native',
+		name = 'exl/il/types',
+		use = 'client-main',
 	},
 ----------------------------------------
 	{

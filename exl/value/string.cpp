@@ -1,5 +1,6 @@
 #include <exl/value/string.hpp>
 #include <exl/system/typeinfo/string.hpp>
+#include <exl/il/types.hpp>
 #include <exl/func.hpp>
 #include <exl/format.hpp>
 
@@ -22,14 +23,26 @@ namespace exl
 		return defstring;
 	}
 
-	uint64_t StringValue::compileread( ILBody* body )
+	void StringValue::compileread( ILBody* body, ILValue& value )
 	{
-		uint64_t ret = reservereg( body );
-		std::unique_ptr< ILStringValue > value( new ILStringValue );
-			value->type = ValueType::string;
-			value->string = m_content;
-		appendtoken( body, makeregassignment( ret, std::move( value ) ) );
-		return ret;
+		if( m_content )
+		{
+			if( m_content->m_length <= 20 )
+			{
+				value.setstring( m_content->m_length, m_content->m_data );
+			}
+			else
+			{
+				ILStringConst* sconst = body->appendconstant< ILStringConst >();
+				sconst->type = ConstType::string;
+				sconst->string = m_content;
+				value.setconstant( sconst );
+			}
+		}
+		else
+		{
+			value.setstring();
+		}
 	}
 
 	Ref< IStringValue > StringValue::getstringvalue()

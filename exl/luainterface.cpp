@@ -1,6 +1,6 @@
 #include <exl/luainterface.hpp>
-#include <exl/il/translate.hpp>
 #include <exl/system/context.hpp>
+#include <exl/il/export.hpp>
 #include <exl/construct.hpp>
 #include <exl/context.hpp>
 #include <exl/func.hpp>
@@ -81,7 +81,8 @@ namespace exl
 
 	ModuleContainer* NodeContainer::compile()
 	{
-		ILModule& module = m_node->compile();
+		m_node->compile();
+		ILModule& module = m_node->getmodule();
 		return new ModuleContainer( m_node, module );
 	}
 
@@ -95,8 +96,8 @@ namespace exl
 	{
 	}
 
-	utils::SExpr* ModuleContainer::translate()
+	utils::SExpr* ModuleContainer::sexport()
 	{
-		return new utils::SExpr( translatemodule( m_module ) );
+		return new utils::SExpr( exportmodule( m_module ) );
 	}
 }

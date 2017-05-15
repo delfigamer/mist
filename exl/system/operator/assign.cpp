@@ -1,6 +1,7 @@
 #include <exl/system/operator/assign.hpp>
 #include <exl/typeinfo/base.hpp>
 #include <exl/value/base.hpp>
+#include <exl/il/types.hpp>
 
 namespace exl
 {
@@ -18,7 +19,7 @@ namespace exl
 
 			virtual StringBuilder getdefstring( size_t depth ) override;
 			virtual Ref< IConstValue > getconstvalue() override;
-			virtual uint64_t compileread( ILBody* body ) override;
+			virtual void compileread( ILBody* body, ILValue& value ) override;
 		};
 
 		class OpAssignTI: public TypeInfo, virtual public ITypeInfo
@@ -57,11 +58,12 @@ namespace exl
 			return nullptr;
 		}
 
-		uint64_t InvAssign::compileread( ILBody* body )
+		void InvAssign::compileread( ILBody* body, ILValue& value )
 		{
-			uint64_t areg = m_source->compileread( body );
-			m_target->compilewrite( body, areg );
-			return 0;
+			ILValue aval;
+			m_source->compileread( body, aval );
+			m_target->compilewrite( body, aval );
+			value.setnil();
 		}
 
 		OpAssignTI::OpAssignTI()

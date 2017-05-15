@@ -1,4 +1,5 @@
 #include <exl/node/stat/local.hpp>
+#include <exl/il/types.hpp>
 #include <exl/parser/ast.hpp>
 #include <exl/construct.hpp>
 #include <exl/func.hpp>
@@ -71,32 +72,25 @@ namespace exl
 		setsymbol( context, m_targetname, m_symbol );
 	}
 
-	void LocalStat::compilereserve( ILBody* body )
+	void LocalStat::compile( ILBody* body )
 	{
-		m_register = reservereg( body );
-		m_symbol->setregister( m_register );
-		std::unique_ptr< ILSymbolNote > note( new ILSymbolNote );
-			note->type = TokenType::symbolnote;
-			note->reg = m_register;
-			note->symboltype = SymbolType::symlocal;
-			note->fullname = appendident(
-				m_context->getnameprefix(), m_targetname );
-			note->typeinfo = m_typeinfo->getdefstring( 0 ).combine();
-			note->defpos = DefPos{ m_textrange.spos, m_textrange.filename };
-		body->notes.push_back( std::move( note ) );
-	}
-
-	void LocalStat::compileemit( ILBody* body )
-	{
+		ILSymbolDef* symboldef = body->appendsymbol();
+		symboldef->fullname = appendident(
+			m_context->getnameprefix(), m_targetname );
+		symboldef->typeinfo = m_typeinfo->getdefstring( 0 ).combine();
+		symboldef->defpos = DefPos{ m_textrange.spos, m_textrange.filename };
+		ILValue symilvalue;
+		symilvalue.setvariable( symboldef->depth, symboldef->index );
+		m_symbol->setvalue( symilvalue );
+		ILValue initilvalue;
 		if( m_initvalue )
 		{
-			uint64_t reg = m_initvalue->compileread( body );
-			appendtoken( body, makeregassignment( m_register, reg ) );
-			releasereg( body, reg );
+			m_initvalue->compileread( body, initilvalue );
 		}
 		else
 		{
-			appendtoken( body, makeregassignment( m_register, 0 ) );
+			initilvalue.setnil();
 		}
+		body->appendassignment( symilvalue, initilvalue );
 	}
 }

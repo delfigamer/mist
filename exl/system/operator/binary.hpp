@@ -2,6 +2,7 @@
 
 #include <exl/typeinfo/base.hpp>
 #include <exl/value/base.hpp>
+#include <exl/il/types.hpp>
 #include <exl/types.hpp>
 #include <common/ref.hpp>
 #include <common.hpp>
@@ -21,7 +22,7 @@ namespace exl
 		~InvBinary();
 
 		virtual Ref< IConstValue > getconstvalue() override;
-		virtual uint64_t compileread( ILBody* body ) override;
+		virtual void compileread( ILBody* body, ILValue& value ) override;
 		virtual void constructconstvalue() = 0;
 	};
 

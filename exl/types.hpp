@@ -4,47 +4,12 @@
 #include <common/databuffer.hpp>
 #include <common/ref.hpp>
 #include <common.hpp>
-#include <map>
-#include <list>
 #include <vector>
-#include <memory>
 
 namespace exl
 {
 	typedef std::vector< uint8_t > identifier_t;
 	typedef std::vector< identifier_t > name_t;
-
-	enum struct ModuleType
-	{
-		unit,
-	};
-
-	enum struct TokenType
-	{
-		assign = 0x100,
-		add = 0x110,
-		subtract = 0x111,
-		join = 0x120,
-		invoke = 0x130,
-
-		breakpointnote = -0x100,
-		symbolnote = -0x101,
-	};
-
-	enum struct ValueType
-	{
-		reg,
-		number,
-		string,
-		function,
-	};
-
-	enum struct SymbolType
-	{
-		symconst,
-		symlocal,
-		symargument,
-	};
 
 	struct IObject;
 	struct IContext;
@@ -61,6 +26,10 @@ namespace exl
 	struct IStringValue;
 	struct ITypeCast;
 	struct ISymbol;
+
+	struct ILModule;
+	struct ILBody;
+	struct ILValue;
 
 	struct TextPos
 	{
@@ -97,91 +66,6 @@ namespace exl
 		Ref< IValue > initvalue;
 	};
 
-	struct ILBlock;
-
-	struct ILValue
-	{
-		virtual ~ILValue() = default;
-		ValueType type;
-	};
-
-	struct ILToken
-	{
-		virtual ~ILToken() = default;
-		TokenType type;
-	};
-
-	struct ILBranch
-	{
-		std::unique_ptr< ILValue > condition;
-		ILBlock* target;
-	};
-
-	struct ILBlock
-	{
-		std::list< std::unique_ptr< ILToken > > tokens;
-		std::vector< ILBranch > branches;
-	};
-
-	struct ILBody
-	{
-		std::list< std::unique_ptr< ILBlock > > blocks;
-		std::vector< std::unique_ptr< ILToken > > notes;
-		ILBlock* entryblock;
-		ILBlock* exitblock;
-		ILBlock* currentblock;
-		uint32_t depth;
-		uint32_t stackpos;
-	};
-
-	struct ILModule
-	{
-		ModuleType type;
-		ILBody body;
-	};
-
-	struct ILRegisterValue: ILValue
-	{
-		uint64_t reg;
-	};
-
-	struct ILNumberValue: ILValue
-	{
-		double number;
-	};
-
-	struct ILStringValue: ILValue
-	{
-		Ref< DataBuffer > string;
-	};
-
-	struct ILFunctionValue: ILValue
-	{
-		std::vector< uint64_t > args;
-		ILBody body;
-	};
-
-	struct ILOperator: ILToken
-	{
-		std::vector< std::unique_ptr< ILValue > > inputs;
-		std::vector< std::unique_ptr< ILValue > > outputs;
-	};
-
-	struct ILBreakpointNote: ILToken
-	{
-		TextPos pos;
-		Ref< DataBuffer > filename;
-	};
-
-	struct ILSymbolNote: ILToken
-	{
-		uint64_t reg;
-		SymbolType symboltype;
-		name_t fullname;
-		Ref< DataBuffer > typeinfo;
-		DefPos defpos;
-	};
-
 	struct IObject
 	{
 		virtual ptrdiff_t AddRef() = 0;
@@ -216,20 +100,18 @@ namespace exl
 
 	struct IFileNode: virtual INode
 	{
-		virtual ILModule& compile() = 0;
+		virtual void compile() = 0;
+		virtual ILModule& getmodule() = 0;
 	};
 
-	// compile_reserve: reserve resources, e.g. registers for symbols
 	struct IBlock: virtual INode
 	{
-		virtual void compilereserve( ILBody* body ) = 0;
-		virtual void compileemit( ILBody* body ) = 0;
+		virtual void compile( ILBody* body ) = 0;
 	};
 
 	struct IStatement: virtual INode
 	{
-		virtual void compilereserve( ILBody* body ) = 0;
-		virtual void compileemit( ILBody* body ) = 0;
+		virtual void compile( ILBody* body ) = 0;
 	};
 
 	struct IExpression: virtual INode
@@ -241,8 +123,8 @@ namespace exl
 	{
 		virtual FullType getfulltype() = 0;
 		virtual Ref< IConstValue > getconstvalue() = 0;
-		virtual uint64_t compileread( ILBody* body ) = 0;
-		virtual void compilewrite( ILBody* body, uint64_t value ) = 0;
+		virtual void compileread( ILBody* body, ILValue& value ) = 0;
+		virtual void compilewrite( ILBody* body, ILValue const& value ) = 0;
 	};
 
 	struct IInvocation: virtual IValue
@@ -275,9 +157,10 @@ namespace exl
 		virtual DefPos getdefpos() = 0;
 		virtual FullType getfulltype() = 0;
 		virtual Ref< IConstValue > getconstvalue() = 0;
-		virtual void setregister( uint64_t reg ) = 0;
-		virtual uint64_t compileread( ILBody* body, uint64_t base ) = 0;
+		virtual void setvalue( ILValue const& value ) = 0;
+		virtual void compileread(
+			ILBody* body, ILValue const& base, ILValue& value ) = 0;
 		virtual void compilewrite(
-			ILBody* body, uint64_t base, uint64_t value ) = 0;
+			ILBody* body, ILValue const& base, ILValue const& value ) = 0;
 	};
 }

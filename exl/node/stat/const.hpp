@@ -17,7 +17,6 @@ namespace exl
 		Ref< IContext > m_context;
 		Ref< ConstSymbol > m_symbol;
 		Ref< IValue > m_value;
-		uint64_t m_register;
 
 	public:
 		ConstStat( utils::SExpr const& s );
@@ -25,7 +24,6 @@ namespace exl
 
 		virtual StringBuilder getdefstring( size_t depth ) override;
 		virtual void build( IContext* context ) override;
-		virtual void compilereserve( ILBody* body ) override;
-		virtual void compileemit( ILBody* body ) override;
+		virtual void compile( ILBody* body ) override;
 	};
 }

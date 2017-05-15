@@ -4,6 +4,7 @@
 #include <exl/func.hpp>
 #include <exl/construct.hpp>
 #include <exl/format.hpp>
+#include <utils/console.hpp>
 
 namespace exl
 {
@@ -35,18 +36,21 @@ namespace exl
 		m_body->build( context );
 	}
 
-	ILModule& UnitFile::compile()
+	void UnitFile::compile()
 	{
-		if( m_ilfile.body.blocks.empty() )
-		{
-			m_ilfile.type = ModuleType::unit;
-			initilbody( &m_ilfile.body );
-			m_ilfile.body.depth = 1;
-			m_body->compilereserve( &m_ilfile.body );
-			m_body->compileemit( &m_ilfile.body );
-			m_ilfile.body.currentblock->branches.push_back(
-				ILBranch{ nullptr, m_ilfile.body.exitblock } );
-		}
+		m_ilfile.type = ModuleType::unit;
+		m_ilfile.body.reset( nullptr );
+		ILStringConst* fnconst = m_ilfile.body.appendconstant< ILStringConst >();
+		fnconst->type = ConstType::string;
+		fnconst->string = m_textrange.filename;
+		m_body->compile( &m_ilfile.body );
+		ILBranch* branch = m_ilfile.body.currentblock->appendbranch();
+		branch->condition.setboolean( true );
+		branch->target = m_ilfile.body.exitblock;
+	}
+
+	ILModule& UnitFile::getmodule()
+	{
 		return m_ilfile;
 	}
 }

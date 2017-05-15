@@ -24,12 +24,12 @@ namespace exl
 		return m_target->getconstvalue();
 	}
 
-	uint64_t ProxyValue::compileread( ILBody* body )
+	void ProxyValue::compileread( ILBody* body, ILValue& value )
 	{
-		return m_target->compileread( body );
+		m_target->compileread( body, value );
 	}
 
-	void ProxyValue::compilewrite( ILBody* body, uint64_t value )
+	void ProxyValue::compilewrite( ILBody* body, ILValue const& value )
 	{
 		m_target->compilewrite( body, value );
 	}

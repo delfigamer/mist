@@ -20,7 +20,7 @@
 // 0x60000000 .. 0x6fffffff         reserved
 // 0x70000000 .. 0x7fffffff .text
 //          0: string
-// 0x80000000 .. 0x8fffffff         generic patterns
+// 0x80000000 .. 0x8fffffff         reserved
 // 0x90000000 .. 0xffffffff         reserved
 
 namespace utils
@@ -136,6 +136,7 @@ R_END()
 
 		static SExpr atom();
 		static SExpr atom( int number );
+		static SExpr atom( unsigned number );
 		static SExpr atom( double number );
 		static SExpr atom( bool boolean );
 		static SExpr atom( Ref< DataBuffer > const& text );
