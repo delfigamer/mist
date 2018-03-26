@@ -205,7 +205,7 @@ end
 
 -- sorts a list according to a weak order relation R
 -- 'preceding' is a function that, given an element b, returns a list L(b)
--- let Q = {{a, b) / a is an element of L(b)}
+-- let Q = {(a, b) / a is an element of L(b)}
 -- R is the transitive closure of Q
 -- if R is not a weak order, that is, if there are loops in Q, the function
 -- returns nil, part_of_list_with_loop

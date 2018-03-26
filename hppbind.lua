@@ -5,15 +5,10 @@ local env = require('env')
 local hppdecl = require('hppdecl')
 local format = require('hppformat')
 
-local filelist = {...}
-local moduleprefix = _G.moduleprefix or ''
-local targetpath = _G.targetpath or error('targetpath must be set')
-local indexpath = _G.indexpath or error('indexpath must be set')
-local indexname = _G.indexname or error('indexname must be set')
+local source = ...
+local builddir = _G.builddir or error('builddir must be set')
 local suppresslua = _G.suppresslua
 local suppresstypechecks = _G.suppresstypechecks
-local prolog = _G.prolog or ''
-local epilog = _G.epilog or ''
 
 -- [[r::enum]]
 --   registers an enum type
@@ -50,22 +45,9 @@ local epilog = _G.epilog or ''
 -- r_emit(<< contents >>)
 --   insert 'contents' textually
 
--- local function getfilecontents(path)
-	-- local file = assert(io.open(env.path(path), 'r'))
-	-- local content = file:read('*a')
-	-- file:close()
-	-- return content
--- end
-
--- local function setfilecontents(path, content)
-	-- env.makepath(path)
-	-- local file = assert(io.open(env.path(path), 'w'))
-	-- file:write(content)
-	-- file:close()
--- end
-
 local namespace = {
 }
+
 do
 	local function basetype(name)
 		namespace['::' .. name] = {
@@ -141,7 +123,7 @@ local function getluafullname(decl)
 		end
 	end
 	if not fullname and name then
-		local scope = moduleprefix
+		local scope = ''
 		for i, part in ipairs(decl.scope) do
 			scope = scope .. part .. '.'
 		end
@@ -196,7 +178,7 @@ local function nslookup(scope, name)
 end
 
 local function registerdecl(decl)
-	local sfname = getsourcefullname(decl)
+	local sfname = decl.sourcename or getsourcefullname(decl)
 	local prev = namespace[sfname]
 	if prev then
 		if decl.rexternal and (prev.rclass or prev.rexternal) then
@@ -290,6 +272,55 @@ local function interntype(decl, decltype)
 		return type
 	else
 		hppdecl.locationerror(decl.location, err)
+	end
+end
+
+local loadinclude_cache = {}
+local loadinclude_env = {}
+
+local function tryinclude(targetname)
+	if loadinclude_cache[targetname] then
+		return true
+	end
+	local path = builddir .. targetname .. '.r'
+	local file = io.open(env.path(path), 'r')
+	if file then
+		local source = file:read('*a')
+		file:close()
+		assert(load(source, path, 't', loadinclude_env))()
+		loadinclude_cache[targetname] = true
+		return true
+	end
+	return false
+end
+
+function loadinclude_env.modulename(name)
+end
+
+function loadinclude_env.load(targetname)
+	tryinclude(targetname)
+end
+
+function loadinclude_env.nslookup(sourcename)
+	local decl = namespace[sourcename]
+	if not decl then
+		error('unknown name ' .. sourcename)
+	end
+	return decl
+end
+
+function loadinclude_env.decl(decl)
+end
+
+function loadinclude_env.registerdecl(decl)
+	registerdecl(decl)
+end
+
+local function loadinclude(moduledef, decl)
+	local targetname = string.match(decl.include, '(.*)%.') or decl.include
+	if tryinclude(targetname) then
+		decl.targetname = targetname
+		table.append(moduledef.decls, decl)
 	end
 end
 
@@ -498,7 +529,9 @@ local function loaddecl(moduledef, decl)
 	if decl.scope then
 		context = namespace[getsourcescope(decl)]
 	end
-	if decl.typedef then
+	if decl.include then
+		loadinclude(moduledef, decl)
+	elseif decl.typedef then
 		if decl.attrs['r::type'] ~= nil then
 			loadrtype(moduledef, decl)
 		end
@@ -539,12 +572,6 @@ local function loaddecl(moduledef, decl)
 	end
 end
 
--- load and parse the files
-local pendingfiles = {}
-for i, filename in ipairs(filelist) do
-	pendingfiles[filename] = true
-end
-
 local function loadmodule(filename)
 	local moduledef = {
 		source = filename,
@@ -557,85 +584,30 @@ local function loadmodule(filename)
 		if not decl then
 			break
 		end
-		if decl.include and pendingfiles[decl.include] then
-			return
-		end
 		loaddecl(moduledef, decl)
 	end
 	return moduledef
 end
 
-local modulelist = {}
-
-while #filelist ~= 0 do
-	local skippedfiles = {}
-	local advance = false
-	for i, filename in ipairs(filelist) do
-		local moduledef = loadmodule(filename)
-		if moduledef then
-			table.append(modulelist, moduledef)
-			pendingfiles[filename] = nil
-			advance = true
-		else
-			table.append(skippedfiles, filename)
-		end
-	end
-	if not advance then
-		for i, filename in ipairs(skippedfiles) do
-			print(filename)
-		end
-		error('circular dependency in a reflection batch')
-	end
-	filelist = skippedfiles
-end
-
-local luaparts = {}
-for source in string.gmatch(prolog, '[^;]+') do
-	local part = {
-		prolog = true,
-		chunk = string.dump(assert(loadfile(env.path(source)))),
-		name = source}
-	table.append(luaparts, part)
-end
-for source in string.gmatch(epilog, '[^;]+') do
-	local part = {
-		epilog = true,
-		chunk = string.dump(assert(loadfile(env.path(source)))),
-		name = source}
-	table.append(luaparts, part)
-end
-
-local indexnameparts = {}
-for part in string.gmatch(indexname, '[^:]+') do
-	table.append(indexnameparts, part)
-end
+local moduledef = loadmodule(source)
 
 local fenv = {
 	suppresstypechecks = suppresstypechecks,
-	indexpath = indexpath,
-	indexnameparts = indexnameparts,
-	luaparts = luaparts,
 }
 
-for i, moduledef in ipairs(modulelist) do
+do
 	if suppresslua then
 		moduledef.chunktext =
 			format.tostring(format.lua, fenv, moduledef)
 	else
 		moduledef.chunktext =
-			format.tofileandstring(targetpath .. moduledef.name .. '.r.lua',
+			format.tofileandstring(builddir .. moduledef.name .. '.r.lua',
 				format.lua, fenv, moduledef)
 	end
 	moduledef.chunkbytes =
 		string.dump(assert(load(moduledef.chunktext, moduledef.name..'.r.lua')))
-	format.tofile(targetpath .. moduledef.name .. '.r.cpp',
+	format.tofile(builddir .. moduledef.name .. '.r.cpp',
 		format.cpp, fenv, moduledef)
-end
-
--- create the index file
-do
-	format.tofile(indexpath .. '.hpp',
-		format.indexhpp, fenv, modulelist)
-	format.tofile(indexpath .. '.cpp',
-		format.indexcpp, fenv, modulelist)
+	format.tofile(builddir .. moduledef.name .. '.r',
+		format.r, fenv, moduledef)
 end

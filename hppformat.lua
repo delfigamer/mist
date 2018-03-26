@@ -742,23 +742,304 @@ end
 	end
 end
 
-function format.indexhpp(env, modulelist)
-	echo('#pragma once\n')
-	echo('#include <reflection.hpp>\n')
-	echo('#include <common.hpp>\n')
-	for i = 1, #env.indexnameparts - 1 do
-		echo('namespace ', env.indexnameparts[i], '\n')
-		echo('{\n')
+function format.r_interntype(env, moduledef, decltype)
+	echo('{')
+	if decltype.pointer then
+		echo('pointer = ')
+		format.r_interntype(env, moduledef, decltype.pointer)
+	elseif decltype.array then
+		echo('array = ')
+		format.r_interntype(env, moduledef, decltype.array)
+		echo(', size = ', decltype.size)
+	else
+		local sep
+		if decltype.sourcename then
+			sep = sep_next(sep, ', ')
+			echo('sourcename = ', q(decltype.sourcename))
+		end
+		if decltype.trivialname then
+			sep = sep_next(sep, ', ')
+			echo('trivialname = ', q(decltype.trivialname))
+		end
+		if decltype.classname then
+			sep = sep_next(sep, ', ')
+			echo('classname = ', q(decltype.classname))
+		end
+		if decltype.fundamental then
+			sep = sep_next(sep, ', ')
+			echo('fundamental = ', q(decltype.fundamental))
+		end
+		if not sep then
+			error('unknown type category')
+		end
 	end
-	echo('extern r::module const* ',
-		env.indexnameparts[#env.indexnameparts], '[];\n')
-	for i = 1, #env.indexnameparts - 1 do
-		echo('}\n')
+	if decltype.isconst then
+		echo(', isconst = true')
+	end
+	if decltype.isvolatile then
+		echo(', isvolatile = true')
+	end
+	if decltype.isrequired then
+		echo(', isrequired = true')
+	end
+	echo('}')
+end
+
+function format.r_field_location(env, moduledef, decl)
+	echo('\tlocation = {')
+	local sep
+	for i, entry in pairs(decl.location) do
+		sep = sep_next(sep, ', ')
+		echo('{', q(entry[1]), ', ', entry[2], ', ', entry[3], '}')
+	end
+	echo('},\n')
+end
+
+function format.r_field_attrs(env, moduledef, decl)
+	echo('\tattrs = {')
+	local sep
+	for name, value in pairs(decl.attrs) do
+		sep = sep_next(sep, ', ')
+		echo('[', q(name), '] = ')
+		if type(value) == 'table' then
+			echo('{')
+			local sep
+			for i, arg in ipairs(value) do
+				sep = sep_next(sep, ', ')
+				echo(q(arg))
+			end
+			echo('}')
+		else
+			echo(value)
+		end
+	end
+	echo('},\n')
+end
+
+function format.r_include(env, moduledef, decl)
+	echo('load(', q(decl.targetname), ')\n')
+end
+
+function format.r_rtype(env, moduledef, decl)
+	echo('registerdecl({\n')
+	echo('\trtype = true,\n')
+	format.r_field_location(env, moduledef, decl)
+	format.r_field_attrs(env, moduledef, decl)
+	echo('\tsourcename = ', q(decl.sourcename), ',\n')
+	echo('\tluaname = ', q(decl.luaname), ',\n')
+	echo('\tcname = ', q(decl.cname), ',\n')
+	echo('\ttrivialname = ', q(decl.trivialname), ',\n')
+	echo('\tinterntype = ')
+	format.r_interntype(env, moduledef, field.interntype)
+	echo(',\n')
+	echo('})\n')
+end
+
+function format.r_rstruct(env, moduledef, decl)
+	echo('registerdecl({\n')
+	echo('\trstruct = true,\n')
+	format.r_field_location(env, moduledef, decl)
+	format.r_field_attrs(env, moduledef, decl)
+	echo('\tsourcename = ', q(decl.sourcename), ',\n')
+	echo('\tluaname = ', q(decl.luaname), ',\n')
+	echo('\tcname = ', q(decl.cname), ',\n')
+	echo('\ttrivialname = ', q(decl.trivialname), ',\n')
+	echo('\tfields = {\n')
+	for i, field in pairs(decl.fields) do
+		echo('\t\t{\n')
+		format.r_field_location(env, moduledef, field)
+		format.r_field_attrs(env, moduledef, field)
+		echo('\t\t\tname = {', q(field.name[1]), '},\n')
+		echo('\t\t\tinterntype = ')
+		format.r_interntype(env, moduledef, field.interntype)
+		echo(',\n')
+		echo('\t\t},\n')
+	end
+	echo('\t},\n')
+	echo('})\n')
+end
+
+function format.r_rclass(env, moduledef, decl)
+	echo('registerdecl({\n')
+	echo('\trclass = true,\n')
+	format.r_field_location(env, moduledef, decl)
+	format.r_field_attrs(env, moduledef, decl)
+	if decl.base then
+		echo('\tbase = nslookup(', q(decl.base.sourcename), '),\n')
+	end
+	echo('\tsourcename = ', q(decl.sourcename), ',\n')
+	echo('\tluaname = ', q(decl.luaname), ',\n')
+	echo('\tcname = ', q(decl.cname), ',\n')
+	echo('\tclassname = ', q(decl.classname), ',\n')
+	echo('})\n')
+end
+
+function format.r_rexternal(env, moduledef, decl)
+	echo('registerdecl({\n')
+	echo('\trexternal = true,\n')
+	format.r_field_location(env, moduledef, decl)
+	format.r_field_attrs(env, moduledef, decl)
+	echo('\tsourcename = ', q(decl.sourcename), ',\n')
+	echo('\tluaname = ', q(decl.luaname), ',\n')
+	echo('\tcname = ', q(decl.cname), ',\n')
+	echo('\tclassname = ', q(decl.classname), ',\n')
+	echo('})\n')
+end
+
+function format.r_renum(env, moduledef, decl)
+	echo('registerdecl({\n')
+	echo('\trenum = true,\n')
+	format.r_field_location(env, moduledef, decl)
+	format.r_field_attrs(env, moduledef, decl)
+	echo('\tsourcename = ', q(decl.sourcename), ',\n')
+	echo('\tluaname = ', q(decl.luaname), ',\n')
+	echo('\tcname = ', q(decl.cname), ',\n')
+	echo('\tfundamentaleq = ', q(decl.fundamentaleq), ',\n')
+	echo('\tconsts = {\n')
+	for name, value in pairs(decl.consts) do
+		echo('\t\t[', q(name), '] = ', value, ',\n')
+	end
+	echo('\t},\n')
+	echo('})\n')
+end
+
+function format.r_rfield(env, moduledef, decl)
+	echo('decl({\n')
+	echo('\trfield = true,\n')
+	format.r_field_location(env, moduledef, decl)
+	format.r_field_attrs(env, moduledef, decl)
+	if decl.context then
+		echo('\tcontext = nslookup(', q(decl.context.sourcename), '),\n')
+	end
+	echo('\tsourcename = ', q(decl.sourcename), ',\n')
+	if decl.sourcelocalname then
+		echo('\tsourcelocalname = ', q(decl.sourcelocalname), ',\n')
+	end
+	if decl.lualocalname then
+		echo('\tlualocalname = ', q(decl.lualocalname), ',\n')
+	end
+	if decl.luaname then
+		echo('\tluaname = ', q(decl.luaname), ',\n')
+	end
+	echo('\tcname = ', q(decl.cname), ',\n')
+	if decl.accessorluaname then
+		echo('\taccessorluaname = ', q(decl.accessorluaname), ',\n')
+	end
+	if decl.mutatorluaname then
+		echo('\tmutatorluaname = ', q(decl.mutatorluaname), ',\n')
+	end
+	if decl.selftype then
+		echo('\tselftype = ')
+		format.r_interntype(env, moduledef, decl.selftype)
+		echo(',\n')
+	end
+	echo('\tinterntype = ')
+	format.r_interntype(env, moduledef, decl.interntype)
+	echo(',\n')
+	if decl.isreadonly then
+		echo('\tisreadonly = true,\n')
+	end
+	echo('})\n')
+end
+
+function format.r_robject(env, moduledef, decl)
+	echo('decl({\n')
+	echo('\trobject = true,\n')
+	format.r_field_location(env, moduledef, decl)
+	format.r_field_attrs(env, moduledef, decl)
+	echo('\tsourcename = ', q(decl.sourcename), ',\n')
+	echo('\tluaname = ', q(decl.luaname), ',\n')
+	echo('\tcname = ', q(decl.cname), ',\n')
+	echo('\tinterntype = ')
+	format.r_interntype(env, moduledef, decl.interntype)
+	echo(',\n')
+	echo('})\n')
+end
+
+function format.r_rmethod(env, moduledef, decl)
+	echo('decl({\n')
+	echo('\trmethod = true,\n')
+	format.r_field_location(env, moduledef, decl)
+	format.r_field_attrs(env, moduledef, decl)
+	if decl.isnoexcept then
+		echo('\tisnoexcept = true,\n')
+	end
+	echo('\trettype = ')
+	format.r_interntype(env, moduledef, decl.rettype)
+	echo(',\n')
+	echo('\targtypes = {\n')
+	for i, arg in ipairs(decl.argtypes) do
+		echo('\t\t')
+		format.r_interntype(env, moduledef, arg)
+		echo(',\n')
+	end
+	echo('\t},\n')
+	if decl.context then
+		echo('\tcontext = nslookup(', q(decl.context.sourcename), '),\n')
+	end
+	if decl.isconstructor then
+		echo('\tisconstructor = true,\n')
+	end
+	if decl.isstatic then
+		echo('\tisstatic = true,\n')
+	end
+	echo('\tsourcename = ', q(decl.sourcename), ',\n')
+	if decl.sourcelocalname then
+		echo('\tsourcelocalname = ', q(decl.sourcelocalname), ',\n')
+	end
+	if decl.lualocalname then
+		echo('\tlualocalname = ', q(decl.lualocalname), ',\n')
+	end
+	if decl.luaname then
+		echo('\tluaname = ', q(decl.luaname), ',\n')
+	end
+	echo('\tcname = ', q(decl.cname), ',\n')
+	if decl.selftype then
+		echo('\tselftype = ')
+		format.r_interntype(env, moduledef, decl.selftype)
+		echo(',\n')
+	end
+	echo('})\n')
+end
+
+function format.r_remit(env, moduledef, decl)
+	echo('decl({\n')
+	echo('\tremit = true,\n')
+	format.r_field_location(env, moduledef, decl)
+	echo('\tpayload = ', q(decl.payload), ',\n')
+	echo('})\n')
+end
+
+function format.r(env, moduledef)
+	echo('modulename(', q(moduledef.name), ')')
+	for i, decl in ipairs(moduledef.decls) do
+		if decl.include then
+			format.r_include(env, moduledef, decl)
+		elseif decl.rtype then
+			format.r_rtype(env, moduledef, decl)
+		elseif decl.rstruct then
+			format.r_rstruct(env, moduledef, decl)
+		elseif decl.rclass then
+			format.r_rclass(env, moduledef, decl)
+		elseif decl.rexternal then
+			format.r_rexternal(env, moduledef, decl)
+		elseif decl.renum then
+			format.r_renum(env, moduledef, decl)
+		elseif decl.rfield then
+			format.r_rfield(env, moduledef, decl)
+		elseif decl.robject then
+			format.r_robject(env, moduledef, decl)
+		elseif decl.rmethod then
+			format.r_rmethod(env, moduledef, decl)
+		elseif decl.remit then
+			format.r_remit(env, moduledef, decl)
+		end
 	end
 end
 
 function format.indexcpp(env, modulelist)
-	echo('#include <', env.indexpath, '.hpp>\n')
+	echo('#include <reflection.hpp>\n')
+	echo('#include <common.hpp>\n')
 	for i, moduledef in ipairs(modulelist) do
 		echo('extern r::module const r_', moduledef.identname, '_module;\n')
 	end
@@ -779,6 +1060,8 @@ function format.indexcpp(env, modulelist)
 		echo('namespace ', env.indexnameparts[i], '\n')
 		echo('{\n')
 	end
+	echo('\textern r::module const* ',
+		env.indexnameparts[#env.indexnameparts], '[];\n')
 	echo('\tr::module const* ',
 		env.indexnameparts[#env.indexnameparts], '[] = {\n')
 	for i, part in ipairs(env.luaparts) do

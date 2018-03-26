@@ -292,3 +292,5 @@ end
 _G.unpack = nil
 _G.io = nil
 package.loaded['io'] = nil
+_G.os = nil
+package.loaded['os'] = nil

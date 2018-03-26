@@ -12,6 +12,7 @@ currenttarget = currenttarget or 'all'
 
 local ffi = require('ffi')
 
+-- sort out build configurations
 local platform = {
 	['win32'] = true,
 	['win64'] = true,
@@ -62,6 +63,7 @@ local outputdir = 'output/bin-l-' .. platform .. '-' .. configuration.tag
 currenttarget = string.gsub(currenttarget, '$b', builddir)
 currenttarget = string.gsub(currenttarget, '$o', outputdir)
 
+-- define build steps neccesary to obtain various intermediate and output files
 local function build_clean(entry)
 	for i, dep in ipairs(entry.directories) do
 		print('rmdir', dep)
@@ -80,13 +82,25 @@ local function build_reflect(entry)
 		env.makepath(entry.target) and
 		env.lua{
 			vars = {
-				targetpath = builddir .. '/',
-				indexpath = entry.target,
+				builddir = builddir .. '/',
+			},
+			script = 'hppbind.lua',
+			args = {entry.source},
+		}
+end
+
+local function build_rindex(entry)
+	print('rindex', entry.target)
+	return
+		env.makepath(entry.target) and
+		env.lua{
+			vars = {
+				targetpath = entry.target,
 				indexname = entry.indexname,
 				prolog = entry.prolog and table.concat(entry.prolog, ';'),
 				epilog = entry.epilog and table.concat(entry.epilog, ';'),
 			},
-			script = 'hppbind.lua',
+			script = 'hppindex.lua',
 			args = entry.items,
 		}
 end
@@ -134,9 +148,11 @@ local function build_copy(entry)
 	return env.copy(entry.source, entry.target)
 end
 
+-- construct the build graph
 local targets = {}
 
-local reflect_items = {}
+-- special reflection nodes for native binaries
+local rindex_items = {}
 for i, rec in ipairs{
 	{
 		target = 'client-main',
@@ -155,9 +171,10 @@ for i, rec in ipairs{
 		target = 'renderer-gles',
 		indexname = 'graphics::rindex'},
 } do
-	reflect_items[rec.target] = {}
+	rindex_items[rec.target] = {}
 	local rindexdeps = {
-		'reflection.hpp'}
+		'reflection.hpp',
+		'common.hpp'}
 	if rec.prolog then
 		for i, entry in ipairs(rec.prolog) do
 			table.append(targets, {
@@ -177,25 +194,13 @@ for i, rec in ipairs{
 		end
 	end
 	table.append(targets, {
-		build = build_reflect,
-		target = builddir .. '/' .. rec.target .. '/rindex',
-		items = reflect_items[rec.target],
+		build = build_rindex,
+		target = builddir .. '/' .. rec.target .. '/rindex.cpp',
+		items = rindex_items[rec.target],
 		indexname = rec.indexname,
 		prolog = rec.prolog,
 		epilog = rec.epilog,
 		dependencies = rindexdeps,
-	})
-	table.append(targets, {
-		target = builddir .. '/' .. rec.target .. '/rindex.cpp',
-		dependencies = {
-			builddir .. '/' .. rec.target .. '/rindex',
-		},
-	})
-	table.append(targets, {
-		target = builddir .. '/' .. rec.target .. '/rindex.hpp',
-		dependencies = {
-			builddir .. '/' .. rec.target .. '/rindex',
-		},
 	})
 	table.append(targets, {
 		target = rec.target .. '/rindex.cpp',
@@ -205,9 +210,8 @@ for i, rec in ipairs{
 	})
 	table.append(targets, {
 		target = rec.target .. '/rindex.hpp',
-		dependencies = {
-			builddir .. '/' .. rec.target .. '/rindex.hpp',
-		},
+		issource = true,
+		autodep = 'native',
 	})
 	table.append(targets, {
 		build = build_cpp,
@@ -216,6 +220,7 @@ for i, rec in ipairs{
 	})
 end
 
+-- nodes for binaries themselves
 local target_items = {
 	['client-main'] = {
 		builddir .. '/client-main/rindex.o',
@@ -243,6 +248,7 @@ table.append(targets, {
 		outputdir .. '/libFLAC_dynamic.dll',
 	},
 })
+
 table.append(targets, {
 	build = build_dll,
 	target = outputdir .. '/renderer-d3d9.dll',
@@ -253,6 +259,7 @@ table.append(targets, {
 		'd3dx9',
 	},
 })
+
 table.append(targets, {
 	build = build_dll,
 	target = outputdir .. '/renderer-gles.dll',
@@ -267,6 +274,8 @@ table.append(targets, {
 		outputdir .. '/libGLESv2.dll',
 	},
 })
+
+-- nodes for third-party libraries
 for i, name in ipairs{
 	'libEGL',
 	'libGLESv2',
@@ -283,6 +292,7 @@ for i, name in ipairs{
 	})
 end
 
+-- special nodes
 table.append(targets, {
 	target = 'all',
 	dependencies = {
@@ -308,20 +318,21 @@ table.append(targets, {
 	},
 })
 
+-- fill the graph with the source file nodes, based on 'build-sources'
 for i, unit in ipairs(sources) do
 	if unit.type == 'native' then
 		if not unit.noheader then
 			table.append(targets, {
 				target = unit.name .. '.hpp',
 				issource = true,
-				autodep = true,
+				autodep = 'native',
 			})
 		end
 		if not unit.headeronly then
 			table.append(targets, {
 				target = unit.name .. '.cpp',
 				issource = true,
-				autodep = true,
+				autodep = 'native',
 			})
 			table.append(targets, {
 				build = build_cpp,
@@ -334,17 +345,18 @@ for i, unit in ipairs(sources) do
 				builddir .. '/' .. unit.name .. '.o')
 		end
 		if unit.target and unit.reflect then
-			table.append(reflect_items[unit.target], unit.name .. '.hpp')
+			table.append(targets, {
+				build = build_reflect,
+				target = builddir .. '/' .. unit.name .. '.r',
+				source = unit.name .. '.hpp',
+				autodep = 'reflection',
+			})
+			table.append(rindex_items[unit.target],
+				builddir .. '/' .. unit.name .. '.r')
 			table.append(targets, {
 				target = builddir .. '/' .. unit.name .. '.r.cpp',
 				dependencies = {
-					builddir .. '/' .. unit.target .. '/rindex',
-				},
-			})
-			table.append(targets, {
-				target = unit.name .. '.r.cpp',
-				dependencies = {
-					builddir .. '/' .. unit.name .. '.r.cpp',
+					builddir .. '/' .. unit.name .. '.r',
 				},
 			})
 			table.append(targets, {
@@ -358,55 +370,56 @@ for i, unit in ipairs(sources) do
 	end
 end
 
+-- provide the name-to-node mapping
 for i, entry in ipairs(targets) do
 	targets[entry.target] = entry
 end
 
--- fill dependencies
+-- fill the node dependency edges
 for i, entry in ipairs(targets) do
 	if not entry.dependencies then
 		entry.dependencies = {}
 	end
+	-- compile-type nodes link to their sources
 	if entry.source then
 		table.append(entry.dependencies, entry.source)
-	end
-	if entry.objects then
-		for i, obj in ipairs(entry.objects) do
-			table.append(entry.dependencies, object)
-		end
 	end
 	if entry.items then
 		for i, item in ipairs(entry.items) do
 			table.append(entry.dependencies, item)
 		end
 	end
-	if entry.autodep then
-		-- print(
-		local f, err = io.open(env.path(entry.target), 'r')
-		if f then
-			for line in f:lines() do
-				local fn = string.match(line, '#%s*include%s*<(.*)>')
-				if fn and targets[fn] then
-					table.append(entry.dependencies, fn)
+	-- source-type nodes link to their #includes
+	if entry.autodep == 'native' then
+		local file = io.open(env.path(entry.target), 'r')
+		if file then
+			for line in file:lines() do
+				local target = string.match(line, '#%s*include%s*<(.*)>')
+				if target and targets[target] then
+					table.append(entry.dependencies, target)
 				end
 			end
+			file:close()
+		end
+	elseif entry.autodep == 'reflection' then
+		local file = io.open(env.path(entry.source), 'r')
+		if file then
+			for line in file:lines() do
+				local target = string.match(line, '#%s*include%s*<(.*)>')
+				if target then
+					local modulename = string.match(target, '^(.*)%.') or target
+					local rpath = builddir .. '/' .. modulename .. '.r'
+					if targets[rpath] then
+						table.append(entry.dependencies, rpath)
+					end
+				end
+			end
+			file:close()
 		end
 	end
 end
 
--- add backward links to the dependency graph
--- do
-	-- for i, entry in ipairs(targets) do
-		-- entry.follows = {}
-	-- end
-	-- for i, entry in ipairs(targets) do
-		-- for i, dep in ipairs(entry.dependencies) do
-			-- table.append(targets[dep].follows, entry.target)
-		-- end
-	-- end
--- end
-
--- sort targets according to dependencies
+-- sort the list, so that dependent nodes are placed after their dependencies
 do
 	local function preceding(entry)
 		local r = {}
@@ -427,12 +440,13 @@ do
 		end
 		error('cannot resolve dependency graph')
 	end
+	for i, entry in ipairs(targets) do
+		targets[entry.target] = entry
+	end
 end
 
-for i, entry in ipairs(targets) do
-	targets[entry.target] = entry
-end
-
+-- for debugging purposes, it is possible to print out the full graph
+-- without building anything
 if _G.printgraph then
 	for i, entry in ipairs(targets) do
 		print(entry.target .. ':')
@@ -443,11 +457,8 @@ if _G.printgraph then
 	return
 end
 
-if currenttarget == 'none' then
-	return
-end
-
--- mark the targets to build
+-- starting with the final target,
+-- propagate the 'is needed' mark backwards through the graph
 do
 	local next = {targets[currenttarget]}
 	if not next[1] then
@@ -503,7 +514,8 @@ local function savebuildstate()
 	f:close()
 end
 
--- detect changes and propagate them through the graph
+-- starting with changed source files,
+-- propagate the 'is changed' mark forward through the graph
 for i, entry in ipairs(targets) do
 	if entry.issource then
 		local time = env.getfiletime(entry.target)
@@ -513,13 +525,13 @@ for i, entry in ipairs(targets) do
 		then
 			print('changed:', entry.target)
 			buildstate.updatemap[entry.target] = true
+			buildstate.timemap[entry.target] = time
 		end
 	end
 	if entry.alwaysbuild or entry.target == currenttarget then
 		buildstate.updatemap[entry.target] = true
 	end
 	for j, dep in ipairs(entry.dependencies) do
-		local depentry = targets[dep]
 		if buildstate.updatemap[dep] then
 			buildstate.updatemap[entry.target] = true
 			break
@@ -529,23 +541,20 @@ end
 
 savebuildstate()
 
--- build marked targets
-do
-	for i, entry in ipairs(targets) do
-		if entry.marked then
-			if (buildstate.updatemap[entry.target] or entry.alwaysbuild) and
-				entry.build
-			then
-				if not entry:build() then
-					print('build failed', entry.target)
-					break
-				end
-			end
-			if not _G.dryrun then
-				buildstate.updatemap[entry.target] = nil
+-- build nodes that are marked as both 'needed' and 'changed'
+for i, entry in ipairs(targets) do
+	if entry.marked then
+		if (buildstate.updatemap[entry.target] or entry.alwaysbuild) and
+			entry.build
+		then
+			if not entry:build() then
+				print('build failed', entry.target)
+				break
 			end
 		end
-		buildstate.timemap[entry.target] = env.getfiletime(entry.target)
+		if not _G.dryrun then
+			buildstate.updatemap[entry.target] = nil
+			savebuildstate()
+		end
 	end
 end
-savebuildstate()
