@@ -1,7 +1,6 @@
 #pragma once
 
 #include <rsbin/memoryio.hpp>
-#include <common/string.hpp>
 #include <common/ref.hpp>
 #include <common/refobject.hpp>
 #include <common/databuffer.hpp>
@@ -21,7 +20,7 @@ namespace rsbin
 		FLAC__StreamEncoder* m_encoder;
 		Ref< MemoryIo > m_target;
 		uint64_t m_targetpos;
-		String m_error;
+		std::string m_error;
 
 		static FLAC__StreamEncoderWriteStatus write_callback(
 			const FLAC__StreamEncoder* encoder,
@@ -48,8 +47,8 @@ namespace rsbin
 		{
 			return new FlacWriter( bitdepth, channels, samplerate, data );
 		}
-		R_METHOD() bool isfinished() NOEXCEPT { return true; }
-		R_METHOD() MemoryIo* getbuffer() NOEXCEPT
+		R_METHOD() bool isfinished() noexcept { return true; }
+		R_METHOD() MemoryIo* getbuffer() noexcept
 		{
 			::addref( m_target );
 			return m_target;

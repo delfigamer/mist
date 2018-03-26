@@ -1,7 +1,6 @@
 #pragma once
 
 #include <rsbin/memoryio.hpp>
-#include <common/string.hpp>
 #include <common/databuffer.hpp>
 #include <common/ref.hpp>
 #include <common/refobject.hpp>
@@ -22,7 +21,7 @@ namespace rsbin
 		uint64_t m_sourcepos;
 		Ref< DataBuffer > m_target;
 		size_t m_totalsamples;
-		String m_error;
+		std::string m_error;
 
 		static void error_callback(
 			const FLAC__StreamDecoder* decoder,
@@ -56,14 +55,14 @@ namespace rsbin
 		{
 			return new FlacReader( source );
 		}
-		R_METHOD() int getbitdepth() NOEXCEPT { return m_bitdepth; }
-		R_METHOD() int getchannels() NOEXCEPT { return m_channels; }
-		R_METHOD() int getsamplerate() NOEXCEPT { return m_samplerate; }
-		R_METHOD() DataBuffer* getdata() NOEXCEPT
+		R_METHOD() int getbitdepth() noexcept { return m_bitdepth; }
+		R_METHOD() int getchannels() noexcept { return m_channels; }
+		R_METHOD() int getsamplerate() noexcept { return m_samplerate; }
+		R_METHOD() DataBuffer* getdata() noexcept
 		{
 			::addref( m_target );
 			return m_target;
 		}
-		R_METHOD() bool isfinished() NOEXCEPT { return true; }
+		R_METHOD() bool isfinished() noexcept { return true; }
 	};
 }

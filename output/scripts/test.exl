@@ -1,18 +1,27 @@
-const addto = function[inout a: number, b: number]
+unit test
+
+function addto[inout a: number, b: number]
 	local c = a + b
 	a = c
 end
-const subtractfrom = function[inout a: number, b: number]
+
+function addto[inout a: string, b: string]
+	local c = a .. b
+	a = c
+end
+
+--[[function subtractfrom[inout a: number, b: number]
 	a = a - b
 end
-const fff = function[: number, : string]: number
-end
+
+function fff[: number, : string]: number
+end]]
 
 const ca = 10
 local na = ca
 local nb = (na + 20)
 local ia = 0
-
+--[[
 if ca then
 	local ia = 1
 	nb += ia
@@ -23,5 +32,6 @@ else
 	local ia = 3
 	nb += ia
 end
+]]
 
 end

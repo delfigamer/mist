@@ -122,7 +122,7 @@ namespace rsbin
 			FLAC__StreamEncoderState state =
 				FLAC__stream_encoder_get_state( m_encoder );
 			FLAC__stream_encoder_delete( m_encoder );
-			if( m_error )
+			if( !m_error.empty() )
 			{
 				throw StrException( m_error );
 			}
@@ -135,7 +135,7 @@ namespace rsbin
 		else if( status != FLAC__STREAM_ENCODER_INIT_STATUS_OK )
 		{
 			FLAC__stream_encoder_delete( m_encoder );
-			if( m_error )
+			if( !m_error.empty() )
 			{
 				throw StrException( m_error );
 			}
@@ -147,7 +147,8 @@ namespace rsbin
 		}
 		bool success = FLAC__stream_encoder_process_interleaved(
 			m_encoder,
-			( int32_t* )m_data->m_data, unsigned( m_data->m_length / ( 4 * m_channels ) ) );
+			( int32_t* )m_data->m_data,
+			unsigned( m_data->m_length / ( 4 * m_channels ) ) );
 		if( success )
 		{
 			success = FLAC__stream_encoder_finish( m_encoder );
@@ -157,7 +158,7 @@ namespace rsbin
 			FLAC__StreamEncoderState state =
 				FLAC__stream_encoder_get_state( m_encoder );
 			FLAC__stream_encoder_delete( m_encoder );
-			if( m_error )
+			if( !m_error.empty() )
 			{
 				throw StrException( m_error );
 			}

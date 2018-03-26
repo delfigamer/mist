@@ -1,16 +1,14 @@
 #pragma once
 
 #include <common/strexception.hpp>
-#include <common/string.hpp>
 #include <common.hpp>
-#include <windows.h>
 #include <cmath>
 
 namespace graphics
 {
 	namespace
 	{
-		uint32_t argb8( float const* f )
+		[[maybe_unused]] uint32_t argb8( float const* f )
 		{
 			float mf[ 4 ];
 			for( int i = 0; i < 4; ++i )
@@ -24,7 +22,7 @@ namespace graphics
 			return ai << 24 | ri << 16 | gi << 8 | bi;
 		}
 
-		size_t p2align( size_t x )
+		[[maybe_unused]] size_t p2align( size_t x )
 		{
 			if( x == 0 )
 			{

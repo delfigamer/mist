@@ -1,6 +1,8 @@
 path = {
+-- {name, target}
 	{'assetsources', _PATH .. '../assetsources'},
 	{'build', _PATH .. '../build'},
+	{'scripts', _PATH .. 'scripts'},
 }
 index = 'index-test'
 windowsize={1280, 720}

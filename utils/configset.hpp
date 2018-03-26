@@ -1,8 +1,10 @@
 #pragma once
 
-#include <common/string.hpp>
+#include <common/databuffer.hpp>
+#include <common/ref.hpp>
 #include <common.hpp>
 #include <lua/lua.hpp>
+#include <string>
 
 namespace utils
 {
@@ -10,8 +12,7 @@ namespace utils
 
 	extern ConfClass* MainConf;
 
-	R_CLASS( name = mainconf )
-	class ConfClass
+	class [[ r::class, r::name( "mainconf" ) ]] ConfClass
 	{
 	private:
 		lua_State* m_lstate;
@@ -22,44 +23,49 @@ namespace utils
 		ConfClass( ConfClass const& ) = delete;
 		ConfClass& operator=( ConfClass const& ) = delete;
 
-		bool binteger( char const* expr, ptrdiff_t* result );
-		bool bnumber( char const* expr, double* result );
-		bool bstring( char const* expr, String* result );
-		bool bboolean( char const* expr, bool* result );
-		bool stringbuf( char const* expr, char* buffer, size_t* length );
-		ptrdiff_t integer( char const* expr, ptrdiff_t def );
-		double number( char const* expr, double def );
-		String string( char const* expr, String const& def );
-		bool boolean( char const* expr, bool result );
+		bool binteger( char const* expr, int& result );
+		bool bnumber( char const* expr, double& result );
+		bool bdata( char const* expr, Ref< DataBuffer >& result );
+		bool bstring( char const* expr, std::string& result );
+		bool bboolean( char const* expr, bool& result );
+		bool stringbuf( char const* expr, char* buffer, size_t& length );
+		int integer( char const* expr, int def = 0 );
+		double number( char const* expr, double def = 0 );
+		Ref< DataBuffer > data( char const* expr );
+		std::string string( char const* expr, std::string const& def = {} );
+		bool boolean( char const* expr, bool def = false );
 		void runcmd( char const* expr );
 
-		R_METHOD() static bool linteger(
-			char const* expr, ptrdiff_t* value )
+		[[ r::method ]] static bool linteger(
+			char const* expr [[ r::required ]], int* value [[ r::required ]] )
 		{
-			return MainConf->binteger( expr, value );
+			return MainConf->binteger( expr, *value );
 		}
-		R_METHOD() static bool lnumber(
-			char const* expr, double* value )
+
+		[[ r::method ]] static bool lnumber(
+			char const* expr [[ r::required ]], double* value [[ r::required ]] )
 		{
-			return MainConf->bnumber( expr, value );
+			return MainConf->bnumber( expr, *value );
 		}
-		R_METHOD() static bool lstringbuf(
-			char const* expr, char* buffer, size_t* length )
+
+		[[ r::method ]] static bool lstringbuf(
+			char const* expr [[ r::required ]],
+			char* buffer, size_t* length [[ r::required ]] )
 		{
-			return MainConf->stringbuf( expr, buffer, length );
+			return MainConf->stringbuf( expr, buffer, *length );
 		}
-		R_METHOD() static bool lboolean(
-			char const* expr, bool* value )
+
+		[[ r::method ]] static bool lboolean(
+			char const* expr [[ r::required ]], bool* value [[ r::required ]] )
 		{
-			return MainConf->bboolean( expr, value );
+			return MainConf->bboolean( expr, *value );
 		}
 	};
 }
 
-/*
-R_EMIT( target = lua_beforemetatypes )
-function mainconf:integer(expr, def)
-	local value = ffi.new('ptrdiff_t[1]')
+r_emit(<<
+function utils_mainconf:integer(expr, def)
+	local value = ffi.new('int[1]')
 	if self:linteger(expr, value) then
 		return value[0]
 	else
@@ -67,7 +73,7 @@ function mainconf:integer(expr, def)
 	end
 end
 
-function mainconf:number(expr, def)
+function utils_mainconf:number(expr, def)
 	local value = ffi.new('double[1]')
 	if self:lnumber(expr, value) then
 		return value[0]
@@ -77,16 +83,16 @@ function mainconf:number(expr, def)
 end
 
 do
-	local buffer = ffi.new('char[256]')
+	local buffer = ffi.new('char[1024]')
 	local length = ffi.new('size_t[1]')
-	function mainconf:string(expr, def)
-		length[0] = 256
+	function utils_mainconf:string(expr, def)
+		length[0] = 1024
 		local result = self:lstringbuf(expr, buffer, length)
 		if not result then
 			return def
 		end
 		local clen = tonumber(length[0])
-		if clen > 256 then
+		if clen > 1024 then
 			local largebuffer = ffi.new('char[?]', clen)
 			self:lstringbuf(expr, largebuffer, length)
 			return ffi.string(largebuffer, clen)
@@ -96,7 +102,7 @@ do
 	end
 end
 
-function mainconf:boolean(expr, def)
+function utils_mainconf:boolean(expr, def)
 	local value = ffi.new('bool[1]')
 	if self:lboolean(expr, value) then
 		return value[0]
@@ -104,5 +110,4 @@ function mainconf:boolean(expr, def)
 		return def
 	end
 end
-R_END()
-*/
+>>)

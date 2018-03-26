@@ -1,7 +1,6 @@
 #pragma once
 
 #include <rsbin/pngcommon.hpp>
-#include <common/string.hpp>
 #include <utils/cyclicbuffer.hpp>
 #include <common/ref.hpp>
 #include <common/refobject.hpp>
@@ -26,7 +25,7 @@ namespace rsbin
 		utils::CyclicBuffer m_buffer;
 		png_structp m_png;
 		png_infop m_info;
-		String m_error;
+		std::string m_error;
 		jmp_buf m_jmpbuf;
 
 		static void error_handler(

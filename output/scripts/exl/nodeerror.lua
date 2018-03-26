@@ -1,8 +1,0 @@
-local modname = ...
-local exlerror = require(modname, 1, 'exlerror')
-local nodeerror = exlerror:module(modname)
-
-function nodeerror:init(message, node)
-	exlerror.init(self, message, node.spos, node.epos, node.filename)
-end
-

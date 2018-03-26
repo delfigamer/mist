@@ -445,44 +445,34 @@ namespace utils
 
 	namespace encoding
 	{
-		encoding_t const utf8( &utf8_encode, &utf8_decode );
-		encoding_t const utf16( &utf16_encode, &utf16_decode );
-		encoding_t const utf32( &utf32_encode, &utf32_decode );
+		encoding_t const utf8{ &utf8_encode, &utf8_decode };
+		encoding_t const utf16{ &utf16_encode, &utf16_decode };
+		encoding_t const utf32{ &utf32_encode, &utf32_decode };
 #if defined( _WIN32 ) || defined( _WIN64 )
-		encoding_t const utf16le( &utf16_encode, &utf16_decode );
-		encoding_t const utf32le( &utf32_encode, &utf32_decode );
+		encoding_t const utf16le{ &utf16_encode, &utf16_decode };
+		encoding_t const utf32le{ &utf32_encode, &utf32_decode };
 #else
-		encoding_t const utf16le(
-			&utf16xe_encode< 0, 1 >, &utf16xe_decode< 0, 1 > );
-		encoding_t const utf32le(
-			&utf32xe_encode< 0, 1, 2, 3 >, &utf32xe_decode< 0, 1, 2, 3 > );
+		encoding_t const utf16le{
+			&utf16xe_encode< 0, 1 >, &utf16xe_decode< 0, 1 > };
+		encoding_t const utf32le{
+			&utf32xe_encode< 0, 1, 2, 3 >, &utf32xe_decode< 0, 1, 2, 3 > };
 #endif
-		encoding_t const utf16be(
-			&utf16xe_encode< 1, 0 >, &utf16xe_decode< 1, 0 > );
-		encoding_t const utf32be(
-			&utf32xe_encode< 3, 2, 1, 0 >, &utf32xe_decode< 3, 2, 1, 0 > );
+		encoding_t const utf16be{
+			&utf16xe_encode< 1, 0 >, &utf16xe_decode< 1, 0 > };
+		encoding_t const utf32be{
+			&utf32xe_encode< 3, 2, 1, 0 >, &utf32xe_decode< 3, 2, 1, 0 > };
 	}
-
-	static encoding_t const* encoding_table[] =
-	{
-		&encoding::utf8,
-		&encoding::utf16,
-		&encoding::utf32,
-		&encoding::utf16le,
-		&encoding::utf16be,
-		&encoding::utf32le,
-		&encoding::utf32be,
-	};
 
 	enum
 	{
 		sourcesize_zterm = size_t( -1 ),
 	};
 
-	translateresult translatestr( translation_t* translation )
+	translateresult translatestr(
+		encoding_t const* senc,
+		encoding_t const* denc,
+		translation_t* translation )
 	{
-		encoding_t const* senc = translation->senc;
-		encoding_t const* denc = translation->denc;
 		uint8_t const* source = ( uint8_t const* )translation->source;
 		uint8_t* dest = ( uint8_t* )translation->dest;
 		size_t sourcesize = translation->sourcesize;
@@ -566,20 +556,18 @@ namespace utils
 		void const* source, size_t sourcesize )
 	{
 		translation_t translation = {
-			senc,
-			denc,
 			source,
 			0,
 			sourcesize,
 			0,
 			0xfffd,
 		};
-		translatestr( &translation );
+		translatestr( senc, denc, &translation );
 		Ref< DataBuffer > db = DataBuffer::create( translation.destresult );
 		translation.dest = db->m_data;
 		translation.sourcesize = translation.sourceresult;
 		translation.destsize = db->m_capacity;
-		utils::translatestr( &translation );
+		utils::translatestr( senc, denc, &translation );
 		return db;
 	}
 
@@ -587,35 +575,5 @@ namespace utils
 		encoding_t const* senc, encoding_t const* denc, DataBuffer* source )
 	{
 		return translatebuffer( senc, denc, source->m_data, source->m_length );
-	}
-
-	Ref< DataBuffer > translatestring(
-		encoding_t const* denc, String const& source )
-	{
-		if( source )
-		{
-			return translatebuffer( &encoding::utf8, denc, source.m_payload );
-		}
-		else
-		{
-			return translatebuffer( &encoding::utf8, denc, "", 1 );
-		}
-	}
-
-	encoding_t const* Encoding::getencoding( int index )
-	{
-		if(
-			index < 0
-			|| index >= int(
-				sizeof( encoding_table ) / sizeof( encoding_table[ 0 ] ) ) )
-		{
-			throw std::runtime_error( "invalid encoding index" );
-		}
-		return encoding_table[ index ];
-	}
-
-	translateresult Encoding::translatestr( translation_t* translation )
-	{
-		return ::utils::translatestr( translation );
 	}
 }

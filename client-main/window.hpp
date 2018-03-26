@@ -24,7 +24,7 @@
 
 namespace graphics
 {
-	class Shape;
+	class [[ r::external, r::name( "shape" ) ]] Shape;
 	class Display;
 }
 
@@ -39,8 +39,7 @@ namespace window
 #endif
 	};
 
-	R_CLASS( name = window )
-	class Window
+	class [[ r::class, r::name( "window" ) ]] Window
 	{
 #if defined( _WIN32 ) || defined( _WIN64 )
 	private:
@@ -127,7 +126,7 @@ namespace window
 		~Window();
 
 		int mainloop();
-		R_METHOD() void setshape( graphics::Shape* nv );
-		R_METHOD() bool popevent( Event* event );
+		[[ r::method ]] void setshape( graphics::Shape* nv );
+		[[ r::method ]] bool popevent( Event* event [[ r::required ]] );
 	};
 }

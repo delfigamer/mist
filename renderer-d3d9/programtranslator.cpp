@@ -190,8 +190,7 @@ namespace graphics
 		StringBuilder makeshaders_vsh(
 			TranslatorState* ts )
 		{
-			StringBuilder vsh;
-			vsh <<
+			StringBuilder vsh =
 				"// built from a mistsh bytecode\n"_db
 				"float4x4 worldviewmatrix:register(c0);\n"_db
 				"struct varyings_t{\n"_db;
@@ -199,20 +198,20 @@ namespace graphics
 			{
 				if( ts->m_attributeused[ i ] )
 				{
-					vsh << attributevarstructstr[ i ];
+					vsh += attributevarstructstr[ i ];
 				}
 			}
-			vsh <<
+			vsh +=
 				"};\n"_db
 				"struct attributes_t{\n"_db;
 			for( int i = 0; i < 8; ++i )
 			{
 				if( ts->m_attributeused[ i ] )
 				{
-					vsh << attributeattrstructstr[ i ];
+					vsh += attributeattrstructstr[ i ];
 				}
 			}
-			vsh <<
+			vsh +=
 				"};\n"_db
 				"float4 main("_db
 					"in attributes_t attrs,out varyings_t vars):POSITION{\n"_db;
@@ -220,10 +219,10 @@ namespace graphics
 			{
 				if( ts->m_attributeused[ i ] )
 				{
-					vsh << attributeassignstr[ i ];
+					vsh += attributeassignstr[ i ];
 				}
 			}
-			vsh <<
+			vsh +=
 				"return mul(worldviewmatrix,attrs.a0);\n"_db
 				"}\n"_db;
 			return vsh;
@@ -233,31 +232,30 @@ namespace graphics
 			TranslatorState* ts,
 			Ref< Value > const& value )
 		{
-			StringBuilder fsh;
-			fsh <<
+			StringBuilder fsh =
 				"// built from a mistsh bytecode\n"_db
 				"struct varyings_t{\n"_db;
 			for( int i = 0; i < 8; ++i )
 			{
 				if( ts->m_attributeused[ i ] )
 				{
-					fsh << attributevarstructstr[ i ];
+					fsh += attributevarstructstr[ i ];
 				}
 			}
-			fsh << "};\n"_db;
+			fsh += "};\n"_db;
 			for( int i = 0; i < 8; ++i )
 			{
 				if( ts->m_textureused[ i ] )
 				{
-					fsh << texturedefstr[ i ];
+					fsh += texturedefstr[ i ];
 				}
 			}
-			fsh << "float4 main(in varyings_t attrs):COLOR0{\n"_db;
+			fsh += "float4 main(in varyings_t attrs):COLOR0{\n"_db;
 			StringBuilder vdefs;
 			StringBuilder vstr = value->getstring( &vdefs );
-			fsh
-				<< vdefs
-				<< "return "_db << vstr << ";\n"_db
+			fsh +=
+				vdefs +
+				"return "_db + vstr + ";\n"_db
 				"}\n"_db;
 			return fsh;
 		}

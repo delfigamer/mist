@@ -1,18 +1,21 @@
 local modname = 'host'
 local host = package.modtable(modname)
-local cbase = require('host.cbase')
 local ffi = require('ffi')
-local fileio = require('host.fileio')
-local fileopenmode = require('host.fileopenmode')
-local rsbin = require('host.rsbin')
+local object = require('base.object')
+local filestorage = require('rsbin.filestorage')
+local fileopenmode = require('rsbin.fileopenmode')
+local isfileavailable = require('rsbin.isfileavailable')
+local write = require('utils.write')
+local getchar = require('utils.getchar')
+local yield = require('utils.yield')
 
-function host.write(str)
-	cbase:write(str)
+function host.write(...)
+	return write(...)
 end
 
 local getchar_buffer = ffi.new('char[5]')
 function host.getchar()
-	cbase:getchar(getchar_buffer)
+	getchar(getchar_buffer)
 	return ffi.string(getchar_buffer)
 end
 
@@ -25,7 +28,7 @@ local function tabconcat(...)
 end
 
 function _G.print(...)
-	cbase:write(tabconcat(...) .. '\n')
+	write(tabconcat(...) .. '\n')
 end
 
 function package.searchpath(modname, template)
@@ -33,7 +36,7 @@ function package.searchpath(modname, template)
 	local errstr = {}
 	for dir in string.gmatch(template, '[^;]+') do
 		local path = string.gsub(dir, '%?', modname)
-		if rsbin:isfileavailable(path) then
+		if isfileavailable(path) then
 			return path
 		else
 			table.append(errstr, '\n\tno file \'')
@@ -44,27 +47,26 @@ function package.searchpath(modname, template)
 	return nil, table.concat(errstr)
 end
 
-local buffer = ffi.new('char[0x1000]')
-
-local function file_loader(io)
-	local offset = 0ULL
+local function storage_loader(storage)
+	local offset = 0ull
 	return function()
-		local task = io:startread(offset, 0x1000, buffer, true)
-		while not task:isfinished() do
-			cbase:yield()
+		local mptr = ffi.new('uint8_t*[1]')
+		local mlen = ffi.new('unsigned[1]')
+		local task = storage:startmap(offset, -1, true, false)
+		if not task then
+			return
 		end
-		local result = task:getresult()
-		if result == 0 then
-			local err = task:geterror()
-			if err then
-				error(err)
-			else
-				return
-			end
-		else
-			offset = offset + result
-			return ffi.string(buffer, result)
+		while not task:poll() do
+			yield()
 		end
+		task:getmap(mptr, mlen)
+		if mptr[0] == nil or mlen[0] == 0 then
+			return
+		end
+		offset = offset + mlen[0]
+		local part = ffi.string(mptr[0], mlen[0])
+		task:release()
+		return part
 	end
 end
 
@@ -77,11 +79,12 @@ package.loaders[2] = function(modname)
 	if not path then
 		return perr
 	end
-	local iosuc, ioret = pcall(fileio.create, fileio, path, fileopenmode.read)
+	local iosuc, ioret = pcall(filestorage.create,
+		filestorage, path, fileopenmode.read)
 	if not iosuc then
 		return ioret
 	end
-	local chunk, err = load(file_loader(ioret), path, 'bt', env)
+	local chunk, err = load(storage_loader(ioret), path, 'bt', _G)
 	ioret:release()
 	if chunk then
 		return chunk

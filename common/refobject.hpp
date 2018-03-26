@@ -3,70 +3,72 @@
 #include <common.hpp>
 #include <atomic>
 
-R_CLASS( name = refobject )
-class RefObject
+class [[ r::class, r::name( "refobject" ) ]] RefObject
 {
 private:
 	mutable std::atomic< ptrdiff_t > m_refcount;
 
-public:
-	ptrdiff_t AddRef() const NOEXCEPT;
-	ptrdiff_t Release() const NOEXCEPT;
-	ptrdiff_t refcount() const NOEXCEPT;
-	R_METHOD( name = addref, noluamethod ) void vaddref() const NOEXCEPT
-	{
-		AddRef();
-	}
-	R_METHOD( name = release, noluamethod ) void vrelease() const NOEXCEPT
-	{
-		Release();
-	}
-	RefObject() NOEXCEPT;
-	RefObject( RefObject const& other ) NOEXCEPT;
-	RefObject( RefObject&& other ) NOEXCEPT;
-	virtual ~RefObject() NOEXCEPT;
+protected:
+	virtual ~RefObject() noexcept;
 	virtual void destroy();
-	RefObject& operator=( RefObject const& other ) NOEXCEPT;
-	RefObject& operator=( RefObject&& other ) NOEXCEPT;
+
+public:
+	void AddRef() const noexcept;
+	void Release() const noexcept;
+	ptrdiff_t refcount() const noexcept;
+	[[ r::method, r::hidden ]] void vaddref() const noexcept;
+	[[ r::method, r::hidden ]] void vrelease() const noexcept;
+	RefObject() noexcept;
+	RefObject( RefObject const& other ) noexcept;
+	RefObject( RefObject&& other ) noexcept;
+	RefObject& operator=( RefObject const& other ) noexcept;
+	RefObject& operator=( RefObject&& other ) noexcept;
 };
 
-inline ptrdiff_t RefObject::AddRef() const NOEXCEPT
+inline void RefObject::AddRef() const noexcept
 {
-	ptrdiff_t rc = m_refcount.fetch_add( 1, std::memory_order_relaxed ) + 1;
-	return rc;
+	m_refcount.fetch_add( 1, std::memory_order_relaxed );
 }
 
-inline ptrdiff_t RefObject::Release() const NOEXCEPT
+inline void RefObject::Release() const noexcept
 {
-	ptrdiff_t rc = m_refcount.fetch_sub( 1, std::memory_order_relaxed ) - 1;
-	if( rc == 0 )
+	if( m_refcount.fetch_sub( 1, std::memory_order_relaxed ) == 1 )
 	{
 		const_cast< RefObject* >( this )->destroy();
 	}
-	return rc;
 }
 
-inline ptrdiff_t RefObject::refcount() const NOEXCEPT
+inline ptrdiff_t RefObject::refcount() const noexcept
 {
 	return m_refcount.load( std::memory_order_relaxed );
 }
 
-inline RefObject::RefObject() NOEXCEPT
+inline void RefObject::vaddref() const noexcept
+{
+	AddRef();
+}
+
+inline void RefObject::vrelease() const noexcept
+{
+	Release();
+}
+
+inline RefObject::RefObject() noexcept
 	: m_refcount( 1 )
 {
 }
 
-inline RefObject::RefObject( RefObject const& other ) NOEXCEPT
+inline RefObject::RefObject( RefObject const& other ) noexcept
 	: m_refcount( 1 )
 {
 }
 
-inline RefObject::RefObject( RefObject&& other ) NOEXCEPT
+inline RefObject::RefObject( RefObject&& other ) noexcept
 	: m_refcount( 1 )
 {
 }
 
-inline RefObject::~RefObject() NOEXCEPT
+inline RefObject::~RefObject() noexcept
 {
 }
 
@@ -75,38 +77,30 @@ inline void RefObject::destroy()
 	delete this;
 }
 
-inline RefObject& RefObject::operator=( RefObject const& other ) NOEXCEPT
+inline RefObject& RefObject::operator=( RefObject const& other ) noexcept
 {
 	return *this;
 }
 
-inline RefObject& RefObject::operator=( RefObject&& other ) NOEXCEPT
+inline RefObject& RefObject::operator=( RefObject&& other ) noexcept
 {
 	return *this;
 }
 
-/*
-R_EMIT( target = lua_beforemethods )
-local function reference_addref(self)
-	if self ~= nil then
-		methodlist.refobject_addref(self)
+r_emit(<<
+	function refobject:cast(other)
+		if other and other.ptr ~= nil then
+			r.refobject_vaddref(other.ptr)
+			return self:new(other.ptr)
+		else
+			return nil
+		end
 	end
-end
 
-function refobject:cast(ro)
-	if ro then
-		reference_addref(ro.ptr)
-		return self:new(ro.ptr)
-	else
-		return nil
+	function refobject:release()
+		if self.ptr ~= nil then
+			r.refobject_vrelease(self.ptr)
+			self.ptr = nil
+		end
 	end
-end
-
-function refobject:release()
-	if self.ptr ~= nil then
-		methodlist.refobject_release(self.ptr)
-		self.ptr = nil
-	end
-end
-R_END()
-*/
+>>)

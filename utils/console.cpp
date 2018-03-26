@@ -26,15 +26,14 @@ namespace utils
 				wchar_t buffer[ 256 ];
 				translation_t trstruct =
 				{
-					&encoding::utf8, // senc
-					&encoding::utf16, // denc
 					str, // source
 					buffer, // dest
 					length, // sourcesize
 					sizeof( buffer ), // destsize
 					0xfffd, // defaultchar
 				};
-				translateresult trresult = utils::translatestr( &trstruct );
+				translateresult trresult = utils::translatestr(
+					&encoding::utf8, &encoding::utf16, &trstruct );
 				DWORD wcresult;
 				if( !WriteConsoleW(
 					( HANDLE )m_outputhandle, buffer, DWORD( trstruct.destresult / 2 ), &wcresult, 0 ) )

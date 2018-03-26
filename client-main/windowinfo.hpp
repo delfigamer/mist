@@ -2,46 +2,22 @@
 
 #include <common.hpp>
 
-struct client_main_methodlist_t;
-
 namespace window
 {
-	class Window;
+	class [[ r::external, r::name( "window" ) ]] Window;
 
-R_STRUCT( name = windowinfo_t )
-	struct WindowInfo
+	struct [[ r::class, r::name( "windowinfo" ) ]] WindowInfo
 	{
-		Window* window;
-		bool acceleratorinput;
-		bool pointinput;
-		bool keyboardinput;
-		bool silent;
-		client_main_methodlist_t const* client_methodlist;
+		[[ r::field, r::const ]] Window* window;
+		[[ r::field, r::const ]] bool acceleratorinput;
+		[[ r::field, r::const ]] bool pointinput;
+		[[ r::field, r::const ]] bool keyboardinput;
+		[[ r::field, r::const ]] bool silent;
 		void const* renderer_methodlist;
 		void const* renderer_module;
-		int width;
-		int height;
-		float texelsoffset;
-		float texeltoffset;
+		[[ r::field, r::const ]] int width;
+		[[ r::field, r::const ]] int height;
+		[[ r::field, r::const ]] float texelsoffset;
+		[[ r::field, r::const ]] float texeltoffset;
 	};
-/*
-R_EMIT( typename =
-	class ::graphics::Shape | void* )
-R_END()
-
-R_EMIT( target = hpp_beforeclasses )
-	namespace graphics {class Shape;}
-R_END()
-
-R_EMIT( target = lua_beforeclasses )
-	local windowinfo = package.loaded['host.info']
-	windowinfo = ffi.cast('struct windowinfo_t const*', windowinfo)
-	package.loaded['host.info'] = windowinfo
-	local methodlist = windowinfo.client_methodlist
-R_END()
-
-R_EMIT( target = lua_end )
-	package.loaded['host.window'] = window:new(windowinfo.window)
-R_END()
-*/
 }

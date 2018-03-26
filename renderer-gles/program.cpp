@@ -3,7 +3,6 @@
 #include <renderer-gles/context.hpp>
 #include <renderer-gles/common.hpp>
 #include <renderer-gles/gl2.hpp>
-#include <common/string.hpp>
 #include <cstring>
 
 namespace graphics

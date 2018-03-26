@@ -50,7 +50,7 @@ else
 	configuration = configuration['debug']
 end
 
-if not not _G.dryrun then
+if _G.dryrun then
 	function env.execute(str)
 		print(str)
 		return true
@@ -59,7 +59,6 @@ end
 
 local builddir = 'build/l-' .. platform .. '-' .. configuration.tag
 local outputdir = 'output/bin-l-' .. platform .. '-' .. configuration.tag
-local luacpath = builddir .. '/luac.exe'
 currenttarget = string.gsub(currenttarget, '$b', builddir)
 currenttarget = string.gsub(currenttarget, '$o', outputdir)
 
@@ -75,49 +74,19 @@ local function build_clean(entry)
 	return true
 end
 
-function env.luac(t)
-	return
-		env.makepath(t.target) and
-		env.execute(env.path(luacpath) .. ' \z
-			"' .. env.path(t.target) .. '" \z
-			"' .. env.path(t.source) ..  '" \z
-			' .. t.flags)
-end
-
-local function build_lua(entry)
-	print('luac', entry.target)
-	return env.luac{
-		target = entry.target,
-		source = entry.source,
-		flags = configuration.debug and '' or 'd',
-	}
-end
-
-local function build_methodlist(entry)
-	print('methodlist', entry.target)
+local function build_reflect(entry)
+	print('reflect', entry.target)
 	return
 		env.makepath(entry.target) and
 		env.lua{
 			vars = {
-				compactffi = not configuration.debug,
-				fileprefix = env.path(entry.target),
-				structname = entry.structname,
+				targetpath = builddir .. '/',
+				indexpath = entry.target,
+				indexname = entry.indexname,
+				prolog = entry.prolog and table.concat(entry.prolog, ';'),
+				epilog = entry.epilog and table.concat(entry.epilog, ';'),
 			},
-			script = 'bind.lua',
-			args = entry.items,
-		}
-end
-
-local function build_luainit(entry)
-	print('luainit', entry.target)
-	return
-		env.makepath(entry.target) and
-		env.lua{
-			vars = {
-				structname = 'luainit',
-				fileprefix = env.path(entry.target),
-			},
-			script = 'embed.lua',
+			script = 'hppbind.lua',
 			args = entry.items,
 		}
 end
@@ -167,197 +136,95 @@ end
 
 local targets = {}
 
-table.append(targets, {
-	target = 'luac.cpp',
-	issource = true,
-	autodep = true,
-})
-table.append(targets, {
-	build = build_cpp,
-	target = builddir .. '/luac.o',
-	source = 'luac.cpp',
-})
-table.append(targets, {
-	build = build_exe,
-	target = luacpath,
-	items = {
-		builddir .. '/luac.o'
-	},
-	libraries = {
-		'luajit-' .. platform,
-	},
-})
-
-local methodlist_items = {
-	['client-main'] = {},
-	['renderer-d3d9'] = {},
-	['renderer-gles'] = {},
-}
-for i, target in ipairs{
-	'client-main',
-	'renderer-d3d9',
-	'renderer-gles',
+local reflect_items = {}
+for i, rec in ipairs{
+	{
+		target = 'client-main',
+		indexname = 'window::rindex',
+		prolog = {
+			'luainit/baselib.lua',
+			'luainit/object.lua',
+			'luainit/ffipure.lua'},
+		epilog = {
+			'luainit/hostlib.lua',
+			'luainit/main.lua'}},
+	{
+		target = 'renderer-d3d9',
+		indexname = 'graphics::rindex'},
+	{
+		target = 'renderer-gles',
+		indexname = 'graphics::rindex'},
 } do
-	local targetname = string.gsub(target, '%-', '_')
+	reflect_items[rec.target] = {}
+	local rindexdeps = {
+		'reflection.hpp'}
+	if rec.prolog then
+		for i, entry in ipairs(rec.prolog) do
+			table.append(targets, {
+				target = entry,
+				issource = true,
+			})
+			table.append(rindexdeps, entry)
+		end
+	end
+	if rec.epilog then
+		for i, entry in ipairs(rec.epilog) do
+			table.append(targets, {
+				target = entry,
+				issource = true,
+			})
+			table.append(rindexdeps, entry)
+		end
+	end
 	table.append(targets, {
-		build = build_methodlist,
-		target = builddir .. '/' .. target .. '/methodlist',
-		items = methodlist_items[target],
-		structname = targetname .. '_methodlist',
+		build = build_reflect,
+		target = builddir .. '/' .. rec.target .. '/rindex',
+		items = reflect_items[rec.target],
+		indexname = rec.indexname,
+		prolog = rec.prolog,
+		epilog = rec.epilog,
+		dependencies = rindexdeps,
 	})
 	table.append(targets, {
-		target = builddir .. '/' .. target .. '/methodlist.cpp',
+		target = builddir .. '/' .. rec.target .. '/rindex.cpp',
 		dependencies = {
-			builddir .. '/' .. target .. '/methodlist',
+			builddir .. '/' .. rec.target .. '/rindex',
 		},
 	})
 	table.append(targets, {
-		target = builddir .. '/' .. target .. '/methodlist.hpp',
+		target = builddir .. '/' .. rec.target .. '/rindex.hpp',
 		dependencies = {
-			builddir .. '/' .. target .. '/methodlist',
+			builddir .. '/' .. rec.target .. '/rindex',
 		},
 	})
 	table.append(targets, {
-		target = target .. '/methodlist.cpp',
+		target = rec.target .. '/rindex.cpp',
 		dependencies = {
-			builddir .. '/' .. target .. '/methodlist.cpp',
+			builddir .. '/' .. rec.target .. '/rindex.cpp',
 		},
 	})
 	table.append(targets, {
-		target = target .. '/methodlist.hpp',
+		target = rec.target .. '/rindex.hpp',
 		dependencies = {
-			builddir .. '/' .. target .. '/methodlist.hpp',
+			builddir .. '/' .. rec.target .. '/rindex.hpp',
 		},
 	})
 	table.append(targets, {
 		build = build_cpp,
-		target = builddir .. '/' .. target .. '/methodlist.o',
-		source = builddir .. '/' .. target .. '/methodlist.cpp',
-	})
-	table.append(targets, {
-		target = builddir .. '/' .. target .. '/methodlist.lua',
-		dependencies = {
-			builddir .. '/' .. target .. '/methodlist',
-		},
-	})
-end
-
-for i, target in ipairs{
-	'client-main',
-} do
-	table.append(targets, {
-		build = build_lua,
-		target = builddir .. '/' .. target .. '/methodlist.lb',
-		source = builddir .. '/' .. target .. '/methodlist.lua',
-		dependencies = {
-			luacpath,
-		},
-	})
-	table.append(targets, {
-		build = build_luainit,
-		target = builddir .. '/' .. target .. '/luainit',
-		items = {
-			builddir .. '/luainit/main.lb',
-			builddir .. '/luainit/baselib.lb',
-			builddir .. '/luainit/object.lb',
-			builddir .. '/luainit/ffipure.lb',
-			builddir .. '/' .. target .. '/methodlist.lb',
-			builddir .. '/luainit/hostlib.lb',
-		},
-	})
-	table.append(targets, {
-		target = builddir .. '/' .. target .. '/luainit.cpp',
-		dependencies = {
-			builddir .. '/' .. target .. '/luainit',
-		},
-	})
-	table.append(targets, {
-		target = builddir .. '/' .. target .. '/luainit.hpp',
-		dependencies = {
-			builddir .. '/' .. target .. '/luainit',
-		},
-	})
-	table.append(targets, {
-		target = target .. '/luainit.cpp',
-		dependencies = {
-			builddir .. '/' .. target .. '/luainit.cpp',
-		},
-	})
-	table.append(targets, {
-		target = target .. '/luainit.hpp',
-		dependencies = {
-			builddir .. '/' .. target .. '/luainit.hpp',
-		},
-	})
-	table.append(targets, {
-		build = build_cpp,
-		target = builddir .. '/' .. target .. '/luainit.o',
-		source = builddir .. '/' .. target .. '/luainit.cpp',
-	})
-end
-
-for i, target in ipairs{
-	'renderer-d3d9',
-	'renderer-gles',
-} do
-	table.append(targets, {
-		build = build_lua,
-		target = builddir .. '/' .. target .. '/methodlist.lb',
-		source = builddir .. '/' .. target .. '/methodlist.lua',
-		dependencies = {
-			luacpath,
-		},
-	})
-	table.append(targets, {
-		build = build_luainit,
-		target = builddir .. '/' .. target .. '/luainit',
-		items = {
-			builddir .. '/' .. target .. '/methodlist.lb',
-		},
-	})
-	table.append(targets, {
-		target = builddir .. '/' .. target .. '/luainit.cpp',
-		dependencies = {
-			builddir .. '/' .. target .. '/luainit',
-		},
-	})
-	table.append(targets, {
-		target = builddir .. '/' .. target .. '/luainit.hpp',
-		dependencies = {
-			builddir .. '/' .. target .. '/luainit',
-		},
-	})
-	table.append(targets, {
-		target = target .. '/luainit.cpp',
-		dependencies = {
-			builddir .. '/' .. target .. '/luainit.cpp',
-		},
-	})
-	table.append(targets, {
-		target = target .. '/luainit.hpp',
-		dependencies = {
-			builddir .. '/' .. target .. '/luainit.hpp',
-		},
-	})
-	table.append(targets, {
-		build = build_cpp,
-		target = builddir .. '/' .. target .. '/luainit.o',
-		source = builddir .. '/' .. target .. '/luainit.cpp',
+		target = builddir .. '/' .. rec.target .. '/rindex.o',
+		source = builddir .. '/' .. rec.target .. '/rindex.cpp',
 	})
 end
 
 local target_items = {
 	['client-main'] = {
-		builddir .. '/client-main/luainit.o',
-		builddir .. '/client-main/methodlist.o',
+		builddir .. '/client-main/rindex.o',
 	},
 	['renderer-d3d9'] = {
-		builddir .. '/renderer-d3d9/luainit.o',
-		builddir .. '/renderer-d3d9/methodlist.o',
+		builddir .. '/renderer-d3d9/rindex.o',
 	},
 	['renderer-gles'] = {
-		builddir .. '/renderer-gles/luainit.o',
-		builddir .. '/renderer-gles/methodlist.o',
+		builddir .. '/renderer-gles/rindex.o',
 	},
 }
 
@@ -462,30 +329,32 @@ for i, unit in ipairs(sources) do
 				source = unit.name .. '.cpp',
 			})
 		end
-		for use in string.gmatch(unit.use, '[^;]+') do
-			if not unit.headeronly then
-				table.append(target_items[use],
-					builddir .. '/' .. unit.name .. '.o')
-			end
+		if unit.target and not unit.headeronly then
+			table.append(target_items[unit.target],
+				builddir .. '/' .. unit.name .. '.o')
 		end
-		if unit.methodlist then
-			for mluse in string.gmatch(unit.methodlist, '[^;]+') do
-				table.append(methodlist_items[mluse], unit.name .. '.hpp')
-			end
+		if unit.target and unit.reflect then
+			table.append(reflect_items[unit.target], unit.name .. '.hpp')
+			table.append(targets, {
+				target = builddir .. '/' .. unit.name .. '.r.cpp',
+				dependencies = {
+					builddir .. '/' .. unit.target .. '/rindex',
+				},
+			})
+			table.append(targets, {
+				target = unit.name .. '.r.cpp',
+				dependencies = {
+					builddir .. '/' .. unit.name .. '.r.cpp',
+				},
+			})
+			table.append(targets, {
+				build = build_cpp,
+				target = builddir .. '/' .. unit.name .. '.r.o',
+				source = builddir .. '/' .. unit.name .. '.r.cpp',
+			})
+			table.append(target_items[unit.target],
+				builddir .. '/' .. unit.name .. '.r.o')
 		end
-	elseif unit.type == 'luainit' then
-		table.append(targets, {
-			target = unit.name .. '.lua',
-			issource = true,
-		})
-		table.append(targets, {
-			build = build_lua,
-			target = builddir .. '/' .. unit.name .. '.lb',
-			source = unit.name .. '.lua',
-			dependencies = {
-				luacpath,
-			},
-		})
 	end
 end
 
@@ -512,6 +381,7 @@ for i, entry in ipairs(targets) do
 		end
 	end
 	if entry.autodep then
+		-- print(
 		local f, err = io.open(env.path(entry.target), 'r')
 		if f then
 			for line in f:lines() do
@@ -570,6 +440,10 @@ if _G.printgraph then
 			print('', dep)
 		end
 	end
+	return
+end
+
+if currenttarget == 'none' then
 	return
 end
 

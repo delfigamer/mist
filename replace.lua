@@ -4,8 +4,7 @@ local path = ...
 assert(path)
 
 local repl = {
-	{'#include <cinttypes>', ''},
-	{'#include <cstdint>', ''},
+	{'NOEXCEPT', 'noexcept'},
 }
 
 env.makepath('build/')
@@ -36,7 +35,6 @@ do
 	end
 	stream:close()
 end
-
 if fileintroduced then
 	log:write('},\n')
 end

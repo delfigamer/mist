@@ -117,28 +117,31 @@ namespace graphics
 		{
 			if( m_args.size() == 0 )
 			{
-				return StringBuilder() << m_fname << "()"_db;
+				return m_fname + "()"_db;
 			}
 			else
 			{
-				StringBuilder sb;
-				sb << m_fname << "("_db << m_args[ 0 ]->getstring( defs );
+				StringBuilder sb =
+					m_fname + "("_db + m_args[ 0 ]->getstring( defs );
 				auto it = ++m_args.begin();
 				auto eit = m_args.end();
 				for( ; it != eit; ++it )
 				{
-					sb << ","_db << ( *it )->getstring( defs );
+					sb += ","_db + ( *it )->getstring( defs );
 				}
-				sb << ")"_db;
+				sb += ")"_db;
 				return sb;
 			}
 		}
 
-		Ref< DataBuffer > idtostring( size_t id )
+		namespace
 		{
-			char buf[ 32 ];
-			int len = snprintf( buf, sizeof( buf ), "i_%" PRIuPTR, id );
-			return DataBuffer::create( len, buf );
+			Ref< DataBuffer > idtostring( size_t id )
+			{
+				char buf[ 32 ];
+				int len = snprintf( buf, sizeof( buf ), "i_%" PRIuPTR, id );
+				return DataBuffer::create( len, buf );
+			}
 		}
 
 		StringBuilder Value_Function::getstring( StringBuilder* defs )
@@ -149,9 +152,9 @@ namespace graphics
 				if( !m_defined )
 				{
 					StringBuilder expr = getexpression( defs );
-					*defs
-						<< typestr[ m_type ] << " "_db << idstr << "="_db
-						<< expr << ";\n"_db;
+					*defs +=
+						typestr[ m_type ] + " "_db + idstr + "="_db +
+						expr + ";\n"_db;
 					m_defined = true;
 				}
 				return idstr;
@@ -178,8 +181,7 @@ namespace graphics
 
 		StringBuilder Value_Unary::getexpression( StringBuilder* defs )
 		{
-			return StringBuilder()
-				<< "("_db << m_fname << m_args[ 0 ]->getstring( defs ) << ")"_db;
+			return "("_db + m_fname + m_args[ 0 ]->getstring( defs ) + ")"_db;
 		}
 
 		Ref< Value > Value_Unary::factory(
@@ -198,9 +200,8 @@ namespace graphics
 
 		StringBuilder Value_Binary::getexpression( StringBuilder* defs )
 		{
-			return StringBuilder()
-				<< "("_db << m_args[ 0 ]->getstring( defs ) << m_fname
-				<< m_args[ 1 ]->getstring( defs ) << ")"_db;
+			return "("_db + m_args[ 0 ]->getstring( defs ) + m_fname +
+				m_args[ 1 ]->getstring( defs ) + ")"_db;
 		}
 
 		Ref< Value > Value_Binary::factory(

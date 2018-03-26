@@ -1,7 +1,6 @@
 #pragma once
 
 #include <rsbin/pngcommon.hpp>
-#include <common/string.hpp>
 #include <common/ref.hpp>
 #include <common/refobject.hpp>
 #include <common/databuffer.hpp>
@@ -23,7 +22,7 @@ namespace rsbin
 		Ref< DataBuffer > m_data;
 		png_structp m_png;
 		png_infop m_info;
-		String m_error;
+		std::string m_error;
 		jmp_buf m_jmpbuf;
 
 		static void error_handler( png_structp png, png_const_charp msg );
@@ -47,10 +46,10 @@ namespace rsbin
 			return new PngReader( format );
 		}
 		R_METHOD() void feed( size_t length, void const* buffer );
-		R_METHOD() bool isfinished() NOEXCEPT { return m_finished; }
-		R_METHOD() uint32_t getwidth() NOEXCEPT { return m_width; }
-		R_METHOD() uint32_t getheight() NOEXCEPT { return m_height; }
-		R_METHOD() DataBuffer* getdata() NOEXCEPT
+		R_METHOD() bool isfinished() noexcept { return m_finished; }
+		R_METHOD() uint32_t getwidth() noexcept { return m_width; }
+		R_METHOD() uint32_t getheight() noexcept { return m_height; }
+		R_METHOD() DataBuffer* getdata() noexcept
 		{
 			::addref( m_data );
 			return m_data;

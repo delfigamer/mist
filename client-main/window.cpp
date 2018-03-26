@@ -1,6 +1,5 @@
 #include <client-main/window.hpp>
-#include <client-main/methodlist.hpp>
-#include <client-main/luainit.hpp>
+#include <client-main/rindex.hpp>
 #include <utils/configset.hpp>
 #include <utils/encoding.hpp>
 #include <utils/cbase.hpp>
@@ -457,54 +456,57 @@ namespace window
 	}
 #endif
 
-	static Ref< DataBuffer > utf8toutf16( String str )
-	{
-		return utils::translatestring( &utils::encoding::utf16, str );
-	}
+	// static Ref< DataBuffer > utf8toutf16( std::string const& str )
+	// {
+		// return utils::translatebuffer(
+			// &utils::encoding::utf8,
+			// &utils::encoding::utf16,
+			// str.c_str(), str.size() + 1 );
+	// }
 
 	void Window::initialize()
 	{
 		m_info.window = this;
 		m_info.silent = m_silent;
-		m_info.client_methodlist = &client_main_methodlist;
+		// m_info.client_methodlist = &client_main_methodlist;
 		if( !m_silent )
 		{
 #if defined( _WIN32 ) || defined( _WIN64 )
-			String rpath = utils::MainConf->string( "renderer", nullptr );
-			Ref< DataBuffer > wrpath = utf8toutf16( rpath );
-			m_renderermodule = LoadLibraryW( ( wchar_t* )wrpath->m_data );
-			if( !m_renderermodule )
-			{
-				throw StrException(
-					"cannot load renderer %s", rpath.getchars() );
-			}
-			m_renderer_connect = renderer_connect_t(
-				GetProcAddress( m_renderermodule, "renderer_connect" ) );
-			m_renderer_display_create = renderer_display_create_t(
-				GetProcAddress( m_renderermodule, "renderer_display_create" ) );
-			m_renderer_display_destroy = renderer_display_destroy_t(
-				GetProcAddress( m_renderermodule, "renderer_display_destroy" ) );
-			m_renderer_display_paint = renderer_display_paint_t(
-				GetProcAddress( m_renderermodule, "renderer_display_paint" ) );
-			m_renderer_display_setshape = renderer_display_setshape_t(
-				GetProcAddress( m_renderermodule, "renderer_display_setshape" ) );
-			if(
-				!m_renderer_connect ||
-				!m_renderer_display_create ||
-				!m_renderer_display_destroy ||
-				!m_renderer_display_paint ||
-				!m_renderer_display_setshape )
-			{
-				FreeLibrary( m_renderermodule );
-				throw StrException(
-					"%s is not a valid Mist renderer", rpath.getchars() );
-			}
-			m_renderer_connect( &m_info );
-			if( !m_renderer_display_create( m_hwnd, &m_display ) )
-			{
-				throw StrException(
-					"%s", utils::cbase::geterror() );
-			}
+			// std::string rpath = utils::MainConf->string( "renderer" );
+			// Ref< DataBuffer > wrpath = utf8toutf16( rpath );
+			// m_renderermodule = LoadLibraryW( ( wchar_t* )wrpath->m_data );
+			// if( !m_renderermodule )
+			// {
+				// throw StrException(
+					// "cannot load renderer %s", rpath.c_str() );
+			// }
+			// m_renderer_connect = renderer_connect_t(
+				// GetProcAddress( m_renderermodule, "renderer_connect" ) );
+			// m_renderer_display_create = renderer_display_create_t(
+				// GetProcAddress( m_renderermodule, "renderer_display_create" ) );
+			// m_renderer_display_destroy = renderer_display_destroy_t(
+				// GetProcAddress( m_renderermodule, "renderer_display_destroy" ) );
+			// m_renderer_display_paint = renderer_display_paint_t(
+				// GetProcAddress( m_renderermodule, "renderer_display_paint" ) );
+			// m_renderer_display_setshape = renderer_display_setshape_t(
+				// GetProcAddress( m_renderermodule, "renderer_display_setshape" ) );
+			// if(
+				// !m_renderer_connect ||
+				// !m_renderer_display_create ||
+				// !m_renderer_display_destroy ||
+				// !m_renderer_display_paint ||
+				// !m_renderer_display_setshape )
+			// {
+				// FreeLibrary( m_renderermodule );
+				// throw StrException(
+					// "%s is not a valid Mist renderer", rpath.c_str() );
+			// }
+			// m_renderer_connect( &m_info );
+			// if( !m_renderer_display_create( m_hwnd, &m_display ) )
+			// {
+				// throw StrException(
+					// "%s", utils::cbase::geterror() );
+			// }
 			m_info.acceleratorinput = false;
 			m_info.pointinput = true;
 			m_info.keyboardinput = true;
@@ -550,19 +552,19 @@ namespace window
 	{
 		if( !m_silent )
 		{
-			if( !m_renderer_display_paint( m_display ) )
-			{
-				throw StrException(
-					"%s", utils::cbase::geterror() );
-			}
-			m_fpscounter += 1;
-			clock_t time = clock();
-			if( time > m_fpstime )
-			{
-				m_fps = m_fpscounter;
-				m_fpscounter = 0;
-				m_fpstime = time + CLOCKS_PER_SEC;
-			}
+			// if( !m_renderer_display_paint( m_display ) )
+			// {
+				// throw StrException(
+					// "%s", utils::cbase::geterror() );
+			// }
+			// m_fpscounter += 1;
+			// clock_t time = clock();
+			// if( time > m_fpstime )
+			// {
+				// m_fps = m_fpscounter;
+				// m_fpscounter = 0;
+				// m_fpstime = time + CLOCKS_PER_SEC;
+			// }
 #if defined( _WIN32 ) || defined( _WIN64 )
 			char buffer[ 256 ];
 			snprintf(
@@ -573,12 +575,12 @@ namespace window
 		}
 	}
 
-	String lua_retrieveerror( lua_State* L )
+	std::string lua_retrieveerror( lua_State* L )
 	{
 		lua_getglobal( L, "tostring" );
 		lua_insert( L, -2 );
 		lua_pcall( L, 1, 1, 0 );
-		String message( lua_tostring( L, -1 ) );
+		std::string message( lua_tostring( L, -1 ) );
 		lua_pop( L, 1 );
 		return message;
 	}
@@ -590,20 +592,25 @@ namespace window
 		{
 			lua_State* L = luaL_newstate();
 			luaL_openlibs( L );
-			if( luaL_loadbuffer(
-				L,
-				luainit[ 0 ].data, luainit[ 0 ].length, luainit[ 0 ].name ) != 0 )
+			for( r::module const** it = rindex; *it; ++it )
 			{
-				String error = lua_retrieveerror( L );
-				LOG( "%s", error.getchars() );
-				goto end;
-			}
-			lua_pushlightuserdata( L, &luainit[ 1 ] );
-			lua_pushlightuserdata( L, &m_info );
-			if( lua_pcall( L, 2, 0, 0 ) != 0 )
-			{
-				String error = lua_retrieveerror( L );
-				LOG( "%s", error.getchars() );
+				r::module const& module = **it;
+				if( luaL_loadbuffer(
+					L,
+					( char const* )module.chunkbytes, module.chunksize,
+					module.chunkname ) != 0 )
+				{
+					std::string error = lua_retrieveerror( L );
+					LOG( "%s", error.c_str() );
+					goto end;
+				}
+				lua_pushlightuserdata( L, module.ptr );
+				if( lua_pcall( L, 1, 0, 0 ) != 0 )
+				{
+					std::string error = lua_retrieveerror( L );
+					LOG( "%s", error.c_str() );
+					goto end;
+				}
 			}
 		end:
 			lua_close( L );

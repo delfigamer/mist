@@ -2,230 +2,346 @@
 
 #include <common/databuffer.hpp>
 #include <common/ref.hpp>
-#include <common/refobject.hpp>
 #include <common.hpp>
 #include <utility>
+#include <deque>
 #include <cstddef>
 #include <cstring>
 
-class StringBuilder
+// use a template with a dummy argument to let the linker merge the multiple
+// definitions from each inclusion of this header
+template< typename T >
+class StringBuilderBase
 {
 private:
-	class Node: public RefObject
-	{
-	private:
-		Ref< Node > const m_prefix;
-		Ref< DataBuffer > const m_center;
-		Ref< Node > const m_suffix;
-
-	public:
-		template< typename PT, typename CT, typename ST >
-		Node( PT&& prefix, CT&& center, ST&& suffix );
-		size_t getlength();
-		uint8_t* write( uint8_t* buffer );
-	};
-
-private:
-	Ref< Node > m_node;
+	std::deque< Ref< DataBuffer > > m_parts;
 
 public:
-	StringBuilder( std::nullptr_t = nullptr );
-	StringBuilder( StringBuilder const& other );
-	StringBuilder( StringBuilder&& other );
-	StringBuilder( Ref< DataBuffer > const& db );
-	StringBuilder( Ref< DataBuffer >&& db );
-	~StringBuilder();
-	StringBuilder& operator=( StringBuilder const& other );
-	StringBuilder& operator=( StringBuilder&& other );
+	StringBuilderBase( std::nullptr_t = nullptr );
+	StringBuilderBase( StringBuilderBase< T > const& other );
+	StringBuilderBase( StringBuilderBase< T >&& other );
+	StringBuilderBase( Ref< DataBuffer > const& db );
+	StringBuilderBase( Ref< DataBuffer >&& db );
+	~StringBuilderBase();
+	StringBuilderBase< T >& operator=( StringBuilderBase< T > const& other );
+	StringBuilderBase< T >& operator=( StringBuilderBase< T >&& other );
 
 	size_t getlength() const;
-	uint8_t* write( uint8_t* buffer ) const;
 	Ref< DataBuffer > combine() const;
-	StringBuilder& operator<<( StringBuilder const& sb );
-	StringBuilder& operator<<( StringBuilder&& sb );
-	StringBuilder& operator<<( Ref< DataBuffer > const& db );
-	StringBuilder& operator<<( Ref< DataBuffer >&& db );
+	StringBuilderBase< T >& append( StringBuilderBase< T > const& sb );
+	StringBuilderBase< T >& append( StringBuilderBase< T >&& sb );
+	StringBuilderBase< T >& append( Ref< DataBuffer > const& db );
+	StringBuilderBase< T >& append( Ref< DataBuffer >&& db );
+	StringBuilderBase< T >& prepend( StringBuilderBase< T > const& sb );
+	StringBuilderBase< T >& prepend( StringBuilderBase< T >&& sb );
+	StringBuilderBase< T >& prepend( Ref< DataBuffer > const& db );
+	StringBuilderBase< T >& prepend( Ref< DataBuffer >&& db );
+	StringBuilderBase< T >& padleft( size_t targetlength, uint8_t ch = ' ' );
+	StringBuilderBase< T >& padright( size_t targetlength, uint8_t ch = ' ' );
 	operator bool() const;
 };
 
-template< typename PT, typename CT, typename ST >
-StringBuilder::Node::Node( PT&& prefix, CT&& center, ST&& suffix )
-	: m_prefix( std::forward< PT >( prefix ) )
-	, m_center( std::forward< CT >( center ) )
-	, m_suffix( std::forward< ST >( suffix ) )
+typedef StringBuilderBase< void > StringBuilder;
+
+template< typename T >
+StringBuilderBase< T >::StringBuilderBase( std::nullptr_t )
 {
 }
 
-inline size_t StringBuilder::Node::getlength()
+template< typename T >
+StringBuilderBase< T >::StringBuilderBase( StringBuilderBase< T > const& other )
+	: m_parts( other.m_parts )
+{
+}
+
+template< typename T >
+StringBuilderBase< T >::StringBuilderBase( StringBuilderBase< T >&& other )
+	: m_parts( std::move( other.m_parts ) )
+{
+}
+
+template< typename T >
+StringBuilderBase< T >::StringBuilderBase( Ref< DataBuffer > const& db )
+{
+	if( db && db->m_length != 0 )
+	{
+		m_parts.emplace_back( db );
+	}
+}
+
+template< typename T >
+StringBuilderBase< T >::StringBuilderBase( Ref< DataBuffer >&& db )
+{
+	if( db && db->m_length != 0 )
+	{
+		m_parts.emplace_back( std::move( db ) );
+	}
+}
+
+template< typename T >
+StringBuilderBase< T >::~StringBuilderBase()
+{
+}
+
+template< typename T >
+StringBuilderBase< T >& StringBuilderBase< T >::operator=(
+	StringBuilderBase< T > const& other )
+{
+	m_parts = other.m_parts;
+	return *this;
+}
+
+template< typename T >
+StringBuilderBase< T >& StringBuilderBase< T >::operator=(
+	StringBuilderBase< T >&& other )
+{
+	m_parts = std::move( other.m_parts );
+	return *this;
+}
+
+template< typename T >
+size_t StringBuilderBase< T >::getlength() const
 {
 	size_t length = 0;
-	if( m_prefix )
+	for( auto& part : m_parts )
 	{
-		length += m_prefix->getlength();
-	}
-	if( m_center )
-	{
-		length += m_center->m_length;
-	}
-	if( m_suffix )
-	{
-		length += m_suffix->getlength();
+		length += part->m_length;
 	}
 	return length;
 }
 
-inline uint8_t* StringBuilder::Node::write( uint8_t* buffer )
+template< typename T >
+Ref< DataBuffer > StringBuilderBase< T >::combine() const
 {
-	if( m_prefix )
+	auto db = DataBuffer::create( getlength() );
+	uint8_t* ptr = db->m_data;
+	for( auto& part : m_parts )
 	{
-		buffer = m_prefix->write( buffer );
+		memcpy( ptr, part->m_data, part->m_length );
+		ptr += part->m_length;
 	}
-	if( m_center )
-	{
-		size_t clen = m_center->m_length;
-		memcpy( buffer, m_center->m_data, clen );
-		buffer += clen;
-	}
-	if( m_suffix )
-	{
-		buffer = m_suffix->write( buffer );
-	}
-	return buffer;
+	return db;
 }
 
-inline StringBuilder::StringBuilder( std::nullptr_t )
+template< typename T >
+StringBuilderBase< T >& StringBuilderBase< T >::append(
+	StringBuilderBase< T > const& sb )
 {
-}
-
-inline StringBuilder::StringBuilder( StringBuilder const& other )
-	: m_node( other.m_node )
-{
-}
-
-inline StringBuilder::StringBuilder( StringBuilder&& other )
-	: m_node( other.m_node )
-{
-}
-inline StringBuilder::StringBuilder( Ref< DataBuffer > const& db )
-{
-	m_node.emplace( nullptr, db, nullptr );
-}
-
-inline StringBuilder::StringBuilder( Ref< DataBuffer >&& db )
-{
-	m_node.emplace( nullptr, std::move( db ), nullptr );
-}
-
-inline StringBuilder::~StringBuilder()
-{
-}
-
-inline StringBuilder& StringBuilder::operator=( StringBuilder const& other )
-{
-	m_node = other.m_node;
+	m_parts.insert( m_parts.end(), sb.m_parts.begin(), sb.m_parts.end() );
 	return *this;
 }
 
-inline StringBuilder& StringBuilder::operator=( StringBuilder&& other )
+template< typename T >
+StringBuilderBase< T >& StringBuilderBase< T >::append(
+	StringBuilderBase< T >&& sb )
 {
-	m_node = std::move( other.m_node );
-	return *this;
-}
-
-inline size_t StringBuilder::getlength() const
-{
-	if( m_node )
+	while( !sb.m_parts.empty() )
 	{
-		return m_node->getlength();
-	}
-	else
-	{
-		return 0;
-	}
-}
-
-inline uint8_t* StringBuilder::write( uint8_t* buffer ) const
-{
-	if( m_node )
-	{
-		return m_node->write( buffer );
-	}
-	else
-	{
-		return buffer;
-	}
-}
-
-inline Ref< DataBuffer > StringBuilder::combine() const
-{
-	if( m_node )
-	{
-		size_t len = m_node->getlength();
-		Ref< DataBuffer > buffer = DataBuffer::create( len );
-		m_node->write( buffer->m_data );
-		return buffer;
-	}
-	else
-	{
-		return DataBuffer::create();
-	}
-}
-
-inline StringBuilder& StringBuilder::operator<<( StringBuilder const& sb )
-{
-	if( sb.m_node )
-	{
-		if( m_node )
-		{
-			m_node = Ref< StringBuilder::Node >::create(
-				std::move( m_node ), nullptr, sb.m_node );
-		}
-		else
-		{
-			m_node = sb.m_node;
-		}
+		m_parts.push_back( std::move( sb.m_parts.front() ) );
+		sb.m_parts.pop_front();
 	}
 	return *this;
 }
 
-inline StringBuilder& StringBuilder::operator<<( StringBuilder&& sb )
-{
-	if( sb.m_node )
-	{
-		if( m_node )
-		{
-			m_node = Ref< StringBuilder::Node >::create(
-				std::move( m_node ), nullptr, std::move( sb.m_node ) );
-		}
-		else
-		{
-			m_node = std::move( sb.m_node );
-		}
-	}
-	return *this;
-}
-
-inline StringBuilder& StringBuilder::operator<<( Ref< DataBuffer > const& db )
+template< typename T >
+StringBuilderBase< T >& StringBuilderBase< T >::append(
+	Ref< DataBuffer > const& db )
 {
 	if( db && db->m_length != 0 )
 	{
-		m_node = Ref< StringBuilder::Node >::create(
-			std::move( m_node ), db, nullptr );
+		m_parts.push_back( db );
 	}
 	return *this;
 }
 
-inline StringBuilder& StringBuilder::operator<<( Ref< DataBuffer >&& db )
+template< typename T >
+StringBuilderBase< T >& StringBuilderBase< T >::append(
+	Ref< DataBuffer >&& db )
 {
 	if( db && db->m_length != 0 )
 	{
-		m_node = Ref< StringBuilder::Node >::create(
-			std::move( m_node ), std::move( db ), nullptr );
+		m_parts.push_back( std::move( db ) );
 	}
 	return *this;
 }
 
-inline StringBuilder::operator bool() const
+template< typename T >
+StringBuilderBase< T >& StringBuilderBase< T >::prepend(
+	StringBuilderBase< T > const& sb )
 {
-	return m_node;
+	m_parts.insert( m_parts.begin(), sb.m_parts.begin(), sb.m_parts.end() );
+	return *this;
+}
+
+template< typename T >
+StringBuilderBase< T >& StringBuilderBase< T >::prepend(
+	StringBuilderBase< T >&& sb )
+{
+	while( !sb.m_parts.empty() )
+	{
+		m_parts.push_front( std::move( sb.m_parts.back() ) );
+		sb.m_parts.pop_back();
+	}
+	return *this;
+}
+
+template< typename T >
+StringBuilderBase< T >& StringBuilderBase< T >::prepend(
+	Ref< DataBuffer > const& db )
+{
+	if( db && db->m_length != 0 )
+	{
+		m_parts.push_front( db );
+	}
+	return *this;
+}
+
+template< typename T >
+StringBuilderBase< T >& StringBuilderBase< T >::prepend(
+	Ref< DataBuffer >&& db )
+{
+	if( db && db->m_length != 0 )
+	{
+		m_parts.push_front( std::move( db ) );
+	}
+	return *this;
+}
+
+template< typename T >
+StringBuilderBase< T >& StringBuilderBase< T >::padleft(
+	size_t targetlength, uint8_t ch )
+{
+	size_t length = getlength();
+	if( length < targetlength )
+	{
+		auto db = DataBuffer::create( targetlength - length );
+		memset( db->m_data, ch, db->m_length );
+		prepend( std::move( db ) );
+	}
+	return *this;
+}
+
+template< typename T >
+StringBuilderBase< T >& StringBuilderBase< T >::padright(
+	size_t targetlength, uint8_t ch )
+{
+	size_t length = getlength();
+	if( length < targetlength )
+	{
+		auto db = DataBuffer::create( targetlength - length );
+		memset( db->m_data, ch, db->m_length );
+		append( std::move( db ) );
+	}
+	return *this;
+}
+
+template< typename T >
+StringBuilderBase< T >::operator bool() const
+{
+	return !m_parts.empty();
+}
+
+template< typename T >
+inline StringBuilder& operator+=(
+	StringBuilder& a, T&& b )
+{
+	a.append( std::forward< T >( b ) );
+	return a;
+}
+
+inline StringBuilder operator+(
+	StringBuilder const& a, StringBuilder const& b )
+{
+	return std::move( StringBuilder( a ).append( b ) );
+}
+
+inline StringBuilder operator+(
+	StringBuilder const& a, StringBuilder&& b )
+{
+	return std::move( b.prepend( a ) );
+}
+
+inline StringBuilder operator+(
+	StringBuilder const& a, Ref< DataBuffer > const& b )
+{
+	return std::move( StringBuilder( a ).append( b ) );
+}
+
+inline StringBuilder operator+(
+	StringBuilder const& a, Ref< DataBuffer >&& b )
+{
+	return std::move( StringBuilder( a ).append( std::move( b ) ) );
+}
+
+inline StringBuilder operator+(
+	StringBuilder&& a, StringBuilder const& b )
+{
+	return std::move( a.append( b ) );
+}
+
+inline StringBuilder operator+(
+	StringBuilder&& a, StringBuilder&& b )
+{
+	return std::move( a.append( std::move( b ) ) );
+}
+
+inline StringBuilder operator+(
+	StringBuilder&& a, Ref< DataBuffer > const& b )
+{
+	return std::move( a.append( b ) );
+}
+
+inline StringBuilder operator+(
+	StringBuilder&& a, Ref< DataBuffer >&& b )
+{
+	return std::move( a.append( std::move( b ) ) );
+}
+
+inline StringBuilder operator+(
+	Ref< DataBuffer > const& a, StringBuilder const& b )
+{
+	return std::move( StringBuilder( a ).append( b ) );
+}
+
+inline StringBuilder operator+(
+	Ref< DataBuffer > const& a, StringBuilder&& b )
+{
+	return std::move( b.prepend( a ) );
+}
+
+inline StringBuilder operator+(
+	Ref< DataBuffer > const& a, Ref< DataBuffer > const& b )
+{
+	return std::move( StringBuilder( a ).append( b ) );
+}
+
+inline StringBuilder operator+(
+	Ref< DataBuffer > const& a, Ref< DataBuffer >&& b )
+{
+	return std::move( StringBuilder( a ).append( std::move( b ) ) );
+}
+
+inline StringBuilder operator+(
+	Ref< DataBuffer >&& a, StringBuilder const& b )
+{
+	return std::move( StringBuilder( std::move( a ) ).append( b ) );
+}
+
+inline StringBuilder operator+(
+	Ref< DataBuffer >&& a, StringBuilder&& b )
+{
+	return std::move( b.prepend( std::move( a ) ) );
+}
+
+inline StringBuilder operator+(
+	Ref< DataBuffer >&& a, Ref< DataBuffer > const& b )
+{
+	return std::move( StringBuilder( std::move( a ) ).append( b ) );
+}
+
+inline StringBuilder operator+(
+	Ref< DataBuffer >&& a, Ref< DataBuffer >&& b )
+{
+	return std::move(
+		StringBuilder( std::move( a ) ).append( std::move( b ) ) );
 }

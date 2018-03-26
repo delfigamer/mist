@@ -2,7 +2,6 @@
 #include <renderer-d3d9/programtranslator.hpp>
 #include <renderer-d3d9/context.hpp>
 #include <renderer-d3d9/common.hpp>
-#include <common/string.hpp>
 #include <cstring>
 
 namespace graphics

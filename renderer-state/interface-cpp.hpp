@@ -40,7 +40,7 @@ namespace graphics
 		va_list args2;
 		va_copy( args2, args );
 		int buflen = vsnprintf( nullptr, 0, format, args2 );
-		if( buflen < 1023 )
+		if( buflen <= 1023 )
 		{
 			char buffer[ 1024 ];
 			vsnprintf( buffer, sizeof( buffer ), format, args );
@@ -71,7 +71,7 @@ namespace graphics
 
 	namespace
 	{
-		bool mainconf_linteger( char const* expr, ptrdiff_t* value )
+		bool mainconf_linteger( char const* expr, int* value )
 		{
 			PROTECTED_CALL_RA( mainconf_linteger, bool, expr, value )
 		}
@@ -92,9 +92,9 @@ namespace graphics
 		}
 	}
 
-	ptrdiff_t getconfig_integer( char const* expr, ptrdiff_t def )
+	int getconfig_integer( char const* expr, int def )
 	{
-		ptrdiff_t value;
+		int value;
 		if( mainconf_linteger( expr, &value ) )
 		{
 			return value;
@@ -118,19 +118,34 @@ namespace graphics
 		}
 	}
 
-	String getconfig_string( char const* expr, String const& def )
+	Ref< DataBuffer > getconfig_data( char const* expr )
 	{
 		size_t length;
 		if( mainconf_stringbuf( expr, 0, &length ) )
 		{
-			auto payload = DataBuffer::create( length + 1 );
-			mainconf_stringbuf( expr, ( char* )payload->m_data, &length );
-			payload->m_data[ length ] = 0;
-			return String( std::move( payload ) );
+			auto buffer = DataBuffer::create( length );
+			mainconf_stringbuf( expr, ( char* )buffer->m_data, &length );
+			return buffer;
 		}
 		else
 		{
-			return def;
+			return nullptr;
+		}
+	}
+
+	std::string getconfig_string( char const* expr, std::string const& def )
+	{
+		size_t length;
+		if( mainconf_stringbuf( expr, 0, &length ) )
+		{
+			std::string buffer;
+			buffer.resize( length );
+			mainconf_stringbuf( expr, ( char* )buffer.data(), &length );
+			return buffer;
+		}
+		else
+		{
+			return nullptr;
 		}
 	}
 

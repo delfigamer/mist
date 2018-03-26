@@ -2,7 +2,6 @@
 
 #include <rsbin/iotask.hpp>
 #include <common/mpscqueue.hpp>
-#include <common/string.hpp>
 #include <common/refobject.hpp>
 #include <common/ref.hpp>
 #include <common.hpp>

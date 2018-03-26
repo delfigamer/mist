@@ -36,7 +36,7 @@ namespace rsbin
 		FLAC__StreamDecoderErrorStatus status, void* client_data )
 	{
 		FlacReader* reader = ( FlacReader* )client_data;
-		reader->m_error.setchars( FLAC__StreamDecoderStateString[ status ] );
+		reader->m_error = FLAC__StreamDecoderStateString[ status ];
 	}
 
 	FLAC__StreamDecoderReadStatus FlacReader::read_callback(
@@ -221,7 +221,7 @@ namespace rsbin
 			FLAC__StreamDecoderState state =
 				FLAC__stream_decoder_get_state( m_decoder );
 			FLAC__stream_decoder_delete( m_decoder );
-			if( m_error )
+			if( !m_error.empty() )
 			{
 				throw StrException( m_error );
 			}

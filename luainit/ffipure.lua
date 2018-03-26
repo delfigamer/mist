@@ -17,14 +17,12 @@ local function ffipure_new_next(self, ...)
 end
 
 function ffipure:new(...)
-	if not rawget(self, 'metatype') then
-		self.new = ffipure_new_next
-		self:buildmetatype()
-	end
+	self:buildmetatype()
 	return self.metatype(...)
 end
 
 function ffipure:buildmetatype()
+	self.new = ffipure_new_next
 	local suc, ret = pcall(ffi.metatype, self.typedef, self.instmeta)
 	if suc then
 		self.metatype = ret

@@ -44,7 +44,6 @@
     <ClInclude Include="..\..\common\ref.hpp" />
     <ClInclude Include="..\..\common\refobject.hpp" />
     <ClInclude Include="..\..\common\strexception.hpp" />
-    <ClInclude Include="..\..\common\string.hpp" />
     <ClInclude Include="..\..\common\stringbuilder.hpp" />
     <ClInclude Include="..\..\renderer-state\common.hpp" />
     <ClInclude Include="..\..\renderer-state\context.hpp" />

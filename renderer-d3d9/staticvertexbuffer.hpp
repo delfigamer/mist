@@ -28,7 +28,7 @@ namespace graphics
 			return new StaticVertexBuffer( vd );
 		}
 
-		R_METHOD() void assign( DataBuffer* data ) NOEXCEPT
+		R_METHOD() void assign( DataBuffer* data ) noexcept
 		{
 			m_data.assign( data );
 		}

@@ -73,27 +73,23 @@ namespace graphics
 			switch( m_type )
 			{
 				case valuetype::float1:
-					return StringBuilder()
-						<< "("_db << m_arg->getstring( defs ) << "."_db
-						<< swizzle_indices[ m_parts[ 0 ] ] << ")"_db;
+					return "("_db + m_arg->getstring( defs ) + "."_db +
+						swizzle_indices[ m_parts[ 0 ] ] + ")"_db;
 				case valuetype::float2:
-					return StringBuilder()
-						<< "("_db << m_arg->getstring( defs ) << "."_db
-						<< swizzle_indices[ m_parts[ 0 ] ]
-						<< swizzle_indices[ m_parts[ 1 ] ] << ")"_db;
+					return "("_db + m_arg->getstring( defs ) + "."_db +
+						swizzle_indices[ m_parts[ 0 ] ] +
+						swizzle_indices[ m_parts[ 1 ] ] + ")"_db;
 				case valuetype::float3:
-					return StringBuilder()
-						<< "("_db << m_arg->getstring( defs ) << "."_db
-						<< swizzle_indices[ m_parts[ 0 ] ]
-						<< swizzle_indices[ m_parts[ 1 ] ]
-						<< swizzle_indices[ m_parts[ 2 ] ] << ")"_db;
+					return "("_db + m_arg->getstring( defs ) + "."_db +
+						swizzle_indices[ m_parts[ 0 ] ] +
+						swizzle_indices[ m_parts[ 1 ] ] +
+						swizzle_indices[ m_parts[ 2 ] ] + ")"_db;
 				case valuetype::float4:
-					return StringBuilder()
-						<< "("_db << m_arg->getstring( defs ) << "."_db
-						<< swizzle_indices[ m_parts[ 0 ] ]
-						<< swizzle_indices[ m_parts[ 1 ] ]
-						<< swizzle_indices[ m_parts[ 2 ] ]
-						<< swizzle_indices[ m_parts[ 3 ] ] << ")"_db;
+					return "("_db + m_arg->getstring( defs ) + "."_db +
+						swizzle_indices[ m_parts[ 0 ] ] +
+						swizzle_indices[ m_parts[ 1 ] ] +
+						swizzle_indices[ m_parts[ 2 ] ] +
+						swizzle_indices[ m_parts[ 3 ] ] + ")"_db;
 			}
 			ASSERT( false );
 			return nullptr;

@@ -1,7 +1,9 @@
 local modname = ...
 local index = package.modtable(modname)
--- local ffi = require('ffi')
+local exception = require('base.exception')
 local host = require('host')
+
+local interrupt = exception:derive({}, 'index-cmd.interrupt')
 
 local getch
 local ungetch
@@ -25,6 +27,8 @@ do
 		local ch = host.getchar()
 		if ch == '\n' then
 			newline = true
+		elseif ch == '\26' then
+			interrupt:throw('\\26 interrupt')
 		end
 		return ch
 	end
@@ -270,10 +274,17 @@ end
 
 local fenv = setmetatable({exit = exit}, {__index = _G})
 fenv._ENV = fenv
-print('Interactive input. Call "exit()" to continue\n')
+print('Interactive input. Type Ctrl+Z or call "exit()" to exit\n')
 
 while not terminate do
-	local str = obtaininput()
+	local suc, str = pcall(obtaininput)
+	if not suc then
+		if type(str) == 'table' and str['#'..interrupt._NAME] then
+			break
+		else
+			error(str)
+		end
+	end
 	local func, err = loadstring('print(' .. str .. ')', nil, nil, fenv)
 	if func then
 		local suc, err = pcall(func)

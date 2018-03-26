@@ -1,5 +1,4 @@
 #include <client-main/window.hpp>
-#include <rsbin/fsthread.hpp>
 #include <utils/path.hpp>
 #include <utils/configset.hpp>
 #include <utils/console.hpp>
@@ -58,35 +57,6 @@ static wchar_t const* trimpath( wchar_t const* argstr )
 		return argstr + rpos;
 	}
 }
-
-String translateline( wchar_t const* wcmdline )
-{
-	utils::translation_t translation =
-	{
-		&utils::encoding::utf16,
-		&utils::encoding::utf8,
-		wcmdline,
-		0,
-		0,
-		0,
-		0xfffd,
-	};
-	if( utils::translatestr( &translation ) !=
-		utils::translateresult::success )
-	{
-		throw std::runtime_error( "cannot translate command line" );
-	}
-	Ref< DataBuffer > db = DataBuffer::create( translation.destresult );
-	translation.dest = db->m_data;
-	translation.sourcesize = translation.sourceresult;
-	translation.destsize = db->m_capacity;
-	if( utils::translatestr( &translation ) !=
-		utils::translateresult::success )
-	{
-		throw std::runtime_error( "cannot translate command line" );
-	}
-	return String( db );
-}
 #endif
 
 #if defined( _WIN32 ) || defined( _WIN64 )
@@ -110,21 +80,23 @@ void android_main( android_app* app )
 	utils::Console = new utils::ConsoleClass();
 	utils::MainConf = new utils::ConfClass( MAINCONF_PATH, MAINCONF_STR );
 	utils::Path::initialize();
-	rsbin::FsThread = new rsbin::FsThreadClass();
 	LOG( "~ Application start" );
 	window::WindowCreationData wcd;
 	try
 	{
-		String cmdline;
+		Ref< DataBuffer > cmdline;
 #if defined( _WIN32 ) || defined( _WIN64 )
 		wcd.hInstance = hInstance;
 		wchar_t const* wcmdline = trimpath( GetCommandLineW() );
-		cmdline = translateline( wcmdline );
+		cmdline = utils::translatebuffer(
+			&utils::encoding::utf16,
+			&utils::encoding::utf8,
+			wcmdline );
 #elif defined(__ANDROID__)
 		wcd.app = app;
 #endif
-		LOG( "Command line: \"%s\"", cmdline.getchars() );
-		utils::MainConf->runcmd( cmdline.getchars() );
+		LOG( "Command line: \"%s\"", ( char const* )cmdline->m_data );
+		utils::MainConf->runcmd( ( char const* )cmdline->m_data );
 		window::Window mainwindow( wcd );
 		mainwindow.mainloop();
 	}
@@ -132,7 +104,6 @@ void android_main( android_app* app )
 	{
 		utils::Console->writeln( "! Critical error: %s", e.what() );
 	}
-	delete rsbin::FsThread;
 	delete utils::MainConf;
 	LOG( "~ Application end" );
 	delete utils::Console;

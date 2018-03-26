@@ -1,8 +1,9 @@
 #pragma once
 
 #include <client-main/windowinfo.hpp>
-#include <common/string.hpp>
+#include <common/databuffer.hpp>
 #include <common.hpp>
+#include <string>
 
 #define LOG( format, ... ) \
 	graphics::logwrite( \
@@ -14,8 +15,10 @@ namespace graphics
 	extern window::WindowInfo* WindowInfo;
 
 	void logwrite( char const* format, ... );
-	ptrdiff_t getconfig_integer( char const* expr, ptrdiff_t def );
-	double getconfig_number( char const* expr, double def );
-	String getconfig_string( char const* expr, String const& def );
-	bool getconfig_boolean( char const* expr, bool def );
+	int getconfig_integer( char const* expr, int def = 0 );
+	double getconfig_number( char const* expr, double def = 0 );
+	Ref< DataBuffer > getconfig_data( char const* expr );
+	std::string getconfig_string(
+		char const* expr, std::string const& def = {} );
+	bool getconfig_boolean( char const* expr, bool def = false );
 }

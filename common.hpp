@@ -1,18 +1,33 @@
 #pragma once
 
-#define R_ENUM( ... )
-#define R_STRUCT( ... )
-#define R_CLASS( ... )
-#define R_METHOD( ... )
-#define R_EMIT( ... )
-#define R_END( ... )
+#define r_emit( ... )
+// #define r_emit_hpp_start( ... )
+// #define r_emit_hpp_includes( ... )
+// #define r_emit_hpp_classes( ... )
+// #define r_emit_hpp_mldecl( ... )
+// #define r_emit_hpp_mldeclstart( ... )
+// #define r_emit_hpp_mldeclend( ... )
+// #define r_emit_hpp_mldef( ... )
+// #define r_emit_hpp_end( ... )
+// #define r_emit_cpp_start( ... )
+// #define r_emit_cpp_methods( ... )
+// #define r_emit_cpp_mldef( ... )
+// #define r_emit_cpp_end( ... )
+// #define r_emit_ffi_start( ... )
+// #define r_emit_ffi_mldecl( ... )
+// #define r_emit_ffi_mldeclstart( ... )
+// #define r_emit_ffi_mldeclend( ... )
+// #define r_emit_ffi_end( ... )
+// #define r_emit_lua_start( ... )
+// #define r_emit_lua_classes( ... )
+// #define r_emit_lua_methods( ... )
+// #define r_emit_lua_metatypes( ... )
+// #define r_emit_lua_end( ... )
 
 #if defined( _MSC_VER )
-#define NOEXCEPT
 #define ATTRIBUTE( ... )
 #define _CRT_SECURE_NO_WARNINGS
 #else
-#define NOEXCEPT noexcept
 #define ATTRIBUTE __attribute__
 #endif
 
@@ -33,9 +48,12 @@ inline void ASSERT_POS(
 #define ASSERT( ... ) ASSERT_POS( __FILE__, __LINE__, ##__VA_ARGS__ )
 #else
 #define ASSERT( ... )
+#define NDEBUG
 #endif
 
-#if defined( _MSC_VER )
+#include <cinttypes>
+
+#if defined( _MSC_VER ) && _MSC_VER < 1911
 extern "C" __declspec( dllimport ) int __cdecl vsnprintf( char*, size_t, char const*, char* );
 // a dirty hack, intended to avoid the inclusion of cstdarg and cstdio
 // we rely on the fact that va_list is char* to the position on the stack
@@ -49,5 +67,3 @@ namespace
 	}
 }
 #endif
-
-#include <cinttypes>

@@ -36,9 +36,9 @@ namespace utils
 	}
 
 	char const* luadef_envsub =
-		"function envsub(str)"
-			"return string.gsub(str, '%%(.-)%%', getenv)"
-		"end";
+		"function envsub(str)\
+			return string.gsub(str, '%%(.-)%%', getenv)\
+		end";
 
 	ConfClass::ConfClass( char const* filename, char const* init )
 	{
@@ -89,37 +89,61 @@ namespace utils
 
 	namespace
 	{
-		template< typename T >
-		T lua_get( lua_State* L, int index );
-
-		template<>
-		ptrdiff_t lua_get< ptrdiff_t >( lua_State* L, int index )
+		void lua_get( lua_State* L, int index, int& result )
 		{
-			return lua_tointeger( L, index );
+			result = lua_tointeger( L, index );
 		}
 
-		template<>
-		double lua_get< double >( lua_State* L, int index )
+		void lua_get( lua_State* L, int index, double& result )
 		{
-			return lua_tonumber( L, index );
+			result = lua_tonumber( L, index );
 		}
 
-		template<>
-		String lua_get< String >( lua_State* L, int index )
+		void lua_get( lua_State* L, int index, Ref< DataBuffer >& result )
 		{
 			size_t len;
 			char const* buf = lua_tolstring( L, index, &len );
-			return String( buf, len );
+			if( len != 0 )
+			{
+				result = DataBuffer::create( len, buf );
+			}
+			else
+			{
+				result = nullptr;
+			}
 		}
 
-		template<>
-		bool lua_get< bool >( lua_State* L, int index )
+		void lua_get( lua_State* L, int index, std::string& result )
 		{
-			return lua_toboolean( L, index ) != 0;
+			size_t len;
+			char const* buf = lua_tolstring( L, index, &len );
+			result = std::string( buf, buf + len );
+		}
+
+		void lua_get( lua_State* L, int index, bool& result )
+		{
+			result = lua_toboolean( L, index ) != 0;
+		}
+
+		struct ByteRange
+		{
+			char* start;
+			size_t length;
+		};
+
+		void lua_get( lua_State* L, int index, ByteRange& range )
+		{
+			size_t len;
+			char const* buf = lua_tolstring( L, index, &len );
+			if( len <= range.length )
+			{
+				memcpy( range.start, buf, len );
+			}
+			range.length = len;
 		}
 
 		template< typename T >
-		bool accessor( lua_State* L, char const* expr, T* value )
+		bool accessor( lua_State* L, char const* expr, T& value )
 		{
 			bool result = false;
 			lua_pushstring( L, "return " );
@@ -138,7 +162,7 @@ namespace utils
 				{
 					if( !lua_isnil( L, -1 ) )
 					{
-						*value = lua_get< T >( L, -1 );
+						lua_get( L, -1, value );
 						result = true;
 					}
 				}
@@ -150,10 +174,10 @@ namespace utils
 		template< typename T >
 		T accessor_def( lua_State* L, char const* expr, T const& def )
 		{
-			T value;
-			if( accessor< T >( L, expr, &value ) )
+			T result;
+			if( accessor< T >( L, expr, result ) )
 			{
-				return value;
+				return result;
 			}
 			else
 			{
@@ -162,44 +186,38 @@ namespace utils
 		}
 	}
 
-	bool ConfClass::binteger( char const* expr, ptrdiff_t* value )
+	bool ConfClass::binteger( char const* expr, int& value )
 	{
-		return accessor< ptrdiff_t >( m_lstate, expr, value );
+		return accessor( m_lstate, expr, value );
 	}
 
-	bool ConfClass::bnumber( char const* expr, double* value )
+	bool ConfClass::bnumber( char const* expr, double& value )
 	{
-		return accessor< double >( m_lstate, expr, value );
+		return accessor( m_lstate, expr, value );
 	}
 
-	bool ConfClass::bstring( char const* expr, String* value )
+	bool ConfClass::bdata( char const* expr, Ref< DataBuffer >& value )
 	{
-		return accessor< String >( m_lstate, expr, value );
+		return accessor( m_lstate, expr, value );
 	}
 
-	bool ConfClass::bboolean( char const* expr, bool* value )
+	bool ConfClass::bstring( char const* expr, std::string& value )
 	{
-		return accessor< bool >( m_lstate, expr, value );
+		return accessor( m_lstate, expr, value );
+	}
+
+	bool ConfClass::bboolean( char const* expr, bool& value )
+	{
+		return accessor( m_lstate, expr, value );
 	}
 
 	bool ConfClass::stringbuf(
-		char const* expr, char* buffer, size_t* length )
+		char const* expr, char* buffer, size_t& length )
 	{
-		String value;
-		if( bstring( expr, &value ) )
+		ByteRange range{ buffer, length };
+		if( accessor( m_lstate, expr, range ) )
 		{
-			if( length )
-			{
-				if( buffer )
-				{
-					size_t clen = value.getlength();
-					if( clen <= *length )
-					{
-						memcpy( buffer, value.getchars(), clen );
-					}
-				}
-				*length = value.getlength();
-			}
+			length = range.length;
 			return true;
 		}
 		else
@@ -208,24 +226,29 @@ namespace utils
 		}
 	}
 
-	ptrdiff_t ConfClass::integer( char const* expr, ptrdiff_t def )
+	int ConfClass::integer( char const* expr, int def )
 	{
-		return accessor_def< ptrdiff_t >( m_lstate, expr, def );
+		return accessor_def( m_lstate, expr, def );
 	}
 
 	double ConfClass::number( char const* expr, double def )
 	{
-		return accessor_def< double >( m_lstate, expr, def );
+		return accessor_def( m_lstate, expr, def );
 	}
 
-	String ConfClass::string( char const* expr, String const& def )
+	Ref< DataBuffer > ConfClass::data( char const* expr )
 	{
-		return accessor_def< String >( m_lstate, expr, def );
+		return accessor_def( m_lstate, expr, Ref< DataBuffer >( nullptr ) );
+	}
+
+	std::string ConfClass::string( char const* expr, std::string const& def )
+	{
+		return accessor_def( m_lstate, expr, def );
 	}
 
 	bool ConfClass::boolean( char const* expr, bool def )
 	{
-		return accessor_def< bool >( m_lstate, expr, def );
+		return accessor_def( m_lstate, expr, def );
 	}
 
 	void ConfClass::runcmd( char const* expr )

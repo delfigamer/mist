@@ -58,13 +58,14 @@ if not _G.toolchain or _G.toolchain == 'gcc' then
 		end
 		local copt =
 			'-O2 \z
-			-Wall -Werror \z
+			-Wall \z
+			-Werror \z
 			-Wno-invalid-offsetof \z
+			-Wno-attributes \z
 			' .. env.flaglist(env.incpath, '-I', env.path) .. '\z
 			' .. env.flaglist(t.incpath, '-I', env.path) .. '\z
 			' .. table.concat(macrostr) .. '\z
 			-std=c++11 \z
-			-fvisibility=hidden \z
 			-pipe'
 		if t.asmfile then
 			return
@@ -118,7 +119,7 @@ if not _G.toolchain or _G.toolchain == 'gcc' then
 		return env.execute('lua \z
 			-e "' .. table.concat(varstr, ' ') .. '" \z
 			"' .. env.path(t.script) .. '" \z
-			' .. env.flaglist(t.args, '', env.path))
+			' .. env.flaglist(t.args))
 	end
 end
 

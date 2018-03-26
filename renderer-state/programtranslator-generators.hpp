@@ -59,24 +59,27 @@ namespace graphics
 			m_type = type;
 		}
 
-		Ref< DataBuffer > floattostring( float f )
+		namespace
 		{
-			char buf[ 32 ];
-			int len = snprintf( buf, sizeof( buf ), "%.8e", f );
-			return DataBuffer::create( len, buf );
+			Ref< DataBuffer > floattostring( float f )
+			{
+				char buf[ 32 ];
+				int len = snprintf( buf, sizeof( buf ), "%.8e", f );
+				return DataBuffer::create( len, buf );
+			}
 		}
 
 		StringBuilder Value_Literal::getstring( StringBuilder* defs )
 		{
-			StringBuilder sb;
-			sb << typestr[ m_type ] << "("_db << floattostring( m_elements[ 0 ] );
+			StringBuilder sb =
+				typestr[ m_type ] + "("_db + floattostring( m_elements[ 0 ] );
 			auto it = ++m_elements.begin();
 			auto eit = m_elements.end();
 			for( ; it != eit; ++it )
 			{
-				sb << ","_db << floattostring( *it );
+				sb += ","_db + floattostring( *it );
 			}
-			sb << ")"_db;
+			sb += ")"_db;
 			return sb;
 		}
 	}

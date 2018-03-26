@@ -3,7 +3,7 @@ local env = require('env')
 local ffi = require('ffi')
 
 function env.path(str)
-	return string.gsub(str, '/', '\\')
+	return (string.gsub(str, '/', '\\'))
 end
 
 ffi.cdef[[

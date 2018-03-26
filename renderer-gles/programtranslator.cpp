@@ -211,8 +211,7 @@ namespace graphics
 		StringBuilder makeshaders_vsh(
 			TranslatorState* ts )
 		{
-			StringBuilder vsh;
-			vsh <<
+			StringBuilder vsh =
 				"// built from a mistsh bytecode\n"_db
 				"precision highp float;\n"_db
 				"uniform mat4 worldviewmatrix;\n"_db;
@@ -220,25 +219,26 @@ namespace graphics
 			{
 				if( ts->m_attributeused[ i ] )
 				{
-					vsh << attributevarstr[ i ];
+					vsh += attributevarstr[ i ];
 				}
 			}
 			for( int i = 0; i < 8; ++i )
 			{
 				if( ts->m_attributeused[ i ] )
 				{
-					vsh << attributeattrstr[ i ];
+					vsh += attributeattrstr[ i ];
 				}
 			}
-			vsh << "void main(){\n"_db;
+			vsh +=
+				"void main(){\n"_db;
 			for( int i = 0; i < 8; ++i )
 			{
 				if( ts->m_attributeused[ i ] )
 				{
-					vsh << attributeassignstr[ i ];
+					vsh += attributeassignstr[ i ];
 				}
 			}
-			vsh <<
+			vsh +=
 				"gl_Position = worldviewmatrix*attr_a0;\n"_db
 				"}\n"_db
 				"\0"_db;
@@ -249,33 +249,32 @@ namespace graphics
 			TranslatorState* ts,
 			Ref< Value > const& value )
 		{
-			StringBuilder fsh;
-			fsh <<
+			StringBuilder fsh =
 				"// built from a mistsh bytecode\n"_db
 				"precision highp float;\n"_db;
 			for( int i = 0; i < 8; ++i )
 			{
 				if( ts->m_attributeused[ i ] )
 				{
-					fsh << attributevarstr[ i ];
+					fsh += attributevarstr[ i ];
 				}
 			}
 			for( int i = 0; i < 8; ++i )
 			{
 				if( ts->m_textureused[ i ] )
 				{
-					fsh << texturedefstr[ i ];
+					fsh += texturedefstr[ i ];
 				}
 			}
-			fsh << "void main(){\n"_db;
+			fsh +=
+				"void main(){\n"_db;
 			StringBuilder vdefs;
 			StringBuilder vstr = value->getstring( &vdefs );
-			fsh
-				<< vdefs
-				<< "gl_FragColor = "_db << vstr <<
-					";\n"_db
-					"}\n"_db
-					"\0"_db;
+			fsh +=
+				vdefs +
+				"gl_FragColor = "_db + vstr + ";\n"_db
+				"}\n"_db
+				"\0"_db;
 			return fsh;
 		}
 	}

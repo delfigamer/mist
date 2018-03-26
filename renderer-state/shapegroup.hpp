@@ -39,7 +39,7 @@ namespace graphics
 			return new ShapeGroup();
 		}
 		R_METHOD() ShapeGroupEntry* insert( Shape* item );
-		R_METHOD() void setactive( bool active ) NOEXCEPT
+		R_METHOD() void setactive( bool active ) noexcept
 		{
 			m_active.store( active, std::memory_order_relaxed );
 		}
