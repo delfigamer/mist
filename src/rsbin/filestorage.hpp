@@ -1,10 +1,11 @@
 #pragma once
 
 #include <rsbin/storage.hpp>
+#include <common/flaglock.hpp>
 #include <osapi.hpp>
 #include <common.hpp>
+#include <mutex>
 #include <map>
-#include <memory>
 
 namespace rsbin
 {
@@ -19,6 +20,10 @@ namespace rsbin
 
 	class [[ r::class, r::name( "filestorage" ) ]] FileStorage: public Storage
 	{
+	private:
+		typedef FlagLock mutex_t;
+		typedef std::lock_guard< mutex_t > lock_t;
+
 	private:
 		struct page_t
 		{
@@ -37,6 +42,7 @@ namespace rsbin
 		};
 
 	private:
+		mutex_t m_mutex;
 #if defined( _WIN32 ) || defined( _WIN64 )
 		HANDLE m_handle;
 #else

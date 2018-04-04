@@ -62,7 +62,6 @@ if not _G.toolchain or _G.toolchain == 'gcc' then
 			-Werror \z
 			-Wno-invalid-offsetof \z
 			-Wno-attributes \z
-			' .. env.flaglist(env.incpath, '-I', env.path) .. '\z
 			' .. env.flaglist(t.incpath, '-I', env.path) .. '\z
 			' .. table.concat(macrostr) .. '\z
 			-std=c++11 \z
@@ -97,7 +96,6 @@ if not _G.toolchain or _G.toolchain == 'gcc' then
 			env.execute('g++ \z
 				-o "' .. env.path(t.target) .. '" \z
 				' .. env.flaglist(t.items, '', env.path) .. '\z
-				' .. env.flaglist(env.libpath, '-L', env.path) .. '\z
 				' .. env.flaglist(t.libpath, '-L', env.path) .. '\z
 				' .. env.flaglist(t.libs, '-l', env.path) .. '\z
 				' .. (t.dll and '-shared ' or '') .. '\z
@@ -122,6 +120,3 @@ if not _G.toolchain or _G.toolchain == 'gcc' then
 			' .. env.flaglist(t.args))
 	end
 end
-
-env.incpath = '.'
-env.libpath = '.'

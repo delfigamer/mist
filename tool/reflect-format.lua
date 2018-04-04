@@ -2,7 +2,7 @@ local modname = ...
 local format = package.modtable(modname)
 local ffi = require('ffi')
 local env = require('env')
-local hppdecl = require('hppdecl')
+local parser = require('reflect-parser')
 
 local function echo(...)
 	local arg = table.pack(...)
@@ -80,8 +80,8 @@ function format.tofileandstring(path, func, ...)
 end
 
 local function decldefstring(decl)
-	return hppdecl.locationstring(decl.location) .. '\n\t' ..
-		hppdecl.decldefstring(decl) .. '\n'
+	return parser.locationstring(decl.location) .. '\n\t' ..
+		parser.decldefstring(decl) .. '\n'
 end
 
 local function decltypestring(decltype, name, usesourcename)
@@ -165,7 +165,7 @@ end
 
 local function asserttrivialtype(decltype, errorlocation)
 	if not istrivialtype(decltype) then
-		hppdecl.locationerror(errorlocation,
+		parser.locationerror(errorlocation,
 			'failed to reflect a non-trivial value of type ' ..
 				decltypesourcestring(decltype))
 	end
@@ -174,13 +174,13 @@ end
 function format.cpp_namespace_rfield(env, moduledef, decl)
 	echo('\textern "C" ', decltypesourcestring(decl.interntype),
 		'r_', decl.cname, '_accessor(')
-	if decl.context and not decl.isstatic then
+	if decl.outerdecl and not decl.isstatic then
 		echo(decltypesourcestring(decl.selftype, 'self'))
 	end
 	echo(')\n')
 	echo('\t{\n')
 	echo('\t\treturn ')
-	if decl.context and not decl.isstatic then
+	if decl.outerdecl and not decl.isstatic then
 		echo('self->', decl.sourcelocalname)
 	else
 		echo(decl.sourcename)
@@ -191,14 +191,14 @@ function format.cpp_namespace_rfield(env, moduledef, decl)
 		return
 	end
 	echo('\textern "C" void r_', decl.cname, '_mutator(')
-	if decl.context and not decl.isstatic then
+	if decl.outerdecl and not decl.isstatic then
 		echo(decltypesourcestring(decl.selftype, 'self'), ', ')
 	end
 	echo(decltypesourcestring(decl.interntype, 'value'))
 	echo(')\n')
 	echo('\t{\n')
 	echo('\t\t')
-	if decl.context and not decl.isstatic then
+	if decl.outerdecl and not decl.isstatic then
 		echo('self->', decl.sourcelocalname)
 	else
 		echo(decl.sourcename)
@@ -210,7 +210,7 @@ end
 function format.cpp_namespace_rmethod(env, moduledef, decl)
 	echo('\textern "C" bool r_', decl.cname, '_wrapper(')
 	local sep
-	if decl.context and not decl.isstatic then
+	if decl.outerdecl and not decl.isstatic then
 		sep = sep_next(sep, ', ')
 		echo(decltypesourcestring(decl.selftype, 'self'))
 	end
@@ -238,10 +238,10 @@ function format.cpp_namespace_rmethod(env, moduledef, decl)
 	if decl.rettype.fundamental ~= 'void' then
 		echo('*result = ')
 	end
-	if decl.context and not decl.isstatic then
+	if decl.outerdecl and not decl.isstatic then
 		echo('self->', decl.sourcelocalname)
 	elseif decl.isconstructor then
-		echo('new ', decl.context.sourcename)
+		echo('new ', decl.outerdecl.sourcename)
 	else
 		echo(decl.sourcename)
 	end
@@ -377,7 +377,7 @@ function format.lua_wrapvalue(env, varname, decltype, errorlocation)
 		echo('\t\t\t\t', varname, ' = nil\n')
 		echo('\t\t\tend\n')
 	else
-		hppdecl.locationerror(errorlocation,
+		parser.locationerror(errorlocation,
 			'invalid value type ' .. decltypesourcestring(decltype))
 	end
 end
@@ -397,7 +397,7 @@ function format.lua_unwrapvalue(env, varname, decltype, errorlocation)
 		echo('\t\t\t\t', varname, ' = ', varname, '.ptr\n')
 		echo('\t\t\tend\n')
 	else
-		hppdecl.locationerror(errorlocation,
+		parser.locationerror(errorlocation,
 			'invalid value type ' .. decltypesourcestring(decltype))
 	end
 	if decltype.isrequired and not env.suppresstypechecks then
@@ -436,7 +436,7 @@ end
 function format.lua_ptrtype_rfield(env, moduledef, decl)
 	echo('\t\t', decltypestring(decl.interntype),
 		'(*', decl.cname, '_accessor)(')
-	if decl.context and not decl.isstatic then
+	if decl.outerdecl and not decl.isstatic then
 		echo(decltypestring(decl.selftype, 'self'))
 	end
 	echo(');\n')
@@ -444,7 +444,7 @@ function format.lua_ptrtype_rfield(env, moduledef, decl)
 		return
 	end
 	echo('\t\tvoid(*', decl.cname, '_mutator)(')
-	if decl.context and not decl.isstatic then
+	if decl.outerdecl and not decl.isstatic then
 		echo(decltypestring(decl.selftype, 'self'), ', ')
 	end
 	echo(decltypestring(decl.interntype, 'value'))
@@ -460,7 +460,7 @@ end
 function format.lua_ptrtype_rmethod(env, moduledef, decl)
 	echo('\t\tbool(*', decl.cname, ')(')
 	local sep
-	if decl.context and not decl.isstatic then
+	if decl.outerdecl and not decl.isstatic then
 		sep = sep_next(sep, ', ')
 		echo(decltypestring(decl.selftype, 'self'))
 	end
@@ -525,13 +525,14 @@ function format.lua_namespace_rfield(env, moduledef, decl)
 	if decl.attrs['r::hidden'] ~= nil then
 		return
 	end
-	if decl.context then
-		echo('\tfunction ', decl.context.cname, ':get', decl.lualocalname, '()\n')
+	if decl.outerdecl then
+		echo('\tfunction ', decl.outerdecl.cname,
+			':get', decl.lualocalname, '()\n')
 	else
 		echo('\tpackage.loaded[', q(decl.accessorluaname), '] = function()\n')
 	end
 	echo('\t\tlocal result = r.', decl.cname, '_accessor(')
-	if decl.context and not decl.isstatic then
+	if decl.outerdecl and not decl.isstatic then
 		echo('self.ptr')
 	end
 	echo(')\n')
@@ -541,15 +542,15 @@ function format.lua_namespace_rfield(env, moduledef, decl)
 	if decl.isreadonly then
 		return
 	end
-	if decl.context then
-		echo('\tfunction ', decl.context.cname, ':set', decl.lualocalname,
+	if decl.outerdecl then
+		echo('\tfunction ', decl.outerdecl.cname, ':set', decl.lualocalname,
 			'(value)\n')
 	else
 		echo('\tpackage.loaded[', q(decl.mutatorluaname), '] = function(value)\n')
 	end
 	format.lua_unwrapvalue(env, 'value', decl.interntype, decl.location)
 	echo('\t\tr.', decl.cname, '_mutator(')
-	if decl.context and not decl.isstatic then
+	if decl.outerdecl and not decl.isstatic then
 		echo('self.ptr, ')
 	end
 	echo('value)\n')
@@ -581,8 +582,8 @@ function format.lua_namespace_rmethod(env, moduledef, decl)
 		echo('\tlocal result_t = ffi.typeof(',
 			q(decltypestring(arrtype)), ')\n')
 	end
-	if decl.context then
-		echo('\tfunction ', decl.context.cname, ':', decl.lualocalname, '(')
+	if decl.outerdecl then
+		echo('\tfunction ', decl.outerdecl.cname, ':', decl.lualocalname, '(')
 	else
 		echo('\tpackage.loaded[', q(decl.luaname), '] = function(')
 	end
@@ -608,7 +609,7 @@ function format.lua_namespace_rmethod(env, moduledef, decl)
 	end
 	echo('r.', decl.cname, '(')
 	local sep
-	if decl.context and not decl.isstatic then
+	if decl.outerdecl and not decl.isstatic then
 		sep = sep_next(sep, ', ')
 		echo('self.ptr')
 	end
@@ -816,12 +817,8 @@ function format.r_field_attrs(env, moduledef, decl)
 	echo('},\n')
 end
 
-function format.r_include(env, moduledef, decl)
-	echo('load(', q(decl.targetname), ')\n')
-end
-
 function format.r_rtype(env, moduledef, decl)
-	echo('registerdecl({\n')
+	echo('decl(moduledef, {\n')
 	echo('\trtype = true,\n')
 	format.r_field_location(env, moduledef, decl)
 	format.r_field_attrs(env, moduledef, decl)
@@ -836,7 +833,7 @@ function format.r_rtype(env, moduledef, decl)
 end
 
 function format.r_rstruct(env, moduledef, decl)
-	echo('registerdecl({\n')
+	echo('decl(moduledef, {\n')
 	echo('\trstruct = true,\n')
 	format.r_field_location(env, moduledef, decl)
 	format.r_field_attrs(env, moduledef, decl)
@@ -860,12 +857,12 @@ function format.r_rstruct(env, moduledef, decl)
 end
 
 function format.r_rclass(env, moduledef, decl)
-	echo('registerdecl({\n')
+	echo('decl(moduledef, {\n')
 	echo('\trclass = true,\n')
 	format.r_field_location(env, moduledef, decl)
 	format.r_field_attrs(env, moduledef, decl)
 	if decl.base then
-		echo('\tbase = nslookup(', q(decl.base.sourcename), '),\n')
+		echo('\tbase = nslookup(moduledef, ', q(decl.base.sourcename), '),\n')
 	end
 	echo('\tsourcename = ', q(decl.sourcename), ',\n')
 	echo('\tluaname = ', q(decl.luaname), ',\n')
@@ -875,7 +872,7 @@ function format.r_rclass(env, moduledef, decl)
 end
 
 function format.r_rexternal(env, moduledef, decl)
-	echo('registerdecl({\n')
+	echo('decl(moduledef, {\n')
 	echo('\trexternal = true,\n')
 	format.r_field_location(env, moduledef, decl)
 	format.r_field_attrs(env, moduledef, decl)
@@ -887,7 +884,7 @@ function format.r_rexternal(env, moduledef, decl)
 end
 
 function format.r_renum(env, moduledef, decl)
-	echo('registerdecl({\n')
+	echo('decl(moduledef, {\n')
 	echo('\trenum = true,\n')
 	format.r_field_location(env, moduledef, decl)
 	format.r_field_attrs(env, moduledef, decl)
@@ -904,12 +901,13 @@ function format.r_renum(env, moduledef, decl)
 end
 
 function format.r_rfield(env, moduledef, decl)
-	echo('decl({\n')
+	echo('decl(moduledef, {\n')
 	echo('\trfield = true,\n')
 	format.r_field_location(env, moduledef, decl)
 	format.r_field_attrs(env, moduledef, decl)
-	if decl.context then
-		echo('\tcontext = nslookup(', q(decl.context.sourcename), '),\n')
+	if decl.outerdecl then
+		echo('\touterdecl = nslookup(moduledef, ',
+			q(decl.outerdecl.sourcename), '),\n')
 	end
 	echo('\tsourcename = ', q(decl.sourcename), ',\n')
 	if decl.sourcelocalname then
@@ -943,7 +941,7 @@ function format.r_rfield(env, moduledef, decl)
 end
 
 function format.r_robject(env, moduledef, decl)
-	echo('decl({\n')
+	echo('decl(moduledef, {\n')
 	echo('\trobject = true,\n')
 	format.r_field_location(env, moduledef, decl)
 	format.r_field_attrs(env, moduledef, decl)
@@ -957,7 +955,7 @@ function format.r_robject(env, moduledef, decl)
 end
 
 function format.r_rmethod(env, moduledef, decl)
-	echo('decl({\n')
+	echo('decl(moduledef, {\n')
 	echo('\trmethod = true,\n')
 	format.r_field_location(env, moduledef, decl)
 	format.r_field_attrs(env, moduledef, decl)
@@ -974,8 +972,9 @@ function format.r_rmethod(env, moduledef, decl)
 		echo(',\n')
 	end
 	echo('\t},\n')
-	if decl.context then
-		echo('\tcontext = nslookup(', q(decl.context.sourcename), '),\n')
+	if decl.outerdecl then
+		echo('\touterdecl = nslookup(moduledef, ',
+			q(decl.outerdecl.sourcename), '),\n')
 	end
 	if decl.isconstructor then
 		echo('\tisconstructor = true,\n')
@@ -1003,7 +1002,7 @@ function format.r_rmethod(env, moduledef, decl)
 end
 
 function format.r_remit(env, moduledef, decl)
-	echo('decl({\n')
+	echo('decl(moduledef, {\n')
 	echo('\tremit = true,\n')
 	format.r_field_location(env, moduledef, decl)
 	echo('\tpayload = ', q(decl.payload), ',\n')
@@ -1011,11 +1010,13 @@ function format.r_remit(env, moduledef, decl)
 end
 
 function format.r(env, moduledef)
-	echo('modulename(', q(moduledef.name), ')')
+	echo('local moduledef = registermodule(',
+		q(moduledef.name), ', ', q(moduledef.source), ')\n')
+	for i, include in ipairs(moduledef.includes) do
+		echo('include(moduledef, ', q(include), ')\n')
+	end
 	for i, decl in ipairs(moduledef.decls) do
-		if decl.include then
-			format.r_include(env, moduledef, decl)
-		elseif decl.rtype then
+		if decl.rtype then
 			format.r_rtype(env, moduledef, decl)
 		elseif decl.rstruct then
 			format.r_rstruct(env, moduledef, decl)
@@ -1037,7 +1038,7 @@ function format.r(env, moduledef)
 	end
 end
 
-function format.indexcpp(env, modulelist)
+function format.indexcpp(env, modulelist, luaparts)
 	echo('#include <reflection.hpp>\n')
 	echo('#include <common.hpp>\n')
 	for i, moduledef in ipairs(modulelist) do
@@ -1045,7 +1046,7 @@ function format.indexcpp(env, modulelist)
 	end
 	echo('namespace\n')
 	echo('{\n')
-	for i, part in ipairs(env.luaparts) do
+	for i, part in ipairs(luaparts) do
 		echo('\tuint8_t const r_lua', tostring(i), '_chunk[] = {')
 		format.cpp_chunkbytes(env, part.chunk)
 		echo('\t};\n')
@@ -1056,15 +1057,15 @@ function format.indexcpp(env, modulelist)
 		echo('\t\t', q(part.name), '};\n')
 	end
 	echo('}\n')
-	for i = 1, #env.indexnameparts - 1 do
-		echo('namespace ', env.indexnameparts[i], '\n')
+	for i = 1, #env.indexname - 1 do
+		echo('namespace ', env.indexname[i], '\n')
 		echo('{\n')
 	end
 	echo('\textern r::module const* ',
-		env.indexnameparts[#env.indexnameparts], '[];\n')
+		env.indexname[#env.indexname], '[];\n')
 	echo('\tr::module const* ',
-		env.indexnameparts[#env.indexnameparts], '[] = {\n')
-	for i, part in ipairs(env.luaparts) do
+		env.indexname[#env.indexname], '[] = {\n')
+	for i, part in ipairs(luaparts) do
 		if part.prolog then
 			echo('\t\t&r_lua', tostring(i), '_module,\n')
 		end
@@ -1072,14 +1073,14 @@ function format.indexcpp(env, modulelist)
 	for i, moduledef in ipairs(modulelist) do
 		echo('\t\t&r_', moduledef.identname, '_module,\n')
 	end
-	for i, part in ipairs(env.luaparts) do
+	for i, part in ipairs(luaparts) do
 		if part.epilog then
 			echo('\t\t&r_lua', tostring(i), '_module,\n')
 		end
 	end
 	echo('\t\tnullptr,\n')
 	echo('\t};\n')
-	for i = 1, #env.indexnameparts - 1 do
+	for i = 1, #env.indexname - 1 do
 		echo('}\n')
 	end
 end

@@ -91,24 +91,6 @@ function require(base, uplevel, suffix)
 		modname, table.concat(errstr)), 2)
 end
 
--- package.loaders[#package.loaders + 1] = function(modname)
-	-- local path, perr = package.searchpath(modname, package.lcpath)
-	-- if not path then
-		-- return perr
-	-- end
-	-- local env = {}
-	-- local f, err = loadfile(path, 'bt', env)
-	-- if f then
-		-- return function(modname, ienv)
-			-- setmetatable(env, {__index = ienv})
-			-- f(modname)
-			-- return env
-		-- end
-	-- else
-		-- return '\n' .. err
-	-- end
--- end
-
 package.loaders = {}
 
 function package.modulepack(pt)

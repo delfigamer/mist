@@ -70,6 +70,7 @@ namespace rsbin
 
 	MemoryStorage::MemoryStorage()
 		: m_limit( 0 )
+		, m_mapcount( 0 )
 	{
 	}
 
@@ -97,6 +98,7 @@ namespace rsbin
 		uint64_t offset, uint32_t length,
 		bool flagread, bool flagwrite )
 	{
+		lock_t lock( m_mutex );
 		if( length == 0 || ( !flagread && !flagwrite ) )
 		{
 			return nullptr;
@@ -147,10 +149,12 @@ namespace rsbin
 		, m_ptr( ptr )
 		, m_length( length )
 	{
+		m_target->m_mapcount += 1;
 	}
 
 	MemoryStorageMap::~MemoryStorageMap()
 	{
+		m_target->m_mapcount -= 1;
 	}
 
 	bool MemoryStorageMap::poll()
@@ -167,12 +171,19 @@ namespace rsbin
 
 	GetLimitTask* MemoryStorage::getlimit( uint64_t* plimit )
 	{
+		lock_t lock( m_mutex );
 		*plimit = m_limit;
 		return nullptr;
 	}
 
 	Task* MemoryStorage::setlimit( uint64_t limit )
 	{
+		lock_t lock( m_mutex );
+		if( m_mapcount != 0 )
+		{
+			throw std::runtime_error(
+				"the object has currently active mappings" );
+		}
 		m_limit = limit;
 		size_t pagecount = ( limit + PageSize - 1 ) / PageSize;
 		m_pages.resize( pagecount );
@@ -181,11 +192,22 @@ namespace rsbin
 
 	Task* MemoryStorage::flush()
 	{
+		if( m_mapcount != 0 )
+		{
+			throw std::runtime_error(
+				"the object has currently active mappings" );
+		}
 		return nullptr;
 	}
 
 	Task* MemoryStorage::close()
 	{
+		lock_t lock( m_mutex );
+		if( m_mapcount != 0 )
+		{
+			throw std::runtime_error(
+				"the object has currently active mappings" );
+		}
 		m_pages.clear();
 		m_limit = 0;
 		return nullptr;

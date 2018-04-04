@@ -1,9 +1,8 @@
-local modname = ...
 -- target:
 --   client-main
 --   renderer-d3d9
 --   renderer-gles
-local sources = {
+return {
 	{
 		type = 'native',
 		name = 'common',
@@ -87,11 +86,6 @@ local sources = {
 	{
 		type = 'native',
 		name = 'utils/console',
-		target = 'client-main',
-	},
-	{
-		type = 'native',
-		name = 'utils/cyclicbuffer',
 		target = 'client-main',
 	},
 	{
@@ -184,6 +178,19 @@ local sources = {
 	{
 		type = 'native',
 		name = 'rsbin/storage',
+		headeronly = true,
+		target = 'client-main',
+		reflect = true,
+	},
+	{
+		type = 'native',
+		name = 'rsbin/storagestream',
+		target = 'client-main',
+		reflect = true,
+	},
+	{
+		type = 'native',
+		name = 'rsbin/stream',
 		headeronly = true,
 		target = 'client-main',
 		reflect = true,
@@ -503,5 +510,3 @@ local sources = {
 		reflect = true,
 	},
 }
-
-package.modtable(modname, sources)

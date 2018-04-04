@@ -1,14 +1,17 @@
-assert(loadfile('base.lua'))()
-setfenv(1, _G)
-protectglobaltable(true)
+local modname = ...
 local env = require('env')
-local hppdecl = require('hppdecl')
-local format = require('hppformat')
+local buildconfig = require('build-config')
+local parser = require('reflect-parser')
+local format = require('reflect-format')
+local rcache = require('reflect-cache')
 
-local source = ...
-local builddir = _G.builddir or error('builddir must be set')
-local suppresslua = _G.suppresslua
-local suppresstypechecks = _G.suppresstypechecks
+-- entry point: reflect(fenv)
+-- fenv fields:
+--   source
+--   target
+--   modulename
+--   suppresslua -- bool
+--   suppresstypechecks -- bool
 
 -- [[r::enum]]
 --   registers an enum type
@@ -45,30 +48,6 @@ local suppresstypechecks = _G.suppresstypechecks
 -- r_emit(<< contents >>)
 --   insert 'contents' textually
 
-local namespace = {
-}
-
-do
-	local function basetype(name)
-		namespace['::' .. name] = {
-			sourcename = name,
-			trivialname = name,
-			location = {{'', 1, 1}}}
-	end
-	basetype('int8_t')
-	basetype('int16_t')
-	basetype('int32_t')
-	basetype('int64_t')
-	basetype('uint8_t')
-	basetype('uint16_t')
-	basetype('uint32_t')
-	basetype('uint64_t')
-	basetype('size_t')
-	basetype('ptrdiff_t')
-	basetype('intptr_t')
-	basetype('uintptr_t')
-end
-
 local function qualifiednamestr(parts)
 	local str = ''
 	for i, part in ipairs(parts) do
@@ -101,7 +80,7 @@ local function getsourcelocalname(decl)
 	if #decl.name ~= 0 then
 		return decl.name[#decl.name]
 	else
-		hppdecl.locationerror(decl.location, 'invalid reflected entity name')
+		parser.locationerror(decl.location, 'invalid reflected entity name')
 	end
 end
 
@@ -132,7 +111,7 @@ local function getluafullname(decl)
 	if fullname and string.match(fullname, '^[a-zA-Z0-9%_%.]+$') then
 		return fullname
 	else
-		hppdecl.locationerror(decl.location, 'invalid reflected entity name')
+		parser.locationerror(decl.location, 'invalid reflected entity name')
 	end
 end
 
@@ -152,20 +131,20 @@ local function getlualocalname(decl)
 	if name and string.match(name, '^[a-zA-Z0-9%_]+$') then
 		return name
 	else
-		hppdecl.locationerror(decl.location, 'invalid reflected entity name')
+		parser.locationerror(decl.location, 'invalid reflected entity name')
 	end
 end
 
-local function nslookup(scope, name)
+local function nslookup(moduledef, scope, name)
 	local namepart = qualifiednamestr(name)
 	if name.isfull then
-		return namespace[namepart]
+		return moduledef.namespace[namepart]
 	end
 	local scopepart = ''
-	local result = namespace[namepart]
+	local result = moduledef.namespace[namepart]
 	for i, part in ipairs(scope) do
 		scopepart = scopepart .. '::' .. part
-		local cand = namespace[scopepart .. namepart]
+		local cand = moduledef.namespace[scopepart .. namepart]
 		if cand then
 			result = cand
 		end
@@ -177,29 +156,11 @@ local function nslookup(scope, name)
 	end
 end
 
-local function registerdecl(decl)
-	local sfname = decl.sourcename or getsourcefullname(decl)
-	local prev = namespace[sfname]
-	if prev then
-		if decl.rexternal and (prev.rclass or prev.rexternal) then
-			return
-		elseif prev.rexternal and decl.rclass then
-			namespace[sfname] = decl
-		else
-			hppdecl.locationerror(decl.location,
-				sfname .. ' has already been declared' ..
-				hppdecl.locationstring(prev.location))
-		end
-	else
-		namespace[sfname] = decl
-	end
-end
-
-local function tryinterntype(scope, decltype)
+local function tryinterntype(moduledef, scope, decltype)
 	if decltype.fundamental then
 		return decltype
 	elseif decltype.name then
-		local decl, err = nslookup(scope, decltype.name)
+		local decl, err = nslookup(moduledef, scope, decltype.name)
 		if not decl then
 			return nil, err
 		elseif decl.fundamentaleq then
@@ -227,7 +188,7 @@ local function tryinterntype(scope, decltype)
 	elseif decltype.template then
 		return nil, 'NYI'
 	elseif decltype.pointer then
-		local target, err = tryinterntype(scope, decltype.pointer)
+		local target, err = tryinterntype(moduledef, scope, decltype.pointer)
 		if not target then
 			return nil, err
 		end
@@ -236,7 +197,7 @@ local function tryinterntype(scope, decltype)
 			isconst = decltype.isconst,
 			isvolatile = decltype.isvolatile}
 	-- elseif decltype.lref then
-		-- local target, err = tryinterntype(scope, decltype.lref)
+		-- local target, err = tryinterntype(moduledef, scope, decltype.lref)
 		-- if not target then
 			-- return nil, err
 		-- end
@@ -245,7 +206,7 @@ local function tryinterntype(scope, decltype)
 			-- isconst = decltype.isconst,
 			-- isvolatile = decltype.isvolatile}
 	-- elseif decltype.rref then
-		-- local target, err = tryinterntype(scope, decltype.rref)
+		-- local target, err = tryinterntype(moduledef, scope, decltype.rref)
 		-- if not target then
 			-- return nil, err
 		-- end
@@ -254,7 +215,7 @@ local function tryinterntype(scope, decltype)
 			-- isconst = decltype.isconst,
 			-- isvolatile = decltype.isvolatile}
 	elseif decltype.array then
-		local target, err = tryinterntype(scope, decltype.array)
+		local target, err = tryinterntype(moduledef, scope, decltype.array)
 		if not target then
 			return nil, err
 		end
@@ -266,80 +227,37 @@ local function tryinterntype(scope, decltype)
 	end
 end
 
-local function interntype(decl, decltype)
-	local type, err = tryinterntype(decl.scope, decltype)
+local function interntype(moduledef, decl, decltype)
+	local type, err = tryinterntype(moduledef, decl.scope, decltype)
 	if type then
 		return type
 	else
-		hppdecl.locationerror(decl.location, err)
+		parser.locationerror(decl.location, err)
 	end
-end
-
-local loadinclude_cache = {}
-local loadinclude_env = {}
-
-local function tryinclude(targetname)
-	if loadinclude_cache[targetname] then
-		return true
-	end
-	local path = builddir .. targetname .. '.r'
-	local file = io.open(env.path(path), 'r')
-	if file then
-		local source = file:read('*a')
-		file:close()
-		assert(load(source, path, 't', loadinclude_env))()
-		loadinclude_cache[targetname] = true
-		return true
-	end
-	return false
-end
-
-function loadinclude_env.modulename(name)
-end
-
-function loadinclude_env.load(targetname)
-	tryinclude(targetname)
-end
-
-function loadinclude_env.nslookup(sourcename)
-	local decl = namespace[sourcename]
-	if not decl then
-		error('unknown name ' .. sourcename)
-	end
-	return decl
-end
-
-function loadinclude_env.decl(decl)
-end
-
-function loadinclude_env.registerdecl(decl)
-	registerdecl(decl)
 end
 
 local function loadinclude(moduledef, decl)
 	local targetname = string.match(decl.include, '(.*)%.') or decl.include
-	if tryinclude(targetname) then
-		decl.targetname = targetname
-		table.append(moduledef.decls, decl)
+	local target = rcache.tryloadmodulebyname(targetname)
+	if target then
+		rcache.includemodule(moduledef, target)
 	end
 end
 
 local function loadrtype(moduledef, decl)
 	decl.rtype = true
-	registerdecl(decl)
 	decl.sourcename = getsourcefullname(decl)
 	decl.luaname = getluafullname(decl)
 	decl.cname = string.gsub(decl.luaname, '%.', '_')
 	decl.trivialname = decl.cname
-	decl.interntype = interntype(decl, decl.type)
+	decl.interntype = interntype(moduledef, decl, decl.type)
 	table.append(moduledef.decls, decl)
 end
 
 local function loadrstruct(moduledef, decl)
 	decl.rstruct = true
-	registerdecl(decl)
 	if #decl.bases ~= 0 then
-		hppdecl.locationerror(decl.location,
+		parser.locationerror(decl.location,
 			'classes with bases cannot be reflected as structs')
 	end
 	decl.sourcename = getsourcefullname(decl)
@@ -350,34 +268,33 @@ local function loadrstruct(moduledef, decl)
 	table.append(moduledef.decls, decl)
 end
 
-local function loadrstructfield(moduledef, decl, structdecl)
+local function loadrstructfield(moduledef, decl, outerdecl)
 	if #decl.name ~= 1 then
-		hppdecl.locationerror(decl,
+		parser.locationerror(decl,
 			'invalid struct field')
 	end
 	if not decl.isstatic then
-		decl.interntype = interntype(decl, decl.type)
-		table.append(structdecl.fields, decl)
+		decl.interntype = interntype(moduledef, decl, decl.type)
+		table.append(outerdecl.fields, decl)
 	end
 end
 
 local function loadrclass(moduledef, decl)
 	decl.rclass = true
-	registerdecl(decl)
 	if #decl.bases == 1 then
 		local basename = decl.bases[1]
-		local basedecl, err = nslookup(decl.scope, basename)
+		local basedecl, err = nslookup(moduledef, decl.scope, basename)
 		if not basedecl then
-			hppdecl.locationerror(decl.location, err)
+			parser.locationerror(decl.location, err)
 		end
 		if basedecl.rclass then
 			decl.base = basedecl
 		else
-			hppdecl.locationerror(decl.location,
+			parser.locationerror(decl.location,
 				'class base in not itself a class')
 		end
 	elseif #decl.bases ~= 0 then
-		hppdecl.locationerror(decl.location,
+		parser.locationerror(decl.location,
 			'reflected classes cannot have more than one base')
 	end
 	decl.sourcename = getsourcefullname(decl)
@@ -389,7 +306,6 @@ end
 
 local function loadrexternal(moduledef, decl)
 	decl.rexternal = true
-	registerdecl(decl)
 	decl.sourcename = getsourcefullname(decl)
 	decl.luaname = getluafullname(decl)
 	decl.cname = string.gsub(decl.luaname, '%.', '_')
@@ -399,7 +315,6 @@ end
 
 local function loadrenum(moduledef, decl)
 	decl.renum = true
-	registerdecl(decl)
 	decl.sourcename = getsourcefullname(decl)
 	decl.luaname = getluafullname(decl)
 	decl.cname = string.gsub(decl.luaname, '%.', '_')
@@ -408,34 +323,34 @@ local function loadrenum(moduledef, decl)
 	table.append(moduledef.decls, decl)
 end
 
-local function loadrenumconst(moduledef, decl, enumdecl)
-	if not enumdecl.renum or #decl.name ~= 1 then
-		hppdecl.locationerror(decl,
+local function loadrenumconst(moduledef, decl, outerdecl)
+	if not outerdecl.renum or #decl.name ~= 1 then
+		parser.locationerror(decl,
 			'invalid enum const')
 	end
 	local name = decl.name[1]
-	if enumdecl.consts[name] then
-		hppdecl.locationerror(decl,
+	if outerdecl.consts[name] then
+		parser.locationerror(decl,
 			'enum const is already declared')
 	end
-	enumdecl.consts[name] = decl.value
+	outerdecl.consts[name] = decl.value
 end
 
-local function loadrfield(moduledef, decl, context)
+local function loadrfield(moduledef, decl, outerdecl)
 	decl.rfield = true
-	if context then
-		if context.rclass then
-			decl.context = context
+	if outerdecl then
+		if outerdecl.rclass then
+			decl.outerdecl = outerdecl
 			decl.sourcename = getsourcefullname(decl)
 			decl.sourcelocalname = getsourcelocalname(decl)
 			decl.lualocalname = getlualocalname(decl)
-			decl.cname = context.cname .. '_' .. decl.lualocalname
+			decl.cname = outerdecl.cname .. '_' .. decl.lualocalname
 			decl.selftype = {
 				pointer = {
-					classname = context.classname,
-					sourcename = context.sourcename}}
+					classname = outerdecl.classname,
+					sourcename = outerdecl.sourcename}}
 		else
-			hppdecl.locationerror(decl.location,
+			parser.locationerror(decl.location,
 				'r::field is in an invalid scope')
 		end
 	else
@@ -446,7 +361,7 @@ local function loadrfield(moduledef, decl, context)
 		decl.accessorluaname = nameprefix .. 'get' .. lastname
 		decl.mutatorluaname = nameprefix .. 'set' .. lastname
 	end
-	decl.interntype = interntype(decl, decl.type)
+	decl.interntype = interntype(moduledef, decl, decl.type)
 	decl.isreadonly =
 		decl.interntype.isconst or
 		decl.interntype.array or
@@ -458,58 +373,58 @@ local function loadrfield(moduledef, decl, context)
 	table.append(moduledef.decls, decl)
 end
 
-local function loadrobject(moduledef, decl, context)
+local function loadrobject(moduledef, decl, outerdecl)
 	decl.robject = true
-	if context then
-		hppdecl.locationerror(decl.location,
+	if outerdecl then
+		parser.locationerror(decl.location,
 			'r::object must be a global object')
 	end
 	decl.sourcename = getsourcefullname(decl)
 	decl.luaname = getluafullname(decl)
 	decl.cname = string.gsub(decl.luaname, '%.', '_')
-	decl.interntype = interntype(decl, decl.type)
+	decl.interntype = interntype(moduledef, decl, decl.type)
 	if not decl.interntype.classname then
-		hppdecl.locationerror(decl.location,
+		parser.locationerror(decl.location,
 			'r::object must be a variable of a boxed type')
 	end
 	table.append(moduledef.decls, decl)
 end
 
-local function loadrmethod(moduledef, decl, context)
+local function loadrmethod(moduledef, decl, outerdecl)
 	decl.rmethod = true
 	decl.isnoexcept = decl.type.isnoexcept
-	decl.rettype = interntype(decl, decl.type.functionret)
+	decl.rettype = interntype(moduledef, decl, decl.type.functionret)
 	decl.argtypes = {}
 	for i, arg in ipairs(decl.type.args) do
-		decl.argtypes[i] = interntype(decl, arg.type)
+		decl.argtypes[i] = interntype(moduledef, decl, arg.type)
 		if arg.attrs['r::required'] ~= nil then
 			if not decl.argtypes[i].pointer then
-				hppdecl.locationerror(decl.location,
+				parser.locationerror(decl.location,
 					'r::required must be applied to a pointer argument')
 			end
 			decl.argtypes[i].isrequired = true
 		end
 	end
-	if context then
-		if context.rclass or context.rstruct then
-			decl.context = context
-			if not decl.name and decl.rettype.classname == decl.context.cname then
+	if outerdecl then
+		if outerdecl.rclass or outerdecl.rstruct then
+			decl.outerdecl = outerdecl
+			if not decl.name and decl.rettype.classname == outerdecl.cname then
 				decl.isconstructor = true
 				decl.isstatic = true
-				decl.name = {decl.context.name[#decl.context.name]}
+				decl.name = {outerdecl.name[#outerdecl.name]}
 				decl.rettype = {
 					pointer = decl.rettype}
 			end
 			decl.sourcename = getsourcefullname(decl)
 			decl.sourcelocalname = getsourcelocalname(decl)
 			decl.lualocalname = getlualocalname(decl)
-			decl.cname = context.cname .. '_' .. decl.lualocalname
+			decl.cname = outerdecl.cname .. '_' .. decl.lualocalname
 			decl.selftype = {
 				pointer = {
-					classname = context.classname,
-					sourcename = context.sourcename}}
+					classname = outerdecl.classname,
+					sourcename = outerdecl.sourcename}}
 		else
-			hppdecl.locationerror(decl.location,
+			parser.locationerror(decl.location,
 				'r::method is in an invalid scope')
 		end
 	else
@@ -525,9 +440,9 @@ local function loadremit(moduledef, decl)
 end
 
 local function loaddecl(moduledef, decl)
-	local context
+	local outerdecl
 	if decl.scope then
-		context = namespace[getsourcescope(decl)]
+		outerdecl = moduledef.namespace[getsourcescope(decl)]
 	end
 	if decl.include then
 		loadinclude(moduledef, decl)
@@ -548,22 +463,22 @@ local function loaddecl(moduledef, decl)
 			loadrenum(moduledef, decl)
 		end
 	elseif decl.enumconst then
-		if context then
-			loadrenumconst(moduledef, decl, context)
+		if outerdecl then
+			loadrenumconst(moduledef, decl, outerdecl)
 		end
 	elseif decl.object then
 		if decl.type.functionret then
 			if decl.attrs['r::method'] ~= nil then
-				loadrmethod(moduledef, decl, context)
+				loadrmethod(moduledef, decl, outerdecl)
 			end
 		else
 			if decl.attrs['r::field'] ~= nil then
-				loadrfield(moduledef, decl, context)
+				loadrfield(moduledef, decl, outerdecl)
 			elseif decl.attrs['r::object'] ~= nil then
-				loadrobject(moduledef, decl, context)
+				loadrobject(moduledef, decl, outerdecl)
 			else
-				if context and context.rstruct then
-					loadrstructfield(moduledef, decl, context)
+				if outerdecl and outerdecl.rstruct then
+					loadrstructfield(moduledef, decl, outerdecl)
 				end
 			end
 		end
@@ -572,42 +487,36 @@ local function loaddecl(moduledef, decl)
 	end
 end
 
-local function loadmodule(filename)
-	local moduledef = {
-		source = filename,
-		decls = {}}
-	moduledef.name = string.match(filename, '(.*)%.') or filename
-	moduledef.identname = string.gsub(moduledef.name, '[^a-zA-Z0-9_]', '_')
-	local declstream = hppdecl.parser(filename)
+local function loadmodule(fenv)
+	local moduledef = rcache.registermodule(fenv.modulename, fenv.source)
+	local declstream = parser.parser(fenv.source)
 	while true do
 		local decl = declstream()
 		if not decl then
 			break
 		end
 		loaddecl(moduledef, decl)
+		rcache.registerdecl(moduledef, decl)
 	end
 	return moduledef
 end
 
-local moduledef = loadmodule(source)
-
-local fenv = {
-	suppresstypechecks = suppresstypechecks,
-}
-
-do
-	if suppresslua then
+local function rprocess(fenv)
+	local moduledef = loadmodule(fenv)
+	if fenv.suppresslua then
 		moduledef.chunktext =
 			format.tostring(format.lua, fenv, moduledef)
 	else
 		moduledef.chunktext =
-			format.tofileandstring(builddir .. moduledef.name .. '.r.lua',
+			format.tofileandstring(fenv.target .. '.lua',
 				format.lua, fenv, moduledef)
 	end
 	moduledef.chunkbytes =
-		string.dump(assert(load(moduledef.chunktext, moduledef.name..'.r.lua')))
-	format.tofile(builddir .. moduledef.name .. '.r.cpp',
+		string.dump(assert(load(moduledef.chunktext, fenv.target .. '.lua')))
+	format.tofile(fenv.target .. '.cpp',
 		format.cpp, fenv, moduledef)
-	format.tofile(builddir .. moduledef.name .. '.r',
+	format.tofile(fenv.target,
 		format.r, fenv, moduledef)
 end
+
+package.modtable(modname, rprocess)

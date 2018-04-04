@@ -3,7 +3,7 @@ local _G = _G
 require('ffi')
 require('bit')
 
-package.path = '?.lua'
+package.path = 'tool/?.lua'
 
 function package.modtable(modname, value)
 	local mt = package.loaded[modname]
@@ -90,6 +90,7 @@ end
 
 setmetatable(gvalue, gmeta)
 _G._G = gvalue
+setfenv(2, gvalue)
 
 function _G.protectglobaltable(protect)
 	gprotect = protect

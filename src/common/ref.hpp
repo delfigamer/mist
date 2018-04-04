@@ -47,6 +47,7 @@ public:
 	void assign( std::nullptr_t ) noexcept;
 	template< typename U > void assign( U* ref ) noexcept;
 	T* detach() noexcept;
+	T* share() noexcept;
 	Ref< T >& operator=( std::nullptr_t ) noexcept;
 	template< typename U > Ref< T >& operator=( U* ref ) noexcept;
 	template< typename U > Ref< T >& operator=( Ref< U > const& other ) noexcept;
@@ -194,6 +195,14 @@ T* Ref< T >::detach() noexcept
 {
 	T* oldref = m_ref;
 	m_ref = nullptr;
+	return oldref;
+}
+
+template< typename T >
+T* Ref< T >::share() noexcept
+{
+	T* oldref = m_ref;
+	::addref( oldref );
 	return oldref;
 }
 

@@ -1,55 +1,13 @@
-assert(loadfile('base.lua'))()
+assert(loadfile('tool/base.lua'))()
+protectglobaltable(true)
+local sources = assert(loadfile('sources.lua'))()
 local env = require('env')
-local sources = require('build-sources')
+local configuration = require('build-config')
+local reflectprocess = require('reflect-process')
+local reflectindex = require('reflect-index')
 
 local currenttarget = ...
 currenttarget = currenttarget or 'all'
-
--- additional arguments:
---   platform = 'win32'|'win64'
---   configuration = 'debug'
---   dryrun = true|false
-
-local ffi = require('ffi')
-
--- sort out build configurations
-local platform = {
-	['win32'] = true,
-	['win64'] = true,
-}
-if _G.platform then
-	platform = platform[_G.platform] and _G.platform or error('unknown platform')
-else
-	-- platform = ({
-		-- ['Windows-x86'] = 'win32',
-		-- ['Windows-x64'] = 'win64',
-	-- })[ffi.os .. '-' .. ffi.arch] or error('unknown platform')
-	platform = 'win64'
-end
-
-local configuration = {
-	['debug'] = {
-		tag = 'debug',
-		debug = true,
-		saveasm = true,
-		compilermacros = {
-			MIST_DEBUG = true,
-		},
-	},
-	['release'] = {
-		tag = 'release',
-		debug = false,
-		saveasm = false,
-		compilermacros = {
-		},
-	},
-}
-if _G.configuration then
-	configuration = configuration[_G.configuration] or
-		error('unknown configuration')
-else
-	configuration = configuration['debug']
-end
 
 if _G.dryrun then
 	function env.execute(str)
@@ -58,8 +16,13 @@ if _G.dryrun then
 	end
 end
 
-local builddir = 'build/l-' .. platform .. '-' .. configuration.tag
-local outputdir = 'output/bin-l-' .. platform .. '-' .. configuration.tag
+local platform = configuration.platform
+local srcdir = configuration.srcdir
+local libincludedir = configuration.libincludedir
+local libstaticdir = configuration.libstaticdir
+local libdynamicdir = configuration.libdynamicdir
+local builddir = configuration.builddir
+local outputdir = configuration.outputdir
 currenttarget = string.gsub(currenttarget, '$b', builddir)
 currenttarget = string.gsub(currenttarget, '$o', outputdir)
 
@@ -76,33 +39,38 @@ local function build_clean(entry)
 	return true
 end
 
-local function build_reflect(entry)
+local function build_rprocess(entry)
 	print('reflect', entry.target)
-	return
-		env.makepath(entry.target) and
-		env.lua{
-			vars = {
-				builddir = builddir .. '/',
-			},
-			script = 'hppbind.lua',
-			args = {entry.source},
-		}
+	if not env.makepath(entry.target) then
+		return false
+	end
+	local suc, err = pcall(reflectprocess, {
+		source = entry.source,
+		target = entry.target,
+		modulename = entry.modulename,
+	})
+	if not suc then
+		print(err)
+	end
+	return suc
 end
 
 local function build_rindex(entry)
 	print('rindex', entry.target)
-	return
-		env.makepath(entry.target) and
-		env.lua{
-			vars = {
-				targetpath = entry.target,
-				indexname = entry.indexname,
-				prolog = entry.prolog and table.concat(entry.prolog, ';'),
-				epilog = entry.epilog and table.concat(entry.epilog, ';'),
-			},
-			script = 'hppindex.lua',
-			args = entry.items,
-		}
+	if not env.makepath(entry.target) then
+		return false
+	end
+	local suc, err = pcall(reflectindex, {
+		items = entry.items,
+		target = entry.target,
+		indexname = entry.indexname,
+		prolog = entry.prolog,
+		epilog = entry.epilog,
+	})
+	if not suc then
+		print(err)
+	end
+	return suc
 end
 
 local function build_cpp(entry)
@@ -110,7 +78,12 @@ local function build_cpp(entry)
 	return env.compile{
 		target = entry.target,
 		source = entry.source,
-		incpath = builddir,
+		incpath = {
+			srcdir,
+			libincludedir,
+			builddir,
+			'.',
+		},
 		macros = configuration.compilermacros,
 		asmfile =
 			configuration.saveasm and
@@ -125,6 +98,7 @@ local function build_exe(entry)
 		items = entry.items,
 		libs = entry.libraries,
 		libpath = {
+			libstaticdir,
 			outputdir,
 		},
 	}
@@ -137,6 +111,7 @@ local function build_dll(entry)
 		items = entry.items,
 		libs = entry.libraries,
 		libpath = {
+			libstaticdir,
 			outputdir,
 		},
 		dll = true,
@@ -156,7 +131,7 @@ local rindex_items = {}
 for i, rec in ipairs{
 	{
 		target = 'client-main',
-		indexname = 'window::rindex',
+		indexname = {'window', 'rindex'},
 		prolog = {
 			'luainit/baselib.lua',
 			'luainit/object.lua',
@@ -166,10 +141,10 @@ for i, rec in ipairs{
 			'luainit/main.lua'}},
 	{
 		target = 'renderer-d3d9',
-		indexname = 'graphics::rindex'},
+		indexname = {'graphics', 'rindex'}},
 	{
 		target = 'renderer-gles',
-		indexname = 'graphics::rindex'},
+		indexname = {'graphics', 'rindex'}},
 } do
 	rindex_items[rec.target] = {}
 	local rindexdeps = {
@@ -203,15 +178,15 @@ for i, rec in ipairs{
 		dependencies = rindexdeps,
 	})
 	table.append(targets, {
-		target = rec.target .. '/rindex.cpp',
-		dependencies = {
-			builddir .. '/' .. rec.target .. '/rindex.cpp',
-		},
+		target = srcdir .. '/' .. rec.target .. '/rindex.hpp',
+		issource = true,
+		autodep = 'native',
 	})
 	table.append(targets, {
 		target = rec.target .. '/rindex.hpp',
-		issource = true,
-		autodep = 'native',
+		dependencies = {
+			srcdir .. '/' .. rec.target .. '/rindex.hpp',
+		},
 	})
 	table.append(targets, {
 		build = build_cpp,
@@ -282,13 +257,13 @@ for i, name in ipairs{
 	'libFLAC_dynamic',
 } do
 	table.append(targets, {
-		target = name .. '-' .. platform .. '.dll',
+		target = libdynamicdir .. '/' .. name .. '-' .. platform .. '.dll',
 		issource = true,
 	})
 	table.append(targets, {
 		build = build_copy,
 		target = outputdir .. '/' .. name .. '.dll',
-		source = name .. '-' .. platform .. '.dll',
+		source = libdynamicdir .. '/' .. name .. '-' .. platform .. '.dll',
 	})
 end
 
@@ -323,32 +298,45 @@ for i, unit in ipairs(sources) do
 	if unit.type == 'native' then
 		if not unit.noheader then
 			table.append(targets, {
-				target = unit.name .. '.hpp',
+				target = srcdir .. '/' .. unit.name .. '.hpp',
 				issource = true,
 				autodep = 'native',
+			})
+			table.append(targets, {
+				target = unit.name .. '.hpp',
+				dependencies = {
+					srcdir .. '/' .. unit.name .. '.hpp',
+				},
 			})
 		end
 		if not unit.headeronly then
 			table.append(targets, {
-				target = unit.name .. '.cpp',
+				target = srcdir .. '/' .. unit.name .. '.cpp',
 				issource = true,
 				autodep = 'native',
 			})
 			table.append(targets, {
-				build = build_cpp,
-				target = builddir .. '/' .. unit.name .. '.o',
-				source = unit.name .. '.cpp',
+				target = unit.name .. '.cpp',
+				dependencies = {
+					srcdir .. '/' .. unit.name .. '.cpp',
+				},
 			})
 		end
 		if unit.target and not unit.headeronly then
+			table.append(targets, {
+				build = build_cpp,
+				target = builddir .. '/' .. unit.name .. '.o',
+				source = srcdir .. '/' .. unit.name .. '.cpp',
+			})
 			table.append(target_items[unit.target],
 				builddir .. '/' .. unit.name .. '.o')
 		end
 		if unit.target and unit.reflect then
 			table.append(targets, {
-				build = build_reflect,
+				build = build_rprocess,
 				target = builddir .. '/' .. unit.name .. '.r',
-				source = unit.name .. '.hpp',
+				source = srcdir .. '/' .. unit.name .. '.hpp',
+				modulename = unit.name,
 				autodep = 'reflection',
 			})
 			table.append(rindex_items[unit.target],
@@ -519,13 +507,19 @@ end
 for i, entry in ipairs(targets) do
 	if entry.issource then
 		local time = env.getfiletime(entry.target)
-		if time and
-			(not buildstate.timemap[entry.target] or
-				time > buildstate.timemap[entry.target])
-		then
-			print('changed:', entry.target)
+		if time then
+			if
+				(not buildstate.timemap[entry.target] or
+					time > buildstate.timemap[entry.target])
+			then
+				print('changed:', entry.target)
+				buildstate.updatemap[entry.target] = true
+				buildstate.timemap[entry.target] = time
+			end
+		else
+			print('source file unavailable:', entry.target)
 			buildstate.updatemap[entry.target] = true
-			buildstate.timemap[entry.target] = time
+			buildstate.timemap[entry.target] = nil
 		end
 	end
 	if entry.alwaysbuild or entry.target == currenttarget then

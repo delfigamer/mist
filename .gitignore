@@ -52,3 +52,4 @@ SciTE.*
 
 # Exclusions
 !/vs/**/*.bat
+!/lib

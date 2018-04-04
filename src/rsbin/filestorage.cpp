@@ -263,6 +263,7 @@ namespace rsbin
 
 	FileStorage::~FileStorage()
 	{
+		lock_t lock( m_mutex );
 		ASSERT( !m_busy && m_mapcount == 0 );
 		if( m_handle != INVALID_HANDLE_VALUE )
 		{
@@ -312,6 +313,7 @@ namespace rsbin
 		uint64_t offset, uint32_t length,
 		bool flagread, bool flagwrite )
 	{
+		lock_t lock( m_mutex );
 		if( m_handle == INVALID_HANDLE_VALUE )
 		{
 			throw std::runtime_error( "invalid FileStorage object" );
@@ -377,6 +379,7 @@ namespace rsbin
 
 	FileStorageMap::~FileStorageMap()
 	{
+		FileStorage::lock_t lock( m_target->m_mutex );
 		m_page->m_refcount -= 1;
 		if( m_flagwrite )
 		{
@@ -394,13 +397,17 @@ namespace rsbin
 
 	bool FileStorageMap::poll()
 	{
+		FileStorage::lock_t lock( m_target->m_mutex );
 		return m_target->pollpage( m_page );
 	}
 
 	void FileStorageMap::getmap(
 		uint8_t** pmapptr, unsigned* pmaplength )
 	{
+#if defined( MIST_DEBUG )
+		FileStorage::lock_t lock( m_target->m_mutex );
 		ASSERT( m_target->pollpage( m_page ) );
+#endif
 		if( m_length > 0 )
 		{
 			*pmapptr = m_page->m_buffer + m_offset;
@@ -415,6 +422,7 @@ namespace rsbin
 
 	GetLimitTask* FileStorage::getlimit( uint64_t* plimit )
 	{
+		lock_t lock( m_mutex );
 		if( m_handle == INVALID_HANDLE_VALUE )
 		{
 			throw std::runtime_error( "invalid FileStorage object" );
@@ -430,14 +438,20 @@ namespace rsbin
 
 	Task* FileStorage::setlimit( uint64_t limit )
 	{
+		lock_t lock( m_mutex );
 		if( m_handle == INVALID_HANDLE_VALUE )
 		{
 			throw std::runtime_error( "invalid FileStorage object" );
 		}
-		if( m_busy || m_mapcount != 0 )
+		if( m_busy )
 		{
 			throw std::runtime_error(
 				"the object is already busy with another operation" );
+		}
+		if( m_mapcount != 0 )
+		{
+			throw std::runtime_error(
+				"the object has currently active mappings" );
 		}
 		if( !m_iswriteable )
 		{
@@ -464,14 +478,20 @@ namespace rsbin
 
 	Task* FileStorage::flush()
 	{
+		lock_t lock( m_mutex );
 		if( m_handle == INVALID_HANDLE_VALUE )
 		{
 			throw std::runtime_error( "invalid FileStorage object" );
 		}
-		if( m_busy || m_mapcount != 0 )
+		if( m_busy )
 		{
 			throw std::runtime_error(
 				"the object is already busy with another operation" );
+		}
+		if( m_mapcount != 0 )
+		{
+			throw std::runtime_error(
+				"the object has currently active mappings" );
 		}
 		return new FileStorageFlushTask( this, false );
 	}
@@ -482,10 +502,15 @@ namespace rsbin
 		{
 			throw std::runtime_error( "invalid FileStorage object" );
 		}
-		if( m_busy || m_mapcount != 0 )
+		if( m_busy )
 		{
 			throw std::runtime_error(
 				"the object is already busy with another operation" );
+		}
+		if( m_mapcount != 0 )
+		{
+			throw std::runtime_error(
+				"the object has currently active mappings" );
 		}
 		return new FileStorageFlushTask( this, true );
 	}
@@ -503,6 +528,7 @@ namespace rsbin
 	{
 		if( !m_isdone )
 		{
+			FileStorage::lock_t lock( m_target->m_mutex );
 			m_target->m_busy = false;
 		}
 	}
@@ -511,6 +537,7 @@ namespace rsbin
 	{
 		if( !m_isdone )
 		{
+			FileStorage::lock_t lock( m_target->m_mutex );
 			m_target->clearpages();
 			if( !m_target->m_pages.empty() )
 			{

@@ -253,7 +253,11 @@ namespace window
 		MSG message = { 0, 0, 0, 0 };
 		while( !m_terminated )
 		{
-			if( !m_silent )
+			if( m_silent )
+			{
+				Sleep( 10 );
+			}
+			else
 			{
 				if( PeekMessageW(
 					&message, m_hwnd, 0, 0, PM_REMOVE ) )
@@ -624,7 +628,7 @@ namespace window
 			LOG( "!" );
 		}
 		m_finished.store( true, std::memory_order_relaxed );
-		LOG( "~ Lua thread finished" );
+		LOG( "~ Lua thread terminated" );
 	}
 
 	void Window::initlstate()
@@ -640,8 +644,7 @@ namespace window
 		{
 			if( clock() > time )
 			{
-				LOG( "Lua thread takes too long to finish, "
-					"terminating immediately" );
+				LOG( "Lua thread takes too long to terminate" );
 				std::exit( 0 );
 			}
 		}

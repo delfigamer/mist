@@ -303,4 +303,3 @@ while not terminate do
 		end
 	end
 end
-log('exited from interactive mode')

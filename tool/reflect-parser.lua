@@ -1,12 +1,12 @@
 local modname = ...
-local hppdecl
+local parserlib
 if modname then
-	hppdecl = package.modtable(modname)
+	parserlib = package.modtable(modname)
 else
-	assert(loadfile('base.lua'))()
+	assert(loadfile('tool/base.lua'))()
 	setfenv(1, _G)
 	protectglobaltable(true)
-	hppdecl = package.modtable('hppdecl')
+	parserlib = package.modtable('reflect-parser')
 end
 local env = require('env')
 
@@ -1647,8 +1647,8 @@ if not modname then
 	end
 end
 
-hppdecl.locationstring = locationstring
-hppdecl.locationerror = locationerror
-hppdecl.parser = parser
-hppdecl.typedefstring = typedefstring
-hppdecl.decldefstring = decldefstring
+parserlib.locationstring = locationstring
+parserlib.locationerror = locationerror
+parserlib.parser = parser
+parserlib.typedefstring = typedefstring
+parserlib.decldefstring = decldefstring
