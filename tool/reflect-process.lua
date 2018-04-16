@@ -3,6 +3,7 @@ local env = require('env')
 local buildconfig = require('build-config')
 local parser = require('reflect-parser')
 local format = require('reflect-format')
+local rtypes = require('reflect-types')
 local rcache = require('reflect-cache')
 
 -- entry point: reflect(fenv)
@@ -35,13 +36,9 @@ local rcache = require('reflect-cache')
 --   object boxes are handled by the wrapper
 --   may be applied to both standalone and member functions
 --   [[r::hidden]] prevents the generation of the Lua wrapper
--- [[r::type]]
---   regsters a scalar type
 -- [[r::field]]
 --   reflects a global variable or an object field with an accessor and
 --     a mutator methods
--- [[r::object]]
---   reflects a global object as an aliased box
 -- for all, [[r::name("")]] sets the Lua name of the reflection
 -- if r::name starts with a dot, it sets the global name of the entity
 -- otherwise, the current scope is used as a module prefix
@@ -156,57 +153,43 @@ local function nslookup(moduledef, scope, name)
 	end
 end
 
-local function tryinterntype(moduledef, scope, decltype)
+local function interndecltype(moduledef, scope, decltype)
 	if decltype.fundamental then
-		return decltype
+		return {
+			fundamental = decltype.fundamental,
+			isconst = decltype.isconst}
 	elseif decltype.name then
 		local decl, err = nslookup(moduledef, scope, decltype.name)
 		if not decl then
 			return nil, err
-		elseif decl.fundamentaleq then
-			return {
-				fundamental = decl.fundamentaleq,
-				sourcename = decl.sourcename,
-				isconst = decltype.isconst,
-				isvolatile = decltype.isvolatile}
-		elseif decl.trivialname then
-			return {
-				trivialname = decl.trivialname,
-				sourcename = decl.sourcename,
-				isconst = decltype.isconst,
-				isvolatile = decltype.isvolatile}
-		elseif decl.classname then
-			return {
-				classname = decl.classname,
-				classluaname = decl.luaname,
-				sourcename = decl.sourcename,
-				isconst = decltype.isconst,
-				isvolatile = decltype.isvolatile}
-		else
-			return nil, namestr(decltype.name) .. ' does not name a valid type'
 		end
-	elseif decltype.template then
-		return nil, 'NYI'
+		return {
+			decl = decl,
+			isconst = decltype.isconst}
 	elseif decltype.pointer then
-		local target, err = tryinterntype(moduledef, scope, decltype.pointer)
+		local target, err = interndecltype(moduledef, scope, decltype.pointer)
 		if not target then
 			return nil, err
 		end
 		return {
 			pointer = target,
-			isconst = decltype.isconst,
-			isvolatile = decltype.isvolatile}
+			isconst = decltype.isconst}
 	-- elseif decltype.lref then
-		-- local target, err = tryinterntype(moduledef, scope, decltype.lref)
+		-- local target, err = interndecltype(moduledef, scope, decltype.lref)
 		-- if not target then
 			-- return nil, err
 		-- end
-		-- return {
-			-- lref = target,
-			-- isconst = decltype.isconst,
-			-- isvolatile = decltype.isvolatile}
+		-- if decltype.lref.isconst then
+			-- return {
+				-- pointer = target,
+				-- isconstlvalue = true}
+		-- else
+			-- return {
+				-- pointer = target,
+				-- islvalue = true}
+		-- end
 	-- elseif decltype.rref then
-		-- local target, err = tryinterntype(moduledef, scope, decltype.rref)
+		-- local target, err = interndecltype(moduledef, scope, decltype.rref)
 		-- if not target then
 			-- return nil, err
 		-- end
@@ -215,25 +198,42 @@ local function tryinterntype(moduledef, scope, decltype)
 			-- isconst = decltype.isconst,
 			-- isvolatile = decltype.isvolatile}
 	elseif decltype.array then
-		local target, err = tryinterntype(moduledef, scope, decltype.array)
+		local target, err = interndecltype(moduledef, scope, decltype.array)
 		if not target then
 			return nil, err
 		end
 		return {
 			array = target,
 			size = decltype.size}
+	elseif decltype.template then
+		local tname = qualifiednamestr(decltype.template)
+		local args = {}
+		for i, arg in ipairs(decltype.args) do
+			local intern, err = interndecltype(moduledef, scope, arg)
+			if not intern then
+				return nil, err
+			end
+			args[i] = intern
+		end
+		return {
+			template = tname,
+			args = args,
+			isconst = decltype.isconst}
 	else
 		return nil, 'unknown type category'
 	end
 end
 
 local function interntype(moduledef, decl, decltype)
-	local type, err = tryinterntype(moduledef, decl.scope, decltype)
-	if type then
-		return type
-	else
+	local internal, err = interndecltype(moduledef, decl.scope, decltype)
+	if not internal then
 		parser.locationerror(decl.location, err)
 	end
+	local typeobject, err = rtypes.typeobject(internal)
+	if not typeobject then
+		parser.locationerror(decl.location, err or 'invalid type')
+	end
+	return typeobject
 end
 
 local function loadinclude(moduledef, decl)
@@ -244,26 +244,16 @@ local function loadinclude(moduledef, decl)
 	end
 end
 
-local function loadrtype(moduledef, decl)
-	decl.rtype = true
-	decl.sourcename = getsourcefullname(decl)
-	decl.luaname = getluafullname(decl)
-	decl.cname = string.gsub(decl.luaname, '%.', '_')
-	decl.trivialname = decl.cname
-	decl.interntype = interntype(moduledef, decl, decl.type)
-	table.append(moduledef.decls, decl)
-end
-
 local function loadrstruct(moduledef, decl)
 	decl.rstruct = true
+	decl.structtype = true
 	if #decl.bases ~= 0 then
 		parser.locationerror(decl.location,
 			'classes with bases cannot be reflected as structs')
 	end
 	decl.sourcename = getsourcefullname(decl)
 	decl.luaname = getluafullname(decl)
-	decl.cname = string.gsub(decl.luaname, '%.', '_')
-	decl.trivialname = decl.cname
+	decl.commonname = string.gsub(decl.luaname, '%.', '_')
 	decl.fields = {}
 	table.append(moduledef.decls, decl)
 end
@@ -271,7 +261,7 @@ end
 local function loadrstructfield(moduledef, decl, outerdecl)
 	if #decl.name ~= 1 then
 		parser.locationerror(decl,
-			'invalid struct field')
+			'invalid field name')
 	end
 	if not decl.isstatic then
 		decl.interntype = interntype(moduledef, decl, decl.type)
@@ -281,6 +271,7 @@ end
 
 local function loadrclass(moduledef, decl)
 	decl.rclass = true
+	decl.classtype = true
 	if #decl.bases == 1 then
 		local basename = decl.bases[1]
 		local basedecl, err = nslookup(moduledef, decl.scope, basename)
@@ -299,26 +290,26 @@ local function loadrclass(moduledef, decl)
 	end
 	decl.sourcename = getsourcefullname(decl)
 	decl.luaname = getluafullname(decl)
-	decl.cname = string.gsub(decl.luaname, '%.', '_')
-	decl.classname = decl.cname
+	decl.commonname = string.gsub(decl.luaname, '%.', '_')
 	table.append(moduledef.decls, decl)
 end
 
 local function loadrexternal(moduledef, decl)
 	decl.rexternal = true
+	decl.classtype = true
 	decl.sourcename = getsourcefullname(decl)
 	decl.luaname = getluafullname(decl)
-	decl.cname = string.gsub(decl.luaname, '%.', '_')
-	decl.classname = decl.cname
+	decl.commonname = string.gsub(decl.luaname, '%.', '_')
 	table.append(moduledef.decls, decl)
 end
 
 local function loadrenum(moduledef, decl)
 	decl.renum = true
+	decl.enumtype = true
 	decl.sourcename = getsourcefullname(decl)
 	decl.luaname = getluafullname(decl)
-	decl.cname = string.gsub(decl.luaname, '%.', '_')
-	decl.fundamentaleq = 'int'
+	decl.commonname = string.gsub(decl.luaname, '%.', '_')
+	decl.enumbase = 'int'
 	decl.consts = {}
 	table.append(moduledef.decls, decl)
 end
@@ -344,11 +335,7 @@ local function loadrfield(moduledef, decl, outerdecl)
 			decl.sourcename = getsourcefullname(decl)
 			decl.sourcelocalname = getsourcelocalname(decl)
 			decl.lualocalname = getlualocalname(decl)
-			decl.cname = outerdecl.cname .. '_' .. decl.lualocalname
-			decl.selftype = {
-				pointer = {
-					classname = outerdecl.classname,
-					sourcename = outerdecl.sourcename}}
+			decl.commonname = outerdecl.commonname .. '_' .. decl.lualocalname
 		else
 			parser.locationerror(decl.location,
 				'r::field is in an invalid scope')
@@ -356,36 +343,14 @@ local function loadrfield(moduledef, decl, outerdecl)
 	else
 		decl.sourcename = getsourcefullname(decl)
 		decl.luaname = getluafullname(decl)
-		decl.cname = string.gsub(decl.luaname, '%.', '_')
+		decl.commonname = string.gsub(decl.luaname, '%.', '_')
 		local nameprefix, lastname = string.match(decl.luaname, '^(.-)([^.]+)$')
 		decl.accessorluaname = nameprefix .. 'get' .. lastname
 		decl.mutatorluaname = nameprefix .. 'set' .. lastname
 	end
 	decl.interntype = interntype(moduledef, decl, decl.type)
-	decl.isreadonly =
-		decl.interntype.isconst or
-		decl.interntype.array or
-		decl.attrs['r::const'] ~= nil
-	if decl.interntype.array then
-		decl.interntype = {
-			pointer = decl.interntype.array}
-	end
-	table.append(moduledef.decls, decl)
-end
-
-local function loadrobject(moduledef, decl, outerdecl)
-	decl.robject = true
-	if outerdecl then
-		parser.locationerror(decl.location,
-			'r::object must be a global object')
-	end
-	decl.sourcename = getsourcefullname(decl)
-	decl.luaname = getluafullname(decl)
-	decl.cname = string.gsub(decl.luaname, '%.', '_')
-	decl.interntype = interntype(moduledef, decl, decl.type)
-	if not decl.interntype.classname then
-		parser.locationerror(decl.location,
-			'r::object must be a variable of a boxed type')
+	if decl.attrs['r::const'] ~= nil then
+		decl.interntype.isconst = true
 	end
 	table.append(moduledef.decls, decl)
 end
@@ -408,21 +373,10 @@ local function loadrmethod(moduledef, decl, outerdecl)
 	if outerdecl then
 		if outerdecl.rclass or outerdecl.rstruct then
 			decl.outerdecl = outerdecl
-			if not decl.name and decl.rettype.classname == outerdecl.cname then
-				decl.isconstructor = true
-				decl.isstatic = true
-				decl.name = {outerdecl.name[#outerdecl.name]}
-				decl.rettype = {
-					pointer = decl.rettype}
-			end
 			decl.sourcename = getsourcefullname(decl)
 			decl.sourcelocalname = getsourcelocalname(decl)
 			decl.lualocalname = getlualocalname(decl)
-			decl.cname = outerdecl.cname .. '_' .. decl.lualocalname
-			decl.selftype = {
-				pointer = {
-					classname = outerdecl.classname,
-					sourcename = outerdecl.sourcename}}
+			decl.commonname = outerdecl.commonname .. '_' .. decl.lualocalname
 		else
 			parser.locationerror(decl.location,
 				'r::method is in an invalid scope')
@@ -430,7 +384,7 @@ local function loadrmethod(moduledef, decl, outerdecl)
 	else
 		decl.sourcename = getsourcefullname(decl)
 		decl.luaname = getluafullname(decl)
-		decl.cname = string.gsub(decl.luaname, '%.', '_')
+		decl.commonname = string.gsub(decl.luaname, '%.', '_')
 	end
 	table.append(moduledef.decls, decl)
 end
@@ -446,10 +400,6 @@ local function loaddecl(moduledef, decl)
 	end
 	if decl.include then
 		loadinclude(moduledef, decl)
-	elseif decl.typedef then
-		if decl.attrs['r::type'] ~= nil then
-			loadrtype(moduledef, decl)
-		end
 	elseif decl.class then
 		if decl.attrs['r::struct'] ~= nil then
 			loadrstruct(moduledef, decl)
@@ -474,8 +424,6 @@ local function loaddecl(moduledef, decl)
 		else
 			if decl.attrs['r::field'] ~= nil then
 				loadrfield(moduledef, decl, outerdecl)
-			elseif decl.attrs['r::object'] ~= nil then
-				loadrobject(moduledef, decl, outerdecl)
 			else
 				if outerdecl and outerdecl.rstruct then
 					loadrstructfield(moduledef, decl, outerdecl)

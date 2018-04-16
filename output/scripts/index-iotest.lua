@@ -19,8 +19,26 @@ local function getfilecontent(path)
 	end
 	stream:release()
 	storage:close()
+	storage:release()
 	return table.concat(parts)
 end
+
+-- local function getfilecontent(path)
+	-- local storage = filestorage:create(path, 0)
+	-- local offset = 0ull
+	-- local parts = {}
+	-- while true do
+		-- local task, ptr, len = storage:map(offset, -1, true, false)
+		-- if not ptr then
+			-- break
+		-- end
+		-- table.append(parts, ffi.string(ptr, len))
+		-- offset = offset + len
+		-- task:release()
+	-- end
+	-- storage:close()
+	-- return table.concat(parts)
+-- end
 
 local function main()
 	local cont = getfilecontent('build/l-win64-debug/client-main/event.r')

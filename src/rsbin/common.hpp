@@ -4,5 +4,5 @@
 
 namespace rsbin
 {
-	[[ r::method ]] bool isfileavailable( char const* path [[ r::required ]] );
+	[[ r::method ]] bool isfileavailable( char const* path );
 }

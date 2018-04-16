@@ -2,6 +2,7 @@
 
 #include <common.hpp>
 #include <atomic>
+#include <cstdio>
 
 class [[ r::class, r::name( "refobject" ) ]] RefObject
 {
@@ -16,8 +17,6 @@ public:
 	void AddRef() const noexcept;
 	void Release() const noexcept;
 	ptrdiff_t refcount() const noexcept;
-	[[ r::method, r::hidden ]] void vaddref() const noexcept;
-	[[ r::method, r::hidden ]] void vrelease() const noexcept;
 	RefObject() noexcept;
 	RefObject( RefObject const& other ) noexcept;
 	RefObject( RefObject&& other ) noexcept;
@@ -43,33 +42,27 @@ inline ptrdiff_t RefObject::refcount() const noexcept
 	return m_refcount.load( std::memory_order_relaxed );
 }
 
-inline void RefObject::vaddref() const noexcept
-{
-	AddRef();
-}
-
-inline void RefObject::vrelease() const noexcept
-{
-	Release();
-}
-
 inline RefObject::RefObject() noexcept
 	: m_refcount( 1 )
 {
+	Counter< RefObject >::update( +1 );
 }
 
 inline RefObject::RefObject( RefObject const& other ) noexcept
 	: m_refcount( 1 )
 {
+	Counter< RefObject >::update( +1 );
 }
 
 inline RefObject::RefObject( RefObject&& other ) noexcept
 	: m_refcount( 1 )
 {
+	Counter< RefObject >::update( +1 );
 }
 
 inline RefObject::~RefObject() noexcept
 {
+	Counter< RefObject >::update( -1 );
 }
 
 inline void RefObject::destroy()
@@ -86,21 +79,3 @@ inline RefObject& RefObject::operator=( RefObject&& other ) noexcept
 {
 	return *this;
 }
-
-r_emit(<<
-	function refobject:cast(other)
-		if other and other.ptr ~= nil then
-			r.refobject_vaddref(other.ptr)
-			return self:new(other.ptr)
-		else
-			return nil
-		end
-	end
-
-	function refobject:release()
-		if self.ptr ~= nil then
-			r.refobject_vrelease(self.ptr)
-			self.ptr = nil
-		end
-	end
->>)

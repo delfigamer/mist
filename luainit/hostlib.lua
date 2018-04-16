@@ -50,8 +50,6 @@ end
 local function storage_loader(storage)
 	local offset = 0ull
 	return function()
-		local mptr = ffi.new('uint8_t*[1]')
-		local mlen = ffi.new('unsigned[1]')
 		local task = storage:startmap(offset, -1, true, false)
 		if not task then
 			return
@@ -59,12 +57,12 @@ local function storage_loader(storage)
 		while not task:poll() do
 			yield()
 		end
-		task:getmap(mptr, mlen)
-		if mptr[0] == nil or mlen[0] == 0 then
+		local map = task:getmap()
+		if map.ptr == nil or map.length == 0 then
 			return
 		end
-		offset = offset + mlen[0]
-		local part = ffi.string(mptr[0], mlen[0])
+		offset = offset + map.length
+		local part = ffi.string(map.ptr, map.length)
 		task:release()
 		return part
 	end

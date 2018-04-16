@@ -1,22 +1,22 @@
 local modname = ...
 local utf8 = package.modtable(modname)
 local ffi = require('ffi')
-local encoding = require('host.encoding')
+local baseencode = require('utf8.encode')
+local basedecode = require('utf8.decode')
 
-local utf8encoding = encoding:getencoding(0)
 local defaultchar = 0xfffd -- REPLACEMENT CHARACTER �
 local chars_t = ffi.typeof('char[?]')
 
 function utf8.encode(buffer, charcode, size)
 	local pointsize = ffi.new('size_t[1]')
-	local suc = utf8encoding.encode(buffer, charcode, size, pointsize)
+	local suc = baseencode(buffer, charcode, size, pointsize)
 	return suc, tonumber(pointsize[0])
 end
 
 function utf8.decode(buffer, size)
 	local charcode = ffi.new('uint32_t[1]')
 	local pointsize = ffi.new('size_t[1]')
-	local suc = utf8encoding.decode(buffer, charcode, size, pointsize)
+	local suc = basedecode(buffer, charcode, size, pointsize)
 	if suc then
 		return suc, tonumber(pointsize[0]), charcode[0]
 	else

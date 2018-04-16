@@ -2,6 +2,7 @@
 
 #include <common.hpp>
 #include <mutex>
+#include <memory>
 #include <cstdarg>
 #if defined( getchar )
 #undef getchar
@@ -25,6 +26,7 @@ namespace utils
 		void* m_outputhandle;
 		bool m_outputisconsole;
 #endif
+		uint32_t m_newline_consumed = 0;
 
 		void writeconsole( char const* str, size_t length );
 		void writefile( char const* str, size_t length );
@@ -37,14 +39,14 @@ namespace utils
 		ConsoleClass& operator=( ConsoleClass const& ) = delete;
 
 		void writeraw( char const* str );
-		ATTRIBUTE(( __format__( gnu_printf, 2, 0 ) ))
-			void vwrite( char const* format, va_list args );
-		ATTRIBUTE(( __format__( gnu_printf, 2, 3 ) ))
-			void write( char const* format, ... );
-		ATTRIBUTE(( __format__( gnu_printf, 2, 0 ) ))
-			void vwriteln( char const* format, va_list args );
-		ATTRIBUTE(( __format__( gnu_printf, 2, 3 ) ))
-			void writeln( char const* format, ... );
+		__attribute__(( __format__( gnu_printf, 2, 0 ) ))
+		void vwrite( char const* format, va_list args );
+		__attribute__(( __format__( gnu_printf, 2, 3 ) ))
+		void write( char const* format, ... );
+		__attribute__(( __format__( gnu_printf, 2, 0 ) ))
+		void vwriteln( char const* format, va_list args );
+		__attribute__(( __format__( gnu_printf, 2, 3 ) ))
+		void writeln( char const* format, ... );
 		void writeln();
 		void flush();
 		void lock();
@@ -52,10 +54,13 @@ namespace utils
 		void getchar( char* str );
 	};
 
-	extern ConsoleClass* Console;
+	extern std::unique_ptr< ConsoleClass > Console;
 }
 
 #define LOG( format, ... ) \
-	utils::Console->writeln( \
-		"[%73s:%4i]\t" format, \
+	utils::Console->write( \
+		"%.*s%s:%4i\n" format "\n", \
+		75 - ( int )sizeof( __FILE__ ), \
+		"----------------------------------------" \
+		"----------------------------------------", \
 		__FILE__, __LINE__, ##__VA_ARGS__ )

@@ -15,9 +15,9 @@ public:
 	[[ r::field, r::name( "data" ) ]] uint8_t m_data[ 8 ];
 
 public:
-	[[ r::method, r::name( "create" ) ]] static DataBuffer* newinstance(
+	static DataBuffer* newinstance(
 		size_t length, size_t capacity, void const* data );
-	static Ref< DataBuffer > create(
+	[[ r::method ]] static Ref< DataBuffer > create(
 		size_t length, size_t capacity, void const* data );
 	static Ref< DataBuffer > create( size_t length, void const* data );
 	static Ref< DataBuffer > create( size_t length );

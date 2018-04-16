@@ -24,13 +24,15 @@ namespace utils
 			}
 			translation_t translation =
 			{
+				&encoding::utf8,
+				&encoding::utf16,
 				begin,
 				0,
 				end ? size_t( end - begin ) : 0,
 				0,
 				0,
 			};
-			if( translatestr( &encoding::utf8, &encoding::utf16, &translation )
+			if( translatestr( translation )
 				!= translateresult::success )
 			{
 				throw std::runtime_error( "invalid UTF-8 string" );
@@ -38,7 +40,7 @@ namespace utils
 			Ref< DataBuffer > db = DataBuffer::create( translation.destresult );
 			translation.dest = db->m_data;
 			translation.destsize = translation.destresult;
-			if( translatestr( &encoding::utf8, &encoding::utf16, &translation )
+			if( translatestr( translation )
 				!= translateresult::success )
 			{
 				throw std::runtime_error( "invalid UTF-8 string" );

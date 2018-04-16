@@ -2,6 +2,7 @@
 
 #include <rsbin/storage.hpp>
 #include <common/flaglock.hpp>
+#include <common/ref.hpp>
 #include <common.hpp>
 #include <mutex>
 #include <vector>
@@ -37,18 +38,23 @@ namespace rsbin
 		int m_mapcount;
 
 	public:
-		[[ r::method ]] MemoryStorage();
+		MemoryStorage();
 		~MemoryStorage();
 
-		virtual StorageMap* map(
+		[[ r::method ]] static Ref< MemoryStorage > create()
+		{
+			return Ref< MemoryStorage >::create();
+		}
+
+		virtual Ref< MapTask > startmap(
 			uint64_t offset, uint32_t length,
 			bool flagread, bool flagwrite ) override;
-		virtual GetLimitTask* getlimit( uint64_t* plimit ) override;
-		virtual Task* setlimit( uint64_t limit ) override;
-		virtual Task* flush() override;
-		virtual Task* close() override;
+		virtual Ref< GetLimitTask> startgetlimit( uint64_t* plimit ) override;
+		virtual Ref< Task > startsetlimit( uint64_t limit ) override;
+		virtual Ref< Task > startflush() override;
+		virtual Ref< Task > startclose() override;
 
 	public:
-		friend class MemoryStorageMap;
+		friend class MemoryStorageMapTask;
 	};
 }

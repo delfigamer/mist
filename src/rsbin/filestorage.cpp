@@ -5,7 +5,6 @@
 #include <exception>
 #include <tuple>
 #include <cstring>
-#include <utils/console.hpp>
 
 namespace rsbin
 {
@@ -16,7 +15,7 @@ namespace rsbin
 
 	namespace
 	{
-		void trimlength( uint64_t offsetlimit, uint64_t offset, unsigned& length )
+		void trimlength( uint64_t offsetlimit, uint64_t offset, uint32_t& length )
 		{
 			if( offset >= offsetlimit )
 			{
@@ -24,7 +23,7 @@ namespace rsbin
 			}
 			else
 			{
-				unsigned lengthlimit = offsetlimit - offset;
+				uint32_t lengthlimit = offsetlimit - offset;
 				if( length > lengthlimit )
 				{
 					length = lengthlimit;
@@ -32,7 +31,7 @@ namespace rsbin
 			}
 		}
 
-		void trimlength( unsigned offsetlimit, unsigned offset, unsigned& length )
+		void trimlength( uint32_t offsetlimit, uint32_t offset, uint32_t& length )
 		{
 			if( offset >= offsetlimit )
 			{
@@ -40,7 +39,7 @@ namespace rsbin
 			}
 			else
 			{
-				unsigned lengthlimit = offsetlimit - offset;
+				uint32_t lengthlimit = offsetlimit - offset;
 				if( length > lengthlimit )
 				{
 					length = lengthlimit;
@@ -140,7 +139,7 @@ namespace rsbin
 
 	bool FileStorage::startread( page_t* page )
 	{
-		ASSERT( !page->m_isioactive );
+		assert( !page->m_isioactive );
 		if( !ReadFile(
 			m_handle,
 			page->m_buffer, PageSize,
@@ -166,7 +165,7 @@ namespace rsbin
 
 	bool FileStorage::startwrite( page_t* page )
 	{
-		ASSERT( !page->m_isioactive );
+		assert( !page->m_isioactive );
 		if( !WriteFile(
 			m_handle,
 			page->m_buffer, PageSize,
@@ -264,7 +263,7 @@ namespace rsbin
 	FileStorage::~FileStorage()
 	{
 		lock_t lock( m_mutex );
-		ASSERT( !m_busy && m_mapcount == 0 );
+		assert( !m_busy && m_mapcount == 0 );
 		if( m_handle != INVALID_HANDLE_VALUE )
 		{
 			{
@@ -289,27 +288,26 @@ namespace rsbin
 		}
 	}
 
-	class FileStorageMap: public StorageMap
+	class FileStorageMapTask: public MapTask
 	{
 	private:
 		Ref< FileStorage > m_target;
 		FileStorage::page_t* m_page;
-		unsigned m_offset;
-		unsigned m_length;
+		uint32_t m_offset;
+		uint32_t m_length;
 		bool m_flagwrite;
 
 	public:
-		FileStorageMap(
+		FileStorageMapTask(
 			FileStorage* target, FileStorage::page_t* page,
-			unsigned offset, unsigned length,
+			uint32_t offset, uint32_t length,
 			bool flagwrite );
-		~FileStorageMap();
+		~FileStorageMapTask();
 		virtual bool poll() override;
-		virtual void getmap(
-			uint8_t** pmapptr, unsigned* pmaplength ) override;
+		virtual StorageMap getmap() override;
 	};
 
-	StorageMap* FileStorage::map(
+	Ref< MapTask > FileStorage::startmap(
 		uint64_t offset, uint32_t length,
 		bool flagread, bool flagwrite )
 	{
@@ -332,7 +330,7 @@ namespace rsbin
 		{
 			trimlength( m_limit, offset, length );
 		}
-		unsigned localoffset = offset % PageSize;
+		uint32_t localoffset = offset % PageSize;
 		uint64_t pageoffset = offset - localoffset;
 		trimlength( PageSize, localoffset, length );
 		if( length == 0 )
@@ -355,13 +353,13 @@ namespace rsbin
 				startread( page );
 			}
 		}
-		return new FileStorageMap(
+		return Ref< FileStorageMapTask >::create(
 			this, page, localoffset, length, flagwrite );
 	}
 
-	FileStorageMap::FileStorageMap(
+	FileStorageMapTask::FileStorageMapTask(
 		FileStorage* target, FileStorage::page_t* page,
-		unsigned offset, unsigned length,
+		uint32_t offset, uint32_t length,
 		bool flagwrite )
 		: m_target( target )
 		, m_page( page )
@@ -377,7 +375,7 @@ namespace rsbin
 		}
 	}
 
-	FileStorageMap::~FileStorageMap()
+	FileStorageMapTask::~FileStorageMapTask()
 	{
 		FileStorage::lock_t lock( m_target->m_mutex );
 		m_page->m_refcount -= 1;
@@ -395,32 +393,29 @@ namespace rsbin
 		m_target->m_mapcount -= 1;
 	}
 
-	bool FileStorageMap::poll()
+	bool FileStorageMapTask::poll()
 	{
 		FileStorage::lock_t lock( m_target->m_mutex );
 		return m_target->pollpage( m_page );
 	}
 
-	void FileStorageMap::getmap(
-		uint8_t** pmapptr, unsigned* pmaplength )
+	StorageMap FileStorageMapTask::getmap()
 	{
 #if defined( MIST_DEBUG )
 		FileStorage::lock_t lock( m_target->m_mutex );
-		ASSERT( m_target->pollpage( m_page ) );
+		assert( m_target->pollpage( m_page ) );
 #endif
 		if( m_length > 0 )
 		{
-			*pmapptr = m_page->m_buffer + m_offset;
-			*pmaplength = m_length;
+			return StorageMap{ m_page->m_buffer + m_offset, m_length };
 		}
 		else
 		{
-			*pmapptr = nullptr;
-			*pmaplength = 0;
+			return StorageMap{ nullptr, 0 };
 		}
 	}
 
-	GetLimitTask* FileStorage::getlimit( uint64_t* plimit )
+	Ref< GetLimitTask > FileStorage::startgetlimit( uint64_t* plimit )
 	{
 		lock_t lock( m_mutex );
 		if( m_handle == INVALID_HANDLE_VALUE )
@@ -436,7 +431,7 @@ namespace rsbin
 		return nullptr;
 	}
 
-	Task* FileStorage::setlimit( uint64_t limit )
+	Ref< Task > FileStorage::startsetlimit( uint64_t limit )
 	{
 		lock_t lock( m_mutex );
 		if( m_handle == INVALID_HANDLE_VALUE )
@@ -476,7 +471,7 @@ namespace rsbin
 		virtual bool poll() override;
 	};
 
-	Task* FileStorage::flush()
+	Ref< Task > FileStorage::startflush()
 	{
 		lock_t lock( m_mutex );
 		if( m_handle == INVALID_HANDLE_VALUE )
@@ -493,10 +488,10 @@ namespace rsbin
 			throw std::runtime_error(
 				"the object has currently active mappings" );
 		}
-		return new FileStorageFlushTask( this, false );
+		return Ref< FileStorageFlushTask >::create( this, false );
 	}
 
-	Task* FileStorage::close()
+	Ref< Task > FileStorage::startclose()
 	{
 		if( m_handle == INVALID_HANDLE_VALUE )
 		{
@@ -512,7 +507,7 @@ namespace rsbin
 			throw std::runtime_error(
 				"the object has currently active mappings" );
 		}
-		return new FileStorageFlushTask( this, true );
+		return Ref< FileStorageFlushTask >::create( this, true );
 	}
 
 	FileStorageFlushTask::FileStorageFlushTask(

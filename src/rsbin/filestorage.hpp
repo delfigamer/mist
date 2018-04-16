@@ -63,20 +63,26 @@ namespace rsbin
 		bool startwrite( page_t* page );
 
 	public:
-		[[ r::method ]] FileStorage(
-			char const* path [[ r::required ]], fileopenmode mode );
+		FileStorage( char const* path, fileopenmode mode );
 		~FileStorage();
 
-		virtual StorageMap* map(
+		[[ r::method ]]
+		static Ref< FileStorage > create( char const* path, fileopenmode mode )
+		{
+			externalassert( path );
+			return Ref< FileStorage >::create( path, mode );
+		}
+
+		virtual Ref< MapTask > startmap(
 			uint64_t offset, uint32_t length,
 			bool flagread, bool flagwrite ) override;
-		virtual GetLimitTask* getlimit( uint64_t* plimit ) override;
-		virtual Task* setlimit( uint64_t limit ) override;
-		virtual Task* flush() override;
-		virtual Task* close() override;
+		virtual Ref< GetLimitTask > startgetlimit( uint64_t* plimit ) override;
+		virtual Ref< Task > startsetlimit( uint64_t limit ) override;
+		virtual Ref< Task > startflush() override;
+		virtual Ref< Task > startclose() override;
 
 	public:
-		friend class FileStorageMap;
+		friend class FileStorageMapTask;
 		friend class FileStorageFlushTask;
 	};
 }

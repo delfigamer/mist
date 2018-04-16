@@ -12,6 +12,7 @@ namespace rsbin
 {
 	bool isfileavailable( char const* path )
 	{
+		externalassert( path );
 		Ref< utils::Path > upath = utils::Path::create( path );
 		if( upath )
 		{

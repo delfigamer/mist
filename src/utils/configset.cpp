@@ -269,5 +269,5 @@ namespace utils
 		lua_settop( m_lstate, 0 );
 	}
 
-	ConfClass* MainConf;
+	std::unique_ptr< ConfClass > MainConf;
 }

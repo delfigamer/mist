@@ -228,7 +228,7 @@ namespace utils
 
 	Ref< Path > Path::create( void const* path )
 	{
-		ASSERT( path );
+		assert( path );
 		uint8_t const* pathb = ( uint8_t const* )path;
 #if defined( _WIN32 ) || defined( _WIN64 )
 		if( pathb[ 0 ] == 0xff && pathb[ 1 ] == 0xfe )

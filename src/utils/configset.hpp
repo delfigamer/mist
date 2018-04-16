@@ -5,12 +5,13 @@
 #include <common.hpp>
 #include <lua/lua.hpp>
 #include <string>
+#include <memory>
 
 namespace utils
 {
 	class ConfClass;
 
-	extern ConfClass* MainConf;
+	extern std::unique_ptr< ConfClass > MainConf;
 
 	class [[ r::class, r::name( "mainconf" ) ]] ConfClass
 	{
@@ -37,26 +38,26 @@ namespace utils
 		void runcmd( char const* expr );
 
 		[[ r::method ]] static bool linteger(
-			char const* expr [[ r::required ]], int* value [[ r::required ]] )
+			char const* expr , int* value  )
 		{
 			return MainConf->binteger( expr, *value );
 		}
 
 		[[ r::method ]] static bool lnumber(
-			char const* expr [[ r::required ]], double* value [[ r::required ]] )
+			char const* expr , double* value  )
 		{
 			return MainConf->bnumber( expr, *value );
 		}
 
 		[[ r::method ]] static bool lstringbuf(
-			char const* expr [[ r::required ]],
-			char* buffer, size_t* length [[ r::required ]] )
+			char const* expr ,
+			char* buffer, size_t* length  )
 		{
 			return MainConf->stringbuf( expr, buffer, *length );
 		}
 
 		[[ r::method ]] static bool lboolean(
-			char const* expr [[ r::required ]], bool* value [[ r::required ]] )
+			char const* expr , bool* value  )
 		{
 			return MainConf->bboolean( expr, *value );
 		}

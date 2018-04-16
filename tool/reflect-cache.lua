@@ -3,6 +3,7 @@ local rcache = package.modtable(modname)
 local env = require('env')
 local buildconfig = require('build-config')
 local parser = require('reflect-parser')
+local rtypes = require('reflect-types')
 
 local modulenamemap = {}
 local modulepathmap = {}
@@ -24,8 +25,10 @@ for i, name in ipairs{
 do
 	defaultnamespace['::' .. name] = {
 		id = 'default ::' .. name,
-		sourcename = name,
-		trivialname = name,
+		scalartype = true,
+		sourcename = '::' .. name,
+		luaname = name,
+		commonname = name,
 		location = {{'default', 1, 1}}}
 end
 
@@ -51,7 +54,6 @@ end
 
 function rcache.registerdecl(moduledef, decl)
 	if
-		decl.rtype or
 		decl.rstruct or
 		decl.rclass or
 		decl.rexternal or
@@ -94,7 +96,8 @@ function rcache.includemodule(moduledef, target)
 	end
 end
 
-local loadmodule_env = {}
+local loadmodule_env = {
+	types = rtypes}
 
 function loadmodule_env.registermodule(name, source)
 	return rcache.registermodule(name, source)

@@ -10,6 +10,6 @@ namespace utils
 		std::this_thread::yield();
 	}
 
-	[[ r::method ]] void write( char const* str [[ r::required ]] );
-	[[ r::method ]] void getchar( char* str [[ r::required ]] );
+	[[ r::method ]] void write( char const* str );
+	[[ r::method ]] void getchar( char* str );
 }

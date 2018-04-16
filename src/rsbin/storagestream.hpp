@@ -12,7 +12,7 @@ namespace rsbin
 	{
 	private:
 		Ref< Storage > m_storage;
-		Ref< StorageMap > m_currentmap;
+		Ref< MapTask > m_currentmaptask;
 		bool m_flagread;
 		bool m_flagwrite;
 		uint64_t m_position;
@@ -20,16 +20,26 @@ namespace rsbin
 		void releasecurrentmap();
 
 	public:
-		[[ r::method ]] StorageStream(
-			Storage* storage [[ r::required ]],
+		StorageStream(
+			Storage* storage,
 			bool flagread, bool flagwrite,
 			uint64_t offset );
 		~StorageStream();
 		StorageStream( StorageStream const& other ) = delete;
 		StorageStream& operator=( StorageStream const& other ) = delete;
 
-		virtual StorageMap* advance( unsigned length ) override;
-		virtual void skip( unsigned length ) override;
+		[[ r::method ]] static Ref< StorageStream > create(
+			Storage* storage,
+			bool flagread, bool flagwrite,
+			uint64_t offset )
+		{
+			externalassert( storage );
+			return Ref< StorageStream >::create(
+				storage, flagread, flagwrite, offset );
+		}
+
+		virtual Ref< MapTask > startadvance( uint32_t length ) override;
+		virtual void skip( uint32_t length ) override;
 		virtual uint64_t getposition() override;
 	};
 }

@@ -78,23 +78,22 @@ namespace rsbin
 	{
 	}
 
-	class MemoryStorageMap: public StorageMap
+	class MemoryStorageMapTask: public MapTask
 	{
 	private:
 		Ref< MemoryStorage > m_target;
 		uint8_t* m_ptr;
-		unsigned m_length;
+		uint32_t m_length;
 
 	public:
-		MemoryStorageMap(
-			MemoryStorage* target, uint8_t* ptr, unsigned length );
-		~MemoryStorageMap();
+		MemoryStorageMapTask(
+			MemoryStorage* target, uint8_t* ptr, uint32_t length );
+		~MemoryStorageMapTask();
 		virtual bool poll() override;
-		virtual void getmap(
-			uint8_t** pmapptr, unsigned* pmaplength ) override;
+		virtual StorageMap getmap() override;
 	};
 
-	StorageMap* MemoryStorage::map(
+	Ref< MapTask > MemoryStorage::startmap(
 		uint64_t offset, uint32_t length,
 		bool flagread, bool flagwrite )
 	{
@@ -118,7 +117,7 @@ namespace rsbin
 			}
 		}
 		size_t pageindex = offset / PageSize;
-		unsigned localoffset = offset % PageSize;
+		uint32_t localoffset = offset % PageSize;
 		if( length > PageSize - localoffset )
 		{
 			length = PageSize - localoffset;
@@ -127,15 +126,16 @@ namespace rsbin
 		{
 			if( offset + length > m_limit )
 			{
-				setlimit( offset + length );
+				startsetlimit( offset + length );
 			}
 		}
-		ASSERT( pageindex < m_pages.size() );
+		assert( pageindex < m_pages.size() );
 		page_t* page = &m_pages[ pageindex ];
 		uint8_t* buffer = page->get( flagwrite );
 		if( buffer )
 		{
-			return new MemoryStorageMap( this, buffer + localoffset, length );
+			return Ref< MemoryStorageMapTask >::create(
+				this, buffer + localoffset, length );
 		}
 		else
 		{
@@ -143,8 +143,8 @@ namespace rsbin
 		}
 	}
 
-	MemoryStorageMap::MemoryStorageMap(
-		MemoryStorage* target, uint8_t* ptr, unsigned length )
+	MemoryStorageMapTask::MemoryStorageMapTask(
+		MemoryStorage* target, uint8_t* ptr, uint32_t length )
 		: m_target( target )
 		, m_ptr( ptr )
 		, m_length( length )
@@ -152,31 +152,30 @@ namespace rsbin
 		m_target->m_mapcount += 1;
 	}
 
-	MemoryStorageMap::~MemoryStorageMap()
+	MemoryStorageMapTask::~MemoryStorageMapTask()
 	{
+		MemoryStorage::lock_t lock( m_target->m_mutex );
 		m_target->m_mapcount -= 1;
 	}
 
-	bool MemoryStorageMap::poll()
+	bool MemoryStorageMapTask::poll()
 	{
 		return true;
 	}
 
-	void MemoryStorageMap::getmap(
-		uint8_t** pmapptr, unsigned* pmaplength )
+	StorageMap MemoryStorageMapTask::getmap()
 	{
-		*pmapptr = m_ptr;
-		*pmaplength = m_length;
+		return StorageMap{ m_ptr, m_length };
 	}
 
-	GetLimitTask* MemoryStorage::getlimit( uint64_t* plimit )
+	Ref< GetLimitTask > MemoryStorage::startgetlimit( uint64_t* plimit )
 	{
 		lock_t lock( m_mutex );
 		*plimit = m_limit;
 		return nullptr;
 	}
 
-	Task* MemoryStorage::setlimit( uint64_t limit )
+	Ref< Task > MemoryStorage::startsetlimit( uint64_t limit )
 	{
 		lock_t lock( m_mutex );
 		if( m_mapcount != 0 )
@@ -190,7 +189,7 @@ namespace rsbin
 		return nullptr;
 	}
 
-	Task* MemoryStorage::flush()
+	Ref< Task > MemoryStorage::startflush()
 	{
 		if( m_mapcount != 0 )
 		{
@@ -200,7 +199,7 @@ namespace rsbin
 		return nullptr;
 	}
 
-	Task* MemoryStorage::close()
+	Ref< Task > MemoryStorage::startclose()
 	{
 		lock_t lock( m_mutex );
 		if( m_mapcount != 0 )

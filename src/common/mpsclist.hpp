@@ -20,14 +20,7 @@ private:
 	{
 		std::atomic< Item* > m_next;
 		std::atomic< bool > m_dead;
-#if defined( _MSC_VER )
 		char m_data[ sizeof( value_type ) ];
-#else
-		union {
-			value_type m_data;
-			int m_dummy;
-		};
-#endif
 
 		Item()
 			: m_next( nullptr )
@@ -96,11 +89,7 @@ typename MPSCList< T >::Iterator& MPSCList< T >::Iterator::operator++()
 			next = 0;
 			break;
 		}
-#if defined( _MSC_VER )
 		( ( value_type* )next->m_data )->~value_type();
-#else
-		next->m_data.~value_type();
-#endif
 		delete next;
 		replace = repl;
 		next = repl;
@@ -118,11 +107,7 @@ typename MPSCList< T >::value_type& MPSCList< T >::Iterator::operator*()
 {
 	if( m_current )
 	{
-#if defined( _MSC_VER )
 		return *( value_type* )m_current->m_data;
-#else
-		return m_current->m_data;
-#endif
 	}
 	else
 	{
@@ -176,11 +161,7 @@ MPSCList< T >::~MPSCList()
 	while( item )
 	{
 		Item* next = item->m_next.load( std::memory_order_relaxed );
-#if defined( _MSC_VER )
 		( ( value_type* )item->m_data )->~value_type();
-#else
-		item->m_data.~value_type();
-#endif
 		delete item;
 		item = next;
 	}
@@ -194,13 +175,8 @@ typename MPSCList< T >::Iterator MPSCList< T >::append( Ts&&... args )
 	Item* item = new Item();
 	try
 	{
-#if defined( _MSC_VER )
 		new( item->m_data )value_type(
 			std::forward< Ts >( args )... );
-#else
-		new( &item->m_data )value_type(
-			std::forward< Ts >( args )... );
-#endif
 	}
 	catch( ... )
 	{

@@ -469,19 +469,17 @@ namespace utils
 	};
 
 	translateresult translatestr(
-		encoding_t const* senc,
-		encoding_t const* denc,
-		translation_t* translation )
+		translation_t& translation )
 	{
-		uint8_t const* source = ( uint8_t const* )translation->source;
-		uint8_t* dest = ( uint8_t* )translation->dest;
-		size_t sourcesize = translation->sourcesize;
+		uint8_t const* source = ( uint8_t const* )translation.source;
+		uint8_t* dest = ( uint8_t* )translation.dest;
+		size_t sourcesize = translation.sourcesize;
 		if( sourcesize == 0 )
 		{
 			sourcesize = sourcesize_zterm;
 		}
-		size_t destsize = translation->destsize;
-		uint32_t defaultchar = translation->defaultchar;
+		size_t destsize = translation.destsize;
+		uint32_t defaultchar = translation.defaultchar;
 		size_t sourceresult = 0;
 		size_t destresult = 0;
 		translateresult resultcode = translateresult::success;
@@ -489,7 +487,7 @@ namespace utils
 		{
 			uint32_t charcode;
 			size_t spointlength;
-			if( !senc->decode(
+			if( !translation.senc->decode(
 				source,
 				&charcode,
 				sourcesize == sourcesize_zterm ? 0 : sourcesize, &spointlength ) )
@@ -518,7 +516,8 @@ namespace utils
 				sourcesize -= spointlength;
 			}
 			size_t dpointlength;
-			if( !denc->encode( dest, charcode, destsize, &dpointlength ) )
+			if( !translation.denc->encode(
+				dest, charcode, destsize, &dpointlength ) )
 			{
 				if( dpointlength == 0 )
 				{
@@ -546,8 +545,8 @@ namespace utils
 				break;
 			}
 		}
-		translation->sourceresult = sourceresult;
-		translation->destresult = destresult;
+		translation.sourceresult = sourceresult;
+		translation.destresult = destresult;
 		return resultcode;
 	}
 
@@ -556,18 +555,20 @@ namespace utils
 		void const* source, size_t sourcesize )
 	{
 		translation_t translation = {
+			senc,
+			denc,
 			source,
 			0,
 			sourcesize,
 			0,
 			0xfffd,
 		};
-		translatestr( senc, denc, &translation );
+		translatestr( translation );
 		Ref< DataBuffer > db = DataBuffer::create( translation.destresult );
 		translation.dest = db->m_data;
 		translation.sourcesize = translation.sourceresult;
 		translation.destsize = db->m_capacity;
-		utils::translatestr( senc, denc, &translation );
+		utils::translatestr( translation );
 		return db;
 	}
 

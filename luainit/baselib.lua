@@ -170,9 +170,12 @@ end
 function _G.log(...)
 	local info = debug.getinfo(2, 'nSl')
 	local str = string.format(
-		'[%73s:%4i]',
-		info.short_src, info.currentline)
-	print(str, ...)
+		'%s%s:%4i',
+		string.rep('-', 74 - #info.short_src), info.short_src, info.currentline)
+	print(str)
+	if select('#', ...) ~= 0 then
+		print(...)
+	end
 end
 
 function table.spairs_next(list, i)

@@ -3,8 +3,7 @@
 #include <utils/configset.hpp>
 #include <utils/console.hpp>
 #include <osapi.hpp>
-#if defined( CON_TARGET )
-#elif defined( _WIN32 ) || defined( _WIN64 )
+#if defined( _WIN32 ) || defined( _WIN64 )
 #include <common/databuffer.hpp>
 #include <utils/encoding.hpp>
 #include <windows.h>
@@ -77,8 +76,8 @@ void android_main( android_app* app )
 #if defined(__ANDROID__)
 	app_dummy();
 #endif
-	utils::Console = new utils::ConsoleClass();
-	utils::MainConf = new utils::ConfClass( MAINCONF_PATH, MAINCONF_STR );
+	utils::Console.reset( new utils::ConsoleClass() );
+	utils::MainConf.reset( new utils::ConfClass( MAINCONF_PATH, MAINCONF_STR ) );
 	utils::Path::initialize();
 	LOG( "~ Application start" );
 	window::WindowCreationData wcd;
@@ -104,9 +103,9 @@ void android_main( android_app* app )
 	{
 		utils::Console->writeln( "! Critical error: %s", e.what() );
 	}
-	delete utils::MainConf;
+	utils::MainConf.reset();
 	LOG( "~ Application end" );
-	delete utils::Console;
+	utils::Console.reset();
 #if defined( _WIN32 ) || defined( _WIN64 )
 	return 0;
 #elif defined(__ANDROID__)

@@ -8,60 +8,51 @@
 #include <cstddef>
 #include <cstring>
 
-// use a template with a dummy argument to let the linker merge the multiple
-// definitions from each inclusion of this header
-template< typename T >
-class StringBuilderBase
+class StringBuilder
 {
 private:
 	std::deque< Ref< DataBuffer > > m_parts;
 
 public:
-	StringBuilderBase( std::nullptr_t = nullptr );
-	StringBuilderBase( StringBuilderBase< T > const& other );
-	StringBuilderBase( StringBuilderBase< T >&& other );
-	StringBuilderBase( Ref< DataBuffer > const& db );
-	StringBuilderBase( Ref< DataBuffer >&& db );
-	~StringBuilderBase();
-	StringBuilderBase< T >& operator=( StringBuilderBase< T > const& other );
-	StringBuilderBase< T >& operator=( StringBuilderBase< T >&& other );
+	StringBuilder( std::nullptr_t = nullptr );
+	StringBuilder( StringBuilder const& other );
+	StringBuilder( StringBuilder&& other );
+	StringBuilder( Ref< DataBuffer > const& db );
+	StringBuilder( Ref< DataBuffer >&& db );
+	~StringBuilder();
+	StringBuilder& operator=( StringBuilder const& other );
+	StringBuilder& operator=( StringBuilder&& other );
 
 	size_t getlength() const;
 	Ref< DataBuffer > combine() const;
-	StringBuilderBase< T >& append( StringBuilderBase< T > const& sb );
-	StringBuilderBase< T >& append( StringBuilderBase< T >&& sb );
-	StringBuilderBase< T >& append( Ref< DataBuffer > const& db );
-	StringBuilderBase< T >& append( Ref< DataBuffer >&& db );
-	StringBuilderBase< T >& prepend( StringBuilderBase< T > const& sb );
-	StringBuilderBase< T >& prepend( StringBuilderBase< T >&& sb );
-	StringBuilderBase< T >& prepend( Ref< DataBuffer > const& db );
-	StringBuilderBase< T >& prepend( Ref< DataBuffer >&& db );
-	StringBuilderBase< T >& padleft( size_t targetlength, uint8_t ch = ' ' );
-	StringBuilderBase< T >& padright( size_t targetlength, uint8_t ch = ' ' );
+	StringBuilder& append( StringBuilder const& sb );
+	StringBuilder& append( StringBuilder&& sb );
+	StringBuilder& append( Ref< DataBuffer > const& db );
+	StringBuilder& append( Ref< DataBuffer >&& db );
+	StringBuilder& prepend( StringBuilder const& sb );
+	StringBuilder& prepend( StringBuilder&& sb );
+	StringBuilder& prepend( Ref< DataBuffer > const& db );
+	StringBuilder& prepend( Ref< DataBuffer >&& db );
+	StringBuilder& padleft( size_t targetlength, uint8_t ch = ' ' );
+	StringBuilder& padright( size_t targetlength, uint8_t ch = ' ' );
 	operator bool() const;
 };
 
-typedef StringBuilderBase< void > StringBuilder;
-
-template< typename T >
-StringBuilderBase< T >::StringBuilderBase( std::nullptr_t )
+inline StringBuilder::StringBuilder( std::nullptr_t )
 {
 }
 
-template< typename T >
-StringBuilderBase< T >::StringBuilderBase( StringBuilderBase< T > const& other )
+inline StringBuilder::StringBuilder( StringBuilder const& other )
 	: m_parts( other.m_parts )
 {
 }
 
-template< typename T >
-StringBuilderBase< T >::StringBuilderBase( StringBuilderBase< T >&& other )
+inline StringBuilder::StringBuilder( StringBuilder&& other )
 	: m_parts( std::move( other.m_parts ) )
 {
 }
 
-template< typename T >
-StringBuilderBase< T >::StringBuilderBase( Ref< DataBuffer > const& db )
+inline StringBuilder::StringBuilder( Ref< DataBuffer > const& db )
 {
 	if( db && db->m_length != 0 )
 	{
@@ -69,8 +60,7 @@ StringBuilderBase< T >::StringBuilderBase( Ref< DataBuffer > const& db )
 	}
 }
 
-template< typename T >
-StringBuilderBase< T >::StringBuilderBase( Ref< DataBuffer >&& db )
+inline StringBuilder::StringBuilder( Ref< DataBuffer >&& db )
 {
 	if( db && db->m_length != 0 )
 	{
@@ -78,29 +68,25 @@ StringBuilderBase< T >::StringBuilderBase( Ref< DataBuffer >&& db )
 	}
 }
 
-template< typename T >
-StringBuilderBase< T >::~StringBuilderBase()
+inline StringBuilder::~StringBuilder()
 {
 }
 
-template< typename T >
-StringBuilderBase< T >& StringBuilderBase< T >::operator=(
-	StringBuilderBase< T > const& other )
+inline StringBuilder& StringBuilder::operator=(
+	StringBuilder const& other )
 {
 	m_parts = other.m_parts;
 	return *this;
 }
 
-template< typename T >
-StringBuilderBase< T >& StringBuilderBase< T >::operator=(
-	StringBuilderBase< T >&& other )
+inline StringBuilder& StringBuilder::operator=(
+	StringBuilder&& other )
 {
 	m_parts = std::move( other.m_parts );
 	return *this;
 }
 
-template< typename T >
-size_t StringBuilderBase< T >::getlength() const
+inline size_t StringBuilder::getlength() const
 {
 	size_t length = 0;
 	for( auto& part : m_parts )
@@ -110,8 +96,7 @@ size_t StringBuilderBase< T >::getlength() const
 	return length;
 }
 
-template< typename T >
-Ref< DataBuffer > StringBuilderBase< T >::combine() const
+inline Ref< DataBuffer > StringBuilder::combine() const
 {
 	auto db = DataBuffer::create( getlength() );
 	uint8_t* ptr = db->m_data;
@@ -123,17 +108,15 @@ Ref< DataBuffer > StringBuilderBase< T >::combine() const
 	return db;
 }
 
-template< typename T >
-StringBuilderBase< T >& StringBuilderBase< T >::append(
-	StringBuilderBase< T > const& sb )
+inline StringBuilder& StringBuilder::append(
+	StringBuilder const& sb )
 {
 	m_parts.insert( m_parts.end(), sb.m_parts.begin(), sb.m_parts.end() );
 	return *this;
 }
 
-template< typename T >
-StringBuilderBase< T >& StringBuilderBase< T >::append(
-	StringBuilderBase< T >&& sb )
+inline StringBuilder& StringBuilder::append(
+	StringBuilder&& sb )
 {
 	while( !sb.m_parts.empty() )
 	{
@@ -143,8 +126,7 @@ StringBuilderBase< T >& StringBuilderBase< T >::append(
 	return *this;
 }
 
-template< typename T >
-StringBuilderBase< T >& StringBuilderBase< T >::append(
+inline StringBuilder& StringBuilder::append(
 	Ref< DataBuffer > const& db )
 {
 	if( db && db->m_length != 0 )
@@ -154,8 +136,7 @@ StringBuilderBase< T >& StringBuilderBase< T >::append(
 	return *this;
 }
 
-template< typename T >
-StringBuilderBase< T >& StringBuilderBase< T >::append(
+inline StringBuilder& StringBuilder::append(
 	Ref< DataBuffer >&& db )
 {
 	if( db && db->m_length != 0 )
@@ -165,17 +146,15 @@ StringBuilderBase< T >& StringBuilderBase< T >::append(
 	return *this;
 }
 
-template< typename T >
-StringBuilderBase< T >& StringBuilderBase< T >::prepend(
-	StringBuilderBase< T > const& sb )
+inline StringBuilder& StringBuilder::prepend(
+	StringBuilder const& sb )
 {
 	m_parts.insert( m_parts.begin(), sb.m_parts.begin(), sb.m_parts.end() );
 	return *this;
 }
 
-template< typename T >
-StringBuilderBase< T >& StringBuilderBase< T >::prepend(
-	StringBuilderBase< T >&& sb )
+inline StringBuilder& StringBuilder::prepend(
+	StringBuilder&& sb )
 {
 	while( !sb.m_parts.empty() )
 	{
@@ -185,8 +164,7 @@ StringBuilderBase< T >& StringBuilderBase< T >::prepend(
 	return *this;
 }
 
-template< typename T >
-StringBuilderBase< T >& StringBuilderBase< T >::prepend(
+inline StringBuilder& StringBuilder::prepend(
 	Ref< DataBuffer > const& db )
 {
 	if( db && db->m_length != 0 )
@@ -196,8 +174,7 @@ StringBuilderBase< T >& StringBuilderBase< T >::prepend(
 	return *this;
 }
 
-template< typename T >
-StringBuilderBase< T >& StringBuilderBase< T >::prepend(
+inline StringBuilder& StringBuilder::prepend(
 	Ref< DataBuffer >&& db )
 {
 	if( db && db->m_length != 0 )
@@ -207,8 +184,7 @@ StringBuilderBase< T >& StringBuilderBase< T >::prepend(
 	return *this;
 }
 
-template< typename T >
-StringBuilderBase< T >& StringBuilderBase< T >::padleft(
+inline StringBuilder& StringBuilder::padleft(
 	size_t targetlength, uint8_t ch )
 {
 	size_t length = getlength();
@@ -221,8 +197,7 @@ StringBuilderBase< T >& StringBuilderBase< T >::padleft(
 	return *this;
 }
 
-template< typename T >
-StringBuilderBase< T >& StringBuilderBase< T >::padright(
+inline StringBuilder& StringBuilder::padright(
 	size_t targetlength, uint8_t ch )
 {
 	size_t length = getlength();
@@ -235,8 +210,7 @@ StringBuilderBase< T >& StringBuilderBase< T >::padright(
 	return *this;
 }
 
-template< typename T >
-StringBuilderBase< T >::operator bool() const
+inline StringBuilder::operator bool() const
 {
 	return !m_parts.empty();
 }

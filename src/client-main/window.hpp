@@ -127,6 +127,6 @@ namespace window
 
 		int mainloop();
 		[[ r::method ]] void setshape( graphics::Shape* nv );
-		[[ r::method ]] bool popevent( Event* event [[ r::required ]] );
+		[[ r::method ]] bool popevent( Event* event );
 	};
 }

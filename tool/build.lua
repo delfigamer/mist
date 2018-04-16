@@ -135,7 +135,8 @@ for i, rec in ipairs{
 		prolog = {
 			'luainit/baselib.lua',
 			'luainit/object.lua',
-			'luainit/ffipure.lua'},
+			'luainit/ffipure.lua',
+			'luainit/reflection.lua'},
 		epilog = {
 			'luainit/hostlib.lua',
 			'luainit/main.lua'}},

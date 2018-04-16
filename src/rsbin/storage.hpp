@@ -1,25 +1,32 @@
 #pragma once
 
 #include <common/task.hpp>
+#include <common/ref.hpp>
 #include <common/refobject.hpp>
 #include <common.hpp>
 
 namespace rsbin
 {
-	struct [[ r::class, r::name( "storagemap" ) ]] StorageMap: Task
+	struct [[ r::struct, r::name( "storagemap" ) ]] StorageMap
 	{
-		StorageMap() = default;
-		~StorageMap() = default;
-		[[ r::method ]] virtual void getmap(
-			uint8_t** pmapptr [[ r::required ]],
-			unsigned* pmaplength [[ r::required ]] ) = 0;
+		uint8_t* ptr;
+		uint32_t length;
+	};
+
+	struct [[ r::class, r::name( "maptask" ) ]] MapTask: Task
+	{
+		MapTask() = default;
+		~MapTask() = default;
+		[[ r::method ]]
+		virtual StorageMap getmap() = 0;
 	};
 
 	struct [[ r::class, r::name( "getlimittask" ) ]] GetLimitTask: Task
 	{
 		GetLimitTask() = default;
 		~GetLimitTask() = default;
-		[[ r::method ]] virtual uint64_t getlimit() = 0;
+		[[ r::method ]]
+		virtual uint64_t getlimit() = 0;
 	};
 
 	class [[ r::class, r::name( "storage" ) ]] Storage: public RefObject
@@ -30,23 +37,23 @@ namespace rsbin
 		Storage( Storage const& other ) = delete;
 		Storage& operator=( Storage const& other ) = delete;
 
-		[[ r::method, r::name( "startmap" ) ]] virtual StorageMap* map(
+		[[ r::method ]]
+		virtual Ref< MapTask > startmap(
 			uint64_t offset, uint32_t length,
 			bool flagread, bool flagwrite ) = 0;
-		[[ r::method, r::name( "startgetlimit" ) ]]
-			virtual GetLimitTask* getlimit(
-			uint64_t* plimit [[ r::required ]] ) = 0;
-		[[ r::method, r::name( "startsetlimit" ) ]] virtual Task* setlimit(
-			uint64_t limit ) = 0;
-		[[ r::method, r::name( "startflush" ) ]] virtual Task* flush() = 0;
-		[[ r::method, r::name( "startclose" ) ]] virtual Task* close() = 0;
+		[[ r::method ]]
+		virtual Ref< GetLimitTask > startgetlimit( uint64_t* plimit ) = 0;
+		[[ r::method ]]
+		virtual Ref< Task > startsetlimit( uint64_t limit ) = 0;
+		[[ r::method ]]
+		virtual Ref< Task > startflush() = 0;
+		[[ r::method ]]
+		virtual Ref< Task > startclose() = 0;
 	};
 }
 
 r_emit(<<
 	function rsbin_storage:map(offset, length, flagread, flagwrite)
-		local mptr = ffi.new('uint8_t*[1]')
-		local mlen = ffi.new('unsigned[1]')
 		local task = self:startmap(offset, length, flagread, flagwrite)
 		if not task then
 			return nil, nil, 0
@@ -54,11 +61,11 @@ r_emit(<<
 		while not task:poll() do
 			coroutine.yield()
 		end
-		task:getmap(mptr, mlen)
-		if mptr[0] == nil or mlen[0] == 0 then
+		local map = task:getmap()
+		if map.ptr == nil or map.length == 0 then
 			return task, nil, 0
 		else
-			return task, mptr[0], mlen[0]
+			return task, map.ptr, map.length
 		end
 	end
 
@@ -69,7 +76,9 @@ r_emit(<<
 			while not task:poll() do
 				coroutine.yield()
 			end
-			return task:getlimit()
+			local result = task:getlimit()
+			task:release()
+			return result
 		else
 			return limit[0]
 		end
@@ -81,6 +90,7 @@ r_emit(<<
 			while not task:poll() do
 				coroutine.yield()
 			end
+			task:release()
 		end
 	end
 
@@ -90,6 +100,7 @@ r_emit(<<
 			while not task:poll() do
 				coroutine.yield()
 			end
+			task:release()
 		end
 	end
 
@@ -99,6 +110,7 @@ r_emit(<<
 			while not task:poll() do
 				coroutine.yield()
 			end
+			task:release()
 		end
 	end
 >>)

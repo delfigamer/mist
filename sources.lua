@@ -55,11 +55,6 @@ return {
 	},
 	{
 		type = 'native',
-		name = 'common/strexception',
-		headeronly = true,
-	},
-	{
-		type = 'native',
 		name = 'common/stringbuilder',
 		headeronly = true,
 	},

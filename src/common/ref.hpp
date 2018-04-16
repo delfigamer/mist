@@ -47,7 +47,7 @@ public:
 	void assign( std::nullptr_t ) noexcept;
 	template< typename U > void assign( U* ref ) noexcept;
 	T* detach() noexcept;
-	T* share() noexcept;
+	T* share() const noexcept;
 	Ref< T >& operator=( std::nullptr_t ) noexcept;
 	template< typename U > Ref< T >& operator=( U* ref ) noexcept;
 	template< typename U > Ref< T >& operator=( Ref< U > const& other ) noexcept;
@@ -57,7 +57,7 @@ public:
 	T& operator*() const;
 	T* operator->() const;
 	operator T*() const noexcept;
-	operator bool() const noexcept;
+	explicit operator bool() const noexcept;
 	template< typename U > bool operator==(
 		Ref< U > const& other ) const noexcept;
 	template< typename U > bool operator!=(
@@ -199,7 +199,7 @@ T* Ref< T >::detach() noexcept
 }
 
 template< typename T >
-T* Ref< T >::share() noexcept
+T* Ref< T >::share() const noexcept
 {
 	T* oldref = m_ref;
 	::addref( oldref );
@@ -371,7 +371,7 @@ template< typename U > AtomicRef< T >::AtomicRef( Ref< U >&& ref ) noexcept
 template< typename T >
 AtomicRef< T >::~AtomicRef() noexcept
 {
-	ASSERT( m_use.load( std::memory_order_relaxed ) == 0 );
+	assert( m_use.load( std::memory_order_relaxed ) == 0 );
 	T* ptr = m_ref.load( std::memory_order_relaxed );
 	::release( ptr );
 }

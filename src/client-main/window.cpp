@@ -3,7 +3,6 @@
 #include <utils/configset.hpp>
 #include <utils/encoding.hpp>
 #include <utils/cbase.hpp>
-#include <common/strexception.hpp>
 #include <osapi.hpp>
 #include <cstdlib>
 #include <cstdio>
@@ -18,7 +17,7 @@ namespace window
 		snprintf(
 			StrBuffer, sizeof( StrBuffer ),
 			"[%s : %s @ %i] %s", file, function, line, msg );
-		throw StrException( StrBuffer );
+		throw std::runtime_error( std::string( StrBuffer ) );
 	}
 
 #define CriticalError_m( msg ) CriticalError( \
@@ -663,6 +662,7 @@ namespace window
 
 	bool Window::popevent( Event* event )
 	{
+		externalassert( event );
 		return m_eventqueue.pop( event );
 	}
 }

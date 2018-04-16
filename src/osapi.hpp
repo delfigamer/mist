@@ -1,5 +1,6 @@
 #pragma once
 
+#include <common.hpp>
 #if defined( _WIN32 ) || defined( _WIN64 )
 #if !defined( WIN32_LEAN_AND_MEAN )
 #define WIN32_LEAN_AND_MEAN
@@ -22,10 +23,9 @@
 #include <fcntl.h>
 #include <unistd.h>
 #endif
-#include <common.hpp>
-#include <common/strexception.hpp>
-#include <common/databuffer.hpp>
-#include <common/ref.hpp>
+#include <stdexcept>
+#include <string>
+#include <cstdio>
 
 namespace
 {
@@ -36,47 +36,57 @@ namespace
 
 	void syserrorexpos( int err, char const* file, int line )
 	{
+		char buffer[ 1024 ];
 #if defined( _WIN32 ) || defined( _WIN64 )
 		if( err == 0 )
 		{
 #if defined( MIST_DEBUG )
-			throw StrException(
+			snprintf( buffer, sizeof( buffer ),
 				"[%73s:%4i]\tunknown Win32 error", file, line );
 #else
-			throw StrException( "unknown Win32 error" );
+			snprintf( buffer, sizeof( buffer ),
+				"unknown Win32 error" );
 #endif
 		}
-		char buffer[ 1024 ];
-		size_t buflen = FormatMessageA(
-			FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_MAX_WIDTH_MASK,
-			0,
-			( DWORD )err,
-			MAKELANGID( LANG_ENGLISH, SUBLANG_ENGLISH_US ),
-			buffer,
-			sizeof( buffer ) - 1,
-			0 );
-		if( buflen == 0 )
+		else
 		{
+			char fmbuffer[ 1024 ];
+			size_t fmbuflen = FormatMessageA(
+				FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_MAX_WIDTH_MASK,
+				0,
+				( DWORD )err,
+				MAKELANGID( LANG_ENGLISH, SUBLANG_ENGLISH_US ),
+				buffer,
+				sizeof( fmbuffer ) - 1,
+				0 );
+			if( fmbuflen == 0 )
+			{
 #if defined( MIST_DEBUG )
-			throw StrException(
-				"[%73s:%4i]\tWin32 error %#x", file, line, err );
+				snprintf( buffer, sizeof( buffer ),
+					"[%73s:%4i]\tWin32 error %#x", file, line, err );
 #else
-			throw StrException(
-				"Win32 error %#x", err );
+				snprintf( buffer, sizeof( buffer ),
+					"Win32 error %#x", err );
+#endif
+			}
+#if defined( MIST_DEBUG )
+			snprintf( buffer, sizeof( buffer ),
+				"[%73s:%4i]\t%s", file, line, fmbuffer );
+#else
+			snprintf( buffer, sizeof( buffer ),
+				"%s", fmbuffer );
 #endif
 		}
-#if defined( MIST_DEBUG )
-		throw StrException( "[%73s:%4i]\t%s", file, line, buffer );
-#else
-		throw StrException( "%s", buffer );
-#endif
 #elif defined ( __ANDROID__ )
 #if defined( MIST_DEBUG )
-		throw StrException( "[%73s:%4i]\t%s", file, line, strerror( err ) );
+		snprintf( buffer, sizeof( buffer ),
+			"[%73s:%4i]\t%s", file, line, strerror( err ) );
 #else
-		throw StrException( "%s", strerror( err ) );
+		snprintf( buffer, sizeof( buffer ),
+			"%s", strerror( err ) );
 #endif
 #endif
+		throw std::runtime_error( std::string( buffer ) );
 	}
 
 	void syserrorpos( char const* file, int line )

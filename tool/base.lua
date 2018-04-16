@@ -122,9 +122,10 @@ end
 function _G.log(...)
 	local info = debug.getinfo(2, 'nSl')
 	local str = string.format(
-		'[%73s:%4i]',
-		info.short_src, info.currentline)
-	print(str, ...)
+		'%s%s:%4i',
+		string.rep('-', 74 - #info.short_src), info.short_src, info.currentline)
+	print(str)
+	print(...)
 end
 
 function table.spairs_next(list, i)
@@ -246,3 +247,72 @@ end
 
 _G.module = nil
 _G.unpack = nil
+
+local object = package.modtable('object')
+
+object.instmeta = {
+	__index = object}
+object._NAME = 'object'
+object['#object'] = true
+
+local function copytable(source)
+	local target = {}
+	for k,v in pairs(source) do
+		target[k] = v
+	end
+	return target
+end
+
+function object:derive(classname)
+	assert(classname)
+	local derived = setmetatable({}, {__index = self})
+	derived.instmeta = copytable(self.instmeta)
+	derived.instmeta.__index = derived
+	derived._NAME = classname
+	derived['#' .. classname] = true
+	return derived
+end
+
+function object:new()
+	local inst = {}
+	return setmetatable(inst, self.instmeta)
+end
+
+function object:create(...)
+	local inst = self:new()
+	inst:init(...)
+	return inst
+end
+
+function object:init()
+end
+
+function object:release()
+end
+
+local function prettyvalue(val)
+	if type(val) == 'string' then
+		return string.format('%q', val)
+	else
+		return tostring(val)
+	end
+end
+
+local function defstringlinecomparer(a, b)
+	return a[1] < b[1]
+end
+
+function object:defstring()
+	local lines = {}
+	local i = 1
+	for k, v in pairs(self) do
+		lines[i] = {prettyvalue(k), prettyvalue(v)}
+		i = i + 1
+	end
+	table.sort(lines, defstringlinecomparer)
+	for i, v in ipairs(lines) do
+		lines[i] = string.format('\t[%s] = %s,\n',
+			v[1], v[2])
+	end
+	return (self._NAME or '') .. '{\n' .. table.concat(lines) .. '}'
+end

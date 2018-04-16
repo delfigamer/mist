@@ -1,5 +1,4 @@
 #include <utils/console.hpp>
-#include <common/strexception.hpp>
 #include <utils/encoding.hpp>
 #include <osapi.hpp>
 #include <cstdio>
@@ -26,17 +25,19 @@ namespace utils
 				wchar_t buffer[ 256 ];
 				translation_t trstruct =
 				{
+					&encoding::utf8,
+					&encoding::utf16,
 					str, // source
 					buffer, // dest
 					length, // sourcesize
 					sizeof( buffer ), // destsize
 					0xfffd, // defaultchar
 				};
-				translateresult trresult = utils::translatestr(
-					&encoding::utf8, &encoding::utf16, &trstruct );
+				translateresult trresult = utils::translatestr( trstruct );
 				DWORD wcresult;
 				if( !WriteConsoleW(
-					( HANDLE )m_outputhandle, buffer, DWORD( trstruct.destresult / 2 ), &wcresult, 0 ) )
+					( HANDLE )m_outputhandle, buffer,
+					DWORD( trstruct.destresult / 2 ), &wcresult, 0 ) )
 				{
 					syserror();
 				}
@@ -61,7 +62,8 @@ namespace utils
 		else
 		{
 			DWORD result;
-			if( !WriteFile( ( HANDLE )m_outputhandle, str, DWORD( length ), &result, 0 ) )
+			if( !WriteFile( ( HANDLE )m_outputhandle, str,
+				DWORD( length ), &result, 0 ) )
 			{
 				syserror();
 			}
@@ -82,7 +84,10 @@ namespace utils
 		m_file = fopen( PATH_START "last.log", "wb" );
 		if( !m_file )
 		{
-			throw StrException( "cannot create log file: %s", strerror( errno ) );
+			char buffer[ 1024 ];
+			snprintf( buffer, sizeof( buffer ),
+				"cannot create log file: %s", strerror( errno ) );
+			throw std::runtime_error( std::string( buffer ) );
 		}
 #if defined( _WIN32 ) || defined( _WIN64 )
 #if defined( DISABLE_CONSOLE )
@@ -144,11 +149,8 @@ namespace utils
 
 	ConsoleClass::~ConsoleClass()
 	{
-		// Other static classes may use Console to announce their destruction
-		// So, we want the object to live all the way until program termination
-		// Hence, instead of explicitly managing its lifetime, we rely on the OS to close the file
-		// writeraw( "\nLog finished\n" );
-		// fclose( ( FILE* )m_file );
+		writeraw( "\nLog finished\n" );
+		fclose( ( FILE* )m_file );
 	}
 
 	void ConsoleClass::linestart()
@@ -157,7 +159,8 @@ namespace utils
 		{
 			m_newline = false;
 			char buffer[ 32 ];
-			int length = snprintf( buffer, sizeof( buffer ), "[%10u] ", uint32_t( clock() * 1000 / CLOCKS_PER_SEC ) );
+			int length = snprintf( buffer, sizeof( buffer ), "[%10u] ",
+				uint32_t( clock() * 1000 / CLOCKS_PER_SEC ) );
 			writefile( buffer, length - 1 );
 		}
 	}
@@ -275,7 +278,6 @@ namespace utils
 			str[ 0 ] = 0;
 			return;
 		}
-		static uint32_t newline_consumed = 0;
 		uint32_t charcode;
 		if( m_inputisconsole )
 		{
@@ -284,7 +286,8 @@ namespace utils
 			while( true )
 			{
 				DWORD result;
-				if( !ReadConsoleW( ( HANDLE )m_inputhandle, buffer + length, 1, &result, 0 ) )
+				if( !ReadConsoleW(
+					( HANDLE )m_inputhandle, buffer + length, 1, &result, 0 ) )
 				{
 					syserror();
 				}
@@ -305,7 +308,8 @@ namespace utils
 			while( true )
 			{
 				DWORD result;
-				if( !ReadFile( ( HANDLE )m_inputhandle, str + length, 1, &result, 0 ) )
+				if( !ReadFile(
+					( HANDLE )m_inputhandle, str + length, 1, &result, 0 ) )
 				{
 					syserror();
 				}
@@ -321,21 +325,21 @@ namespace utils
 		}
 		if( charcode == '\n' || charcode == '\r' )
 		{
-			if( newline_consumed && newline_consumed != charcode )
+			if( m_newline_consumed && m_newline_consumed != charcode )
 			{
-				newline_consumed = 0;
+				m_newline_consumed = 0;
 				getchar( str );
 				return;
 			}
 			else
 			{
-				newline_consumed = charcode;
+				m_newline_consumed = charcode;
 				charcode = '\n';
 			}
 		}
 		else
 		{
-			newline_consumed = 0;
+			m_newline_consumed = 0;
 		}
 		if( !encoding::utf8.encode( str, charcode, 4, &pointlength ) )
 		{
@@ -374,5 +378,5 @@ namespace utils
 		}
 	}
 
-	ConsoleClass* Console;
+	std::unique_ptr< ConsoleClass > Console;
 }

@@ -34,5 +34,5 @@ function ffipure:buildmetatype()
 end
 
 function ffipure.instmeta:__gc()
-	self:release()
+	return self:release()
 end

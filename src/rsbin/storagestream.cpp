@@ -4,13 +4,11 @@ namespace rsbin
 {
 	void StorageStream::releasecurrentmap()
 	{
-		if( m_currentmap )
+		if( m_currentmaptask )
 		{
-			uint8_t* mapptr;
-			unsigned maplength;
-			m_currentmap->getmap( &mapptr, &maplength );
-			m_position += maplength;
-			m_currentmap = nullptr;
+			StorageMap map = m_currentmaptask->getmap();
+			m_position += map.length;
+			m_currentmaptask = nullptr;
 		}
 	}
 
@@ -29,15 +27,15 @@ namespace rsbin
 	{
 	}
 
-	StorageMap* StorageStream::advance( unsigned length )
+	Ref< MapTask > StorageStream::startadvance( uint32_t length )
 	{
 		releasecurrentmap();
-		m_currentmap.possess( m_storage->map(
-			m_position, length, m_flagread, m_flagwrite ) );
-		return m_currentmap.share();
+		m_currentmaptask = m_storage->startmap(
+			m_position, length, m_flagread, m_flagwrite );
+		return m_currentmaptask;
 	}
 
-	void StorageStream::skip( unsigned length )
+	void StorageStream::skip( uint32_t length )
 	{
 		releasecurrentmap();
 		m_position += length;

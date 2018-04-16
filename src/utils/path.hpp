@@ -109,8 +109,9 @@ proceeds as normal.
 		static Ref< Path > create( void const* path );
 		static void initialize();
 
-		[[ r::method ]] static void test( void const* path [[ r::required ]] )
+		[[ r::method ]] static void test( void const* path )
 		{
+			externalassert( path );
 			Ref< Path > p = create( path );
 			LOG( "%ls", p ? p->combine() : L"< invalid path >" );
 		}

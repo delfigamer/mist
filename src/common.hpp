@@ -3,45 +3,29 @@
 #define r_emit( ... )
 
 #if defined( _MSC_VER )
-#define ATTRIBUTE( ... )
+#define __attribute__( ... )
 #define _CRT_SECURE_NO_WARNINGS
 #else
-#define ATTRIBUTE __attribute__
 #endif
 
-#if defined( MIST_DEBUG )
-#include <stdexcept>
-#include <cstdio>
-#include <cstdlib>
-inline void ASSERT_POS(
-	char const* file, int line, bool cond,
-	char const* msg = "assertion failed" )
-{
-	if( !cond )
-	{
-		fprintf( stderr, "[%73s:%4i]\t%s\n", file, line, msg );
-		throw std::runtime_error( "assertion failed" );
-	}
-}
-#define ASSERT( ... ) ASSERT_POS( __FILE__, __LINE__, ##__VA_ARGS__ )
-#else
-#define ASSERT( ... )
-#define NDEBUG
-#endif
+#define externalassert( expr ) \
+	( ( expr ) ? \
+		( void )0 : \
+		throw std::runtime_error( "assertion failed for " #expr ) )
 
 #include <cinttypes>
+#include <cassert>
 
-#if defined( _MSC_VER ) && _MSC_VER < 1911
-extern "C" __declspec( dllimport ) int __cdecl vsnprintf( char*, size_t, char const*, char* );
-// a dirty hack, intended to avoid the inclusion of cstdarg and cstdio
-// we rely on the fact that va_list is char* to the position on the stack
-namespace
+// #include <atomic>
+// #include <cstdio>
+template< typename T >
+struct Counter
 {
-	int __cdecl snprintf( char* buf, size_t bufsize, char const* format, ... )
+	static void update( ptrdiff_t delta )
 	{
-		char* vaargs = ( char* )&format + sizeof( void* );
-		int ret = vsnprintf( buf, bufsize, format, vaargs );
-		return ret;
+		// static std::atomic< ptrdiff_t > count( ( ptrdiff_t )0 );
+		// int value = count.fetch_add(
+			// delta, std::memory_order_relaxed ) + delta;
+		// fprintf( stderr, "\t\tcount: %i\n", value );
 	}
-}
-#endif
+};

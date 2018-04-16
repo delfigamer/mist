@@ -29,43 +29,27 @@ namespace utils
 		size_t sourcesize,
 		size_t* pointlength );
 
-	struct [[ r::class ]] encoding_t
+	struct encoding_t
 	{
-		encoder_t encoder;
-		decoder_t decoder;
-
-		[[ r::method ]] bool encode(
-			void* dest,
-			uint32_t charcode,
-			size_t destsize,
-			size_t* pointlength [[ r::required ]] ) const noexcept
-		{
-			return encoder( dest, charcode, destsize, pointlength );
-		}
-
-		[[ r::method ]] bool decode(
-			void const* source [[ r::required ]],
-			uint32_t* charcode [[ r::required ]],
-			size_t sourcesize,
-			size_t* pointlength [[ r::required ]] ) const noexcept
-		{
-			return decoder( source, charcode, sourcesize, pointlength );
-		}
+		encoder_t encode;
+		decoder_t decode;
 	};
 
 	namespace encoding
 	{
-		[[ r::object ]] extern encoding_t const utf8;
-		[[ r::object ]] extern encoding_t const utf16;
-		[[ r::object ]] extern encoding_t const utf32;
-		[[ r::object ]] extern encoding_t const utf16le;
-		[[ r::object ]] extern encoding_t const utf16be;
-		[[ r::object ]] extern encoding_t const utf32le;
-		[[ r::object ]] extern encoding_t const utf32be;
+		extern encoding_t const utf8;
+		extern encoding_t const utf16;
+		extern encoding_t const utf32;
+		extern encoding_t const utf16le;
+		extern encoding_t const utf16be;
+		extern encoding_t const utf32le;
+		extern encoding_t const utf32be;
 	}
 
-	struct [[ r::struct ]] translation_t
+	struct translation_t
 	{
+		encoding_t const* senc;
+		encoding_t const* denc;
 		void const* source;
 		void* dest; // may be nullptr
 		size_t sourcesize; // if 0, source is null-terminated
@@ -75,7 +59,7 @@ namespace utils
 		size_t destresult; // out, the number of bytes that were or would've been written
 	};
 
-	enum class [[ r::enum ]] translateresult
+	enum class translateresult
 	{
 		success,
 		// sourcesize limit was hit in the middle of a codepoint
@@ -88,15 +72,35 @@ namespace utils
 		dest_overrun,
 	};
 
-	[[ r::method ]]
 	translateresult translatestr(
-		encoding_t const* senc [[ r::required ]],
-		encoding_t const* denc [[ r::required ]],
-		translation_t* translation [[ r::required ]] );
+		translation_t& translation );
 	Ref< DataBuffer > translatebuffer(
 		encoding_t const* senc, encoding_t const* denc,
 		void const* source, size_t sourcesize = 0 );
 	Ref< DataBuffer > translatebuffer(
 		encoding_t const* senc, encoding_t const* denc,
 		DataBuffer* source );
+}
+
+namespace utf8
+{
+	[[ r::method ]] inline bool encode(
+		void* dest,
+		uint32_t charcode,
+		size_t destsize,
+		size_t* pointlength ) noexcept
+	{
+		return utils::encoding::utf8.encode(
+			dest, charcode, destsize, pointlength );
+	}
+
+	[[ r::method ]] inline bool decode(
+		void const* source,
+		uint32_t* charcode,
+		size_t sourcesize,
+		size_t* pointlength ) noexcept
+	{
+		return utils::encoding::utf8.decode(
+			source, charcode, sourcesize, pointlength );
+	}
 }
