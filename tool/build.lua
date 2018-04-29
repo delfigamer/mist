@@ -84,9 +84,9 @@ local function build_cpp(entry)
 			builddir,
 			'.',
 		},
-		macros = configuration.compilermacros,
+		macros = configuration.saveintermediates,
 		asmfile =
-			configuration.saveasm and
+			configuration.intermediaries and
 			string.gsub(entry.target, '.[^.]*$', '.asm'),
 	}
 end

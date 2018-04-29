@@ -12,7 +12,6 @@ local rcache = require('reflect-cache')
 --   target
 --   modulename
 --   suppresslua -- bool
---   suppresstypechecks -- bool
 
 -- [[r::enum]]
 --   registers an enum type
@@ -451,13 +450,13 @@ end
 
 local function rprocess(fenv)
 	local moduledef = loadmodule(fenv)
-	if fenv.suppresslua then
-		moduledef.chunktext =
-			format.tostring(format.lua, fenv, moduledef)
-	else
+	if buildconfig.saveintermediates then
 		moduledef.chunktext =
 			format.tofileandstring(fenv.target .. '.lua',
 				format.lua, fenv, moduledef)
+	else
+		moduledef.chunktext =
+			format.tostring(format.lua, fenv, moduledef)
 	end
 	moduledef.chunkbytes =
 		string.dump(assert(load(moduledef.chunktext, fenv.target .. '.lua')))

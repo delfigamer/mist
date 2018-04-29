@@ -30,7 +30,7 @@ if _G.profile == 'release' then
 else
 	configuration.tag = 'debug'
 	configuration.debug = true
-	configuration.saveasm = true
+	configuration.saveintermediates = true
 	configuration.compilermacros = {
 		MIST_DEBUG = true,
 	}

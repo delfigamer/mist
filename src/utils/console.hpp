@@ -57,6 +57,7 @@ namespace utils
 	extern std::unique_ptr< ConsoleClass > Console;
 }
 
+#if defined( MIST_DEBUG )
 #define LOG( format, ... ) \
 	utils::Console->write( \
 		"%.*s%s:%4i\n" format "\n", \
@@ -64,3 +65,17 @@ namespace utils
 		"----------------------------------------" \
 		"----------------------------------------", \
 		__FILE__, __LINE__, ##__VA_ARGS__ )
+#define MARKER() \
+	utils::Console->write( \
+		"%.*s%s:%4i\n", \
+		75 - ( int )sizeof( __FILE__ ), \
+		"----------------------------------------" \
+		"----------------------------------------", \
+		__FILE__, __LINE__ )
+#else
+#define LOG( format, ... ) \
+	utils::Console->write( \
+		format "\n", \
+		##__VA_ARGS__ )
+#define MARKER()
+#endif

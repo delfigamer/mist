@@ -4,10 +4,10 @@
 
 namespace rsbin
 {
-	R_ENUM()
-	enum class bitmapformat
+	enum class [[ r::enum ]] bitmapformat
 	{
-		rgba8 = 0,
-		invalid = 1,
+		rgba8,
+		// rgba16,
+		invalid,
 	};
 }

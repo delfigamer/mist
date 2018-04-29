@@ -12,7 +12,7 @@ ffi.cdef([[
 ]])
 
 local exceptionbox = ffipure:module('reflection.exceptionbox')
-exceptionbox.typedef = "reflection_exceptionbox"
+exceptionbox.typedef = 'reflection_exceptionbox'
 
 function exceptionbox:release()
 	if self.freeptr ~= nil then

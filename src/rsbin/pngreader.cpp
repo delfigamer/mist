@@ -1,5 +1,4 @@
 #include <rsbin/pngreader.hpp>
-#include <common/strexception.hpp>
 #include <utils/console.hpp>
 #include <stdexcept>
 #include <cstring>
@@ -15,8 +14,8 @@ namespace rsbin
 	};
 
 	void setformat_rgba8(
-			png_structp png, png_infop info,
-			int bitdepth, int colortype )
+		png_structp png, png_infop info,
+		int bitdepth, int colortype )
 	{
 		double gamma;
 		if( png_get_gAMA( png, info, &gamma ) )
@@ -65,7 +64,8 @@ namespace rsbin
 	void PngReader::error_handler( png_structp png, png_const_charp msg )
 	{
 		PngReader* reader = ( PngReader* )png_get_error_ptr( png );
-		reader->m_error = msg;
+		reader->m_error = std::make_exception_ptr(
+			std::runtime_error( std::string( msg ) ) );
 		longjmp( reader->m_jmpbuf, 1 );
 	}
 
@@ -74,8 +74,7 @@ namespace rsbin
 		LOG( "png warning: %s", msg );
 	}
 
-	void PngReader::info_callback(
-			png_structp png, png_infop info )
+	void PngReader::info_callback( png_structp png, png_infop info )
 	{
 		PngReader* reader =
 			( PngReader* )png_get_progressive_ptr( png );
@@ -90,16 +89,14 @@ namespace rsbin
 		png_set_interlace_handling( png );
 		png_read_update_info( png, info );
 		reader->m_stride =
-			reader->m_width *
-			formattable[ reader->m_format ].pixelstride;
+			reader->m_width * formattable[ reader->m_format ].pixelstride;
 		size_t size = reader->m_stride * reader->m_height;
-		reader->m_data = DataBuffer::create( size );
-		memset( reader->m_data->m_data, 0, size );
+		reader->m_pixels = DataBuffer::create( size );
+		memset( reader->m_pixels->m_data, 0, size );
 	}
 
 	void PngReader::row_callback(
-			png_structp png, png_bytep row,
-			png_uint_32 rowpos, int pass )
+		png_structp png, png_bytep row, png_uint_32 rowpos, int pass )
 	{
 		if( !row )
 		{
@@ -109,65 +106,177 @@ namespace rsbin
 			( PngReader* )png_get_progressive_ptr( png );
 		png_progressive_combine_row(
 			png,
-			reader->m_data->m_data +
+			reader->m_pixels->m_data +
 				reader->m_stride * ( reader->m_height - rowpos - 1 ),
 			row );
 	}
 
-	void PngReader::end_callback(
-			png_structp png, png_infop info )
+	void PngReader::end_callback( png_structp png, png_infop info )
 	{
 		PngReader* reader =
 			( PngReader* )png_get_progressive_ptr( png );
-		reader->m_finished = true;
+		reader->m_streamend = true;
 	}
 
-	PngReader::PngReader( bitmapformat format )
-		: m_format( int( format ) )
-		, m_finished( false )
-		, m_width( 0 )
+	void PngReader::readdata( png_structp png, png_infop info )
+	{
+		if( setjmp( m_jmpbuf ) )
+		{
+			return;
+		}
+		try
+		{
+			while( true )
+			{
+				Ref< MapTask > task = m_stream->startadvance( uint32_t( -1 ) );
+				if( !task )
+				{
+					break;
+				}
+				while( !task->poll() )
+				{
+					if( m_aborted.load( std::memory_order_relaxed ) )
+					{
+						m_error = std::make_exception_ptr(
+							std::runtime_error( "aborted" ) );
+						return;
+					}
+					std::this_thread::yield();
+				}
+				StorageMap map = task->getmap();
+				if( !map.ptr || map.length == 0 )
+				{
+					break;
+				}
+				png_process_data(
+					png, info, png_bytep( map.ptr ), map.length );
+				if( m_streamend )
+				{
+					return;
+				}
+				if( m_aborted.load( std::memory_order_relaxed ) )
+				{
+					m_error = std::make_exception_ptr(
+						std::runtime_error( "aborted" ) );
+					return;
+				}
+			}
+			m_error = std::make_exception_ptr(
+				std::runtime_error( "input stream terminated" ) );
+		}
+		catch( ... )
+		{
+			m_error = std::current_exception();
+		}
+	}
+
+	void PngReader::threadfunc()
+	{
+		png_structp png = png_create_read_struct(
+			PNG_LIBPNG_VER_STRING, this,
+			&PngReader::error_handler, &PngReader::warning_handler );
+		if( png )
+		{
+			png_infop info = png_create_info_struct( png );
+			if( info )
+			{
+				png_set_progressive_read_fn(
+					png, this,
+					&info_callback, &row_callback, &end_callback );
+				readdata( png, info );
+			}
+			else
+			{
+				m_error = std::make_exception_ptr(
+					std::runtime_error( "out of memory" ) );
+			}
+			png_destroy_read_struct(
+				&png,
+				info ? &info : nullptr,
+				nullptr );
+		}
+		else
+		{
+			m_error = std::make_exception_ptr(
+				std::runtime_error( "out of memory" ) );
+		}
+		m_finished.store( true, std::memory_order_release );
+	}
+
+	PngReader::PngReader( bitmapformat format, Stream* stream )
+		: m_width( 0 )
 		, m_height( 0 )
-		, m_data( nullptr )
-		, m_png( 0 )
-		, m_info( 0 )
+		, m_streamend( false )
+		, m_aborted( false )
+		, m_finished( false )
 	{
 		if( m_format < 0 || m_format >= int( bitmapformat::invalid ) )
 		{
 			throw std::runtime_error( "invalid bitmap format" );
 		}
-		m_png = png_create_read_struct( PNG_LIBPNG_VER_STRING, this,
-			&PngReader::error_handler, &PngReader::warning_handler );
-		if( !m_png )
-		{
-			throw std::runtime_error( "out of memory" );
-		}
-		m_info = png_create_info_struct( m_png );
-		if( !m_info )
-		{
-			png_destroy_read_struct( &m_png, 0, 0 );
-			throw std::runtime_error( "out of memory" );
-		}
-		png_set_progressive_read_fn(
-			m_png, this, &PngReader::info_callback,
-			&PngReader::row_callback, &PngReader::end_callback );
+		externalassert( stream );
+		m_stream = stream;
+		m_thread = std::thread( threadfunc, this );
 	}
 
 	PngReader::~PngReader()
 	{
-		if( m_png )
+		m_aborted.store( true, std::memory_order_relaxed );
+		m_thread.join();
+	}
+
+	bool PngReader::poll()
+	{
+		if( m_finished.load( std::memory_order_acquire ) )
 		{
-			png_destroy_read_struct(
-				&m_png, m_info ? &m_info : 0, 0 );
+			if( m_error )
+			{
+				std::rethrow_exception( m_error );
+			}
+			else
+			{
+				return true;
+			}
+		}
+		else
+		{
+			return false;
 		}
 	}
 
-	void PngReader::feed( size_t length, void const* buffer )
+	Ref< DataBuffer > PngReader::getpixels()
 	{
-		if( setjmp( m_jmpbuf ) )
+		if( m_finished.load( std::memory_order_acquire ) )
 		{
-			throw StrException( m_error );
+			return m_pixels;
 		}
-		png_process_data(
-			m_png, m_info, png_bytep( buffer ), length );
+		else
+		{
+			return nullptr;
+		}
+	}
+
+	uint32_t PngReader::getwidth()
+	{
+		if( m_finished.load( std::memory_order_acquire ) )
+		{
+			return m_width;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+
+	uint32_t PngReader::getheight()
+	{
+		if( m_finished.load( std::memory_order_acquire ) )
+		{
+			return m_height;
+		}
+		else
+		{
+			return 0;
+		}
 	}
 }

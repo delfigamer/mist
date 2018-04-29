@@ -151,19 +151,19 @@ return {
 		target = 'client-main',
 		reflect = true,
 	},
-	-- {
-		-- type = 'native',
-		-- name = 'rsbin/pngcommon',
-		-- headeronly = true,
-		-- target = 'client-main',
-		-- reflect = true,
-	-- },
-	-- {
-		-- type = 'native',
-		-- name = 'rsbin/pngreader',
-		-- target = 'client-main',
-		-- reflect = true,
-	-- },
+	{
+		type = 'native',
+		name = 'rsbin/pngcommon',
+		headeronly = true,
+		target = 'client-main',
+		reflect = true,
+	},
+	{
+		type = 'native',
+		name = 'rsbin/pngreader',
+		target = 'client-main',
+		reflect = true,
+	},
 	-- {
 		-- type = 'native',
 		-- name = 'rsbin/pngwriter',
