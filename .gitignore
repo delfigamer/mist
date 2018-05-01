@@ -2,8 +2,8 @@
 /build/
 
 /output/bin-*
-/output/flow
 /output/test*
+/output/local/*
 *.flac
 
 # Object files

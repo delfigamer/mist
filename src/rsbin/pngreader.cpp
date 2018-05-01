@@ -1,5 +1,6 @@
 #include <rsbin/pngreader.hpp>
 #include <utils/console.hpp>
+#include <vector>
 #include <stdexcept>
 #include <cstring>
 
@@ -10,7 +11,7 @@ namespace rsbin
 		void( *setformat )(
 			png_structp png, png_infop info,
 			int bitdepth, int colortype );
-		ptrdiff_t pixelstride;
+		uint32_t pixelstride;
 	};
 
 	void setformat_rgba8(
@@ -57,8 +58,50 @@ namespace rsbin
 		}
 	}
 
+	void setformat_rgba16(
+		png_structp png, png_infop info,
+		int bitdepth, int colortype )
+	{
+		double gamma;
+		if( png_get_gAMA( png, info, &gamma ) )
+		{
+			png_set_gamma( png, 2.2, gamma );
+		}
+		else
+		{
+			png_set_gamma( png, 2.2, 0.45455 );
+		}
+		if( colortype == PNG_COLOR_TYPE_PALETTE )
+		{
+			png_set_palette_to_rgb( png );
+		}
+		if( bitdepth < 16 )
+		{
+			png_set_expand_16( png );
+		}
+		if( png_get_valid( png, info, PNG_INFO_tRNS ) )
+		{
+			png_set_tRNS_to_alpha( png );
+		}
+		else
+		{
+			int channels = png_get_channels( png, info );
+			if( channels == 1 || channels == 3 )
+			{
+				png_set_add_alpha( png, 0xffff, PNG_FILLER_AFTER );
+			}
+		}
+		if( colortype == PNG_COLOR_TYPE_GRAY ||
+			colortype == PNG_COLOR_TYPE_GRAY_ALPHA )
+		{
+			png_set_gray_to_rgb( png );
+		}
+		png_set_swap( png );
+	}
+
 	format_t const formattable[] = {
 		{ &setformat_rgba8, 4 },
+		{ &setformat_rgba16, 8 },
 	};
 
 	void PngReader::error_handler( png_structp png, png_const_charp msg )
@@ -74,48 +117,29 @@ namespace rsbin
 		LOG( "png warning: %s", msg );
 	}
 
-	void PngReader::info_callback( png_structp png, png_infop info )
+	void PngReader::read_callback(
+		png_structp png, png_bytep data, png_size_t length )
 	{
-		PngReader* reader =
-			( PngReader* )png_get_progressive_ptr( png );
-		int bitdepth;
-		int colortype;
-		png_get_IHDR( png, info,
-			( png_uint_32* )&reader->m_width,
-			( png_uint_32* )&reader->m_height,
-			&bitdepth, &colortype, 0, 0, 0 );
-		formattable[ reader->m_format ].setformat(
-			png, info, bitdepth, colortype );
-		png_set_interlace_handling( png );
-		png_read_update_info( png, info );
-		reader->m_stride =
-			reader->m_width * formattable[ reader->m_format ].pixelstride;
-		size_t size = reader->m_stride * reader->m_height;
-		reader->m_pixels = DataBuffer::create( size );
-		memset( reader->m_pixels->m_data, 0, size );
-	}
-
-	void PngReader::row_callback(
-		png_structp png, png_bytep row, png_uint_32 rowpos, int pass )
-	{
-		if( !row )
+		PngReader* reader = ( PngReader* )png_get_io_ptr( png );
+		try
 		{
-			return;
+			while( length > 0 )
+			{
+				StorageMap map = reader->advance( length );
+				if( length < map.length )
+				{
+					map.length = length;
+				}
+				memcpy( data, map.ptr, map.length );
+				length -= map.length;
+				data += map.length;
+			}
 		}
-		PngReader* reader =
-			( PngReader* )png_get_progressive_ptr( png );
-		png_progressive_combine_row(
-			png,
-			reader->m_pixels->m_data +
-				reader->m_stride * ( reader->m_height - rowpos - 1 ),
-			row );
-	}
-
-	void PngReader::end_callback( png_structp png, png_infop info )
-	{
-		PngReader* reader =
-			( PngReader* )png_get_progressive_ptr( png );
-		reader->m_streamend = true;
+		catch( ... )
+		{
+			reader->m_error = std::current_exception();
+			longjmp( reader->m_jmpbuf, 1 );
+		}
 	}
 
 	void PngReader::readdata( png_structp png, png_infop info )
@@ -124,65 +148,45 @@ namespace rsbin
 		{
 			return;
 		}
-		try
+		png_read_info( png, info );
+		abortpoint();
+		int bitdepth;
+		int colortype;
+		png_get_IHDR( png, info,
+			( png_uint_32* )&m_width,
+			( png_uint_32* )&m_height,
+			&bitdepth, &colortype, 0, 0, 0 );
+		formattable[ m_format ].setformat(
+			png, info, bitdepth, colortype );
+		png_set_interlace_handling( png );
+		png_read_update_info( png, info );
+		m_stride = m_width * formattable[ m_format ].pixelstride;
+		assert( png_get_rowbytes( png, info ) == m_stride );
+		size_t size = m_stride * m_height;
+		m_pixels = DataBuffer::create( size );
+		memset( m_pixels->m_data, 0, size );
+		std::vector< uint8_t* > rowpointers( m_height );
+		for( uint32_t y = 0; y < m_height; ++y )
 		{
-			while( true )
-			{
-				Ref< MapTask > task = m_stream->startadvance( uint32_t( -1 ) );
-				if( !task )
-				{
-					break;
-				}
-				while( !task->poll() )
-				{
-					if( m_aborted.load( std::memory_order_relaxed ) )
-					{
-						m_error = std::make_exception_ptr(
-							std::runtime_error( "aborted" ) );
-						return;
-					}
-					std::this_thread::yield();
-				}
-				StorageMap map = task->getmap();
-				if( !map.ptr || map.length == 0 )
-				{
-					break;
-				}
-				png_process_data(
-					png, info, png_bytep( map.ptr ), map.length );
-				if( m_streamend )
-				{
-					return;
-				}
-				if( m_aborted.load( std::memory_order_relaxed ) )
-				{
-					m_error = std::make_exception_ptr(
-						std::runtime_error( "aborted" ) );
-					return;
-				}
-			}
-			m_error = std::make_exception_ptr(
-				std::runtime_error( "input stream terminated" ) );
+			rowpointers[ y ] = m_pixels->m_data + m_stride * ( m_height - y - 1 );
 		}
-		catch( ... )
-		{
-			m_error = std::current_exception();
-		}
+		png_read_image( png, ( png_bytep* )rowpointers.data() );
+		abortpoint();
+		png_read_end( png, nullptr );
 	}
 
-	void PngReader::threadfunc()
+	void PngReader::process()
 	{
 		png_structp png = png_create_read_struct(
 			PNG_LIBPNG_VER_STRING, this,
-			&PngReader::error_handler, &PngReader::warning_handler );
+			&error_handler, &warning_handler );
 		if( png )
 		{
 			png_infop info = png_create_info_struct( png );
 			if( info )
 			{
-				png_set_progressive_read_fn(
-					png, this,
-					&info_callback, &row_callback, &end_callback );
+				png_set_read_fn( png, this,
+					&read_callback );
 				readdata( png, info );
 			}
 			else
@@ -200,53 +204,29 @@ namespace rsbin
 			m_error = std::make_exception_ptr(
 				std::runtime_error( "out of memory" ) );
 		}
-		m_finished.store( true, std::memory_order_release );
 	}
 
-	PngReader::PngReader( bitmapformat format, Stream* stream )
-		: m_width( 0 )
+	PngReader::PngReader( Stream* stream, bitmapformat format )
+		: FormatTask( stream )
+		, m_width( 0 )
 		, m_height( 0 )
+		, m_format( int( format ) )
 		, m_streamend( false )
-		, m_aborted( false )
-		, m_finished( false )
 	{
 		if( m_format < 0 || m_format >= int( bitmapformat::invalid ) )
 		{
 			throw std::runtime_error( "invalid bitmap format" );
 		}
-		externalassert( stream );
-		m_stream = stream;
-		m_thread = std::thread( threadfunc, this );
+		start();
 	}
 
 	PngReader::~PngReader()
 	{
-		m_aborted.store( true, std::memory_order_relaxed );
-		m_thread.join();
-	}
-
-	bool PngReader::poll()
-	{
-		if( m_finished.load( std::memory_order_acquire ) )
-		{
-			if( m_error )
-			{
-				std::rethrow_exception( m_error );
-			}
-			else
-			{
-				return true;
-			}
-		}
-		else
-		{
-			return false;
-		}
 	}
 
 	Ref< DataBuffer > PngReader::getpixels()
 	{
-		if( m_finished.load( std::memory_order_acquire ) )
+		if( isfinished() )
 		{
 			return m_pixels;
 		}
@@ -258,7 +238,7 @@ namespace rsbin
 
 	uint32_t PngReader::getwidth()
 	{
-		if( m_finished.load( std::memory_order_acquire ) )
+		if( isfinished() )
 		{
 			return m_width;
 		}
@@ -270,7 +250,7 @@ namespace rsbin
 
 	uint32_t PngReader::getheight()
 	{
-		if( m_finished.load( std::memory_order_acquire ) )
+		if( isfinished() )
 		{
 			return m_height;
 		}

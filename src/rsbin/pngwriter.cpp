@@ -1,13 +1,13 @@
 #include <rsbin/pngwriter.hpp>
-#include <common/strexception.hpp>
 #include <utils/console.hpp>
 #include <stdexcept>
+#include <string>
 
 namespace rsbin
 {
 	struct format_t
 	{
-		ptrdiff_t pixelstride;
+		uint32_t pixelstride;
 		int bitdepth;
 		int colortype;
 		double invgamma;
@@ -15,22 +15,16 @@ namespace rsbin
 
 	format_t const formattable[] =
 	{
-		{ 4, 8, PNG_COLOR_TYPE_RGB_ALPHA, 1 / 2.2 },
-	};
-
-	enum
-	{
-		stage_writeheader = 0,
-		stage_writerow = 1,
-		stage_writeend = 2,
-		stage_finished = 10,
+		{ 4, 8, PNG_COLOR_TYPE_RGB_ALPHA, 0.45455 },
+		{ 8, 16, PNG_COLOR_TYPE_RGB_ALPHA, 0.45455 },
 	};
 
 	void PngWriter::error_handler(
 		png_structp png, png_const_charp msg )
 	{
 		PngWriter* writer = ( PngWriter* )png_get_error_ptr( png );
-		writer->m_error = msg;
+		writer->m_error = std::make_exception_ptr(
+			std::runtime_error( std::string( msg ) ) );
 		longjmp( writer->m_jmpbuf, 1 );
 	}
 
@@ -44,126 +38,110 @@ namespace rsbin
 		png_structp png, png_bytep data, png_size_t length )
 	{
 		PngWriter* writer = ( PngWriter* )png_get_io_ptr( png );
-		writer->m_buffer.push( int( length ), data );
+		try
+		{
+			while( length > 0 )
+			{
+				StorageMap map = writer->advance( length );
+				if( length < map.length )
+				{
+					map.length = length;
+				}
+				memcpy( map.ptr, data, map.length );
+				length -= map.length;
+				data += map.length;
+			}
+		}
+		catch( ... )
+		{
+			writer->m_error = std::current_exception();
+			longjmp( writer->m_jmpbuf, 1 );
+		}
 	}
 
 	void PngWriter::flush_callback( png_structp png )
 	{
 	}
 
-	void PngWriter::writeheader()
-	{
-		m_png = png_create_write_struct(
-			PNG_LIBPNG_VER_STRING, this,
-			&PngWriter::error_handler,
-			&PngWriter::warning_handler );
-		m_info = png_create_info_struct( m_png );
-		png_set_write_fn(
-			m_png, this,
-			&PngWriter::write_callback,
-			&PngWriter::flush_callback );
-		format_t const* format = &formattable[ m_format ];
-		png_set_IHDR(
-			m_png, m_info, m_width, m_height, format->bitdepth,
-			format->colortype, PNG_INTERLACE_NONE,
-			PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT );
-		png_set_gAMA( m_png, m_info, format->invgamma );
-		png_write_info( m_png, m_info );
-		m_stage = stage_writerow;
-	}
-
-	void PngWriter::writerow()
-	{
-		png_write_row(
-			m_png,
-			m_data->m_data +
-				m_stride * ( m_height - m_rowpos - 1 ) );
-		m_rowpos += 1;
-		if( m_rowpos == m_height )
-		{
-			m_stage = stage_writeend;
-		}
-	}
-
-	void PngWriter::writeend()
-	{
-		png_write_end( m_png, 0 );
-		m_stage = stage_finished;
-	}
-
-	bool PngWriter::feedbuffer()
+	void PngWriter::writedata( png_structp png, png_infop info )
 	{
 		if( setjmp( m_jmpbuf ) )
 		{
-			throw StrException( m_error );
+			return;
 		}
-		switch( m_stage )
+		format_t const& format = formattable[ m_format ];
+		png_set_IHDR(
+			png, info, m_width, m_height, format.bitdepth,
+			format.colortype, PNG_INTERLACE_NONE,
+			PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT );
+		png_set_gAMA( png, info, format.invgamma );
+		png_write_info( png, info );
+		if( format.bitdepth > 8 )
 		{
-		case stage_writeheader:
-			writeheader();
-			break;
-		case stage_writerow:
-			writerow();
-			break;
-		case stage_writeend:
-			writeend();
-			break;
-		default:
-			return false;
+			png_set_swap( png );
 		}
-		return true;
+		abortpoint();
+		for( uint32_t row = 0; row < m_height; ++row )
+		{
+			png_write_row(
+				png,
+				m_pixels->m_data + m_stride * ( m_height - row - 1 ) );
+			abortpoint();
+		}
+		png_write_end( png, nullptr );
+	}
+
+	void PngWriter::process()
+	{
+		png_structp png = png_create_write_struct(
+			PNG_LIBPNG_VER_STRING, this,
+			&error_handler, &warning_handler );
+		if( png )
+		{
+			png_infop info = png_create_info_struct( png );
+			if( info )
+			{
+				png_set_write_fn(
+					png, this,
+					&write_callback, &flush_callback );
+				writedata( png, info );
+			}
+			else
+			{
+				m_error = std::make_exception_ptr(
+					std::runtime_error( "out of memory" ) );
+			}
+			png_destroy_write_struct(
+				&png,
+				info ? &info : nullptr );
+		}
+		else
+		{
+			m_error = std::make_exception_ptr(
+				std::runtime_error( "out of memory" ) );
+		}
 	}
 
 	PngWriter::PngWriter(
-		bitmapformat format, uint32_t width, uint32_t height,
-		DataBuffer* data )
-		: m_format( int( format ) )
-		, m_stage( stage_writeheader )
+		Stream* stream, bitmapformat format,
+		uint32_t width, uint32_t height, DataBuffer* pixels )
+		: FormatTask( stream )
+		, m_pixels( pixels )
 		, m_width( width )
 		, m_height( height )
-		, m_rowpos( 0 )
-		, m_data( data )
-		, m_png( 0 )
-		, m_info( 0 )
+		, m_format( int( format ) )
 	{
 		if( m_format < 0 || m_format >= int( bitmapformat::invalid ) )
 		{
 			throw std::runtime_error( "invalid bitmap format" );
 		}
+		externalassert( pixels );
 		m_stride = width * formattable[ m_format ].pixelstride;
+		externalassert( pixels->m_length >= m_stride * height );
+		start();
 	}
 
 	PngWriter::~PngWriter()
 	{
-		if( m_png )
-		{
-			png_destroy_write_struct( &m_png, m_info ? &m_info : 0 );
-		}
-	}
-
-	size_t PngWriter::grab( size_t length, void* buffer )
-	{
-		size_t result = 0;
-		while( length > 0 )
-		{
-			size_t advance = m_buffer.pop( length, buffer );
-			length -= advance;
-			buffer = ( uint8_t* )buffer + advance;
-			result += advance;
-			if( !feedbuffer() )
-			{
-				break;
-			}
-		}
-		size_t advance = m_buffer.pop( length, buffer );
-		length -= advance;
-		buffer = ( uint8_t* )buffer + advance;
-		result += advance;
-		return result;
-	}
-
-	bool PngWriter::isfinished()
-	{
-		return m_stage == stage_finished && m_buffer.isempty();
 	}
 }

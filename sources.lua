@@ -133,18 +133,12 @@ return {
 		-- target = 'client-main',
 		-- reflect = true,
 	-- },
-	-- {
-		-- type = 'native',
-		-- name = 'rsbin/fsthread',
-		-- target = 'client-main',
-	-- },
-	-- {
-		-- type = 'native',
-		-- name = 'rsbin/iotask',
-		-- headeronly = true,
-		-- target = 'client-main',
-		-- reflect = true,
-	-- },
+	{
+		type = 'native',
+		name = 'rsbin/formattask',
+		target = 'client-main',
+		reflect = true,
+	},
 	{
 		type = 'native',
 		name = 'rsbin/memorystorage',
@@ -164,12 +158,12 @@ return {
 		target = 'client-main',
 		reflect = true,
 	},
-	-- {
-		-- type = 'native',
-		-- name = 'rsbin/pngwriter',
-		-- target = 'client-main',
-		-- reflect = true,
-	-- },
+	{
+		type = 'native',
+		name = 'rsbin/pngwriter',
+		target = 'client-main',
+		reflect = true,
+	},
 	{
 		type = 'native',
 		name = 'rsbin/storage',

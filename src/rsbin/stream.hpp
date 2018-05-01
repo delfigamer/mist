@@ -15,10 +15,12 @@ namespace rsbin
 		Stream( Stream const& other ) = delete;
 		Stream& operator=( Stream const& other ) = delete;
 
-		[[ r::method ]] virtual Ref< MapTask > startadvance(
-			uint32_t length ) = 0;
-		[[ r::method ]] virtual void skip( uint32_t length ) = 0;
-		[[ r::method ]] virtual uint64_t getposition() = 0;
+	[[ r::method ]]
+		virtual Ref< MapTask > startadvance( uint32_t length ) = 0;
+	[[ r::method ]]
+		virtual void skip( uint32_t length ) = 0;
+	[[ r::method ]]
+		virtual uint64_t getposition() = 0;
 	};
 }
 

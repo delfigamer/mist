@@ -1,9 +1,9 @@
 #pragma once
 
 #include <rsbin/pngcommon.hpp>
-#include <utils/cyclicbuffer.hpp>
+#include <rsbin/formattask.hpp>
+#include <rsbin/stream.hpp>
 #include <common/ref.hpp>
-#include <common/refobject.hpp>
 #include <common/databuffer.hpp>
 #include <common.hpp>
 #include <png/png.hpp>
@@ -11,51 +11,39 @@
 
 namespace rsbin
 {
-	R_CLASS( name = pngwriter )
-	class PngWriter: public RefObject
+	class [[ r::class, r::name( "pngwriter" ) ]] PngWriter: public FormatTask
 	{
 	private:
-		int m_format;
-		int m_stage;
+		Ref< DataBuffer > m_pixels;
 		uint32_t m_width;
 		uint32_t m_height;
-		ptrdiff_t m_stride;
-		uint32_t m_rowpos;
-		Ref< DataBuffer > m_data;
-		utils::CyclicBuffer m_buffer;
-		png_structp m_png;
-		png_infop m_info;
-		std::string m_error;
+		uint32_t m_stride;
+		int m_format;
 		jmp_buf m_jmpbuf;
 
-		static void error_handler(
-			png_structp png, png_const_charp msg );
-		static void warning_handler(
-			png_structp png, png_const_charp msg );
+		static void error_handler( png_structp png, png_const_charp msg );
+		static void warning_handler( png_structp png, png_const_charp msg );
 		static void write_callback(
 			png_structp png, png_bytep data, png_size_t length );
 		static void flush_callback( png_structp png );
-		void writeheader();
-		void writerow();
-		void writeend();
-		bool feedbuffer();
+		void writedata( png_structp png, png_infop info );
+		virtual void process() override;
 
 	public:
-		PngWriter() = delete;
 		PngWriter(
-			bitmapformat format, uint32_t width, uint32_t height,
-			DataBuffer* data );
+			Stream* stream, bitmapformat format,
+			uint32_t width, uint32_t height, DataBuffer* pixels );
 		~PngWriter();
 		PngWriter( PngWriter const& ) = delete;
 		PngWriter& operator=( PngWriter const& ) = delete;
 
-		R_METHOD() static PngWriter* create(
-			bitmapformat format, uint32_t width, uint32_t height,
-			DataBuffer* data )
+	[[ r::method ]]
+		static Ref< PngWriter > create(
+			Stream* stream, bitmapformat format,
+			uint32_t width, uint32_t height, DataBuffer* pixels )
 		{
-			return new PngWriter( format, width, height, data );
+			return Ref< PngWriter >::create(
+				stream, format, width, height, pixels );
 		}
-		R_METHOD() size_t grab( size_t length, void* buffer );
-		R_METHOD() bool isfinished();
 	};
 }

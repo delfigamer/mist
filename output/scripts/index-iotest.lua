@@ -1,14 +1,17 @@
 local modname = ...
 local index = package.modtable(modname)
 local ffi = require('ffi')
+local databuffer = require('databuffer')
 local filestorage = require('rsbin.filestorage')
+local fileopenmode = require('rsbin.fileopenmode')
 local storagestream = require('rsbin.storagestream')
 local pngreader = require('rsbin.pngreader')
+local pngwriter = require('rsbin.pngwriter')
 local bitmapformat = require('rsbin.bitmapformat')
 local invoke = require('base.invoke')
 
 local function getfilecontent(path)
-	local storage = filestorage:create(path, 0)
+	local storage = filestorage:create(path, fileopenmode.read)
 	local stream = storagestream:create(storage, true, false, 0)
 	local parts = {}
 	while true do
@@ -25,10 +28,10 @@ local function getfilecontent(path)
 	return table.concat(parts)
 end
 
-local function getpngbitmap(path)
-	local storage = filestorage:create(path, 0)
+local function readpng(path, format)
+	local storage = filestorage:create(path, fileopenmode.read)
 	local stream = storagestream:create(storage, true, false, 0)
-	local reader = pngreader:create(bitmapformat.rgba8, stream)
+	local reader = pngreader:create(stream, bitmapformat[format])
 	while not reader:poll() do
 		coroutine.yield()
 	end
@@ -43,10 +46,27 @@ local function getpngbitmap(path)
 	return bitmap
 end
 
-local function main()
-	-- local cont = getfilecontent('build/l-win64-debug/client-main/event.r')
-	-- print(string.format('%s', cont))
-	local bitmap = getpngbitmap('assetsources/pixels.png')
+local function writepng(path, format, width, height, pixels)
+	local storage = filestorage:create(path, fileopenmode.create)
+	local stream = storagestream:create(storage, false, true, 0)
+	local writer = pngwriter:create(
+		stream, bitmapformat[format], width, height, pixels)
+	while not writer:poll() do
+		coroutine.yield()
+	end
+	writer:release()
+	stream:release()
+	storage:close()
+	storage:release()
+end
+
+local function main_streamtest()
+	local cont = getfilecontent('build/l-win64-debug/client-main/event.r')
+	print(string.format('%s', cont))
+end
+
+local function main_pngreadertest()
+	local bitmap = readpng('assetsources/pixels.png', 'rgba8')
 	local data = bitmap.pixels:getdata()
 	for ch = 0, 3 do
 		for y = 0, bitmap.height-1 do
@@ -62,4 +82,57 @@ local function main()
 	end
 end
 
-invoke(main)
+local function main_pngwritertest()
+	local width = 256
+	local height = 128
+	local pixels = databuffer:create(4*width*height, 4*width*height, nil)
+	local data = pixels:getdata()
+	for y = 0, height-1 do
+		local row = data + 4 * width * y
+		for x = 0, width-1 do
+			local pixel = row + 4 * x
+			pixel[0] = x
+			pixel[1] = 2*y
+			pixel[2] = 0
+			pixel[3] = 255
+		end
+	end
+	writepng('local/pngtest.png', 'rgba8', width, height, pixels)
+end
+
+local function main_png16readertest()
+	local bitmap = readpng('local/png16test.png', 'rgba16')
+	local data = ffi.cast('uint16_t*', bitmap.pixels:getdata())
+	for ch = 0, 3 do
+		for y = 0, bitmap.height-1 do
+			local row = data + 4 * bitmap.width * y + ch
+			local str = {}
+			for x = 0, bitmap.width-1 do
+				local value = row[4 * x]
+				table.append(str, string.format('%.4x', value))
+			end
+			print(table.concat(str, ' '))
+		end
+		print()
+	end
+end
+
+local function main_png16writertest()
+	local width = 8
+	local height = 16
+	local pixels = databuffer:create(8*width*height, 8*width*height, nil)
+	local data = ffi.cast('uint16_t*', pixels:getdata())
+	for y = 0, height-1 do
+		local row = data + 4 * width * y
+		for x = 0, width-1 do
+			local pixel = row + 4 * x
+			pixel[0] = 0x80*x
+			pixel[1] = 0x40*y
+			pixel[2] = 0
+			pixel[3] = 0xffff
+		end
+	end
+	writepng('local/png16test.png', 'rgba16', width, height, pixels)
+end
+
+invoke(main_png16readertest)

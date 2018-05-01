@@ -3,6 +3,7 @@ path = {
 	{'assetsources', _PATH .. '../assetsources'},
 	{'build', _PATH .. '../build'},
 	{'scripts', _PATH .. 'scripts'},
+	{'local', _PATH .. 'local'},
 }
 index = 'index-test'
 windowsize={1280, 720}
