@@ -13,7 +13,9 @@ namespace r
 		char const* chunkname;
 	};
 
-	static_assert( sizeof( std::exception_ptr ) <= sizeof( void*[ 4 ] ) );
+	static_assert(
+		sizeof( std::exception_ptr ) <= sizeof( void*[ 4 ] ),
+		"size of std::exception_ptr exceeds that of 4 pointers" );
 
 	struct exceptionbox;
 

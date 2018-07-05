@@ -1,3 +1,4 @@
+require('utils.allocateconsole')()
 local databuffer = require('host.databuffer')
 local ffi = require('ffi')
 local pt = require('host.programtoken')

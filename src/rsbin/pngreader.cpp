@@ -6,13 +6,16 @@
 
 namespace rsbin
 {
-	struct format_t
+	namespace
 	{
-		void( *setformat )(
-			png_structp png, png_infop info,
-			int bitdepth, int colortype );
-		uint32_t pixelstride;
-	};
+		struct format_t
+		{
+			void( *setformat )(
+				png_structp png, png_infop info,
+				int bitdepth, int colortype );
+			uint32_t pixelstride;
+		};
+	}
 
 	void setformat_rgba8(
 		png_structp png, png_infop info,
@@ -168,7 +171,8 @@ namespace rsbin
 		std::vector< uint8_t* > rowpointers( m_height );
 		for( uint32_t y = 0; y < m_height; ++y )
 		{
-			rowpointers[ y ] = m_pixels->m_data + m_stride * ( m_height - y - 1 );
+			rowpointers[ y ] =
+				m_pixels->m_data + m_stride * ( m_height - y - 1 );
 		}
 		png_read_image( png, ( png_bytep* )rowpointers.data() );
 		abortpoint();

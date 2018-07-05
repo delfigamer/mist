@@ -277,196 +277,188 @@ namespace utils
 		}
 	}
 
-	static bool utf32_encode(
-		void* dest,
-		uint32_t charcode,
-		size_t destsize,
-		size_t* pointlength )
-	{
-		if( ( charcode >= 0xd800 && charcode <= 0xdfff ) || charcode > 0x10ffff )
-		{
-			*pointlength = 0;
-			return false;
-		}
-		else
-		{
-			*pointlength = 4;
-			if( dest )
-			{
-				if( destsize >= 4 )
-				{
-					uint32_t* destw = ( uint32_t* )dest;
-					destw[ 0 ] = charcode;
-					return true;
-				}
-				else
-				{
-					return false;
-				}
-			}
-			else
-			{
-				return destsize == 0 || destsize >= 4;
-			}
-		}
-	}
+	// static bool utf32_encode(
+		// void* dest,
+		// uint32_t charcode,
+		// size_t destsize,
+		// size_t* pointlength )
+	// {
+		// if( ( charcode >= 0xd800 && charcode <= 0xdfff ) || charcode > 0x10ffff )
+		// {
+			// *pointlength = 0;
+			// return false;
+		// }
+		// else
+		// {
+			// *pointlength = 4;
+			// if( dest )
+			// {
+				// if( destsize >= 4 )
+				// {
+					// uint32_t* destw = ( uint32_t* )dest;
+					// destw[ 0 ] = charcode;
+					// return true;
+				// }
+				// else
+				// {
+					// return false;
+				// }
+			// }
+			// else
+			// {
+				// return destsize == 0 || destsize >= 4;
+			// }
+		// }
+	// }
 
-	static bool utf32_decode(
-		void const* source,
-		uint32_t* charcode,
-		size_t sourcesize,
-		size_t* pointlength )
-	{
-		if( sourcesize != 0 && sourcesize < 4 )
-		{
-			*pointlength = 0;
-			return false;
-		}
-		*pointlength = 4;
-		uint32_t const* sourcew = ( uint32_t const* )source;
-		uint32_t code = sourcew[ 0 ];
-		*pointlength = 4;
-		if( ( code >= 0xd800 && code <= 0xdfff ) || code > 0x10ffff )
-		{
-			return false;
-		}
-		if( charcode )
-		{
-			*charcode = code;
-		}
-		return true;
-	}
+	// static bool utf32_decode(
+		// void const* source,
+		// uint32_t* charcode,
+		// size_t sourcesize,
+		// size_t* pointlength )
+	// {
+		// if( sourcesize != 0 && sourcesize < 4 )
+		// {
+			// *pointlength = 0;
+			// return false;
+		// }
+		// *pointlength = 4;
+		// uint32_t const* sourcew = ( uint32_t const* )source;
+		// uint32_t code = sourcew[ 0 ];
+		// *pointlength = 4;
+		// if( ( code >= 0xd800 && code <= 0xdfff ) || code > 0x10ffff )
+		// {
+			// return false;
+		// }
+		// if( charcode )
+		// {
+			// *charcode = code;
+		// }
+		// return true;
+	// }
 
-	template< int bl, int bh >
-	static bool utf16xe_encode(
-		void* dest,
-		uint32_t charcode,
-		size_t destsize,
-		size_t* pointlength )
-	{
-		if( dest )
-		{
-			uint16_t buffer[ 2 ];
-			size_t length;
-			bool success = utf16_encode( buffer, charcode, destsize, &length );
-			if( success )
-			{
-				uint8_t* destw = ( uint8_t* )dest;
-				destw[ bl ] = uint8_t( buffer[ 0 ] );
-				destw[ bh ] = uint8_t( buffer[ 0 ] >> 8 );
-				if( length == 4 )
-				{
-					destw[ 2 + bl ] = uint8_t( buffer[ 1 ] );
-					destw[ 2 + bh ] = uint8_t( buffer[ 1 ] >> 8 );
-				}
-			}
-			*pointlength = length;
-			return success;
-		}
-		else
-		{
-			return utf16_encode( 0, charcode, destsize, pointlength );
-		}
-	}
+	// template< int bl, int bh >
+	// static bool utf16xe_encode(
+		// void* dest,
+		// uint32_t charcode,
+		// size_t destsize,
+		// size_t* pointlength )
+	// {
+		// if( dest )
+		// {
+			// uint16_t buffer[ 2 ];
+			// size_t length;
+			// bool success = utf16_encode( buffer, charcode, destsize, &length );
+			// if( success )
+			// {
+				// uint8_t* destw = ( uint8_t* )dest;
+				// destw[ bl ] = uint8_t( buffer[ 0 ] );
+				// destw[ bh ] = uint8_t( buffer[ 0 ] >> 8 );
+				// if( length == 4 )
+				// {
+					// destw[ 2 + bl ] = uint8_t( buffer[ 1 ] );
+					// destw[ 2 + bh ] = uint8_t( buffer[ 1 ] >> 8 );
+				// }
+			// }
+			// *pointlength = length;
+			// return success;
+		// }
+		// else
+		// {
+			// return utf16_encode( 0, charcode, destsize, pointlength );
+		// }
+	// }
 
-	template< int bl, int bh >
-	static bool utf16xe_decode(
-		void const* source,
-		uint32_t* charcode,
-		size_t sourcesize,
-		size_t* pointlength )
-	{
-		uint8_t const* sourcew = ( uint8_t const* )source;
-		uint16_t buffer[ 2 ];
-		if( sourcesize >= 2 )
-		{
-			buffer[ 0 ] =
-				uint16_t( sourcew[ bl ] ) | uint16_t( sourcew[ bh ] << 8 );
-			if( buffer[ 0 ] >= 0xd800 && buffer[ 0 ] <= 0xdbff && sourcesize >= 4 )
-			{
-				buffer[ 1 ] =
-					uint16_t( sourcew[ 2 + bl ] )
-					| uint16_t( sourcew[ 2 + bh ] << 8 );
-			}
-		}
-		return utf16_decode( buffer, charcode, sourcesize, pointlength );
-	}
+	// template< int bl, int bh >
+	// static bool utf16xe_decode(
+		// void const* source,
+		// uint32_t* charcode,
+		// size_t sourcesize,
+		// size_t* pointlength )
+	// {
+		// uint8_t const* sourcew = ( uint8_t const* )source;
+		// uint16_t buffer[ 2 ];
+		// if( sourcesize >= 2 )
+		// {
+			// buffer[ 0 ] =
+				// uint16_t( sourcew[ bl ] ) | uint16_t( sourcew[ bh ] << 8 );
+			// if( buffer[ 0 ] >= 0xd800 && buffer[ 0 ] <= 0xdbff && sourcesize >= 4 )
+			// {
+				// buffer[ 1 ] =
+					// uint16_t( sourcew[ 2 + bl ] )
+					// | uint16_t( sourcew[ 2 + bh ] << 8 );
+			// }
+		// }
+		// return utf16_decode( buffer, charcode, sourcesize, pointlength );
+	// }
 
-	template< int b1, int b2, int b3, int b4 >
-	static bool utf32xe_encode(
-		void* dest,
-		uint32_t charcode,
-		size_t destsize,
-		size_t* pointlength )
-	{
-		if( dest )
-		{
-			uint32_t buffer[ 1 ];
-			bool success = utf32_encode( buffer, charcode, destsize, pointlength );
-			if( success )
-			{
-				uint8_t* destw = ( uint8_t* )dest;
-				destw[ b1 ] = buffer[ 0 ];
-				destw[ b2 ] = buffer[ 0 ] >> 8;
-				destw[ b3 ] = buffer[ 0 ] >> 16;
-				destw[ b4 ] = buffer[ 0 ] >> 24;
-			}
-			return success;
-		}
-		else
-		{
-			return utf32_encode( 0, charcode, destsize, pointlength );
-		}
-	}
+	// template< int b1, int b2, int b3, int b4 >
+	// static bool utf32xe_encode(
+		// void* dest,
+		// uint32_t charcode,
+		// size_t destsize,
+		// size_t* pointlength )
+	// {
+		// if( dest )
+		// {
+			// uint32_t buffer[ 1 ];
+			// bool success = utf32_encode( buffer, charcode, destsize, pointlength );
+			// if( success )
+			// {
+				// uint8_t* destw = ( uint8_t* )dest;
+				// destw[ b1 ] = buffer[ 0 ];
+				// destw[ b2 ] = buffer[ 0 ] >> 8;
+				// destw[ b3 ] = buffer[ 0 ] >> 16;
+				// destw[ b4 ] = buffer[ 0 ] >> 24;
+			// }
+			// return success;
+		// }
+		// else
+		// {
+			// return utf32_encode( 0, charcode, destsize, pointlength );
+		// }
+	// }
 
-	template< int b1, int b2, int b3, int b4 >
-	static bool utf32xe_decode(
-		void const* source,
-		uint32_t* charcode,
-		size_t sourcesize,
-		size_t* pointlength )
-	{
-		uint8_t const* sourcew = ( uint8_t const* )source;
-		uint32_t buffer[ 1 ];
-		if( sourcesize >= 4 )
-		{
-			buffer[ 0 ] =
-				uint32_t( sourcew[ b1 ] ) |
-				uint32_t( sourcew[ b2 ] << 8 ) |
-				uint32_t( sourcew[ b3 ] << 16 ) |
-				uint32_t( sourcew[ b4 ] << 24 );
-			return utf32_decode( buffer, charcode, sourcesize, pointlength );
-		}
-		else
-		{
-			return utf32_decode( 0, charcode, sourcesize, pointlength );
-		}
-	}
+	// template< int b1, int b2, int b3, int b4 >
+	// static bool utf32xe_decode(
+		// void const* source,
+		// uint32_t* charcode,
+		// size_t sourcesize,
+		// size_t* pointlength )
+	// {
+		// uint8_t const* sourcew = ( uint8_t const* )source;
+		// uint32_t buffer[ 1 ];
+		// if( sourcesize >= 4 )
+		// {
+			// buffer[ 0 ] =
+				// uint32_t( sourcew[ b1 ] ) |
+				// uint32_t( sourcew[ b2 ] << 8 ) |
+				// uint32_t( sourcew[ b3 ] << 16 ) |
+				// uint32_t( sourcew[ b4 ] << 24 );
+			// return utf32_decode( buffer, charcode, sourcesize, pointlength );
+		// }
+		// else
+		// {
+			// return utf32_decode( 0, charcode, sourcesize, pointlength );
+		// }
+	// }
 
 	namespace encoding
 	{
 		encoding_t const utf8{ &utf8_encode, &utf8_decode };
 		encoding_t const utf16{ &utf16_encode, &utf16_decode };
-		encoding_t const utf32{ &utf32_encode, &utf32_decode };
-#if defined( _WIN32 ) || defined( _WIN64 )
-		encoding_t const utf16le{ &utf16_encode, &utf16_decode };
-		encoding_t const utf32le{ &utf32_encode, &utf32_decode };
-#else
-		encoding_t const utf16le{
-			&utf16xe_encode< 0, 1 >, &utf16xe_decode< 0, 1 > };
-		encoding_t const utf32le{
-			&utf32xe_encode< 0, 1, 2, 3 >, &utf32xe_decode< 0, 1, 2, 3 > };
-#endif
-		encoding_t const utf16be{
-			&utf16xe_encode< 1, 0 >, &utf16xe_decode< 1, 0 > };
-		encoding_t const utf32be{
-			&utf32xe_encode< 3, 2, 1, 0 >, &utf32xe_decode< 3, 2, 1, 0 > };
+		// encoding_t const utf32{ &utf32_encode, &utf32_decode };
+		// encoding_t const utf16le{
+			// &utf16xe_encode< 0, 1 >, &utf16xe_decode< 0, 1 > };
+		// encoding_t const utf32le{
+			// &utf32xe_encode< 0, 1, 2, 3 >, &utf32xe_decode< 0, 1, 2, 3 > };
+		// encoding_t const utf16be{
+			// &utf16xe_encode< 1, 0 >, &utf16xe_decode< 1, 0 > };
+		// encoding_t const utf32be{
+			// &utf32xe_encode< 3, 2, 1, 0 >, &utf32xe_decode< 3, 2, 1, 0 > };
 	}
 
-	enum
-	{
-		sourcesize_zterm = size_t( -1 ),
-	};
+	static size_t const sourcesize_zterm = size_t( -1 );
 
 	translateresult translatestr(
 		translation_t& translation )

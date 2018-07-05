@@ -1,10 +1,21 @@
 # Build directory
 /build/
 
+# Output directory
 /output/bin-*
 /output/test*
 /output/local/*
+!/output/local/empty.png
+!/output/local/png16test.png
+!/output/local/pngtest.png
 *.flac
+
+# Internal Visual Studio files
+.vs
+
+# Reflection intermediates
+*.r
+*.r.lua
 
 # Object files
 *.o
@@ -52,4 +63,5 @@ SciTE.*
 
 # Exclusions
 !/vs/**/*.bat
-!/lib
+!/lib/**/*.lib
+!/lib/**/*.a

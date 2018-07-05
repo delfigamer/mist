@@ -3,6 +3,21 @@ local ffi = require('ffi')
 
 local configuration = {}
 
+local toolchainset = {
+	['gcc'] = true,
+	['cl'] = true,
+}
+if _G.toolchain then
+	if toolchainset[_G.toolchain] then
+		configuration.toolchain = _G.toolchain
+	else
+		error('unknown platform')
+	end
+else
+	configuration.toolchain = 'gcc'
+	-- configuration.toolchain = 'cl'
+end
+
 local platformset = {
 	['win32'] = true,
 	['win64'] = true,
@@ -24,25 +39,33 @@ end
 if _G.profile == 'release' then
 	configuration.tag = 'release'
 	configuration.debug = false
-	configuration.saveasm = false
 	configuration.compilermacros = {
 	}
 else
 	configuration.tag = 'debug'
 	configuration.debug = true
-	configuration.saveintermediates = true
 	configuration.compilermacros = {
 		MIST_DEBUG = true,
 	}
 end
 
-configuration.srcdir = 'src'
 configuration.libincludedir = 'lib/include'
-configuration.libstaticdir = 'lib/static'
-configuration.libdynamicdir = 'lib/dynamic'
+configuration.libstaticdir =
+	'lib/static/' ..
+	configuration.toolchain .. '-' ..
+	configuration.platform
+configuration.libdynamicdir =
+	'lib/dynamic/' ..
+	configuration.platform
 configuration.builddir =
-	'build/l-' .. configuration.platform .. '-' .. configuration.tag
+	'build/' ..
+	configuration.toolchain .. '-' ..
+	configuration.platform .. '-' ..
+	configuration.tag
 configuration.outputdir =
-	'output/bin-l-' .. configuration.platform .. '-' .. configuration.tag
+	'output/bin-' ..
+	configuration.toolchain .. '-' ..
+	configuration.platform .. '-' ..
+	configuration.tag
 
 package.modtable(modname, configuration)

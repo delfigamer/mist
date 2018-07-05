@@ -39,11 +39,11 @@ namespace utils
 	{
 		extern encoding_t const utf8;
 		extern encoding_t const utf16;
-		extern encoding_t const utf32;
-		extern encoding_t const utf16le;
-		extern encoding_t const utf16be;
-		extern encoding_t const utf32le;
-		extern encoding_t const utf32be;
+		// extern encoding_t const utf32;
+		// extern encoding_t const utf16le;
+		// extern encoding_t const utf16be;
+		// extern encoding_t const utf32le;
+		// extern encoding_t const utf32be;
 	}
 
 	struct translation_t

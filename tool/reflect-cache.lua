@@ -1,7 +1,6 @@
 local modname = ...
 local rcache = package.modtable(modname)
 local env = require('env')
-local buildconfig = require('build-config')
 local parser = require('reflect-parser')
 local rtypes = require('reflect-types')
 
@@ -41,7 +40,7 @@ function rcache.registermodule(name, source)
 		namespace = {}
 	}
 	moduledef.identname = string.gsub(moduledef.name, '[^a-zA-Z0-9_]', '_')
-	local path = buildconfig.builddir .. '/' .. name .. '.r',
+	local path = 'reflection/' .. name .. '.r',
 	assert(modulenamemap[moduledef.name] == nil)
 	assert(modulenamemap[path] == nil)
 	modulenamemap[moduledef.name] = moduledef
@@ -124,7 +123,7 @@ end
 function rcache.tryloadmodulebyname(name)
 	local moduledef = modulenamemap[name]
 	if not moduledef then
-		local path = buildconfig.builddir .. '/' .. name .. '.r'
+		local path = 'reflection/' .. name .. '.r'
 		return rcache.tryloadmodulebypath(path)
 	end
 	return moduledef

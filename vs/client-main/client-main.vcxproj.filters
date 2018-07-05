@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<ItemGroup>
+		<Filter Include="src">
+			<UniqueIdentifier>{84d01d9e-eef3-47ba-8c7a-bd59c45e9d22}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="src\common">
+			<UniqueIdentifier>{6469ddb9-98e1-444d-9071-9d0e3b884de5}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="src\client-main">
+			<UniqueIdentifier>{f760be53-0001-4c43-af9b-7e5d2075bd17}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="src\rsbin">
+			<UniqueIdentifier>{a54deca9-2e16-4cbc-887c-f3575eec32ff}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="src\utils">
+			<UniqueIdentifier>{13700729-a62d-43bd-9f95-b20bfe6dae3b}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="reflection">
+			<UniqueIdentifier>{15cf9bd0-be71-4d68-8348-c2d8bb5e4776}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="reflection\client-main">
+			<UniqueIdentifier>{65134fa5-2799-4475-8d66-966b90412a60}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="reflection\common">
+			<UniqueIdentifier>{b0eedfb3-98bc-47cc-87f2-30435a3d406c}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="reflection\utils">
+			<UniqueIdentifier>{d6c8bdb2-1512-4b6c-8304-da8ba3d31345}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="reflection\rsbin">
+			<UniqueIdentifier>{99c3304a-4d1e-4075-9904-0832856100d9}</UniqueIdentifier>
+		</Filter>
+	</ItemGroup>
+	<ItemGroup>
+
+		<ClInclude Include="$(SolutionDir)..\src\client-main\event.hpp">
+			<Filter>src\client-main</Filter>
+		</ClInclude>
+
+		<ClInclude Include="$(SolutionDir)..\src\client-main\rindex.hpp">
+			<Filter>src\client-main</Filter>
+		</ClInclude>
+
+		<ClInclude Include="$(SolutionDir)..\src\client-main\window.hpp">
+			<Filter>src\client-main</Filter>
+		</ClInclude>
+
+		<ClInclude Include="$(SolutionDir)..\src\client-main\windowinfo.hpp">
+			<Filter>src\client-main</Filter>
+		</ClInclude>
+
+		<ClInclude Include="$(SolutionDir)..\src\common.hpp">
+			<Filter>src</Filter>
+		</ClInclude>
+
+		<ClInclude Include="$(SolutionDir)..\src\common\databuffer.hpp">
+			<Filter>src\common</Filter>
+		</ClInclude>
+
+		<ClInclude Include="$(SolutionDir)..\src\common\flaglock.hpp">
+			<Filter>src\common</Filter>
+		</ClInclude>
+
+		<ClInclude Include="$(SolutionDir)..\src\common\mpscqueue.hpp">
+			<Filter>src\common</Filter>
+		</ClInclude>
+
+		<ClInclude Include="$(SolutionDir)..\src\common\ref.hpp">
+			<Filter>src\common</Filter>
+		</ClInclude>
+
+		<ClInclude Include="$(SolutionDir)..\src\common\refobject.hpp">
+			<Filter>src\common</Filter>
+		</ClInclude>
+
+		<ClInclude Include="$(SolutionDir)..\src\common\stringbuilder.hpp">
+			<Filter>src\common</Filter>
+		</ClInclude>
+
+		<ClInclude Include="$(SolutionDir)..\src\common\task.hpp">
+			<Filter>src\common</Filter>
+		</ClInclude>
+
+		<ClInclude Include="$(SolutionDir)..\src\osapi.hpp">
+			<Filter>src</Filter>
+		</ClInclude>
+
+		<ClInclude Include="$(SolutionDir)..\src\reflection.hpp">
+			<Filter>src</Filter>
+		</ClInclude>
+
+		<ClInclude Include="$(SolutionDir)..\src\rsbin\common.hpp">
+			<Filter>src\rsbin</Filter>
+		</ClInclude>
+
+		<ClInclude Include="$(SolutionDir)..\src\rsbin\filestorage.hpp">
+			<Filter>src\rsbin</Filter>
+		</ClInclude>
+
+		<ClInclude Include="$(SolutionDir)..\src\rsbin\formattask.hpp">
+			<Filter>src\rsbin</Filter>
+		</ClInclude>
+
+		<ClInclude Include="$(SolutionDir)..\src\rsbin\memorystorage.hpp">
+			<Filter>src\rsbin</Filter>
+		</ClInclude>
+
+		<ClInclude Include="$(SolutionDir)..\src\rsbin\pngcommon.hpp">
+			<Filter>src\rsbin</Filter>
+		</ClInclude>
+
+		<ClInclude Include="$(SolutionDir)..\src\rsbin\pngreader.hpp">
+			<Filter>src\rsbin</Filter>
+		</ClInclude>
+
+		<ClInclude Include="$(SolutionDir)..\src\rsbin\pngwriter.hpp">
+			<Filter>src\rsbin</Filter>
+		</ClInclude>
+
+		<ClInclude Include="$(SolutionDir)..\src\rsbin\storage.hpp">
+			<Filter>src\rsbin</Filter>
+		</ClInclude>
+
+		<ClInclude Include="$(SolutionDir)..\src\rsbin\storagestream.hpp">
+			<Filter>src\rsbin</Filter>
+		</ClInclude>
+
+		<ClInclude Include="$(SolutionDir)..\src\rsbin\stream.hpp">
+			<Filter>src\rsbin</Filter>
+		</ClInclude>
+
+		<ClInclude Include="$(SolutionDir)..\src\utils\cbase.hpp">
+			<Filter>src\utils</Filter>
+		</ClInclude>
+
+		<ClInclude Include="$(SolutionDir)..\src\utils\configset.hpp">
+			<Filter>src\utils</Filter>
+		</ClInclude>
+
+		<ClInclude Include="$(SolutionDir)..\src\utils\console.hpp">
+			<Filter>src\utils</Filter>
+		</ClInclude>
+
+		<ClInclude Include="$(SolutionDir)..\src\utils\encoding.hpp">
+			<Filter>src\utils</Filter>
+		</ClInclude>
+
+		<ClInclude Include="$(SolutionDir)..\src\utils\path.hpp">
+			<Filter>src\utils</Filter>
+		</ClInclude>
+
+		<ClInclude Include="$(SolutionDir)..\src\utils\pathparse.hpp">
+			<Filter>src\utils</Filter>
+		</ClInclude>
+
+	</ItemGroup>
+	<ItemGroup>
+
+		<ClCompile Include="$(SolutionDir)..\reflection\client-main\event.r.cpp">
+			<Filter>reflection\client-main</Filter>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\reflection\client-main\rindex.cpp">
+			<Filter>reflection\client-main</Filter>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\reflection\client-main\window.r.cpp">
+			<Filter>reflection\client-main</Filter>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\reflection\client-main\windowinfo.r.cpp">
+			<Filter>reflection\client-main</Filter>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\reflection\common\databuffer.r.cpp">
+			<Filter>reflection\common</Filter>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\reflection\common\refobject.r.cpp">
+			<Filter>reflection\common</Filter>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\reflection\common\task.r.cpp">
+			<Filter>reflection\common</Filter>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\reflection\rsbin\common.r.cpp">
+			<Filter>reflection\rsbin</Filter>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\reflection\rsbin\filestorage.r.cpp">
+			<Filter>reflection\rsbin</Filter>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\reflection\rsbin\formattask.r.cpp">
+			<Filter>reflection\rsbin</Filter>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\reflection\rsbin\memorystorage.r.cpp">
+			<Filter>reflection\rsbin</Filter>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\reflection\rsbin\pngcommon.r.cpp">
+			<Filter>reflection\rsbin</Filter>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\reflection\rsbin\pngreader.r.cpp">
+			<Filter>reflection\rsbin</Filter>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\reflection\rsbin\pngwriter.r.cpp">
+			<Filter>reflection\rsbin</Filter>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\reflection\rsbin\storage.r.cpp">
+			<Filter>reflection\rsbin</Filter>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\reflection\rsbin\storagestream.r.cpp">
+			<Filter>reflection\rsbin</Filter>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\reflection\rsbin\stream.r.cpp">
+			<Filter>reflection\rsbin</Filter>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\reflection\utils\cbase.r.cpp">
+			<Filter>reflection\utils</Filter>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\reflection\utils\configset.r.cpp">
+			<Filter>reflection\utils</Filter>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\reflection\utils\encoding.r.cpp">
+			<Filter>reflection\utils</Filter>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\reflection\utils\path.r.cpp">
+			<Filter>reflection\utils</Filter>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\src\client-main\main.cpp">
+			<Filter>src\client-main</Filter>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\src\client-main\window.cpp">
+			<Filter>src\client-main</Filter>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\src\rsbin\common.cpp">
+			<Filter>src\rsbin</Filter>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\src\rsbin\filestorage.cpp">
+			<Filter>src\rsbin</Filter>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\src\rsbin\formattask.cpp">
+			<Filter>src\rsbin</Filter>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\src\rsbin\memorystorage.cpp">
+			<Filter>src\rsbin</Filter>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\src\rsbin\pngreader.cpp">
+			<Filter>src\rsbin</Filter>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\src\rsbin\pngwriter.cpp">
+			<Filter>src\rsbin</Filter>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\src\rsbin\storagestream.cpp">
+			<Filter>src\rsbin</Filter>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\src\utils\cbase.cpp">
+			<Filter>src\utils</Filter>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\src\utils\configset.cpp">
+			<Filter>src\utils</Filter>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\src\utils\console.cpp">
+			<Filter>src\utils</Filter>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\src\utils\encoding.cpp">
+			<Filter>src\utils</Filter>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\src\utils\path.cpp">
+			<Filter>src\utils</Filter>
+		</ClCompile>
+
+	</ItemGroup>
+</Project>

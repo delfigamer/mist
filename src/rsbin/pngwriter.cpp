@@ -5,13 +5,16 @@
 
 namespace rsbin
 {
-	struct format_t
+	namespace
 	{
-		uint32_t pixelstride;
-		int bitdepth;
-		int colortype;
-		double invgamma;
-	};
+		struct format_t
+		{
+			uint32_t pixelstride;
+			int bitdepth;
+			int colortype;
+			double invgamma;
+		};
+	}
 
 	format_t const formattable[] =
 	{

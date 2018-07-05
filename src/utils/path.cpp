@@ -90,14 +90,15 @@ namespace utils
 			{
 				return Ref< Path >::create( wpath, nullptr );
 			}
-			int cwdlength = GetFullPathNameW( LPCWSTR( wpath->m_data ), 0, 0, 0 );
+			int cwdlength = GetFullPathNameW(
+				LPCWSTR( wpath->m_data ), 0, 0, 0 );
 			Ref< DataBuffer > db = DataBuffer::create(
-				0, cwdlength * 2 + 10, nullptr );
-			uint8_t* data = db->m_data;
-			memcpy( data, L"\\\\\?\\", 8 );
+				0, cwdlength * 2 + 8, nullptr );
+			wchar_t* buf = ( wchar_t* )db->m_data;
+			memcpy( buf, L"\\\\\?\\", 8 );
 			cwdlength = GetFullPathNameW(
-				LPCWSTR( wpath->m_data ), cwdlength + 1, LPWSTR( data + 8 ), 0 );
-			wchar_t* buf = ( wchar_t* )data;
+				LPCWSTR( wpath->m_data ), cwdlength, LPWSTR( buf + 4 ), 0 );
+			assert( buf[ 4 ] != 0 );
 			if( buf[ cwdlength + 3 ] == '\\' )
 			{
 				db->m_length = cwdlength * 2 + 6;
@@ -138,8 +139,8 @@ namespace utils
 				break;
 			}
 			Ref< DataBuffer > iname = intern(
-				( uint8_t const* )&*name.begin(),
-				( uint8_t const* )&*name.end() );
+				( uint8_t const* )name.data(),
+				( uint8_t const* )( name.data() + name.size() ) );
 			Ref< Path > path = rootpath( target.c_str() );
 #if defined( _WIN32 ) || defined( _WIN64 )
 			LOG( "root mapping: '%.*ls' -> '%.*ls'",

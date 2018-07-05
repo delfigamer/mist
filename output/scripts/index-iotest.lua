@@ -1,5 +1,6 @@
 local modname = ...
 local index = package.modtable(modname)
+require('utils.allocateconsole')()
 local ffi = require('ffi')
 local databuffer = require('databuffer')
 local filestorage = require('rsbin.filestorage')

@@ -38,6 +38,8 @@ namespace utils
 		ConsoleClass( ConsoleClass const& ) = delete;
 		ConsoleClass& operator=( ConsoleClass const& ) = delete;
 
+		void allocateconsole();
+
 		void writeraw( char const* str );
 		__attribute__(( __format__( gnu_printf, 2, 0 ) ))
 		void vwrite( char const* format, va_list args );

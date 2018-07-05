@@ -46,7 +46,7 @@ namespace rsbin
 
 	void FormatTask::start()
 	{
-		m_thread = std::thread( threadfunc, this );
+		m_thread = std::thread( &FormatTask::threadfunc, this );
 	}
 
 	bool FormatTask::isfinished()

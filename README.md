@@ -1,43 +1,63 @@
 # Mist
+
 Mist is a 2D game engine inspired by Unreal.
 
-It is written primarily in Lua, with some functionality, like OS interaction and the basics of graphics subsystem, is implemented in C++11.
+It is written primarily in Lua, with some functionality, like OS interaction and the basics of graphics subsystem, implemented in C++11.
 
 The facilities of the engine may also be used for other purposes. For example, 'img' library uses them for high-precision image processing.
 
 The engine is still very early in development. The codebase is rather unstable, so there's also a large amount of code in the project that is either obsolete, or not adapted to the changed interfaces.
 
-## Prerequisites
-The engine depends on [LuaJIT](http://luajit.org/luajit.html) and [libpng](http://libpng.org/pub/png/libpng.html). To build them, follow the instructions on their sites.
-Note that, under Windows, by default, LuaJIT makefiles produce only the dynamic library. To obtain the static one, pass `-BUILDMODE=static` override.
-Once ready, the .a files should be places in the `mist/` directory (along with `client` and `output`) and named `libluajit-ARCH.a` and `libpng-ARCH.a`, with `ARCH` replaced by the target environment's identifier, which are as follows:
-
-| OS            | Processor         | Identifier |
-| ------------- | ----------------- | ---------- |
-| Windows (x86) | x86 compatible    | `win32`    |
-| Windows (x64) | x86-64 compatible | `win64`    |
-| Android       | ARM v7            | `arm7a`    |
-
-For example, under 32-bit versions of Windows, the build system will search for `libluajit-win32.a` and `libpng-win32.a`.
-
 ## Building
-The engine uses a custom LuaJIT script for building. If supported, it may be run by the system's default Lua interpreter. Otherwise, it's possible to build and use the "luaclient" program included there.
 
-The intended compiler is MinGW. The engine uses `std::thread`, which is currently only supported by `threads-posix` branch. You can find it [here](https://sourceforge.net/projects/mingwbuilds/files/host-windows/releases/).
+To build the current version of the engine on Windows, just having Visual Studio 2017 should be enough. Open `vs/mist-solution.sln`, select a configuration and issue a 'Build solution' command.
 
-When ready, run the "build.lua" script in the project's root directory.
+For small changes that don't involve adding/removing source files or changing reflected interfaces, just rebuilding the solution should suffice. Otherwise, the internal build system must be invoked.
 
-Once built, only the contents of `output` folder are required and used by the engine. The `build` folder contains intermediate files.
+To invoke Mist's own build system, a Lua 5.1 interpreter is required. It is used to generate VS project files with the actual source file list and to generate reflection files. It may also be used to produce the binaries by invoking GCC or MSVC toolchains through the command line.
 
-## Building with Visual Studio 2013
-So, I finally got around to teaching VS how to deal with all those code generators, and it seems to work.
+The main script `tool/build.lua` expects to be called from the project's root in this fashion:
 
-Again, you will need LuaJIT, libpng and also zlib.
+```
+mist&gt; lua <i>configuration</i> tool/build.lua <i>target</i>
+```
 
-To build LuaJIT, follow the instructions for msvc on their installation page. Once finished, grab `lua51.dll`, `lua51.lib` and `lua.exe` and copy them into the root `mist/` directory. Rename the .lib file to `lua51-ARCH.lib` (see the table above). Copy the dll and rename the copy `lua51-ARCH.dll`. In the end, you should have the `lua.exe`+`lua51.dll` pair to run the code generating scripts and `lua51-ARCH.dll`+`lua51-ARCH.lib` for the engine itself.
+Similar to `make`, if a proper production of the <i>target</i> requires other files to be produced beforehand, the build system will take care of that.
 
-Similarly, build libpng with the included solution. To avoid linker warnings when compiling the engine, you can disable link-time and whole program optimization for libpng; though this is not a requirement. After that, you should have `libpng.dll`, `libpng.lib`, `zlib.dll` and `zlib.lib` in the projects' output directory. Copy them to `mist/` and append the corresponding `-ARCH` for each of them.
+Possible <i>target</i>s are:
 
-Now, you should be ready to open `mist/vs/vs.sln` and build the solution. Due to the way file link are made, if you change the active platform or target, you should reload the projects or, alternatively, restart Visual Studio.
+* `all` builds everything to the latest version.
 
-Again, intermediate files are put into `build/vs-config-platform` and the resulting binaries are in `output/bin-vs-config-platform`. The appropriate dlls are copied into this folder as well. As its name doesn't really matter, if you wish, you can rename it into just `bin` or whatever strikes your fancy.
+* `vsproj` produces the VS project files according to the current structure of the source files, and additionally builds `reflection`. After this step is done, the produced solution may be used again to build the latest version.
+  VS project files are located in the directory `vs`.
+
+* `reflection` produces the files used in the reflection system, incuding .r.cpp files which are build and linked along with the source files to provide the required wrappers to the C++ interface.
+
+* <i>filename</i> is used to produce specific files.
+  `o//client-main.exe` produces the main executable. `o//` here stands for the output directory, which has the format of `output/bin-{toolchain}-{platform}-{profile}/`. For example, one of the configuration produces `output/bin-gcc-win64-debug/client-main.exe`.
+  `b//{path-to-cpp}.o` produces the object file. Similarly, `b//` is mapped to the intermediate build directory `build/{toolchain}-{platform}-{profile}/`. In the same example, `src/utils/path.cpp` is compiled into `build/gcc-win64-debug/src/utils/path.o`, which may be referenced as `b//src/utils/path.o`.
+
+The list of the source files with their place in the build system is located in `sources.lua`.
+
+The statements in <i>configuration</i> are used to tune the behavior of the build system. Technically, this is achieved by running short Lua chunks before the main script that set certain global variables; therefore, the general syntax for them is `-e {name}={value}`, where `-e` causes the Lua interpreter to run the next argument as a script.
+
+* `-e toolchain='gcc'` and `-e toolchain='cl'` determine which commands are used to compile and link the binaries. `gcc` causes the system to use `g++` commands with the GCC argument syntax, and `cl` causes the use of `cl` and `link` commands with the MSVC syntax.
+  The build system assumes these commands are readily available through the PATH environment variable.
+  The default value is `gcc`.
+
+* `-e platform='win32'` and `-e platform='win64'` tells the system the target platform.
+  The build system assumes the provided toolchain actually corresponds to the declared platform.
+  The default value is `win64`.
+
+* `-e profile='debug'` and `-e profile='release'` determines the use of certain compiler flags, as well as the presence of `MIST_DEBUG` macro in the source files.
+  The default value is `debug`.
+
+* `-e printgraph=true` causes the system to print out the constructed dependency graph without building anything.
+
+* `-e dryrun=true` causes the system to print out the compiler commands instead of actually issuing them. This command does not affect the production of `reflection` and `vsproj` targets, as they are implemented through Lua procedures rather than standalone commands.
+
+For most uses, the build system should automatically detect the changes in source files and rebuild the targets that depend on them, including the dependencies introduced by `#include` directives. However, is is also possible to treat every target as stale by passing `-e force=true` in the <i>configuration</i>, which causes the system to produce every requested target anew regardless of the current state.
+
+`build` directory holds intermediate files, while `output/bin-*` directories hold the resulting binaries. These can be deleted at any time. Both the VS project build process, as well as the internal Mist build system will create and populate them again if necessary.
+
+`reflection` directory holds files to support the reflection mechanism. Only the internal build system can be used to create and populate it, as the VS projects are not set up to rebuild reflection support files.

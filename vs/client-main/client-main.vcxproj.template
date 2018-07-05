@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?lua
+local sources = {}
+local headers = {}
+
+local function checktarget(entry, history)
+	if history[entry] then
+		return
+	end
+	history[entry] = true
+	for i, dep in ipairs(entry.dependencies) do
+		checktarget(assert(info.entrymap[dep]), history)
+	end
+	local sourcename = string.match(entry.target, '(.*)%.cpp$')
+	if sourcename then
+		table.append(sources, sourcename)
+	end
+	local headername = string.match(entry.target, '(.*)%.hpp$')
+	if headername then
+		table.append(headers, headername)
+	end
+end
+
+checktarget(assert(info.entrymap['o//client-main.exe']), {})
+
+table.sort(sources)
+table.sort(headers)
+?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<ItemGroup Label="ProjectConfigurations">
+		<ProjectConfiguration Include="Debug|Win32">
+			<Configuration>Debug</Configuration>
+			<Platform>Win32</Platform>
+		</ProjectConfiguration>
+		<ProjectConfiguration Include="Release|Win32">
+			<Configuration>Release</Configuration>
+			<Platform>Win32</Platform>
+		</ProjectConfiguration>
+		<ProjectConfiguration Include="Debug|x64">
+			<Configuration>Debug</Configuration>
+			<Platform>x64</Platform>
+		</ProjectConfiguration>
+		<ProjectConfiguration Include="Release|x64">
+			<Configuration>Release</Configuration>
+			<Platform>x64</Platform>
+		</ProjectConfiguration>
+	</ItemGroup>
+	<ItemGroup>
+<?lua
+for i, headername in ipairs(headers) do
+?>
+		<ClInclude Include="$(SolutionDir)<?le path('../' .. headername .. '.hpp') ?>" />
+<?lua
+end
+?>
+	</ItemGroup>
+	<ItemGroup>
+<?lua
+for i, sourcename in ipairs(sources) do
+?>
+		<ClCompile Include="$(SolutionDir)<?le path('../' .. sourcename .. '.cpp') ?>">
+			<AssemblerListingLocation>$(IntDir)<?le path(sourcename .. '.asm') ?></AssemblerListingLocation>
+			<ObjectFileName>$(IntDir)<?le path(sourcename .. '.obj') ?></ObjectFileName>
+		</ClCompile>
+<?lua
+end
+?>
+	</ItemGroup>
+	<PropertyGroup Label="Globals">
+		<VCProjectVersion>15.0</VCProjectVersion>
+		<ProjectGuid>{5C47EEDE-F9C4-43BD-972C-7FEBEA9E2049}</ProjectGuid>
+		<Keyword>Win32Proj</Keyword>
+		<RootNamespace>clientmain</RootNamespace>
+		<WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+	</PropertyGroup>
+	<Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+	<PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
+		<ConfigurationType>Application</ConfigurationType>
+		<UseDebugLibraries>true</UseDebugLibraries>
+		<PlatformToolset>v141</PlatformToolset>
+		<CharacterSet>Unicode</CharacterSet>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)'=='Release'" Label="Configuration">
+		<ConfigurationType>Application</ConfigurationType>
+		<UseDebugLibraries>false</UseDebugLibraries>
+		<PlatformToolset>v141</PlatformToolset>
+		<WholeProgramOptimization>true</WholeProgramOptimization>
+		<CharacterSet>Unicode</CharacterSet>
+	</PropertyGroup>
+	<Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+	<ImportGroup Label="ExtensionSettings">
+	</ImportGroup>
+	<ImportGroup Label="Shared">
+	</ImportGroup>
+	<ImportGroup Label="PropertySheets">
+		<Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+	</ImportGroup>
+	<PropertyGroup Label="UserMacros" />
+	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
+		<LinkIncremental>true</LinkIncremental>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)'=='Release'">
+		<LinkIncremental>false</LinkIncremental>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Platform)'=='Win32'">
+		<LibraryPath>$(SolutionDir)..\lib\static\cl-win32;$(LibraryPath)</LibraryPath>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Platform)'=='x64'">
+		<LibraryPath>$(SolutionDir)..\lib\static\cl-win64;$(LibraryPath)</LibraryPath>
+	</PropertyGroup>
+	<PropertyGroup>
+		<OutDir>$(SolutionDir)..\output\bin-vs-$(Platform)-$(Configuration)\</OutDir>
+		<IntDir>$(SolutionDir)..\build\vs-$(Platform)-$(Configuration)\</IntDir>
+		<IncludePath>$(SolutionDir)..\src;$(SolutionDir)..\lib\include;$(SolutionDir)..;$(IncludePath)</IncludePath>
+	</PropertyGroup>
+	<ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+		<ClCompile>
+			<PrecompiledHeader>NotUsing</PrecompiledHeader>
+			<WarningLevel>Level3</WarningLevel>
+			<Optimization>Disabled</Optimization>
+			<SDLCheck>true</SDLCheck>
+			<PreprocessorDefinitions>MIST_DEBUG</PreprocessorDefinitions>
+			<LanguageStandard>stdcpp17</LanguageStandard>
+			<TreatWarningAsError>true</TreatWarningAsError>
+			<DisableSpecificWarnings>4100;4101;4244;4267;4611;4624;4702;5030;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+		</ClCompile>
+		<Link>
+			<SubSystem>Windows</SubSystem>
+			<GenerateDebugInformation>true</GenerateDebugInformation>
+			<AdditionalDependencies>lua51.lib;libpng16.lib;z.lib;%(AdditionalDependencies)</AdditionalDependencies>
+			<IgnoreSpecificDefaultLibraries>libcmt</IgnoreSpecificDefaultLibraries>
+		</Link>
+		<PreBuildEvent>
+			<Command>$(ProjectDir)CreateDirectories.bat "$(IntDir)"</Command>
+		</PreBuildEvent>
+	</ItemDefinitionGroup>
+	<ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+		<ClCompile>
+			<PrecompiledHeader>NotUsing</PrecompiledHeader>
+			<WarningLevel>Level3</WarningLevel>
+			<Optimization>Disabled</Optimization>
+			<SDLCheck>true</SDLCheck>
+			<PreprocessorDefinitions>MIST_DEBUG</PreprocessorDefinitions>
+			<LanguageStandard>stdcpp17</LanguageStandard>
+			<TreatWarningAsError>true</TreatWarningAsError>
+			<DisableSpecificWarnings>4100;4101;4244;4267;4611;4624;4702;5030;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+		</ClCompile>
+		<Link>
+			<SubSystem>Windows</SubSystem>
+			<GenerateDebugInformation>true</GenerateDebugInformation>
+			<AdditionalDependencies>lua51.lib;libpng16.lib;z.lib;%(AdditionalDependencies)</AdditionalDependencies>
+			<IgnoreSpecificDefaultLibraries>libcmt</IgnoreSpecificDefaultLibraries>
+		</Link>
+		<PreBuildEvent>
+			<Command>$(ProjectDir)CreateDirectories.bat "$(IntDir)"</Command>
+		</PreBuildEvent>
+	</ItemDefinitionGroup>
+	<ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+		<ClCompile>
+			<PrecompiledHeader>NotUsing</PrecompiledHeader>
+			<WarningLevel>Level3</WarningLevel>
+			<Optimization>MaxSpeed</Optimization>
+			<FunctionLevelLinking>true</FunctionLevelLinking>
+			<IntrinsicFunctions>true</IntrinsicFunctions>
+			<SDLCheck>true</SDLCheck>
+			<PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+			<LanguageStandard>stdcpp17</LanguageStandard>
+			<TreatWarningAsError>true</TreatWarningAsError>
+			<DisableSpecificWarnings>4100;4101;4244;4267;4611;4624;4702;5030;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+		</ClCompile>
+		<Link>
+			<SubSystem>Windows</SubSystem>
+			<EnableCOMDATFolding>true</EnableCOMDATFolding>
+			<OptimizeReferences>true</OptimizeReferences>
+			<GenerateDebugInformation>true</GenerateDebugInformation>
+			<AdditionalDependencies>lua51.lib;libpng16.lib;z.lib;%(AdditionalDependencies)</AdditionalDependencies>
+		</Link>
+		<PreBuildEvent>
+			<Command>$(ProjectDir)CreateDirectories.bat "$(IntDir)"</Command>
+		</PreBuildEvent>
+	</ItemDefinitionGroup>
+	<ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+		<ClCompile>
+			<PrecompiledHeader>NotUsing</PrecompiledHeader>
+			<WarningLevel>Level3</WarningLevel>
+			<Optimization>MaxSpeed</Optimization>
+			<FunctionLevelLinking>true</FunctionLevelLinking>
+			<IntrinsicFunctions>true</IntrinsicFunctions>
+			<SDLCheck>true</SDLCheck>
+			<PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+			<LanguageStandard>stdcpp17</LanguageStandard>
+			<TreatWarningAsError>true</TreatWarningAsError>
+			<DisableSpecificWarnings>4100;4101;4244;4267;4611;4624;4702;5030;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+		</ClCompile>
+		<Link>
+			<SubSystem>Windows</SubSystem>
+			<EnableCOMDATFolding>true</EnableCOMDATFolding>
+			<OptimizeReferences>true</OptimizeReferences>
+			<GenerateDebugInformation>true</GenerateDebugInformation>
+			<AdditionalDependencies>lua51.lib;libpng16.lib;z.lib;%(AdditionalDependencies)</AdditionalDependencies>
+		</Link>
+		<PreBuildEvent>
+			<Command>$(ProjectDir)CreateDirectories.bat "$(IntDir)"</Command>
+		</PreBuildEvent>
+	</ItemDefinitionGroup>
+	<Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+	<ImportGroup Label="ExtensionTargets">
+</ImportGroup>
+</Project>

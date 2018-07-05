@@ -1,3 +1,4 @@
+require('utils.allocateconsole')()
 local databuffer = require('host.databuffer')
 local ffi = require('ffi')
 local fileio = require('rs.fileio')

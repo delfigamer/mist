@@ -7,102 +7,79 @@ function env.path(str)
 end
 
 ffi.cdef[[
-typedef struct
-{
-	uint16_t wYear;
-	uint16_t wMonth;
-	uint16_t wDayOfWeek;
-	uint16_t wDay;
-	uint16_t wHour;
-	uint16_t wMinute;
-	uint16_t wSecond;
-	uint16_t wMilliseconds;
-} systemtime_t;
-void __stdcall GetSystemTime(
-	systemtime_t* lpSystemTime
-);
-bool __stdcall SystemTimeToFileTime(
-	systemtime_t const* lpSystemTime,
-	uint64_t* lpFileTime
-);
-bool __stdcall CloseHandle(
-	void const* hObject
-);
-void const* __stdcall CreateFileA(
-	char const* lpFileName,
-	uint32_t dwDesiredAccess,
-	uint32_t dwShareMode,
-	void const* lpSecurityAttributes,
-	uint32_t dwCreationDisposition,
-	uint32_t dwFlagsAndAttributes,
-	void const* hTemplateFile
-);
-bool __stdcall GetFileTime(
-	void const* hFile,
-	uint64_t* lpCreationTime,
-	uint64_t* lpLastAccessTime,
-	uint64_t* lpLastWriteTime
-);
-bool __stdcall SetFileTime(
-	void const* hFile,
-	uint64_t const* lpCreationTime,
-	uint64_t const* lpLastAccessTime,
-	uint64_t const* lpLastWriteTime
-);
+	void* __stdcall CreateFileW(
+		wchar_t const* lpFileName,
+		uint32_t dwDesiredAccess,
+		uint32_t dwShareMode,
+		void const* lpSecurityAttributes,
+		uint32_t dwCreationDisposition,
+		uint32_t dwFlagsAndAttributes,
+		void* hTemplateFile);
+	bool __stdcall CloseHandle(
+		void* hObject);
+	uint32_t __stdcall GetLastError();
+	int __stdcall MultiByteToWideChar(
+		unsigned int CodePage, uint32_t dwFlags,
+		char const* lpMultiByteStr, int cbMultiByte,
+		wchar_t* lpWideCharStr, int cchWideChar);
+	int __stdcall WideCharToMultiByte(
+		unsigned CodePage, uint32_t dwFlags,
+		wchar_t const* lpWideCharStr, int cchWideChar,
+		char* lpMultiByteStr, int cbMultiByte,
+		char const* lpDefaultChar, bool* lpUsedDefaultChar);
+	bool __stdcall GetFileTime(
+		void const* hFile,
+		uint64_t* lpCreationTime,
+		uint64_t* lpLastAccessTime,
+		uint64_t* lpLastWriteTime);
 ]]
 
-function env.getcurrenttime()
-	local cst = ffi.new('systemtime_t[1]')
-	ffi.C.GetSystemTime(cst)
-	local lwt = ffi.new('uint64_t[1]')
-	if ffi.C.SystemTimeToFileTime(cst, lwt) then
-		return lwt[0]
-	else
-		error('cannot get current time')
+local function towstr(ustr)
+	local buflen = ffi.C.MultiByteToWideChar(65001, 0, ustr, #ustr, nil, 0)
+	local buffer = ffi.new('wchar_t[?]', buflen + 1)
+	ffi.C.MultiByteToWideChar(65001, 0, ustr, #ustr, buffer, buflen)
+	return buffer, buflen + 1
+end
+
+local function fromwstr(wstr, wlen)
+	local buflen = ffi.C.WideCharToMultiByte(
+		65001, 0, wstr, wlen or -1, nil, 0, nil, nil)
+	local buffer = ffi.new('char[?]', buflen)
+	ffi.C.WideCharToMultiByte(
+		65001, 0, wstr, wlen or -1, buffer, buflen, nil, nil)
+	while buflen > 0 and buffer[buflen-1] == 0 do
+		buflen = buflen - 1
 	end
+	return ffi.string(buffer, buflen)
+end
+
+local function createfile(path, ...)
+	local wpath = towstr(env.path(path))
+	local handle = ffi.C.CreateFileW(wpath, ...)
+	if ffi.cast('ptrdiff_t', handle) == -1 then
+		return nil
+	end
+	return handle
 end
 
 function env.getfiletime(path)
-	local handle = ffi.C.CreateFileA(
-		env.path(path),
+	local handle = createfile(
+		path,
 		0x80000000, -- GENERIC_READ
 		7, -- FILE_SHARE_READ || FILE_SHARE_WRITE || FILE_SHARE_DELETE
 		nil,
 		3, -- OPEN_EXISTING
 		0x02000080, -- FILE_ATTRIBUTE_NORMAL | FILE_FLAG_BACKUP_SEMANTICS
 		nil)
-	if handle ~= nil then
+	local time
+	if handle then
 		local lwt = ffi.new('uint64_t[1]')
 		if ffi.C.GetFileTime(handle, nil, nil, lwt) then
-			return lwt[0]
+			time = lwt[0]
 		end
 		ffi.C.CloseHandle(handle)
 	end
-end
-
-function env.setfiletime(path, time)
-	local handle = ffi.C.CreateFileA(
-		env.path(path),
-		0x40000000, -- GENERIC_WRITE
-		7, -- FILE_SHARE_READ || FILE_SHARE_WRITE || FILE_SHARE_DELETE
-		nil,
-		3, -- OPEN_EXISTING
-		0x80, -- FILE_ATTRIBUTE_NORMAL
-		nil)
-	if handle ~= nil then
-		local lwt = ffi.new('uint64_t[1]')
-		if time then
-			lwt[0] = time
-		else
-			local cst = ffi.new('systemtime_t[1]')
-			ffi.C.GetSystemTime(cst)
-			if not ffi.C.SystemTimeToFileTime(cst, lwt) then
-				error('cannot get current time')
-			end
-		end
-		ffi.C.SetFileTime(handle, nil, nil, lwt)
-		ffi.C.CloseHandle(handle)
-	end
+	return time
 end
 
 function env.rmdir(path)

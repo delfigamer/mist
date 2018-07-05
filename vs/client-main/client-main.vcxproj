@@ -1,191 +1,403 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="Debug|Win32">
-      <Configuration>Debug</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Debug|x64">
-      <Configuration>Debug</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|Win32">
-      <Configuration>Release</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|x64">
-      <Configuration>Release</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\..\utils\cbase.cpp" />
-    <ClCompile Include="..\..\utils\configset.cpp" />
-    <ClCompile Include="..\..\utils\console.cpp" />
-    <ClCompile Include="..\..\utils\cyclicbuffer.cpp" />
-    <ClCompile Include="..\..\utils\encoding.cpp" />
-    <ClCompile Include="..\..\utils\path.cpp" />
-    <ClCompile Include="..\..\rsbin\common.cpp" />
-    <ClCompile Include="..\..\rsbin\fileio.cpp" />
-    <ClCompile Include="..\..\rsbin\flacreader.cpp" />
-    <ClCompile Include="..\..\rsbin\flacwriter.cpp" />
-    <ClCompile Include="..\..\rsbin\fsthread.cpp" />
-    <ClCompile Include="..\..\rsbin\io.cpp" />
-    <ClCompile Include="..\..\rsbin\memoryio.cpp" />
-    <ClCompile Include="..\..\rsbin\pngreader.cpp" />
-    <ClCompile Include="..\..\rsbin\pngwriter.cpp" />
-    <ClCompile Include="..\..\client-main\main.cpp" />
-    <ClCompile Include="..\..\client-main\window.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\common.hpp" />
-    <ClInclude Include="..\..\osapi.hpp" />
-    <ClInclude Include="..\..\common\databuffer.hpp" />
-    <ClInclude Include="..\..\common\flaglock.hpp" />
-    <ClInclude Include="..\..\common\mpsclist.hpp" />
-    <ClInclude Include="..\..\common\mpscqueue.hpp" />
-    <ClInclude Include="..\..\common\ref.hpp" />
-    <ClInclude Include="..\..\common\refobject.hpp" />
-    <ClInclude Include="..\..\common\strexception.hpp" />
-    <ClInclude Include="..\..\common\stringbuilder.hpp" />
-    <ClInclude Include="..\..\utils\cbase.hpp" />
-    <ClInclude Include="..\..\utils\configset.hpp" />
-    <ClInclude Include="..\..\utils\console.hpp" />
-    <ClInclude Include="..\..\utils\cyclicbuffer.hpp" />
-    <ClInclude Include="..\..\utils\encoding.hpp" />
-    <ClInclude Include="..\..\utils\path.hpp" />
-    <ClInclude Include="..\..\utils\pathparse.hpp" />
-    <ClInclude Include="..\..\rsbin\common.hpp" />
-    <ClInclude Include="..\..\rsbin\fileio.hpp" />
-    <ClInclude Include="..\..\rsbin\flaccommon.hpp" />
-    <ClInclude Include="..\..\rsbin\flacreader.hpp" />
-    <ClInclude Include="..\..\rsbin\flacwriter.hpp" />
-    <ClInclude Include="..\..\rsbin\fsthread.hpp" />
-    <ClInclude Include="..\..\rsbin\io.hpp" />
-    <ClInclude Include="..\..\rsbin\iotask.hpp" />
-    <ClInclude Include="..\..\rsbin\memoryio.hpp" />
-    <ClInclude Include="..\..\rsbin\pngcommon.hpp" />
-    <ClInclude Include="..\..\rsbin\pngreader.hpp" />
-    <ClInclude Include="..\..\rsbin\pngwriter.hpp" />
-    <ClInclude Include="..\..\client-main\event.hpp" />
-    <ClInclude Include="..\..\client-main\window.hpp" />
-    <ClInclude Include="..\..\client-main\windowinfo.hpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\..\build\vs120-$(Platform)-$(Configuration)\client-main\luainit.cpp" />
-    <ClCompile Include="..\..\build\vs120-$(Platform)-$(Configuration)\client-main\methodlist.cpp" />
-    <ClInclude Include="..\..\build\vs120-$(Platform)-$(Configuration)\client-main\luainit.hpp" />
-    <ClInclude Include="..\..\build\vs120-$(Platform)-$(Configuration)\client-main\methodlist.hpp" />
-  </ItemGroup>
-  <PropertyGroup Label="Globals">
-    <ProjectGuid>{8EA84ACF-3204-44B2-97E9-6F4BAE3BE8A8}</ProjectGuid>
-    <RootNamespace>clientmain</RootNamespace>
-  </PropertyGroup>
-  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
-    <CharacterSet>MultiByte</CharacterSet>
-  </PropertyGroup>
-  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <ImportGroup Label="ExtensionSettings">
-  </ImportGroup>
-  <ImportGroup Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <PropertyGroup Label="UserMacros" />
-  <PropertyGroup>
-    <OutDir>$(SolutionDir)..\output\bin-vs120-$(Platform)-$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)..\build\vs120-$(Platform)-$(Configuration)\client-main\</IntDir>
-    <IncludePath>$(SolutionDir)..;$(SolutionDir)..\build\vs120-$(Platform)-$(Configuration);$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)..;$(LibraryPath)</LibraryPath>
-  </PropertyGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <Optimization>Disabled</Optimization>
-      <SDLCheck>true</SDLCheck>
-      <DisableSpecificWarnings>4200;4800</DisableSpecificWarnings>
-    </ClCompile>
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>lua51-win32.lib;libFLAC_dynamic-win32.lib;libpng-win32.lib;zlib-win32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <IgnoreSpecificDefaultLibraries>LIBCMT</IgnoreSpecificDefaultLibraries>
-    </Link>
-    <PostBuildEvent>
-      <Command>call postbuild.bat "$(SolutionDir)" "$(OutDir)" win32</Command>
-    </PostBuildEvent>
-    <ProjectReference>
-      <LinkLibraryDependencies>false</LinkLibraryDependencies>
-    </ProjectReference>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <Optimization>Disabled</Optimization>
-      <SDLCheck>true</SDLCheck>
-      <DisableSpecificWarnings>4200;4800</DisableSpecificWarnings>
-    </ClCompile>
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>lua51-win64.lib;libFLAC_dynamic-win64.lib;libpng-win64.lib;zlib-win64.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <IgnoreSpecificDefaultLibraries>LIBCMT</IgnoreSpecificDefaultLibraries>
-    </Link>
-    <PostBuildEvent>
-      <Command>call postbuild.bat "$(SolutionDir)" "$(OutDir)" win64</Command>
-    </PostBuildEvent>
-    <ProjectReference>
-      <LinkLibraryDependencies>false</LinkLibraryDependencies>
-    </ProjectReference>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <Optimization>MaxSpeed</Optimization>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <SDLCheck>true</SDLCheck>
-      <DisableSpecificWarnings>4200;4800</DisableSpecificWarnings>
-    </ClCompile>
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>lua51-win32.lib;libFLAC_dynamic-win32.lib;libpng-win32.lib;zlib-win32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <IgnoreSpecificDefaultLibraries>LIBCMT</IgnoreSpecificDefaultLibraries>
-    </Link>
-    <PostBuildEvent>
-      <Command>call postbuild.bat "$(SolutionDir)" "$(OutDir)" win64</Command>
-    </PostBuildEvent>
-    <ProjectReference>
-      <LinkLibraryDependencies>false</LinkLibraryDependencies>
-    </ProjectReference>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <Optimization>MaxSpeed</Optimization>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <SDLCheck>true</SDLCheck>
-      <DisableSpecificWarnings>4200;4800</DisableSpecificWarnings>
-    </ClCompile>
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>lua51-win64.lib;libFLAC_dynamic-win64.lib;libpng-win64.lib;zlib-win64.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <IgnoreSpecificDefaultLibraries>LIBCMT</IgnoreSpecificDefaultLibraries>
-    </Link>
-    <PostBuildEvent>
-      <Command>call postbuild.bat "$(SolutionDir)" "$(OutDir)" win32</Command>
-    </PostBuildEvent>
-    <ProjectReference>
-      <LinkLibraryDependencies>false</LinkLibraryDependencies>
-    </ProjectReference>
-  </ItemDefinitionGroup>
-  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <ImportGroup Label="ExtensionTargets">
-  </ImportGroup>
+<?xml version="1.0" encoding="utf-8"?>
+
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<ItemGroup Label="ProjectConfigurations">
+		<ProjectConfiguration Include="Debug|Win32">
+			<Configuration>Debug</Configuration>
+			<Platform>Win32</Platform>
+		</ProjectConfiguration>
+		<ProjectConfiguration Include="Release|Win32">
+			<Configuration>Release</Configuration>
+			<Platform>Win32</Platform>
+		</ProjectConfiguration>
+		<ProjectConfiguration Include="Debug|x64">
+			<Configuration>Debug</Configuration>
+			<Platform>x64</Platform>
+		</ProjectConfiguration>
+		<ProjectConfiguration Include="Release|x64">
+			<Configuration>Release</Configuration>
+			<Platform>x64</Platform>
+		</ProjectConfiguration>
+	</ItemGroup>
+	<ItemGroup>
+
+		<ClInclude Include="$(SolutionDir)..\src\client-main\event.hpp" />
+
+		<ClInclude Include="$(SolutionDir)..\src\client-main\rindex.hpp" />
+
+		<ClInclude Include="$(SolutionDir)..\src\client-main\window.hpp" />
+
+		<ClInclude Include="$(SolutionDir)..\src\client-main\windowinfo.hpp" />
+
+		<ClInclude Include="$(SolutionDir)..\src\common.hpp" />
+
+		<ClInclude Include="$(SolutionDir)..\src\common\databuffer.hpp" />
+
+		<ClInclude Include="$(SolutionDir)..\src\common\flaglock.hpp" />
+
+		<ClInclude Include="$(SolutionDir)..\src\common\mpscqueue.hpp" />
+
+		<ClInclude Include="$(SolutionDir)..\src\common\ref.hpp" />
+
+		<ClInclude Include="$(SolutionDir)..\src\common\refobject.hpp" />
+
+		<ClInclude Include="$(SolutionDir)..\src\common\stringbuilder.hpp" />
+
+		<ClInclude Include="$(SolutionDir)..\src\common\task.hpp" />
+
+		<ClInclude Include="$(SolutionDir)..\src\osapi.hpp" />
+
+		<ClInclude Include="$(SolutionDir)..\src\reflection.hpp" />
+
+		<ClInclude Include="$(SolutionDir)..\src\rsbin\common.hpp" />
+
+		<ClInclude Include="$(SolutionDir)..\src\rsbin\filestorage.hpp" />
+
+		<ClInclude Include="$(SolutionDir)..\src\rsbin\formattask.hpp" />
+
+		<ClInclude Include="$(SolutionDir)..\src\rsbin\memorystorage.hpp" />
+
+		<ClInclude Include="$(SolutionDir)..\src\rsbin\pngcommon.hpp" />
+
+		<ClInclude Include="$(SolutionDir)..\src\rsbin\pngreader.hpp" />
+
+		<ClInclude Include="$(SolutionDir)..\src\rsbin\pngwriter.hpp" />
+
+		<ClInclude Include="$(SolutionDir)..\src\rsbin\storage.hpp" />
+
+		<ClInclude Include="$(SolutionDir)..\src\rsbin\storagestream.hpp" />
+
+		<ClInclude Include="$(SolutionDir)..\src\rsbin\stream.hpp" />
+
+		<ClInclude Include="$(SolutionDir)..\src\utils\cbase.hpp" />
+
+		<ClInclude Include="$(SolutionDir)..\src\utils\configset.hpp" />
+
+		<ClInclude Include="$(SolutionDir)..\src\utils\console.hpp" />
+
+		<ClInclude Include="$(SolutionDir)..\src\utils\encoding.hpp" />
+
+		<ClInclude Include="$(SolutionDir)..\src\utils\path.hpp" />
+
+		<ClInclude Include="$(SolutionDir)..\src\utils\pathparse.hpp" />
+
+	</ItemGroup>
+	<ItemGroup>
+
+		<ClCompile Include="$(SolutionDir)..\reflection\client-main\event.r.cpp">
+			<AssemblerListingLocation>$(IntDir)reflection\client-main\event.r.asm</AssemblerListingLocation>
+			<ObjectFileName>$(IntDir)reflection\client-main\event.r.obj</ObjectFileName>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\reflection\client-main\rindex.cpp">
+			<AssemblerListingLocation>$(IntDir)reflection\client-main\rindex.asm</AssemblerListingLocation>
+			<ObjectFileName>$(IntDir)reflection\client-main\rindex.obj</ObjectFileName>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\reflection\client-main\window.r.cpp">
+			<AssemblerListingLocation>$(IntDir)reflection\client-main\window.r.asm</AssemblerListingLocation>
+			<ObjectFileName>$(IntDir)reflection\client-main\window.r.obj</ObjectFileName>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\reflection\client-main\windowinfo.r.cpp">
+			<AssemblerListingLocation>$(IntDir)reflection\client-main\windowinfo.r.asm</AssemblerListingLocation>
+			<ObjectFileName>$(IntDir)reflection\client-main\windowinfo.r.obj</ObjectFileName>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\reflection\common\databuffer.r.cpp">
+			<AssemblerListingLocation>$(IntDir)reflection\common\databuffer.r.asm</AssemblerListingLocation>
+			<ObjectFileName>$(IntDir)reflection\common\databuffer.r.obj</ObjectFileName>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\reflection\common\refobject.r.cpp">
+			<AssemblerListingLocation>$(IntDir)reflection\common\refobject.r.asm</AssemblerListingLocation>
+			<ObjectFileName>$(IntDir)reflection\common\refobject.r.obj</ObjectFileName>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\reflection\common\task.r.cpp">
+			<AssemblerListingLocation>$(IntDir)reflection\common\task.r.asm</AssemblerListingLocation>
+			<ObjectFileName>$(IntDir)reflection\common\task.r.obj</ObjectFileName>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\reflection\rsbin\common.r.cpp">
+			<AssemblerListingLocation>$(IntDir)reflection\rsbin\common.r.asm</AssemblerListingLocation>
+			<ObjectFileName>$(IntDir)reflection\rsbin\common.r.obj</ObjectFileName>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\reflection\rsbin\filestorage.r.cpp">
+			<AssemblerListingLocation>$(IntDir)reflection\rsbin\filestorage.r.asm</AssemblerListingLocation>
+			<ObjectFileName>$(IntDir)reflection\rsbin\filestorage.r.obj</ObjectFileName>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\reflection\rsbin\formattask.r.cpp">
+			<AssemblerListingLocation>$(IntDir)reflection\rsbin\formattask.r.asm</AssemblerListingLocation>
+			<ObjectFileName>$(IntDir)reflection\rsbin\formattask.r.obj</ObjectFileName>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\reflection\rsbin\memorystorage.r.cpp">
+			<AssemblerListingLocation>$(IntDir)reflection\rsbin\memorystorage.r.asm</AssemblerListingLocation>
+			<ObjectFileName>$(IntDir)reflection\rsbin\memorystorage.r.obj</ObjectFileName>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\reflection\rsbin\pngcommon.r.cpp">
+			<AssemblerListingLocation>$(IntDir)reflection\rsbin\pngcommon.r.asm</AssemblerListingLocation>
+			<ObjectFileName>$(IntDir)reflection\rsbin\pngcommon.r.obj</ObjectFileName>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\reflection\rsbin\pngreader.r.cpp">
+			<AssemblerListingLocation>$(IntDir)reflection\rsbin\pngreader.r.asm</AssemblerListingLocation>
+			<ObjectFileName>$(IntDir)reflection\rsbin\pngreader.r.obj</ObjectFileName>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\reflection\rsbin\pngwriter.r.cpp">
+			<AssemblerListingLocation>$(IntDir)reflection\rsbin\pngwriter.r.asm</AssemblerListingLocation>
+			<ObjectFileName>$(IntDir)reflection\rsbin\pngwriter.r.obj</ObjectFileName>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\reflection\rsbin\storage.r.cpp">
+			<AssemblerListingLocation>$(IntDir)reflection\rsbin\storage.r.asm</AssemblerListingLocation>
+			<ObjectFileName>$(IntDir)reflection\rsbin\storage.r.obj</ObjectFileName>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\reflection\rsbin\storagestream.r.cpp">
+			<AssemblerListingLocation>$(IntDir)reflection\rsbin\storagestream.r.asm</AssemblerListingLocation>
+			<ObjectFileName>$(IntDir)reflection\rsbin\storagestream.r.obj</ObjectFileName>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\reflection\rsbin\stream.r.cpp">
+			<AssemblerListingLocation>$(IntDir)reflection\rsbin\stream.r.asm</AssemblerListingLocation>
+			<ObjectFileName>$(IntDir)reflection\rsbin\stream.r.obj</ObjectFileName>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\reflection\utils\cbase.r.cpp">
+			<AssemblerListingLocation>$(IntDir)reflection\utils\cbase.r.asm</AssemblerListingLocation>
+			<ObjectFileName>$(IntDir)reflection\utils\cbase.r.obj</ObjectFileName>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\reflection\utils\configset.r.cpp">
+			<AssemblerListingLocation>$(IntDir)reflection\utils\configset.r.asm</AssemblerListingLocation>
+			<ObjectFileName>$(IntDir)reflection\utils\configset.r.obj</ObjectFileName>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\reflection\utils\encoding.r.cpp">
+			<AssemblerListingLocation>$(IntDir)reflection\utils\encoding.r.asm</AssemblerListingLocation>
+			<ObjectFileName>$(IntDir)reflection\utils\encoding.r.obj</ObjectFileName>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\reflection\utils\path.r.cpp">
+			<AssemblerListingLocation>$(IntDir)reflection\utils\path.r.asm</AssemblerListingLocation>
+			<ObjectFileName>$(IntDir)reflection\utils\path.r.obj</ObjectFileName>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\src\client-main\main.cpp">
+			<AssemblerListingLocation>$(IntDir)src\client-main\main.asm</AssemblerListingLocation>
+			<ObjectFileName>$(IntDir)src\client-main\main.obj</ObjectFileName>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\src\client-main\window.cpp">
+			<AssemblerListingLocation>$(IntDir)src\client-main\window.asm</AssemblerListingLocation>
+			<ObjectFileName>$(IntDir)src\client-main\window.obj</ObjectFileName>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\src\rsbin\common.cpp">
+			<AssemblerListingLocation>$(IntDir)src\rsbin\common.asm</AssemblerListingLocation>
+			<ObjectFileName>$(IntDir)src\rsbin\common.obj</ObjectFileName>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\src\rsbin\filestorage.cpp">
+			<AssemblerListingLocation>$(IntDir)src\rsbin\filestorage.asm</AssemblerListingLocation>
+			<ObjectFileName>$(IntDir)src\rsbin\filestorage.obj</ObjectFileName>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\src\rsbin\formattask.cpp">
+			<AssemblerListingLocation>$(IntDir)src\rsbin\formattask.asm</AssemblerListingLocation>
+			<ObjectFileName>$(IntDir)src\rsbin\formattask.obj</ObjectFileName>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\src\rsbin\memorystorage.cpp">
+			<AssemblerListingLocation>$(IntDir)src\rsbin\memorystorage.asm</AssemblerListingLocation>
+			<ObjectFileName>$(IntDir)src\rsbin\memorystorage.obj</ObjectFileName>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\src\rsbin\pngreader.cpp">
+			<AssemblerListingLocation>$(IntDir)src\rsbin\pngreader.asm</AssemblerListingLocation>
+			<ObjectFileName>$(IntDir)src\rsbin\pngreader.obj</ObjectFileName>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\src\rsbin\pngwriter.cpp">
+			<AssemblerListingLocation>$(IntDir)src\rsbin\pngwriter.asm</AssemblerListingLocation>
+			<ObjectFileName>$(IntDir)src\rsbin\pngwriter.obj</ObjectFileName>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\src\rsbin\storagestream.cpp">
+			<AssemblerListingLocation>$(IntDir)src\rsbin\storagestream.asm</AssemblerListingLocation>
+			<ObjectFileName>$(IntDir)src\rsbin\storagestream.obj</ObjectFileName>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\src\utils\cbase.cpp">
+			<AssemblerListingLocation>$(IntDir)src\utils\cbase.asm</AssemblerListingLocation>
+			<ObjectFileName>$(IntDir)src\utils\cbase.obj</ObjectFileName>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\src\utils\configset.cpp">
+			<AssemblerListingLocation>$(IntDir)src\utils\configset.asm</AssemblerListingLocation>
+			<ObjectFileName>$(IntDir)src\utils\configset.obj</ObjectFileName>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\src\utils\console.cpp">
+			<AssemblerListingLocation>$(IntDir)src\utils\console.asm</AssemblerListingLocation>
+			<ObjectFileName>$(IntDir)src\utils\console.obj</ObjectFileName>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\src\utils\encoding.cpp">
+			<AssemblerListingLocation>$(IntDir)src\utils\encoding.asm</AssemblerListingLocation>
+			<ObjectFileName>$(IntDir)src\utils\encoding.obj</ObjectFileName>
+		</ClCompile>
+
+		<ClCompile Include="$(SolutionDir)..\src\utils\path.cpp">
+			<AssemblerListingLocation>$(IntDir)src\utils\path.asm</AssemblerListingLocation>
+			<ObjectFileName>$(IntDir)src\utils\path.obj</ObjectFileName>
+		</ClCompile>
+
+	</ItemGroup>
+	<PropertyGroup Label="Globals">
+		<VCProjectVersion>15.0</VCProjectVersion>
+		<ProjectGuid>{5C47EEDE-F9C4-43BD-972C-7FEBEA9E2049}</ProjectGuid>
+		<Keyword>Win32Proj</Keyword>
+		<RootNamespace>clientmain</RootNamespace>
+		<WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+	</PropertyGroup>
+	<Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+	<PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
+		<ConfigurationType>Application</ConfigurationType>
+		<UseDebugLibraries>true</UseDebugLibraries>
+		<PlatformToolset>v141</PlatformToolset>
+		<CharacterSet>Unicode</CharacterSet>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)'=='Release'" Label="Configuration">
+		<ConfigurationType>Application</ConfigurationType>
+		<UseDebugLibraries>false</UseDebugLibraries>
+		<PlatformToolset>v141</PlatformToolset>
+		<WholeProgramOptimization>true</WholeProgramOptimization>
+		<CharacterSet>Unicode</CharacterSet>
+	</PropertyGroup>
+	<Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+	<ImportGroup Label="ExtensionSettings">
+	</ImportGroup>
+	<ImportGroup Label="Shared">
+	</ImportGroup>
+	<ImportGroup Label="PropertySheets">
+		<Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+	</ImportGroup>
+	<PropertyGroup Label="UserMacros" />
+	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
+		<LinkIncremental>true</LinkIncremental>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)'=='Release'">
+		<LinkIncremental>false</LinkIncremental>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Platform)'=='Win32'">
+		<LibraryPath>$(SolutionDir)..\lib\static\cl-win32;$(LibraryPath)</LibraryPath>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Platform)'=='x64'">
+		<LibraryPath>$(SolutionDir)..\lib\static\cl-win64;$(LibraryPath)</LibraryPath>
+	</PropertyGroup>
+	<PropertyGroup>
+		<OutDir>$(SolutionDir)..\output\bin-vs-$(Platform)-$(Configuration)\</OutDir>
+		<IntDir>$(SolutionDir)..\build\vs-$(Platform)-$(Configuration)\</IntDir>
+		<IncludePath>$(SolutionDir)..\src;$(SolutionDir)..\lib\include;$(SolutionDir)..;$(IncludePath)</IncludePath>
+	</PropertyGroup>
+	<ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+		<ClCompile>
+			<PrecompiledHeader>NotUsing</PrecompiledHeader>
+			<WarningLevel>Level3</WarningLevel>
+			<Optimization>Disabled</Optimization>
+			<SDLCheck>true</SDLCheck>
+			<PreprocessorDefinitions>MIST_DEBUG</PreprocessorDefinitions>
+			<LanguageStandard>stdcpp17</LanguageStandard>
+			<TreatWarningAsError>true</TreatWarningAsError>
+			<DisableSpecificWarnings>4100;4101;4244;4267;4611;4624;4702;5030;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+		</ClCompile>
+		<Link>
+			<SubSystem>Windows</SubSystem>
+			<GenerateDebugInformation>true</GenerateDebugInformation>
+			<AdditionalDependencies>lua51.lib;libpng16.lib;z.lib;%(AdditionalDependencies)</AdditionalDependencies>
+			<IgnoreSpecificDefaultLibraries>libcmt</IgnoreSpecificDefaultLibraries>
+		</Link>
+		<PreBuildEvent>
+			<Command>$(ProjectDir)CreateDirectories.bat "$(IntDir)"</Command>
+		</PreBuildEvent>
+	</ItemDefinitionGroup>
+	<ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+		<ClCompile>
+			<PrecompiledHeader>NotUsing</PrecompiledHeader>
+			<WarningLevel>Level3</WarningLevel>
+			<Optimization>Disabled</Optimization>
+			<SDLCheck>true</SDLCheck>
+			<PreprocessorDefinitions>MIST_DEBUG</PreprocessorDefinitions>
+			<LanguageStandard>stdcpp17</LanguageStandard>
+			<TreatWarningAsError>true</TreatWarningAsError>
+			<DisableSpecificWarnings>4100;4101;4244;4267;4611;4624;4702;5030;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+		</ClCompile>
+		<Link>
+			<SubSystem>Windows</SubSystem>
+			<GenerateDebugInformation>true</GenerateDebugInformation>
+			<AdditionalDependencies>lua51.lib;libpng16.lib;z.lib;%(AdditionalDependencies)</AdditionalDependencies>
+			<IgnoreSpecificDefaultLibraries>libcmt</IgnoreSpecificDefaultLibraries>
+		</Link>
+		<PreBuildEvent>
+			<Command>$(ProjectDir)CreateDirectories.bat "$(IntDir)"</Command>
+		</PreBuildEvent>
+	</ItemDefinitionGroup>
+	<ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+		<ClCompile>
+			<PrecompiledHeader>NotUsing</PrecompiledHeader>
+			<WarningLevel>Level3</WarningLevel>
+			<Optimization>MaxSpeed</Optimization>
+			<FunctionLevelLinking>true</FunctionLevelLinking>
+			<IntrinsicFunctions>true</IntrinsicFunctions>
+			<SDLCheck>true</SDLCheck>
+			<PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+			<LanguageStandard>stdcpp17</LanguageStandard>
+			<TreatWarningAsError>true</TreatWarningAsError>
+			<DisableSpecificWarnings>4100;4101;4244;4267;4611;4624;4702;5030;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+		</ClCompile>
+		<Link>
+			<SubSystem>Windows</SubSystem>
+			<EnableCOMDATFolding>true</EnableCOMDATFolding>
+			<OptimizeReferences>true</OptimizeReferences>
+			<GenerateDebugInformation>true</GenerateDebugInformation>
+			<AdditionalDependencies>lua51.lib;libpng16.lib;z.lib;%(AdditionalDependencies)</AdditionalDependencies>
+		</Link>
+		<PreBuildEvent>
+			<Command>$(ProjectDir)CreateDirectories.bat "$(IntDir)"</Command>
+		</PreBuildEvent>
+	</ItemDefinitionGroup>
+	<ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+		<ClCompile>
+			<PrecompiledHeader>NotUsing</PrecompiledHeader>
+			<WarningLevel>Level3</WarningLevel>
+			<Optimization>MaxSpeed</Optimization>
+			<FunctionLevelLinking>true</FunctionLevelLinking>
+			<IntrinsicFunctions>true</IntrinsicFunctions>
+			<SDLCheck>true</SDLCheck>
+			<PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+			<LanguageStandard>stdcpp17</LanguageStandard>
+			<TreatWarningAsError>true</TreatWarningAsError>
+			<DisableSpecificWarnings>4100;4101;4244;4267;4611;4624;4702;5030;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+		</ClCompile>
+		<Link>
+			<SubSystem>Windows</SubSystem>
+			<EnableCOMDATFolding>true</EnableCOMDATFolding>
+			<OptimizeReferences>true</OptimizeReferences>
+			<GenerateDebugInformation>true</GenerateDebugInformation>
+			<AdditionalDependencies>lua51.lib;libpng16.lib;z.lib;%(AdditionalDependencies)</AdditionalDependencies>
+		</Link>
+		<PreBuildEvent>
+			<Command>$(ProjectDir)CreateDirectories.bat "$(IntDir)"</Command>
+		</PreBuildEvent>
+	</ItemDefinitionGroup>
+	<Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+	<ImportGroup Label="ExtensionTargets">
+</ImportGroup>
 </Project>

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?lua
+local sources = {}
+local headers = {}
+
+local function checktarget(entry, history)
+	if history[entry] then
+		return
+	end
+	history[entry] = true
+	for i, dep in ipairs(entry.dependencies) do
+		checktarget(assert(info.entrymap[dep]), history)
+	end
+	local sourcename = string.match(entry.target, '(.*)%.cpp$')
+	if sourcename then
+		table.append(sources, sourcename)
+	end
+	local headername = string.match(entry.target, '(.*)%.hpp$')
+	if headername then
+		table.append(headers, headername)
+	end
+end
+
+checktarget(assert(info.entrymap['o//client-main.exe']), {})
+
+table.sort(sources)
+table.sort(headers)
+?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<ItemGroup>
+		<Filter Include="src">
+			<UniqueIdentifier>{84d01d9e-eef3-47ba-8c7a-bd59c45e9d22}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="src\common">
+			<UniqueIdentifier>{6469ddb9-98e1-444d-9071-9d0e3b884de5}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="src\client-main">
+			<UniqueIdentifier>{f760be53-0001-4c43-af9b-7e5d2075bd17}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="src\rsbin">
+			<UniqueIdentifier>{a54deca9-2e16-4cbc-887c-f3575eec32ff}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="src\utils">
+			<UniqueIdentifier>{13700729-a62d-43bd-9f95-b20bfe6dae3b}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="reflection">
+			<UniqueIdentifier>{15cf9bd0-be71-4d68-8348-c2d8bb5e4776}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="reflection\client-main">
+			<UniqueIdentifier>{65134fa5-2799-4475-8d66-966b90412a60}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="reflection\common">
+			<UniqueIdentifier>{b0eedfb3-98bc-47cc-87f2-30435a3d406c}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="reflection\utils">
+			<UniqueIdentifier>{d6c8bdb2-1512-4b6c-8304-da8ba3d31345}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="reflection\rsbin">
+			<UniqueIdentifier>{99c3304a-4d1e-4075-9904-0832856100d9}</UniqueIdentifier>
+		</Filter>
+	</ItemGroup>
+	<ItemGroup>
+<?lua
+for i, headername in ipairs(headers) do
+	local directory = string.match(headername, '(.*)/')
+	if directory then
+?>
+		<ClInclude Include="$(SolutionDir)<?le path('../' .. headername .. '.hpp') ?>">
+			<Filter><?le path(directory) ?></Filter>
+		</ClInclude>
+<?lua
+	end
+end
+?>
+	</ItemGroup>
+	<ItemGroup>
+<?lua
+for i, sourcename in ipairs(sources) do
+	local directory = string.match(sourcename, '(.*)/')
+	if directory then
+?>
+		<ClCompile Include="$(SolutionDir)<?le path('../' .. sourcename .. '.cpp') ?>">
+			<Filter><?le path(directory) ?></Filter>
+		</ClCompile>
+<?lua
+	end
+end
+?>
+	</ItemGroup>
+</Project>

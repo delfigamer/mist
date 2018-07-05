@@ -1,5 +1,6 @@
 local modname = ...
 local index = package.modtable(modname)
+require('utils.allocateconsole')()
 local exception = require('base.exception')
 local host = require('host')
 

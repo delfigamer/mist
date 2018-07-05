@@ -39,7 +39,7 @@ namespace window
 		}
 		Errored = true;
 		char StrBuffer[ 1024 ];
-		FormatMessage(
+		FormatMessageA(
 			FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_MAX_WIDTH_MASK,
 			0,
 			LastError,
@@ -573,7 +573,7 @@ namespace window
 			snprintf(
 				buffer, sizeof( buffer ),
 				"FPS=%.3i", m_fps );
-			SetWindowText( m_hwnd, buffer );
+			SetWindowTextA( m_hwnd, buffer );
 #endif
 		}
 	}

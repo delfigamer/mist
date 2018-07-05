@@ -10,6 +10,7 @@ namespace utils
 		std::this_thread::yield();
 	}
 
+	[[ r::method ]] void allocateconsole();
 	[[ r::method ]] void write( char const* str );
 	[[ r::method ]] void getchar( char* str );
 }

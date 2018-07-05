@@ -153,6 +153,38 @@ namespace utils
 		fclose( ( FILE* )m_file );
 	}
 
+	void ConsoleClass::allocateconsole()
+	{
+#if defined( _WIN32 ) || defined( _WIN64 )
+		if( m_inputhandle != 0 && m_outputhandle != 0 )
+		{
+			return;
+		}
+		if( !AllocConsole() )
+		{
+			syserror();
+		}
+		if( m_inputhandle == 0 )
+		{
+			m_inputhandle = GetStdHandle( STD_INPUT_HANDLE );
+			if( ( HANDLE )m_inputhandle == INVALID_HANDLE_VALUE )
+			{
+				syserror();
+			}
+			m_inputisconsole = true;
+		}
+		if( m_outputhandle == 0 )
+		{
+			m_outputhandle = GetStdHandle( STD_OUTPUT_HANDLE );
+			if( ( HANDLE )m_outputhandle == INVALID_HANDLE_VALUE )
+			{
+				syserror();
+			}
+			m_outputisconsole = true;
+		}
+#endif
+	}
+
 	void ConsoleClass::linestart()
 	{
 		if( m_newline )
@@ -271,7 +303,6 @@ namespace utils
 
 	void ConsoleClass::getchar( char* str )
 	{
-		size_t pointlength;
 #if defined( _WIN32 ) || defined( _WIN64 )
 		if( m_inputhandle == 0 )
 		{
@@ -341,6 +372,7 @@ namespace utils
 		{
 			m_newline_consumed = 0;
 		}
+		size_t pointlength;
 		if( !encoding::utf8.encode( str, charcode, 4, &pointlength ) )
 		{
 			str[ 0 ] = 0;
@@ -350,6 +382,7 @@ namespace utils
 			str[ pointlength ] = 0;
 		}
 #else
+		size_t pointlength;
 		size_t length = 0;
 		while( true )
 		{

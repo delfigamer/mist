@@ -187,6 +187,33 @@ return {
 --------------------------------------------------------------------------------
 	{
 		type = 'native',
+		name = 'client-main/event',
+		headeronly = true,
+		target = 'client-main',
+		reflect = true,
+	},
+	{
+		type = 'native',
+		name = 'client-main/main',
+		noheader = true,
+		target = 'client-main',
+	},
+	{
+		type = 'native',
+		name = 'client-main/window',
+		target = 'client-main',
+		reflect = true,
+	},
+	{
+		type = 'native',
+		name = 'client-main/windowinfo',
+		headeronly = true,
+		target = 'client-main',
+		reflect = true,
+	},
+--------------------------------------------------------------------------------
+	{
+		type = 'native',
 		name = 'renderer-state/common',
 		headeronly = true,
 		-- use = 'renderer-d3d9;renderer-gles',
@@ -470,32 +497,5 @@ return {
 		name = 'renderer-gles/vertexdeclaration',
 		use = 'renderer-gles',
 		reflect = 'renderer-gles',
-	},
---------------------------------------------------------------------------------
-	{
-		type = 'native',
-		name = 'client-main/event',
-		headeronly = true,
-		target = 'client-main',
-		reflect = true,
-	},
-	{
-		type = 'native',
-		name = 'client-main/main',
-		noheader = true,
-		target = 'client-main',
-	},
-	{
-		type = 'native',
-		name = 'client-main/window',
-		target = 'client-main',
-		reflect = true,
-	},
-	{
-		type = 'native',
-		name = 'client-main/windowinfo',
-		headeronly = true,
-		target = 'client-main',
-		reflect = true,
 	},
 }

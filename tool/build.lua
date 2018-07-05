@@ -5,6 +5,7 @@ local env = require('env')
 local configuration = require('build-config')
 local reflectprocess = require('reflect-process')
 local reflectindex = require('reflect-index')
+local generate = require('generate')
 
 local currenttarget = ...
 currenttarget = currenttarget or 'all'
@@ -17,28 +18,13 @@ if _G.dryrun then
 end
 
 local platform = configuration.platform
-local srcdir = configuration.srcdir
 local libincludedir = configuration.libincludedir
 local libstaticdir = configuration.libstaticdir
 local libdynamicdir = configuration.libdynamicdir
 local builddir = configuration.builddir
 local outputdir = configuration.outputdir
-currenttarget = string.gsub(currenttarget, '$b', builddir)
-currenttarget = string.gsub(currenttarget, '$o', outputdir)
 
 -- define build steps neccesary to obtain various intermediate and output files
-local function build_clean(entry)
-	for i, dep in ipairs(entry.directories) do
-		print('rmdir', dep)
-		env.rmdir(dep)
-	end
-	for i, dep in ipairs(entry.files) do
-		print('rm', dep)
-		env.rm(dep)
-	end
-	return true
-end
-
 local function build_rprocess(entry)
 	print('reflect', entry.target)
 	if not env.makepath(entry.target) then
@@ -73,21 +59,34 @@ local function build_rindex(entry)
 	return suc
 end
 
-local function build_cpp(entry)
+local function build_generate(entry)
+	print('generate', entry.target)
+	if not env.makepath(entry.target) then
+		return false
+	end
+	local suc, err = pcall(generate, {
+		target = entry.target,
+		source = entry.source,
+		info = entry.info,
+	})
+	if not suc then
+		print(err)
+	end
+	return suc
+end
+
+local function build_obj(entry)
 	print('compile', entry.target)
 	return env.compile{
 		target = entry.target,
 		source = entry.source,
 		incpath = {
-			srcdir,
+			'src',
 			libincludedir,
-			builddir,
 			'.',
 		},
 		macros = configuration.compilermacros,
-		asmfile =
-			configuration.saveintermediates and
-			string.gsub(entry.target, '.[^.]*$', '.asm'),
+		asmfile = string.gsub(entry.target, '.[^.]*$', '.asm'),
 	}
 end
 
@@ -123,8 +122,55 @@ local function build_copy(entry)
 	return env.copy(entry.source, entry.target)
 end
 
--- construct the build graph
-local targets = {}
+local entrymap = {}
+local entrylist = {}
+--[[
+build entry:
+	target - actual path to the file
+	dependencies - list of file names that must be built before this file
+	autodep - method to automatically add dependencies to the file:
+		autodep = 'native'
+		autodep = 'reflect'
+	build - build procedure for the file
+	isdummy - the target does not correspond to an actual file
+	if build = build_obj:
+		source - actual path to the corresponding .cpp file
+	if build = build_exe or build = build_dll:
+		items - list of actual paths to .obj files
+		libraries - list of library names
+	if build = build_copy:
+		source - actual path to the source file
+	if build = build_rprocess:
+		source - actual path to the corresponding .hpp file
+		modulename - internal module name based on the path
+	if build = build_rindex:
+		items - list of actual paths to .r files
+		indexname - variable name for the module index
+		prolog - list of paths to .lua files to be executed before the modules
+		epilog - list of paths to .lua files to be executed after the modules
+	if build = build_generate:
+		source - actual path to the corresponding .template file
+		info - table to be passed to the template scripts
+]]
+
+local function register(entry, ...)
+	assert(entry.target)
+	table.append(entrylist, entry)
+	assert(entrymap[entry.target] == nil)
+	entrymap[entry.target] = entry
+	local names = {...}
+	for i = 1, select('#', ...) do
+		assert(entrymap[names[i]] == nil)
+		entrymap[names[i]] = entry
+	end
+end
+
+register(
+	{
+		target = 'sources.lua',
+	})
+
+local reflection_targets = {}
 
 -- special reflection nodes for native binaries
 local rindex_items = {}
@@ -136,120 +182,139 @@ for i, rec in ipairs{
 			'luainit/baselib.lua',
 			'luainit/object.lua',
 			'luainit/ffipure.lua',
-			'luainit/reflection.lua'},
+			'luainit/reflection.lua',
+		},
 		epilog = {
 			'luainit/hostlib.lua',
-			'luainit/main.lua'}},
+			'luainit/main.lua',
+		},
+	},
 	{
 		target = 'renderer-d3d9',
-		indexname = {'graphics', 'rindex'}},
+		indexname = {'graphics', 'rindex'},
+	},
 	{
 		target = 'renderer-gles',
-		indexname = {'graphics', 'rindex'}},
+		indexname = {'graphics', 'rindex'},
+	},
 } do
 	rindex_items[rec.target] = {}
 	local rindexdeps = {
-		'reflection.hpp',
-		'common.hpp'}
+		'sources.lua',
+		'src/reflection.hpp',
+		'src/common.hpp',
+	}
 	if rec.prolog then
 		for i, entry in ipairs(rec.prolog) do
-			table.append(targets, {
-				target = entry,
-				issource = true,
-			})
+			register(
+				{
+					target = entry,
+				})
 			table.append(rindexdeps, entry)
 		end
 	end
 	if rec.epilog then
 		for i, entry in ipairs(rec.epilog) do
-			table.append(targets, {
-				target = entry,
-				issource = true,
-			})
+			register(
+				{
+					target = entry,
+				})
 			table.append(rindexdeps, entry)
 		end
 	end
-	table.append(targets, {
-		build = build_rindex,
-		target = builddir .. '/' .. rec.target .. '/rindex.cpp',
-		items = rindex_items[rec.target],
-		indexname = rec.indexname,
-		prolog = rec.prolog,
-		epilog = rec.epilog,
-		dependencies = rindexdeps,
-	})
-	table.append(targets, {
-		target = srcdir .. '/' .. rec.target .. '/rindex.hpp',
-		issource = true,
-		autodep = 'native',
-	})
-	table.append(targets, {
-		target = rec.target .. '/rindex.hpp',
-		dependencies = {
-			srcdir .. '/' .. rec.target .. '/rindex.hpp',
+	register(
+		{
+			target = 'reflection/' .. rec.target .. '/rindex.cpp',
+			build = build_rindex,
+			items = rindex_items[rec.target],
+			indexname = rec.indexname,
+			prolog = rec.prolog,
+			epilog = rec.epilog,
+			dependencies = rindexdeps,
+		})
+	table.append(reflection_targets,
+		'reflection/' .. rec.target .. '/rindex.cpp')
+	register(
+		{
+			target = 'src/' .. rec.target .. '/rindex.hpp',
+			autodep = 'native',
 		},
-	})
-	table.append(targets, {
-		build = build_cpp,
-		target = builddir .. '/' .. rec.target .. '/rindex.o',
-		source = builddir .. '/' .. rec.target .. '/rindex.cpp',
-	})
+		rec.target .. '/rindex.hpp')
+	register(
+		{
+			target = builddir .. '/reflection/' .. rec.target .. '/rindex.o',
+			build = build_obj,
+			source = 'reflection/' .. rec.target .. '/rindex.cpp',
+		},
+		'b//reflection/' .. rec.target .. '/rindex.o')
 end
 
 -- nodes for binaries themselves
 local target_items = {
 	['client-main'] = {
-		builddir .. '/client-main/rindex.o',
+		builddir .. '/reflection/client-main/rindex.o',
 	},
 	['renderer-d3d9'] = {
-		builddir .. '/renderer-d3d9/rindex.o',
+		builddir .. '/reflection/renderer-d3d9/rindex.o',
 	},
 	['renderer-gles'] = {
-		builddir .. '/renderer-gles/rindex.o',
+		builddir .. '/reflection/renderer-gles/rindex.o',
 	},
 }
 
-table.append(targets, {
-	build = build_exe,
-	target = outputdir .. '/client-main.exe',
-	items = target_items['client-main'],
-	libraries = {
-		'luajit-' .. platform,
-		'png-' .. platform,
-		'gdi32',
-		'z',
-		'libFLAC_dynamic',
+register(
+	{
+		target = outputdir .. '/client-main.exe',
+		build = build_exe,
+		items = target_items['client-main'],
+		libraries = {
+			'lua51',
+			'libpng16',
+			'z',
+			'gdi32',
+			'user32',
+			-- 'libFLAC_dynamic',
+		},
+		dependencies = {
+			'sources.lua',
+			-- outputdir .. '/libFLAC_dynamic.dll',
+		},
 	},
-	dependencies = {
-		outputdir .. '/libFLAC_dynamic.dll',
-	},
-})
+	'o//client-main.exe')
 
-table.append(targets, {
-	build = build_dll,
-	target = outputdir .. '/renderer-d3d9.dll',
-	items = target_items['renderer-d3d9'],
-	libraries = {
-		'gdi32',
-		'd3d9',
-		'd3dx9',
+register(
+	{
+		target = outputdir .. '/renderer-d3d9.dll',
+		build = build_dll,
+		items = target_items['renderer-d3d9'],
+		libraries = {
+			-- 'gdi32',
+			-- 'd3d9',
+			-- 'd3dx9',
+		},
+		dependencies = {
+			'sources.lua',
+		},
 	},
-})
+	'o//renderer-d3d9.dll')
 
-table.append(targets, {
-	build = build_dll,
-	target = outputdir .. '/renderer-gles.dll',
-	items = target_items['renderer-gles'],
-	libraries = {
-		'gdi32',
-		'GLESv2',
-		'EGL',
+register(
+	{
+		target = outputdir .. '/renderer-gles.dll',
+		build = build_dll,
+		items = target_items['renderer-gles'],
+		libraries = {
+			-- 'gdi32',
+			-- 'GLESv2',
+			-- 'EGL',
+		},
+		dependencies = {
+			'sources.lua',
+			-- outputdir .. '/libGLESv2.dll',
+			-- outputdir .. '/libEGL.dll',
+		},
 	},
-	dependencies = {
-		outputdir .. '/libEGL.dll',
-		outputdir .. '/libGLESv2.dll',
-	},
-})
+	'o//renderer-gles.dll')
 
 -- nodes for third-party libraries
 for i, name in ipairs{
@@ -257,115 +322,187 @@ for i, name in ipairs{
 	'libGLESv2',
 	'libFLAC_dynamic',
 } do
-	table.append(targets, {
-		target = libdynamicdir .. '/' .. name .. '-' .. platform .. '.dll',
-		issource = true,
-	})
-	table.append(targets, {
-		build = build_copy,
-		target = outputdir .. '/' .. name .. '.dll',
-		source = libdynamicdir .. '/' .. name .. '-' .. platform .. '.dll',
-	})
+	register(
+		{
+			target = libdynamicdir .. '/' .. name .. '.dll',
+		})
+	register(
+		{
+			target = outputdir .. '/' .. name .. '.dll',
+			build = build_copy,
+			source = libdynamicdir .. '/' .. name .. '.dll',
+		},
+		'o//' .. name .. '.dll')
+end
+
+-- Visual Studio project files
+local generate_info = {
+	entrylist = entrylist,
+	entrymap = entrymap,
+	sources = sources,
+}
+
+local vsproj_targets = {
+	'reflection',
+}
+
+for i, filename in ipairs{
+	'vs/client-main/client-main.vcxproj',
+	'vs/client-main/client-main.vcxproj.filters',
+	'vs/client-main/client-main.vcxproj.user',
+} do
+	register(
+		{
+			target = filename .. '.template',
+		})
+	register(
+		{
+			target = filename,
+			build = build_generate,
+			source = filename .. '.template',
+			info = generate_info,
+			dependencies = {
+				'sources.lua',
+			},
+		})
+	table.append(vsproj_targets,
+		filename)
 end
 
 -- special nodes
-table.append(targets, {
-	target = 'all',
-	dependencies = {
-		outputdir .. '/client-main.exe',
-		outputdir .. '/renderer-d3d9.dll',
-		outputdir .. '/renderer-gles.dll',
-	},
-})
-
-table.append(targets, {
-	build = build_clean,
-	target = 'clean',
-	alwaysbuild = true,
-	directories = {
-		builddir,
-	},
-	files = {
-		outputdir .. '/client-main.exe',
-		outputdir .. '/renderer-d3d9.dll',
-		outputdir .. '/renderer-gles.dll',
-		outputdir .. '/libEGL.dll',
-		outputdir .. '/libGLESv2.dll',
-	},
-})
+register(
+	{
+		target = 'bin',
+		isdummy = true,
+		dependencies = {
+			outputdir .. '/client-main.exe',
+			outputdir .. '/renderer-d3d9.dll',
+			outputdir .. '/renderer-gles.dll',
+		},
+	})
+register(
+	{
+		target = 'reflection',
+		isdummy = true,
+		dependencies = reflection_targets,
+	})
+register(
+	{
+		target = 'vsproj',
+		isdummy = true,
+		dependencies = vsproj_targets,
+	})
+register(
+	{
+		target = 'all',
+		isdummy = true,
+		dependencies = {
+			'bin',
+			'vsproj',
+		},
+	})
 
 -- fill the graph with the source file nodes, based on 'build-sources'
 for i, unit in ipairs(sources) do
 	if unit.type == 'native' then
 		if not unit.noheader then
-			table.append(targets, {
-				target = srcdir .. '/' .. unit.name .. '.hpp',
-				issource = true,
-				autodep = 'native',
-			})
-			table.append(targets, {
-				target = unit.name .. '.hpp',
-				dependencies = {
-					srcdir .. '/' .. unit.name .. '.hpp',
+			register(
+				{
+					target = 'src/' .. unit.name .. '.hpp',
+					autodep = 'native',
 				},
-			})
+				unit.name .. '.hpp')
 		end
 		if not unit.headeronly then
-			table.append(targets, {
-				target = srcdir .. '/' .. unit.name .. '.cpp',
-				issource = true,
-				autodep = 'native',
-			})
-			table.append(targets, {
-				target = unit.name .. '.cpp',
-				dependencies = {
-					srcdir .. '/' .. unit.name .. '.cpp',
+			register(
+				{
+					target = 'src/' .. unit.name .. '.cpp',
+					autodep = 'native',
 				},
-			})
+				unit.name .. '.cpp')
 		end
 		if unit.target and not unit.headeronly then
-			table.append(targets, {
-				build = build_cpp,
-				target = builddir .. '/' .. unit.name .. '.o',
-				source = srcdir .. '/' .. unit.name .. '.cpp',
-			})
+			register(
+				{
+					target = builddir .. '/src/' .. unit.name .. '.o',
+					build = build_obj,
+					source = 'src/' .. unit.name .. '.cpp',
+				},
+				'b//src/' .. unit.name .. '.o')
 			table.append(target_items[unit.target],
-				builddir .. '/' .. unit.name .. '.o')
+				builddir .. '/src/' .. unit.name .. '.o')
 		end
 		if unit.target and unit.reflect then
-			table.append(targets, {
-				build = build_rprocess,
-				target = builddir .. '/' .. unit.name .. '.r',
-				source = srcdir .. '/' .. unit.name .. '.hpp',
-				modulename = unit.name,
-				autodep = 'reflection',
-			})
+			register(
+				{
+					target = 'reflection/' .. unit.name .. '.r',
+					build = build_rprocess,
+					source = 'src/' .. unit.name .. '.hpp',
+					modulename = unit.name,
+					autodep = 'reflection',
+				})
+			table.append(reflection_targets,
+				'reflection/' .. unit.name .. '.r')
 			table.append(rindex_items[unit.target],
-				builddir .. '/' .. unit.name .. '.r')
-			table.append(targets, {
-				target = builddir .. '/' .. unit.name .. '.r.cpp',
-				dependencies = {
-					builddir .. '/' .. unit.name .. '.r',
+				'reflection/' .. unit.name .. '.r')
+			register(
+				{
+					target = 'reflection/' .. unit.name .. '.r.cpp',
+					dependencies = {
+						'reflection/' .. unit.name .. '.r',
+					},
+				})
+			table.append(reflection_targets,
+				'reflection/' .. unit.name .. '.r.cpp')
+			register(
+				{
+					target = builddir .. '/reflection/' .. unit.name .. '.r.o',
+					build = build_obj,
+					source = 'reflection/' .. unit.name .. '.r.cpp',
 				},
-			})
-			table.append(targets, {
-				build = build_cpp,
-				target = builddir .. '/' .. unit.name .. '.r.o',
-				source = builddir .. '/' .. unit.name .. '.r.cpp',
-			})
+				'b//reflection/' .. unit.name .. '.r.o')
 			table.append(target_items[unit.target],
-				builddir .. '/' .. unit.name .. '.r.o')
+				builddir .. '/reflection/' .. unit.name .. '.r.o')
 		end
 	end
 end
 
--- provide the name-to-node mapping
-for i, entry in ipairs(targets) do
-	targets[entry.target] = entry
+local function autodep_native(entry)
+	local file = io.open(env.path(entry.target), 'r')
+	if file then
+		for line in file:lines() do
+			local filename = string.match(line, '#%s*include%s*<(.*)>')
+			if filename then
+				local depentry = entrymap[filename]
+				if depentry then
+					table.append(entry.dependencies, depentry.target)
+				end
+			end
+		end
+		file:close()
+	end
+end
+
+local function autodep_reflection(entry)
+	local file = io.open(env.path(entry.source), 'r')
+	if file then
+		for line in file:lines() do
+			local filename = string.match(line, '#%s*include%s*<(.*)>')
+			if filename then
+				local modulename = string.match(filename, '^(.*)%.') or filename
+				local rname = 'reflection/' .. modulename .. '.r'
+				local depentry = entrymap[rname]
+				if depentry then
+					table.append(entry.dependencies, depentry.target)
+				end
+			end
+		end
+		file:close()
+	end
 end
 
 -- fill the node dependency edges
-for i, entry in ipairs(targets) do
+for i, entry in ipairs(entrylist) do
 	if not entry.dependencies then
 		entry.dependencies = {}
 	end
@@ -380,64 +517,16 @@ for i, entry in ipairs(targets) do
 	end
 	-- source-type nodes link to their #includes
 	if entry.autodep == 'native' then
-		local file = io.open(env.path(entry.target), 'r')
-		if file then
-			for line in file:lines() do
-				local target = string.match(line, '#%s*include%s*<(.*)>')
-				if target and targets[target] then
-					table.append(entry.dependencies, target)
-				end
-			end
-			file:close()
-		end
+		autodep_native(entry)
 	elseif entry.autodep == 'reflection' then
-		local file = io.open(env.path(entry.source), 'r')
-		if file then
-			for line in file:lines() do
-				local target = string.match(line, '#%s*include%s*<(.*)>')
-				if target then
-					local modulename = string.match(target, '^(.*)%.') or target
-					local rpath = builddir .. '/' .. modulename .. '.r'
-					if targets[rpath] then
-						table.append(entry.dependencies, rpath)
-					end
-				end
-			end
-			file:close()
-		end
-	end
-end
-
--- sort the list, so that dependent nodes are placed after their dependencies
-do
-	local function preceding(entry)
-		local r = {}
-		for i, dep in ipairs(entry.dependencies) do
-			table.append(r, targets[dep])
-		end
-		return r
-	end
-	local result, leftover = table.weak_sort(targets, preceding)
-	if result then
-		targets = result
-	else
-		for i, entry in ipairs(current) do
-			print(string.format('target %s:', entry.target))
-			for j, dep in ipairs(entry.dependencies) do
-				print(string.format('\t%s', dep))
-			end
-		end
-		error('cannot resolve dependency graph')
-	end
-	for i, entry in ipairs(targets) do
-		targets[entry.target] = entry
+		autodep_reflection(entry)
 	end
 end
 
 -- for debugging purposes, it is possible to print out the full graph
 -- without building anything
 if _G.printgraph then
-	for i, entry in ipairs(targets) do
+	for i, entry in ipairs(entrylist) do
 		print(entry.target .. ':')
 		for j, dep in ipairs(entry.dependencies) do
 			print('', dep)
@@ -446,110 +535,41 @@ if _G.printgraph then
 	return
 end
 
--- starting with the final target,
--- propagate the 'is needed' mark backwards through the graph
-do
-	local next = {targets[currenttarget]}
-	if not next[1] then
-		error('invalid current target')
-	end
-	next[1].marked = true
-	while #next > 0 do
-		local entry = table.pop(next)
-		for i, dep in ipairs(entry.dependencies) do
-			local depentry = targets[dep]
-			if not depentry.marked then
-				depentry.marked = true
-				table.append(next, depentry)
+local function buildentry(entry, force)
+	entry.isactive = true
+	local deptime = 0
+	for i, dep in ipairs(entry.dependencies) do
+		local depentry = assert(entrymap[dep])
+		if not depentry.time then
+			if depentry.isactive then
+				error('circular dependency')
 			end
+			buildentry(depentry, _G.force)
+			assert(depentry.time)
+		end
+		if depentry.time > deptime then
+			deptime = depentry.time
 		end
 	end
-end
-
--- load the state of previous build
-local buildstate
-if not _G.cleanstate then
-	local f = loadfile(env.path(builddir .. '/buildstate.lua'), 't', '', {})
-	local suc, ret = pcall(f)
-	if type(ret) == 'table' and
-		type(ret.timemap) == 'table' and
-		type(ret.updatemap) == 'table'
-	then
-		buildstate = ret
-	end
-end
-buildstate = buildstate or {
-	timemap = {},
-	updatemap = {},
-}
-
-local function savebuildstate()
-	env.makepath(builddir .. '/buildstate.lua')
-	local f, err = io.open(env.path(builddir .. '/buildstate.lua'), 'w')
-	if not f then
-		return
-	end
-	f:write('return {\n\ttimemap = {\n')
-	for k, v in pairs(buildstate.timemap) do
-		f:write(string.format('\t\t[%q] = %s,\n',
-			k, v))
-	end
-	f:write('\t},\n\tupdatemap = {\n')
-	for k, v in pairs(buildstate.updatemap) do
-		f:write(string.format('\t\t[%q] = %s,\n',
-			k, v))
-	end
-	f:write('\t},\n}\n')
-	f:close()
-end
-
--- starting with changed source files,
--- propagate the 'is changed' mark forward through the graph
-for i, entry in ipairs(targets) do
-	if entry.issource then
-		local time = env.getfiletime(entry.target)
-		if time then
-			if
-				(not buildstate.timemap[entry.target] or
-					time > buildstate.timemap[entry.target])
-			then
-				print('changed:', entry.target)
-				buildstate.updatemap[entry.target] = true
-				buildstate.timemap[entry.target] = time
+	local targettime = env.getfiletime(entry.target)
+	if force or not targettime or targettime < deptime then
+		if entry.build then
+			if not entry.build(entry) then
+				error('build failed: ' .. entry.target)
+			end
+			local newtime = env.getfiletime(entry.target)
+			if newtime then
+				targettime = newtime
+			else
+				targettime = deptime
 			end
 		else
-			print('source file unavailable:', entry.target)
-			buildstate.updatemap[entry.target] = true
-			buildstate.timemap[entry.target] = nil
+			targettime = deptime
 		end
 	end
-	if entry.alwaysbuild or entry.target == currenttarget then
-		buildstate.updatemap[entry.target] = true
-	end
-	for j, dep in ipairs(entry.dependencies) do
-		if buildstate.updatemap[dep] then
-			buildstate.updatemap[entry.target] = true
-			break
-		end
-	end
+	entry.time = targettime
 end
 
-savebuildstate()
-
--- build nodes that are marked as both 'needed' and 'changed'
-for i, entry in ipairs(targets) do
-	if entry.marked then
-		if (buildstate.updatemap[entry.target] or entry.alwaysbuild) and
-			entry.build
-		then
-			if not entry:build() then
-				print('build failed', entry.target)
-				break
-			end
-		end
-		if not _G.dryrun then
-			buildstate.updatemap[entry.target] = nil
-			savebuildstate()
-		end
-	end
-end
+buildentry(
+	assert(entrymap[currenttarget], 'invalid target: ' .. currenttarget),
+	true)

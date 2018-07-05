@@ -1,0 +1,11 @@
+md "%~f1\src"
+md "%~f1\src\common"
+md "%~f1\src\client-main"
+md "%~f1\src\rsbin"
+md "%~f1\src\utils"
+md "%~f1\reflection"
+md "%~f1\reflection\common"
+md "%~f1\reflection\client-main"
+md "%~f1\reflection\rsbin"
+md "%~f1\reflection\utils"
+exit /b 0

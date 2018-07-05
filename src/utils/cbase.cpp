@@ -3,6 +3,11 @@
 
 namespace utils
 {
+	void allocateconsole()
+	{
+		Console->allocateconsole();
+	}
+
 	void write( char const* str )
 	{
 		externalassert( str );
