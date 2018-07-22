@@ -17,8 +17,8 @@ public:
 private:
 	struct Item
 	{
-		std::atomic< Item* > m_next;
 		char m_data[ sizeof( value_type ) ];
+		std::atomic< Item* > m_next;
 	};
 
 public:
